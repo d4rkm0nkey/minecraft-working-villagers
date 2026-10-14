@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "workingvillagers_test",
+  "version": "1.0.0",
+  "name": "Working Villagers Game Tests",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "me.teajay.workingvillagers.fabric.gametest.WorkingVillagersFabricTests"
+    ]
+  },
+  "depends": {
+    "workingvillagers": "*"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "workingvillagers:work_hours",
+  "function": "workingvillagers:no_wage_no_work",
+  "max_ticks": 700,
+  "setup_ticks": 1,
+  "structure": "workingvillagers:platform"
+}

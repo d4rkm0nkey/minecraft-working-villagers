@@ -208,6 +208,24 @@ docker run --rm -it -p 8000:8000 -v "$PWD/pages:/docs" squidfunk/mkdocs-material
 The jars end up in `fabric/build/libs` and `neoforge/build/libs`.
 `./gradlew :fabric:runClient` / `./gradlew :neoforge:runClient` start a dev client.
 
+## Game tests
+
+`./gradlew build` also runs the game tests on a test server of each loader
+(`./gradlew :fabric:runGameTest`, `./gradlew :neoforge:runGameTestServer` on their own).
+They hire villagers and set up every workstation like a player would, then check that the
+workers take their wage and deliver: the lumberjack fells a tree, replants it and spares
+builds, nobody works without wage, the sawyer only cuts allowed wood, the stone sawyer
+cuts bricks, the carpenter stops at its stock, the carrier empties its source.
+
+- Tests: `common/src/gametest/java`, one function per test, registered by the small test
+  mods in `fabric/src/gametest` and `neoforge/src/gametest`.
+- Test instances: `common/src/gametest/resources/data/workingvillagers/test_instance`
+  (structure, time limit, environment). `test_environment/work_hours.json` sets the clock
+  to the villagers' work hours.
+- The structures are empty grass platforms written by `tools/generate_test_structures.py`.
+- A failure message names the worker's status, e.g. "Waiting for wages", which usually
+  tells what went wrong.
+
 ## Layout
 
 - `common`: all game logic, compiled into both loader jars (mixins work on both loaders)
