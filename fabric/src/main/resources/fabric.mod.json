@@ -7,7 +7,13 @@
   "authors": [
     "TeaJay"
   ],
+  "contact": {
+    "homepage": "https://d4rkm0nkey.github.io/minecraft-working-villagers/",
+    "sources": "https://github.com/d4rkm0nkey/minecraft-working-villagers",
+    "issues": "https://github.com/d4rkm0nkey/minecraft-working-villagers/issues"
+  },
   "license": "MIT",
+  "icon": "assets/workingvillagers/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
@@ -21,9 +27,9 @@
     "workingvillagers.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.19.0",
+    "fabricloader": ">=${loader_version}",
     "java": ">=${java_version}",
     "minecraft": "${minecraft_dependency}",
-    "fabric-api": "*"
+    "fabric-api": ">=${fabric_version}"
   }
 }

@@ -1,11 +1,14 @@
 modLoader = "javafml"
 loaderVersion = "[1,)"
 license = "MIT"
+issueTrackerURL = "https://github.com/d4rkm0nkey/minecraft-working-villagers/issues"
 
 [[mods]]
 modId = "workingvillagers"
 version = "${version}"
 displayName = "Working Villagers"
+displayURL = "https://d4rkm0nkey.github.io/minecraft-working-villagers/"
+logoFile = "assets/workingvillagers/icon.png"
 authors = "TeaJay"
 description = '''Hire unemployed villagers with a work contract and give them real jobs: lumberjacks fell and replant trees, sawyers and stone sawyers cut wood and stone, carpenters craft wooden goods and carriers move items between chests. Every worker earns a daily wage in emeralds.'''
 
@@ -16,5 +19,12 @@ config = "workingvillagers.mixins.json"
 modId = "minecraft"
 type = "required"
 versionRange = "${minecraft_range}"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.workingvillagers]]
+modId = "neoforge"
+type = "required"
+versionRange = "[${neoforge_version},)"
 ordering = "NONE"
 side = "BOTH"

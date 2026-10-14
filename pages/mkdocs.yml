@@ -6,8 +6,8 @@ docs_dir: docs
 
 theme:
   name: material
-  favicon: assets/img/work_contract.png
-  logo: assets/img/work_contract.png
+  favicon: assets/img/icon.png
+  logo: assets/img/icon.png
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default

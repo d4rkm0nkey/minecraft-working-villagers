@@ -19,6 +19,9 @@ processResources {
 		"minecraft_dependency": minecraft_dependency,
 		"minecraft_range"     : minecraft_range,
 		"java_version"        : java_version,
+		"loader_version"      : loader_version,
+		"fabric_version"      : fabric_version,
+		"neoforge_version"    : neoforge_version,
 	]
 	inputs.properties(props)
 	filesMatching(["fabric.mod.json", "META-INF/neoforge.mods.toml"]) {
