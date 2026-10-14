@@ -9,8 +9,10 @@ import me.teajay.workingvillagers.carrier.Carriers;
 import me.teajay.workingvillagers.carrier.Route;
 import me.teajay.workingvillagers.item.WorkContractItem;
 import me.teajay.workingvillagers.job.HiredVillager;
+import me.teajay.workingvillagers.job.WorkerStatus;
 import me.teajay.workingvillagers.station.Workstations.ChestRole;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
@@ -49,6 +51,7 @@ public final class WorkerTests {
 		registry.accept("lumberjack_fells_tree_on_grass", WorkerTests::lumberjackFellsTreeOnGrass);
 		registry.accept("lumberjack_spares_builds", WorkerTests::lumberjackSparesBuilds);
 		registry.accept("no_wage_no_work", WorkerTests::noWageNoWork);
+		registry.accept("stuck_worker_is_brought_back", WorkerTests::stuckWorkerIsBroughtBack);
 		registry.accept("sawyer_cuts_planks", WorkerTests::sawyerCutsPlanks);
 		registry.accept("stone_sawyer_cuts_bricks", WorkerTests::stoneSawyerCutsBricks);
 		registry.accept("carpenter_makes_chests", WorkerTests::carpenterMakesChests);
@@ -138,6 +141,25 @@ public final class WorkerTests {
 		helper.runAfterDelay(600, () -> {
 			helper.assertTrue(TestWorld.count(helper, PERSONAL_CHEST, stack -> stack.is(ItemTags.AXES)) == 1, "The unpaid lumberjack took its axe");
 			helper.succeed();
+		});
+	}
+
+	/**
+	 * A lumberjack boxed in where it stands cannot reach anything: after a while it is
+	 * brought back to its chopping block and fells the tree.
+	 */
+	private static void stuckWorkerIsBroughtBack(GameTestHelper helper) {
+		BlockPos tree = new BlockPos(15, 1, 15);
+		TestWorld.oakTree(helper, tree, 4, true, Blocks.DIRT);
+		for (Direction side : Direction.Plane.HORIZONTAL) {
+			helper.setBlock(WORKER.relative(side), Blocks.STONE);
+			helper.setBlock(WORKER.relative(side).above(), Blocks.STONE);
+		}
+		helper.setBlock(WORKER.above(2), Blocks.STONE);
+		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_AXE), new ItemStack(Items.OAK_SAPLING));
+		helper.succeedWhen(() -> {
+			helper.assertFalse(worker.blockPosition().equals(helper.absolutePos(WORKER)), "The worker is still boxed in: " + WorkerStatus.describe(worker).getString());
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_LOG), 4, "oak logs in the output chest");
 		});
 	}
 

@@ -6,6 +6,7 @@ import me.teajay.workingvillagers.carrier.Carriers;
 import me.teajay.workingvillagers.item.WickerBasketItem;
 import me.teajay.workingvillagers.item.WorkContractItem;
 import me.teajay.workingvillagers.job.HiredVillager;
+import me.teajay.workingvillagers.job.StuckWorkers;
 import me.teajay.workingvillagers.job.WorkerJobs;
 import me.teajay.workingvillagers.station.StationPicks;
 import net.minecraft.core.BlockPos;
@@ -68,6 +69,13 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 	private @Nullable BlockPos workingvillagers$personalChest;
 	@Unique
 	private long workingvillagers$paidDay = -1L;
+	@Unique
+	private final StuckWorkers.Watch workingvillagers$stuckWatch = new StuckWorkers.Watch();
+
+	@Override
+	public StuckWorkers.Watch workingvillagers$getStuckWatch() {
+		return this.workingvillagers$stuckWatch;
+	}
 
 	@Override
 	public @Nullable BlockPos workingvillagers$getPersonalChest() {

@@ -78,6 +78,11 @@ chests are full, done for today, ...), otherwise what its day brings (sleeping, 
 bed, chatting with another villager or at the village square, free time, fleeing, hiding
 from a raid).
 
+A worker that cannot reach where it wants to go and does not get anywhere (in a hole, boxed
+in, behind a fence) shows *Stuck* after 20 seconds. After a minute (`stuckSeconds`) it is
+moved to a free spot next to its workstation (a carrier: to the source of its first route),
+unless it could walk there by itself or there is no room there.
+
 ## Woodcutter
 
 The stonecutter for wood (iron ingot above three planks): logs, stems and bamboo blocks

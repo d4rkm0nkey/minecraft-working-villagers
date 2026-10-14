@@ -12,8 +12,8 @@ Working Villagers is in an early beta. Thanks for testing!
 - All workers are **novices**. Levels are planned.
 - Carriers have **no filters** yet: they carry everything.
 - Workers only work while their chunks are loaded, i.e. while a player is nearby.
-- A worker that gets stuck stays stuck until you free it. (A tree it cannot reach is
-  skipped for a while.)
+- A worker that gets stuck (in a hole, boxed in) is brought back to its workstation after
+  a minute. If there is no room at the workstation either, it stays stuck until you free it.
 - No integration with JEI/EMI/REI or Jade yet.
 
 ## Reporting bugs

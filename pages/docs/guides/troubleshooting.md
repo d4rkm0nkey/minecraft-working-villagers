@@ -21,6 +21,7 @@ this list.
 | *Stock is full (16/16)* | The carpenter has as many products in its output chests as set. Take some out or raise the stock. |
 | *Waiting: cannot carry more* | The carpenter's inventory is full. Make room in the input chests so it can put back what it cannot use. |
 | *Nothing to carry, strolling around* | All sources of the carrier are empty, or the targets are full. |
+| *Stuck: cannot get anywhere* | The worker is in a hole, boxed in or behind a fence. After a minute it is brought back to its workstation (a carrier: to the source of its first route). If it stays stuck, clear a free spot next to the workstation or dig it out. |
 | *Sleeping*, *Free time*, *Chatting ...* | Not work time. Workers work from the morning to the afternoon. |
 
 ## Checklist

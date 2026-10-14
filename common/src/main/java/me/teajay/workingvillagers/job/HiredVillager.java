@@ -53,6 +53,9 @@ public interface HiredVillager {
 
 	void workingvillagers$setPaidDay(long day);
 
+	/** Whether the worker is stuck, see {@link StuckWorkers}. Not saved. */
+	StuckWorkers.Watch workingvillagers$getStuckWatch();
+
 	/** The container the worker has open right now, so its lid stays open. */
 	void workingvillagers$setOpenedContainer(@Nullable BlockPos pos);
 }

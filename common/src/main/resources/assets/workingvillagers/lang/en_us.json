@@ -116,6 +116,7 @@
   "status.workingvillagers.deliver": "Bringing everything to a chest",
   "status.workingvillagers.chests_full": "Waiting: chests are full",
   "status.workingvillagers.chest_unreachable": "Waiting: cannot reach the chest",
+  "status.workingvillagers.stuck": "Stuck: cannot get anywhere",
   "status.workingvillagers.lumberjack.search": "Looking for a tree",
   "status.workingvillagers.lumberjack.walk": "Walking to a tree",
   "status.workingvillagers.lumberjack.chop": "Chopping a tree (%s%%)",

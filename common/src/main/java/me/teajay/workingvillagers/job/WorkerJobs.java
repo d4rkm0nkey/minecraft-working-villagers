@@ -58,10 +58,17 @@ public final class WorkerJobs {
 			villager.releasePoi(MemoryModuleType.POTENTIAL_JOB_SITE);
 			villager.getBrain().eraseMemory(MemoryModuleType.POTENTIAL_JOB_SITE);
 		}
+		boolean worker = isWorker(villager);
+		if (worker) {
+			StuckWorkers.noteWalking(villager);
+		}
 		if (villager.tickCount % CHECK_INTERVAL != 0) {
 			return;
 		}
 		String name = WorkerNames.ensureName(villager);
+		if (worker) {
+			StuckWorkers.check(level, villager, CHECK_INTERVAL);
+		}
 		if (!unemployed) {
 			// Keep the station's note up to date (renamed worker, worker from before names existed)
 			if (!villager.getVillagerData().profession().unwrapKey().map(JOBS::containsValue).orElse(false)) {
@@ -73,6 +80,12 @@ public final class WorkerJobs {
 				.filter(station -> !station.hasWorker(villager.getUUID(), name))
 				.ifPresent(station -> station.setWorker(villager.getUUID(), name));
 		}
+	}
+
+	/** Whether the villager has one of the jobs of this mod (carriers included). */
+	private static boolean isWorker(Villager villager) {
+		return Carriers.isCarrier(villager)
+			|| villager.getVillagerData().profession().unwrapKey().map(JOBS::containsValue).orElse(false);
 	}
 
 	/**

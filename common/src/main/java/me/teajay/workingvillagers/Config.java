@@ -43,6 +43,11 @@ public final class Config {
 	public static final IntOption PERSONAL_CHEST_DISTANCE = intOption("workers", "personalChestDistance", 32, 4, 64,
 		"How far a personal chest may be from the workstation (for a carrier: from its first route).");
 
+	public static final IntOption STUCK_SECONDS = intOption("workers", "stuckSeconds", 60, 0, 600,
+		"After this many seconds of trying to get somewhere without getting anywhere (in a hole, boxed in),",
+		"a worker is brought back to its workstation (a carrier: to the source of its first route).",
+		"0: never, the menus only show that it is stuck.");
+
 	public static final BoolOption REQUIRE_MOB_GRIEFING = boolOption("lumberjack", "requireMobGriefing", true,
 		"Lumberjacks only work while the game rule mob_griefing is on.");
 	public static final IntOption TREE_SEARCH_RADIUS = intOption("lumberjack", "searchRadius", 16, 4, 32,

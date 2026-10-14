@@ -21,6 +21,7 @@ default and its allowed range, so you can edit it with any text editor.
 | `maxChests` | 8 | 1–8 | Chests that can be linked to one workstation. |
 | `chestDistance` | 16 | 4–32 | How far a linked chest may be from its workstation. |
 | `personalChestDistance` | 32 | 4–64 | How far a personal chest may be from the workstation (carrier: from its first route's source). |
+| `stuckSeconds` | 60 | 0–600 | After this many seconds of trying to get somewhere without getting anywhere, a worker is brought back to its workstation (carrier: its first route's source). **0**: never; the menu only shows that it is stuck. |
 
 ## Lumberjack
 

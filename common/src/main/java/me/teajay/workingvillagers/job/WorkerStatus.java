@@ -49,6 +49,9 @@ public final class WorkerStatus {
 			return translatable("chatting_with", other.getName());
 		}
 		if (brain.isActive(Activity.WORK)) {
+			if (((HiredVillager) villager).workingvillagers$getStuckWatch().isStuck()) {
+				return translatable("stuck");
+			}
 			Component task = ((HiredVillager) villager).workingvillagers$getTask();
 			return task != null ? task : translatable("no_work");
 		}

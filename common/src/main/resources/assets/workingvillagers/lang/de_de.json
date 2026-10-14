@@ -116,6 +116,7 @@
   "status.workingvillagers.deliver": "Bringt alles zur Kiste",
   "status.workingvillagers.chests_full": "Wartet: Kisten sind voll",
   "status.workingvillagers.chest_unreachable": "Wartet: kommt nicht an die Kiste",
+  "status.workingvillagers.stuck": "Steckt fest: kommt nirgendwo hin",
   "status.workingvillagers.lumberjack.search": "Sucht einen Baum",
   "status.workingvillagers.lumberjack.walk": "Geht zum Baum",
   "status.workingvillagers.lumberjack.chop": "Hackt einen Baum (%s %%)",

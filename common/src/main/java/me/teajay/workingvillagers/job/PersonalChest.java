@@ -266,7 +266,7 @@ public final class PersonalChest {
 	}
 
 	/** Where the worker works: its workstation, the source of its first route, or where it is. */
-	private static BlockPos anchor(ServerLevel level, Villager worker) {
+	static BlockPos anchor(ServerLevel level, Villager worker) {
 		Optional<GlobalPos> jobSite = worker.getBrain().getMemory(MemoryModuleType.JOB_SITE);
 		if (jobSite.isPresent() && jobSite.get().dimension() == level.dimension()) {
 			return jobSite.get().pos();
