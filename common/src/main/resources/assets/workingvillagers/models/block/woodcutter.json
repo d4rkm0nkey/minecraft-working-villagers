@@ -1,0 +1,10 @@
+{
+  "parent": "minecraft:block/stonecutter",
+  "textures": {
+    "particle": "workingvillagers:block/woodcutter_bottom",
+    "bottom": "workingvillagers:block/woodcutter_bottom",
+    "top": "workingvillagers:block/woodcutter_top",
+    "side": "workingvillagers:block/woodcutter_side",
+    "saw": "minecraft:block/stonecutter_saw"
+  }
+}

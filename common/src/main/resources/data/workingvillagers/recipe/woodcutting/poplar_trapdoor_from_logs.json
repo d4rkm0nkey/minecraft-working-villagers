@@ -1,0 +1,8 @@
+{
+  "type": "workingvillagers:woodcutting",
+  "ingredient": "#minecraft:poplar_logs",
+  "result": {
+    "id": "minecraft:poplar_trapdoor",
+    "count": 1
+  }
+}

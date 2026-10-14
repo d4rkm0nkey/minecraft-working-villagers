@@ -1,0 +1,8 @@
+{
+  "type": "workingvillagers:woodcutting",
+  "ingredient": "#minecraft:crimson_stems",
+  "result": {
+    "id": "minecraft:crimson_door",
+    "count": 2
+  }
+}

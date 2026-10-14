@@ -1,0 +1,32 @@
+// Settings for the loader projects (fabric, neoforge): compiles the common sources
+// and resources into the loader jar.
+plugins {
+	id 'workingvillagers.common'
+}
+
+base {
+	archivesName = "${archives_base_name}-${project.name}"
+}
+
+def common = project(':common')
+sourceSets.main.java.srcDir(common.file('src/main/java'))
+sourceSets.main.resources.srcDir(common.file('src/main/resources'))
+
+processResources {
+	def props = [
+		"version"             : project.version,
+		"minecraft_dependency": minecraft_dependency,
+		"minecraft_range"     : minecraft_range,
+		"java_version"        : java_version,
+	]
+	inputs.properties(props)
+	filesMatching(["fabric.mod.json", "META-INF/neoforge.mods.toml"]) {
+		expand props
+	}
+}
+
+jar {
+	from(rootProject.file("LICENSE")) {
+		rename { "${it}_${archives_base_name}" }
+	}
+}

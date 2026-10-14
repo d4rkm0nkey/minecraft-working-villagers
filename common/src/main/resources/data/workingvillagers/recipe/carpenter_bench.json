@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "S": "#minecraft:wooden_slabs",
+    "I": "minecraft:iron_ingot",
+    "L": "#minecraft:logs"
+  },
+  "pattern": [
+    "SSS",
+    " I ",
+    "L L"
+  ],
+  "result": {
+    "id": "workingvillagers:carpenter_bench"
+  }
+}

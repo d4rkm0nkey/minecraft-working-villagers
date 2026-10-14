@@ -1,0 +1,8 @@
+{
+  "type": "workingvillagers:woodcutting",
+  "ingredient": "minecraft:poplar_planks",
+  "result": {
+    "id": "minecraft:poplar_slab",
+    "count": 2
+  }
+}

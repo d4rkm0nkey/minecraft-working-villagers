@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CSC",
+    "C C",
+    "CCC"
+  ],
+  "key": {
+    "C": "minecraft:sugar_cane",
+    "S": "minecraft:stick"
+  },
+  "result": {
+    "id": "workingvillagers:wicker_basket"
+  }
+}

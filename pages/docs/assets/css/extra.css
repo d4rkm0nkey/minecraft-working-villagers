@@ -1,0 +1,42 @@
+/* Minecraft textures are 16x16 and must not be smoothed when scaled up. */
+img.mc {
+  image-rendering: pixelated;
+  width: 32px;
+  height: 32px;
+  vertical-align: middle;
+}
+
+/* Crafting grids: .craft holds 9 (or 4) cells, .craft-result the output. */
+.recipe {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  margin: 1rem 0;
+}
+.craft {
+  display: grid;
+  grid-template-columns: repeat(3, 4.6rem);
+  gap: 3px;
+}
+.craft span, .craft-result {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 3.2rem;
+  padding: 0 2px;
+  font-size: 0.62rem;
+  line-height: 1.15;
+  background: var(--md-code-bg-color);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 3px;
+}
+.craft-result {
+  width: 5.4rem;
+  font-weight: 700;
+  border-color: var(--md-accent-fg-color);
+}
+.recipe .arrow {
+  font-size: 1.4rem;
+}

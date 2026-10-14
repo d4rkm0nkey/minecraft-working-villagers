@@ -1,0 +1,8 @@
+{
+  "type": "workingvillagers:woodcutting",
+  "ingredient": "minecraft:bamboo_mosaic",
+  "result": {
+    "id": "minecraft:bamboo_mosaic_stairs",
+    "count": 1
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "type": "workingvillagers:woodcutting",
+  "ingredient": "#minecraft:warped_stems",
+  "result": {
+    "id": "minecraft:warped_sign",
+    "count": 1
+  }
+}

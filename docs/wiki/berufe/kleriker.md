@@ -1,0 +1,30 @@
+# Beruf: Kleriker
+
+[← Berufe](README.md) · Station: **Brewing Stand** (Vanilla) · Phase: später
+
+Der Kleriker braut Tränke nach Rezept, z. B. Heiltränke für verletzte Angestellte oder Tränke zum Verkauf.
+
+## Arbeitsablauf
+
+1. Wasserflaschen, Netherwarze, Blaze-Pulver und Zutaten aus der Quellkiste holen.
+2. Gewählten Trank brauen.
+3. Tränke in die Zielkiste legen.
+
+## Quellkiste / Zielkiste
+
+| Quellkiste | Zielkiste |
+| --- | --- |
+| Wasserflaschen, Netherwarze, Blaze-Pulver, Zutaten | Tränke |
+
+## Ideen
+
+- Heilt verletzte Angestellte im Dorf (weniger Moralverlust).
+- Heilt Zombie-Villager (Schwäche + Goldener Apfel) und schließt so offene Einträge im [Register](../dorf/dorfbuch.md#register).
+
+## Master-Fähigkeit
+
+Verlängerte oder verstärkte Tränke ohne Zusatzzutat.
+
+## Siehe auch
+
+[Dorfbuch](../dorf/dorfbuch.md) · [Berufe](README.md)

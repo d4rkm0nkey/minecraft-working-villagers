@@ -1,0 +1,8 @@
+{
+  "type": "workingvillagers:woodcutting",
+  "ingredient": "minecraft:birch_planks",
+  "result": {
+    "id": "minecraft:birch_stairs",
+    "count": 1
+  }
+}

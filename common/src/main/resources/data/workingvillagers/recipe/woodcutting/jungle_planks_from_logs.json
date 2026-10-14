@@ -1,0 +1,8 @@
+{
+  "type": "workingvillagers:woodcutting",
+  "ingredient": "#minecraft:jungle_logs",
+  "result": {
+    "id": "minecraft:jungle_planks",
+    "count": 4
+  }
+}

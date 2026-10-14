@@ -1,0 +1,8 @@
+{
+  "type": "workingvillagers:woodcutting",
+  "ingredient": "#minecraft:cherry_logs",
+  "result": {
+    "id": "minecraft:cherry_fence",
+    "count": 2
+  }
+}

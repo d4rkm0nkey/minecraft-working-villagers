@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "A": "#minecraft:axes",
+    "L": "#minecraft:logs"
+  },
+  "pattern": [
+    "A",
+    "L"
+  ],
+  "result": {
+    "id": "workingvillagers:chopping_block"
+  }
+}

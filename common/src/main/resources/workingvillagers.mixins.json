@@ -1,0 +1,20 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "me.teajay.workingvillagers.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "BrainAccessor",
+    "ServerPlayerGameModeMixin",
+    "ServerLevelMixin",
+    "StonecutterBlockMixin",
+    "VillagerGoalPackagesMixin",
+    "VillagerMixin"
+  ],
+  "client": [
+    "client.VillagerRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

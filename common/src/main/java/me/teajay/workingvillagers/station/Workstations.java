@@ -1,0 +1,398 @@
+package me.teajay.workingvillagers.station;
+
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import me.teajay.workingvillagers.Config;
+import me.teajay.workingvillagers.WorkingVillagers;
+import me.teajay.workingvillagers.crafting.WoodTypes;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.datafix.DataFixTypes;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.village.poi.PoiManager;
+import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.HopperBlockEntity;
+import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
+import org.jspecify.annotations.Nullable;
+
+/**
+ * The settings of all workstations of a dimension: linked chests, the order and the
+ * worker of the mod that works there.
+ *
+ * <p>They are kept here instead of in block entities because the vanilla stonecutter is a
+ * workstation as well. Entries of stations that are gone are dropped when looked up.
+ */
+public class Workstations extends SavedData {
+	/** The most chests a station can have, the screens have room for that many. See {@link Config#MAX_CHESTS}. */
+	public static final int MAX_CHESTS = 8;
+
+	private static final Codec<Workstations> CODEC = Station.CODEC.listOf()
+		.fieldOf("stations")
+		.codec()
+		.xmap(Workstations::new, Workstations::pack);
+	// No data fixes apply to this data; command storage is the closest type that has none
+	public static final SavedDataType<Workstations> TYPE = new SavedDataType<>(
+		WorkingVillagers.id("workstations"), Workstations::new, CODEC, DataFixTypes.SAVED_DATA_COMMAND_STORAGE
+	);
+
+	private final Map<BlockPos, Station> stations = new HashMap<>();
+
+	private Workstations() {
+	}
+
+	private Workstations(List<Station> stations) {
+		for (Station station : stations) {
+			station.owner = this;
+			this.stations.put(station.pos, station);
+		}
+	}
+
+	private List<Station> pack() {
+		return this.stations.values().stream().filter(station -> !station.isEmpty()).toList();
+	}
+
+	/**
+	 * The settings of the workstation at the given position, if there is one.
+	 */
+	public static Optional<Station> find(ServerLevel level, BlockPos pos) {
+		Workstations workstations = level.getDataStorage().computeIfAbsent(TYPE);
+		StationType type = level.isLoaded(pos) ? StationType.of(level.getBlockState(pos)) : null;
+		if (type == null) {
+			if (level.isLoaded(pos) && workstations.stations.remove(pos) != null) {
+				workstations.setDirty();
+			}
+			return Optional.empty();
+		}
+		Station station = workstations.stations.computeIfAbsent(
+			pos.immutable(), key -> new Station(key, List.of(), List.of(), Optional.empty(), Optional.empty(), Optional.empty(), List.of(), 0, false)
+		);
+		station.owner = workstations;
+		station.type = type;
+		return Optional.of(station);
+	}
+
+	/**
+	 * Like {@link #find}, but only if the station has been set up (chests, order or worker).
+	 */
+	public static Optional<Station> findSetUp(ServerLevel level, BlockPos pos) {
+		Workstations workstations = level.getDataStorage().computeIfAbsent(TYPE);
+		Station station = workstations.stations.get(pos);
+		return station == null || station.isEmpty() ? Optional.empty() : find(level, pos);
+	}
+
+	public static @Nullable Container getContainer(Level level, BlockPos pos) {
+		return level.isLoaded(pos) ? HopperBlockEntity.getContainerAt(level, pos) : null;
+	}
+
+	public enum ChestRole {
+		/** The worker takes its material from here. */
+		INPUT,
+		/** The worker delivers its products here. */
+		OUTPUT
+	}
+
+	public static final class Station {
+		private static final Codec<Station> CODEC = RecordCodecBuilder.create(i -> i.group(
+			BlockPos.CODEC.fieldOf("pos").forGetter(station -> station.pos),
+			BlockPos.CODEC.listOf().optionalFieldOf("inputs", List.of()).forGetter(station -> station.inputs),
+			BlockPos.CODEC.listOf().optionalFieldOf("outputs", List.of()).forGetter(station -> station.outputs),
+			BuiltInRegistries.ITEM.byNameCodec().optionalFieldOf("order").forGetter(station -> Optional.ofNullable(station.order)),
+			UUIDUtil.CODEC.optionalFieldOf("worker").forGetter(station -> Optional.ofNullable(station.worker)),
+			Codec.STRING.optionalFieldOf("worker_name").forGetter(station -> Optional.ofNullable(station.workerName)),
+			Codec.STRING.listOf().optionalFieldOf("woods", List.of()).forGetter(station -> List.copyOf(station.woods)),
+			Codec.INT.optionalFieldOf("stock", 0).forGetter(station -> station.stock),
+			Codec.BOOL.optionalFieldOf("strip", false).forGetter(station -> station.strip)
+		).apply(i, Station::new));
+
+		private final BlockPos pos;
+		private final List<BlockPos> inputs;
+		private final List<BlockPos> outputs;
+		private @Nullable Item order;
+		private @Nullable UUID worker;
+		private @Nullable String workerName;
+		/**
+		 * Woodcutter and carpenter's bench: the wood types the order may be made of. At the
+		 * bench they also limit the material of products made of any wood (chests, ...).
+		 */
+		private final Set<String> woods;
+		/** Carpenter's bench: how many products to keep in the output chests, 0 to make them as long as there is material. */
+		private int stock;
+		/** Chopping block: whether the lumberjack strips the logs before handing them in. */
+		private boolean strip;
+		private @Nullable Workstations owner;
+		private StationType type = StationType.CHOPPING_BLOCK;
+
+		private Station(
+			BlockPos pos, List<BlockPos> inputs, List<BlockPos> outputs, Optional<Item> order, Optional<UUID> worker, Optional<String> workerName,
+			List<String> woods, int stock, boolean strip
+		) {
+			this.woods = new LinkedHashSet<>(woods);
+			this.stock = stock;
+			this.strip = strip;
+			this.pos = pos;
+			this.inputs = new ArrayList<>(inputs);
+			this.outputs = new ArrayList<>(outputs);
+			this.order = order.orElse(null);
+			this.worker = worker.orElse(null);
+			this.workerName = workerName.orElse(null);
+		}
+
+		public BlockPos pos() {
+			return this.pos;
+		}
+
+		public StationType type() {
+			return this.type;
+		}
+
+		/** What the worker should make, only used by processing stations. */
+		public @Nullable Item order() {
+			return this.order;
+		}
+
+		public void setOrder(@Nullable Item order) {
+			this.order = order;
+			this.setDirty();
+		}
+
+		/** Chopping block: whether the lumberjack strips the logs before handing them in. */
+		public boolean strip() {
+			return this.strip;
+		}
+
+		public void setStrip(boolean strip) {
+			if (this.strip != strip) {
+				this.strip = strip;
+				this.setDirty();
+			}
+		}
+
+		/**
+		 * Carpenter's bench: orders a product picked in the overview. A product made of one
+		 * wood type becomes its shape (keeping the wood types), any other product keeps the
+		 * wood types too, all of them if none were selected.
+		 */
+		public void orderProduct(Item product) {
+			String shape = WoodTypes.shapeOf(product, this.type.shapes());
+			if (shape != null) {
+				this.setShape(shape);
+				return;
+			}
+			if (this.woods.isEmpty()) {
+				WoodTypes.ALL.forEach(wood -> this.woods.add(wood.name()));
+			}
+			this.setOrder(product);
+		}
+
+		/** Woodcutter and carpenter's bench: the wood types the order may be made of. */
+		public Set<String> woods() {
+			return Collections.unmodifiableSet(this.woods);
+		}
+
+		public void setWood(String wood, boolean allowed) {
+			if (allowed ? this.woods.add(wood) : this.woods.remove(wood)) {
+				this.setDirty();
+			}
+		}
+
+		/** Carpenter's bench: how many products to keep in the output chests, 0 for no limit. */
+		public int stock() {
+			return this.stock;
+		}
+
+		public void setStock(int stock) {
+			if (this.stock != Math.max(0, stock)) {
+				this.stock = Math.max(0, stock);
+				this.setDirty();
+			}
+		}
+
+		/**
+		 * Woodcutter and carpenter's bench: the shape of the order (stairs, boat, ...), null
+		 * if there is no order or it is something else.
+		 */
+		public @Nullable String shape() {
+			return this.type.hasWoods() && this.order != null ? WoodTypes.shapeOf(this.order, this.type.shapes()) : null;
+		}
+
+		/** Woodcutter and carpenter's bench: orders the given shape, keeping the wood types. */
+		public void setShape(String shape) {
+			WoodTypes.WoodType wood = this.woods.stream()
+				.map(WoodTypes::byName)
+				.filter(Objects::nonNull)
+				.filter(candidate -> WoodTypes.product(candidate, shape) != null)
+				.findFirst()
+				.orElse(WoodTypes.ALL.getFirst());
+			Item product = WoodTypes.product(wood, shape);
+			if (product != null) {
+				if (this.woods.isEmpty()) {
+					this.woods.add(wood.name());
+				}
+				this.setOrder(product);
+			}
+		}
+
+		/**
+		 * What the worker makes: the order, and for a shape the order's shape in every
+		 * allowed wood type.
+		 */
+		public List<Item> products() {
+			if (this.order == null) {
+				return List.of();
+			}
+			String shape = this.shape();
+			if (shape == null) {
+				return List.of(this.order);
+			}
+			if (WoodTypes.STICK.equals(shape)) {
+				return List.of(this.order);
+			}
+			return this.woods.stream()
+				.map(WoodTypes::byName)
+				.filter(Objects::nonNull)
+				.map(wood -> WoodTypes.product(wood, shape))
+				.filter(Objects::nonNull)
+				.distinct()
+				.toList();
+		}
+
+		/**
+		 * Whether the worker may use the item as material: at a woodcutter only the allowed
+		 * wood types; at a carpenter's bench anything made of an allowed wood type or of no
+		 * wood at all (iron, string, ...).
+		 */
+		public boolean acceptsMaterial(ItemStack stack) {
+			if (this.type == StationType.CARPENTER_BENCH) {
+				WoodTypes.WoodType wood = WoodTypes.woodOfMaterial(stack);
+				return wood == null || this.woods.contains(wood.name());
+			}
+			if (this.shape() == null) {
+				return true;
+			}
+			return this.woods.stream().map(WoodTypes::byName).filter(Objects::nonNull).anyMatch(wood -> wood.isMaterial(stack));
+		}
+
+		/** The hired villager working here, as of the last {@link #occupant} check. */
+		public @Nullable UUID worker() {
+			return this.worker;
+		}
+
+		public boolean hasWorker(UUID worker, String name) {
+			return worker.equals(this.worker) && name.equals(this.workerName);
+		}
+
+		public void clearWorker() {
+			if (this.worker != null) {
+				this.worker = null;
+				this.workerName = null;
+				this.setDirty();
+			}
+		}
+
+		/** Called when a hired villager takes this station as its job site. */
+		public void setWorker(UUID worker, String name) {
+			this.worker = worker;
+			this.workerName = name;
+			this.setDirty();
+		}
+
+		/**
+		 * Who works here: the name of the hired worker, "occupied" if a villager not hired by
+		 * a player works here (a mason at a stonecutter), empty if the station is free.
+		 */
+		public Optional<Component> occupant(ServerLevel level) {
+			boolean occupied = level.getPoiManager()
+				.getInSquare(poi -> true, this.pos, 0, PoiManager.Occupancy.IS_OCCUPIED)
+				.anyMatch(poi -> poi.getPos().equals(this.pos));
+			if (this.worker != null && (!occupied || this.workerLeft(level))) {
+				this.worker = null;
+				this.workerName = null;
+				this.setDirty();
+			}
+			if (!occupied) {
+				return Optional.empty();
+			}
+			return Optional.of(this.workerName != null
+				? Component.literal(this.workerName)
+				: Component.translatable("message.workingvillagers.status.occupied"));
+		}
+
+		/** Whether the stored worker is loaded and works somewhere else now. */
+		private boolean workerLeft(ServerLevel level) {
+			if (!(level.getEntity(this.worker) instanceof Villager villager)) {
+				return false;
+			}
+			Optional<GlobalPos> jobSite = villager.getBrain().getMemory(MemoryModuleType.JOB_SITE);
+			return jobSite.isEmpty() || !jobSite.get().pos().equals(this.pos) || villager.isRemoved();
+		}
+
+		public @Nullable ChestRole role(BlockPos chest) {
+			if (this.inputs.contains(chest)) {
+				return ChestRole.INPUT;
+			}
+			return this.outputs.contains(chest) ? ChestRole.OUTPUT : null;
+		}
+
+		/**
+		 * Links the chest in the given role, or unlinks it if the role is null.
+		 */
+		public void setRole(BlockPos chest, @Nullable ChestRole role) {
+			this.inputs.remove(chest);
+			this.outputs.remove(chest);
+			if (role == ChestRole.INPUT) {
+				this.inputs.add(chest.immutable());
+			} else if (role == ChestRole.OUTPUT) {
+				this.outputs.add(chest.immutable());
+			}
+			this.setDirty();
+		}
+
+		public int chestCount() {
+			return this.inputs.size() + this.outputs.size();
+		}
+
+		public boolean canReach(BlockPos chest) {
+			return chest.closerThan(this.pos, Config.CHEST_DISTANCE.get());
+		}
+
+		/** The input chests that still exist. */
+		public List<BlockPos> validInputs(Level level) {
+			return this.inputs.stream().filter(pos -> getContainer(level, pos) != null).toList();
+		}
+
+		/** The output chests that still exist. */
+		public List<BlockPos> validOutputs(Level level) {
+			return this.outputs.stream().filter(pos -> getContainer(level, pos) != null).toList();
+		}
+
+		private boolean isEmpty() {
+			return this.inputs.isEmpty() && this.outputs.isEmpty() && this.order == null && this.worker == null && this.woods.isEmpty() && this.stock == 0
+				&& !this.strip;
+		}
+
+		private void setDirty() {
+			if (this.owner != null) {
+				this.owner.setDirty();
+			}
+		}
+	}
+}

@@ -1,0 +1,20 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "MIT"
+
+[[mods]]
+modId = "workingvillagers"
+version = "${version}"
+displayName = "Working Villagers"
+authors = "TeaJay"
+description = '''Hire unemployed villagers with a work contract and give them real jobs: lumberjacks fell and replant trees, sawyers and stone sawyers cut wood and stone, carpenters craft wooden goods and carriers move items between chests. Every worker earns a daily wage in emeralds.'''
+
+[[mixins]]
+config = "workingvillagers.mixins.json"
+
+[[dependencies.workingvillagers]]
+modId = "minecraft"
+type = "required"
+versionRange = "${minecraft_range}"
+ordering = "NONE"
+side = "BOTH"

@@ -1,0 +1,8 @@
+{
+  "type": "workingvillagers:woodcutting",
+  "ingredient": "#minecraft:warped_stems",
+  "result": {
+    "id": "minecraft:warped_fence_gate",
+    "count": 1
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "workingvillagers",
+  "version": "${version}",
+  "name": "Working Villagers",
+  "description": "Hire unemployed villagers with a work contract and give them real jobs: lumberjacks fell and replant trees, sawyers and stone sawyers cut wood and stone, carpenters craft wooden goods and carriers move items between chests. Every worker earns a daily wage in emeralds.",
+  "authors": [
+    "TeaJay"
+  ],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "me.teajay.workingvillagers.fabric.WorkingVillagersFabric"
+    ],
+    "client": [
+      "me.teajay.workingvillagers.fabric.WorkingVillagersFabricClient"
+    ]
+  },
+  "mixins": [
+    "workingvillagers.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.0",
+    "java": ">=${java_version}",
+    "minecraft": "${minecraft_dependency}",
+    "fabric-api": "*"
+  }
+}

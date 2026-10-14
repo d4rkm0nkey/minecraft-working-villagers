@@ -1,0 +1,68 @@
+site_name: Working Villagers
+site_description: Hire villagers, pay them a wage and let them do the work.
+# Set these once the repository is on GitHub:
+# site_url: https://<user>.github.io/<repo>/
+# repo_url: https://github.com/<user>/<repo>
+docs_dir: docs
+
+theme:
+  name: material
+  favicon: assets/img/work_contract.png
+  logo: assets/img/work_contract.png
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: brown
+      accent: green
+      toggle:
+        icon: material/weather-night
+        name: Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: brown
+      accent: green
+      toggle:
+        icon: material/weather-sunny
+        name: Light mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - content.tabs.link
+
+extra_css:
+  - assets/css/extra.css
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Getting started: getting-started.md
+  - Workers:
+      - Hiring and wages: workers/basics.md
+      - Lumberjack: workers/lumberjack.md
+      - Sawyer and stone sawyer: workers/sawyer.md
+      - Carpenter: workers/carpenter.md
+      - Carrier: workers/carrier.md
+  - Guides:
+      - A wood workshop: guides/wood-workshop.md
+      - Worker does not work?: guides/troubleshooting.md
+  - Reference:
+      - Blocks and items: blocks-and-items.md
+      - Configuration: configuration.md
+      - Data packs: data-packs.md
+      - Beta notes: beta.md

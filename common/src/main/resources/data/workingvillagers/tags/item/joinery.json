@@ -1,0 +1,33 @@
+{
+  "values": [
+    "minecraft:chest",
+    "minecraft:barrel",
+    "minecraft:crafting_table",
+    "minecraft:ladder",
+    "minecraft:bowl",
+    "minecraft:composter",
+    "minecraft:chiseled_bookshelf",
+    "minecraft:wooden_sword",
+    "minecraft:wooden_shovel",
+    "minecraft:wooden_pickaxe",
+    "minecraft:wooden_axe",
+    "minecraft:wooden_hoe",
+    "minecraft:wooden_spear",
+    "#minecraft:boats",
+    "#minecraft:wooden_shelves",
+    "minecraft:bookshelf",
+    "minecraft:trapped_chest",
+    "minecraft:item_frame",
+    "minecraft:painting",
+    "minecraft:armor_stand",
+    "minecraft:bow",
+    "minecraft:crossbow",
+    "minecraft:fishing_rod",
+    "minecraft:shield",
+    "minecraft:torch",
+    "minecraft:tripwire_hook",
+    "minecraft:campfire",
+    "#minecraft:chest_boats",
+    "#minecraft:hanging_signs"
+  ]
+}
