@@ -1,7 +1,8 @@
 // Settings for the loader projects (fabric, neoforge): compiles the common sources
-// and resources into the loader jar.
+// and resources into the loader jar and configures publishing to CurseForge and Modrinth.
 plugins {
 	id 'workingvillagers.common'
+	id 'me.modmuss50.mod-publish-plugin'
 }
 
 base {
@@ -28,5 +29,36 @@ processResources {
 jar {
 	from(rootProject.file("LICENSE")) {
 		rename { "${it}_${archives_base_name}" }
+	}
+}
+
+// Publishing to CurseForge and Modrinth: ./gradlew publishMods
+// Without CURSEFORGE_TOKEN / MODRINTH_TOKEN set this runs as a dry run.
+def publishVersions = publish_minecraft_versions.split(",").collect { it.trim() }
+def loaderName = project.name == "neoforge" ? "NeoForge" : "Fabric"
+
+publishMods {
+	file = jar.archiveFile
+	displayName = "${mod_version} for ${publishVersions.first()}" + (publishVersions.size() > 1 ? "-${publishVersions.last()}" : "") + " (${loaderName})"
+	version = "${project.version}-${project.name}"
+	changelog = providers.environmentVariable("CHANGELOG").filter { !it.isBlank() }.orElse("See https://github.com/d4rkm0nkey/minecraft-working-villagers/releases")
+	// The mod is in beta: without RELEASE_TYPE it is published as a beta
+	type = providers.environmentVariable("RELEASE_TYPE").filter { !it.isBlank() }.map { me.modmuss50.mpp.ReleaseType.of(it) }.orElse(BETA)
+	dryRun = providers.environmentVariable("CURSEFORGE_TOKEN").getOrElse("").isBlank() \
+		|| providers.environmentVariable("MODRINTH_TOKEN").getOrElse("").isBlank()
+
+	curseforge {
+		projectId = curseforge_id
+		accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
+		minecraftVersions.addAll(publishVersions)
+		javaVersions.add(JavaVersion.toVersion(java_version))
+		// Needed on both sides
+		client = true
+		server = true
+	}
+	modrinth {
+		projectId = modrinth_id
+		accessToken = providers.environmentVariable("MODRINTH_TOKEN")
+		minecraftVersions.addAll(publishVersions)
 	}
 }
