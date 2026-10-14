@@ -30,7 +30,7 @@ Minecraft 26.3, Fabric (needs Fabric API) and NeoForge.
    within 16 blocks of the chopping block, walks up to the trunk and hacks at it, fells it, replants a sapling and brings the wood to the
    nearest chest. A tree takes eight times as long as for a player with the same axe (for now
    all workers are novices; a master would need five times as long). After each delivery it rests for 30 seconds, and it stops for the day
-   after 64 logs. Trees count as natural when they grow on dirt and have non-persistent
+   after 64 logs. Trees count as natural when they grow on dirt, grass, podzol, mud or moss and have non-persistent
    leaves, so builds made of logs are left alone. Needs the `mob_griefing` game rule.
 6. **Strip logs** (switch in the chopping block menu, off by default): the lumberjack
    strips every log while felling, so the chest gets stripped logs. It uses the stripping

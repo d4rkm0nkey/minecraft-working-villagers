@@ -42,6 +42,6 @@ stripping rules mods add through the data map.
 
 ## Trees
 
-A tree counts as natural when its logs stand on dirt (anything in
-`#minecraft:dirt`) and it has leaves that are not marked as player placed. Modded trees
+A tree counts as natural when its logs stand on the ground trees grow on (anything in
+`#minecraft:substrate_overworld`: dirt, grass, podzol, mycelium, mud, moss) and it has leaves that are not marked as player placed. Modded trees
 that follow these rules are felled too.

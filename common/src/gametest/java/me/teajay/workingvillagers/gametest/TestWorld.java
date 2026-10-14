@@ -20,6 +20,7 @@ import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.LeavesBlock;
@@ -111,13 +112,12 @@ final class TestWorld {
 	}
 
 	/**
-	 * An oak tree: a trunk of {@code height} logs from {@code base} up, on dirt like a grown
-	 * tree (a growing tree turns the grass below its trunk into dirt), and a crown of leaves.
-	 * With {@code natural} the leaves are not persistent, like a grown tree; otherwise they
-	 * count as placed by a player.
+	 * An oak tree: a trunk of {@code height} logs from {@code base} up, on {@code ground}, and
+	 * a crown of leaves. With {@code natural} the leaves are not persistent, like a grown
+	 * tree; otherwise they count as placed by a player.
 	 */
-	static void oakTree(GameTestHelper helper, BlockPos base, int height, boolean natural) {
-		helper.setBlock(base.below(), Blocks.DIRT);
+	static void oakTree(GameTestHelper helper, BlockPos base, int height, boolean natural, Block ground) {
+		helper.setBlock(base.below(), ground);
 		for (int y = 0; y < height; y++) {
 			helper.setBlock(base.above(y), Blocks.OAK_LOG);
 		}

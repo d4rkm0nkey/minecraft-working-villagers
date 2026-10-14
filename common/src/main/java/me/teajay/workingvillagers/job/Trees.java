@@ -24,7 +24,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Finds natural trees: logs standing on dirt that are connected to non-persistent
+ * Finds natural trees: logs standing on ground trees grow on (dirt, grass, podzol, mud, moss:
+ * {@code #minecraft:substrate_overworld}) that are connected to non-persistent
  * (that is, not player placed) leaves. Log builds made by players are left alone.
  */
 public final class Trees {
@@ -84,7 +85,7 @@ public final class Trees {
 	}
 
 	public static boolean isBase(ServerLevel level, BlockPos pos) {
-		return level.getBlockState(pos).is(BlockTags.LOGS) && level.getBlockState(pos.below()).is(BlockTags.DIRT);
+		return level.getBlockState(pos).is(BlockTags.LOGS) && level.getBlockState(pos.below()).is(BlockTags.SUBSTRATE_OVERWORLD);
 	}
 
 	/**
@@ -172,7 +173,7 @@ public final class Trees {
 	}
 
 	/**
-	 * The trunks among the logs: logs standing on dirt, numbered, with the feet of a 2x2
+	 * The trunks among the logs: logs standing on the ground, numbered, with the feet of a 2x2
 	 * trunk (side by side at the same height) sharing a number.
 	 */
 	private static Map<BlockPos, Integer> trunks(ServerLevel level, Set<BlockPos> logs) {

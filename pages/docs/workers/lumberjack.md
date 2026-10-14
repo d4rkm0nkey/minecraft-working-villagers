@@ -37,7 +37,7 @@ felled today.
 
 ### Which trees?
 
-Only **natural** trees: trees that grow on dirt (or grass, podzol, ...) and have
+Only **natural** trees: trees that grow on dirt, grass, podzol, mud or moss and have
 leaves that were not placed by a player. Log houses, log fences and other builds are
 left alone.
 

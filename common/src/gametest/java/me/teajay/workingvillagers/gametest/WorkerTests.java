@@ -21,6 +21,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
 /**
@@ -44,6 +45,8 @@ public final class WorkerTests {
 		registry.accept("contract_hires_unemployed", WorkerTests::contractHiresUnemployed);
 		registry.accept("contract_rejects_employed", WorkerTests::contractRejectsEmployed);
 		registry.accept("lumberjack_fells_tree", WorkerTests::lumberjackFellsTree);
+		registry.accept("lumberjack_fells_tree_on_mud", WorkerTests::lumberjackFellsTreeOnMud);
+		registry.accept("lumberjack_fells_tree_on_grass", WorkerTests::lumberjackFellsTreeOnGrass);
 		registry.accept("lumberjack_spares_builds", WorkerTests::lumberjackSparesBuilds);
 		registry.accept("no_wage_no_work", WorkerTests::noWageNoWork);
 		registry.accept("sawyer_cuts_planks", WorkerTests::sawyerCutsPlanks);
@@ -89,9 +92,23 @@ public final class WorkerTests {
 		return villager;
 	}
 
+	/** A grown tree: growing turns the grass below the trunk into dirt. */
 	private static void lumberjackFellsTree(GameTestHelper helper) {
+		lumberjackFellsTreeOn(helper, Blocks.DIRT);
+	}
+
+	/** Trees on other ground (mangroves on mud, trees placed on grass or moss) count too. */
+	private static void lumberjackFellsTreeOnMud(GameTestHelper helper) {
+		lumberjackFellsTreeOn(helper, Blocks.MUD);
+	}
+
+	private static void lumberjackFellsTreeOnGrass(GameTestHelper helper) {
+		lumberjackFellsTreeOn(helper, Blocks.GRASS_BLOCK);
+	}
+
+	private static void lumberjackFellsTreeOn(GameTestHelper helper, Block ground) {
 		BlockPos tree = new BlockPos(15, 1, 15);
-		TestWorld.oakTree(helper, tree, 5, true);
+		TestWorld.oakTree(helper, tree, 5, true, ground);
 		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_AXE), new ItemStack(Items.OAK_SAPLING));
 		helper.succeedWhen(() -> {
 			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_LOG), 5, "oak logs in the output chest");
@@ -104,7 +121,7 @@ public final class WorkerTests {
 	private static void lumberjackSparesBuilds(GameTestHelper helper) {
 		// Persistent leaves: placed by a player, so this is a build, not a tree
 		BlockPos build = new BlockPos(15, 1, 15);
-		TestWorld.oakTree(helper, build, 4, false);
+		TestWorld.oakTree(helper, build, 4, false, Blocks.DIRT);
 		lumberjack(helper, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_AXE));
 		helper.failIfEver(() -> helper.assertBlockPresent(Blocks.OAK_LOG, build));
 		helper.runAfterDelay(600, () -> {
@@ -115,7 +132,7 @@ public final class WorkerTests {
 
 	private static void noWageNoWork(GameTestHelper helper) {
 		BlockPos tree = new BlockPos(15, 1, 15);
-		TestWorld.oakTree(helper, tree, 4, true);
+		TestWorld.oakTree(helper, tree, 4, true, Blocks.DIRT);
 		lumberjack(helper, new ItemStack(Items.IRON_AXE));
 		helper.failIfEver(() -> helper.assertBlockPresent(Blocks.OAK_LOG, tree));
 		helper.runAfterDelay(600, () -> {
