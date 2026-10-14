@@ -11,6 +11,21 @@ loom {
 	}
 }
 
+// Game tests: ./gradlew :fabric:runGameTest (also part of ./gradlew build). The tests are in
+// common/src/gametest, this project adds the test mod's entrypoint.
+fabricApi {
+	configureTests {
+		createSourceSet = true
+		modId = "workingvillagers_test"
+		eula = true
+	}
+}
+
+sourceSets.gametest {
+	java.srcDir(project(':common').file('src/gametest/java'))
+	resources.srcDir(project(':common').file('src/gametest/resources'))
+}
+
 dependencies {
 	minecraft "com.mojang:minecraft:${minecraft_version}"
 	implementation "net.fabricmc:fabric-loader:${loader_version}"

@@ -3,9 +3,26 @@ plugins {
 	id 'net.neoforged.moddev'
 }
 
+// Game tests: ./gradlew :neoforge:runGameTestServer (also part of ./gradlew build). The tests
+// are in common/src/gametest, this project adds the test mod.
+sourceSets {
+	gametest {
+		java.srcDir(project(':common').file('src/gametest/java'))
+		resources.srcDir(project(':common').file('src/gametest/resources'))
+		compileClasspath += sourceSets.main.output
+		runtimeClasspath += sourceSets.main.output
+	}
+}
+
 neoForge {
 	version = neoforge_version
+	addModdingDependenciesTo(sourceSets.gametest)
 	runs {
+		gameTestServer {
+			type = "gameTestServer"
+			sourceSet = sourceSets.gametest
+			gameDirectory = file("build/run/gameTest")
+		}
 		client {
 			client()
 		}
@@ -17,7 +34,14 @@ neoForge {
 		"workingvillagers" {
 			sourceSet sourceSets.main
 		}
+		"workingvillagers_test" {
+			sourceSet sourceSets.gametest
+		}
 	}
+}
+
+tasks.named("check") {
+	dependsOn("runGameTestServer")
 }
 
 publishMods {
