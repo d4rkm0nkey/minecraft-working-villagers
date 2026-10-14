@@ -1,8 +1,7 @@
 site_name: Working Villagers
 site_description: Hire villagers, pay them a wage and let them do the work.
-# Set these once the repository is on GitHub:
-# site_url: https://<user>.github.io/<repo>/
-# repo_url: https://github.com/<user>/<repo>
+site_url: https://d4rkm0nkey.github.io/minecraft-working-villagers/
+repo_url: https://github.com/d4rkm0nkey/minecraft-working-villagers
 docs_dir: docs
 
 theme:
