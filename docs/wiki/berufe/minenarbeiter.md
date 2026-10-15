@@ -60,4 +60,4 @@ Abbau mit Fortune I.
 
 ## Siehe auch
 
-[Die Mine](../grundlagen/mine.md) · [Grubenlogistiker](grubenlogistiker.md) · [Schmied](schmied.md) (verarbeitet das Erz) · [Logistik](../grundlagen/logistik.md)
+[Die Mine](../grundlagen/mine.md) · [Grubenlogistiker](grubenlogistiker.md) · [Grubenarbeiter](grubenarbeiter.md) (einfache Grube per Schnur) · [Schmied](schmied.md) (verarbeitet das Erz) · [Logistik](../grundlagen/logistik.md)

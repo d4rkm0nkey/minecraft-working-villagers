@@ -2,9 +2,9 @@
 
 [← Wiki-Start](../README.md)
 
-Fast jeder Vanilla-Beruf hat schon eine Workstation, die sich als Arbeitsauftrag deuten lässt. Damit wächst der Mod ohne neue Blöcke. Neu sind nur Woodcutter, Hobelbank, Grubenwerkbank, Förderhaspel und für den Handel Handelstresen bzw. Handelskontor.
+Fast jeder Vanilla-Beruf hat schon eine Workstation, die sich als Arbeitsauftrag deuten lässt. Damit wächst der Mod ohne neue Blöcke. Neu sind nur Woodcutter, Hobelbank, Grubenwerkbank, Förderhaspel, Grubenpflock, Brennofen und für den Handel Handelstresen bzw. Handelskontor.
 
-Alle Berufe folgen dem [Kernloop](../grundlagen/kernloop.md) und den [Lohnstufen](../wirtschaft/anheuern-und-lohn.md#lohnstufen). Jede Berufsseite beschreibt nur, was den Beruf besonders macht, inklusive seiner Master-Fähigkeit.
+Alle Berufe folgen dem [Kernloop](../grundlagen/kernloop.md) und den [Lohnstufen](../wirtschaft/anheuern-und-lohn.md#lohnstufen). Jede Berufsseite beschreibt nur, was den Beruf besonders macht, inklusive seiner Master-Fähigkeit. Im Spiel erklärt jeden Beruf sein [Berufsbuch](../grundlagen/berufsbuecher.md).
 
 | Beruf | Workstation | Arbeit als Angestellter | Neuer Block? | Phase |
 | --- | --- | --- | --- | --- |
@@ -18,6 +18,8 @@ Alle Berufe folgen dem [Kernloop](../grundlagen/kernloop.md) und den [Lohnstufen
 | [Händler](haendler.md) | Handelskontor | Karawanen zu Nachbardörfern | Handelskontor | M4 |
 | [Farmer](farmer.md) | Composter | Felder säen und ernten | nein | M5 |
 | [Schmied](schmied.md) | Blast Furnace / Smithing Table | Erze schmelzen, Werkzeug reparieren | nein | M5 |
+| [Grubenarbeiter](grubenarbeiter.md) | Grubenpflock | Mit Schnur umrandete Grube ausheben, Leiter als Ausgang | Grubenpflock | Idee |
+| [Brenner](brenner.md) | Brennofen | Glas, Stein, Ziegel, Holzkohle brennen (Ofen ohne Essen) | Brennofen | Idee |
 | [Fischer](fischer.md) | Barrel | Angeln an markiertem Wasser | nein | später |
 | [Hirte](hirte.md) | Loom | Schafe scheren, Wolle sortieren | nein | später |
 | [Metzger](metzger.md) | Smoker | Tiere züchten, schlachten, räuchern | nein | später |
@@ -42,5 +44,6 @@ Priorität nach V1: [Farmer](farmer.md), [Schmied](schmied.md), [Träger](traege
 ## Quellkiste / Zielkiste
 ## Master-Fähigkeit
 ## Sonderfälle & offene Fragen
+## Berufsbuch (welcher Vanilla-Beruf verkauft es)
 ## Siehe auch
 ```

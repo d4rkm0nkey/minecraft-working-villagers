@@ -28,4 +28,4 @@ Doppelte Ausbeute bei einem Teil der Erze (wie ein kleiner Fortune-Bonus beim Sc
 
 ## Siehe auch
 
-[Logistik](../grundlagen/logistik.md) · [Minenarbeiter](minenarbeiter.md)
+[Logistik](../grundlagen/logistik.md) · [Minenarbeiter](minenarbeiter.md) · [Brenner](brenner.md) (Brennofen für Baustoffe, ohne Erz und Essen)

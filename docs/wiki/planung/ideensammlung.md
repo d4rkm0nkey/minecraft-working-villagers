@@ -53,6 +53,7 @@ Empfehlung: Start als **Rein Utility** (V1), Wachstum in Richtung **Unternehmer*
 
 ### Fortschritt
 
+- [Berufsbücher](../grundlagen/berufsbuecher.md): ein Buch pro Beruf, manchmal bei Dorfbewohnern zu kaufen.
 - Advancements: „Erster Angestellter“, „10 Angestellte“, „1000 Stämme gefällt“, „Pleite“.
 - Lizenzen/Gewerbeschein: neue Berufe gegen einmalige Gebühr freischalten.
 - Ruf im Dorf: gute Arbeitgeber bekommen bessere Bewerber.
