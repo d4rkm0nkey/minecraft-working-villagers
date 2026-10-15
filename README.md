@@ -9,6 +9,10 @@ between chests.
 
 Minecraft 26.3, Fabric (needs Fabric API) and NeoForge.
 
+📖 **[Player wiki](https://d4rkm0nkey.github.io/minecraft-working-villagers/)**: installation,
+[getting started](https://d4rkm0nkey.github.io/minecraft-working-villagers/getting-started/),
+every worker, guides and all [configuration options](https://d4rkm0nkey.github.io/minecraft-working-villagers/configuration/).
+
 ## Lumberjack
 
 1. **Craft a work contract** (paper + ink sac + 3 emeralds) and right-click an
@@ -247,11 +251,11 @@ All carriers are novices for now; later the capacity is meant to grow with the l
 `config/workingvillagers.json` (created on the first start, with comments) sets the wage, the
 distances and limits of chests and routes, and the speeds and daily limits of the workers.
 Changes take effect after a restart; on a server the server's settings count, and the
-menus show those. See `pages/docs/configuration.md` for all options.
+menus show those. See [Configuration](https://d4rkm0nkey.github.io/minecraft-working-villagers/configuration/) in the wiki for all options.
 
 ## Player wiki
 
-`pages/` is the player wiki (installation, workers, guides), built with MkDocs Material
+`pages/` is the [player wiki](https://d4rkm0nkey.github.io/minecraft-working-villagers/) (installation, workers, guides), built with MkDocs Material
 and published to GitHub Pages by `.github/workflows/pages.yml` on every push to `main`
 that touches it. Local preview:
 
