@@ -6,7 +6,6 @@ import java.util.Optional;
 import java.util.UUID;
 import me.teajay.workingvillagers.Config;
 import me.teajay.workingvillagers.carrier.RouteSelection;
-import me.teajay.workingvillagers.job.PersonalChest;
 import me.teajay.workingvillagers.job.WorkerJobs;
 import me.teajay.workingvillagers.menu.StationMenu;
 import me.teajay.workingvillagers.station.Workstations.ChestRole;
@@ -49,7 +48,6 @@ public final class StationPicks {
 
 	private static void start(ServerPlayer player, Pending pending, Component message) {
 		RouteSelection.cancel(player);
-		PersonalChest.cancel(player);
 		PENDING.put(player.getUUID(), pending);
 		player.closeContainer();
 		player.sendOverlayMessage(message);

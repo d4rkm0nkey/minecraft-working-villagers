@@ -21,9 +21,9 @@ final class Chests {
 	private Chests() {
 	}
 
-	/** Villagers keep their food (for breeding), workers hand in everything else. */
-	static boolean isNotFood(ItemStack stack) {
-		return !stack.isEmpty() && !stack.has(DataComponents.VILLAGER_FOOD);
+	/** Villagers keep their food (for breeding) and workers their wage; they hand in everything else. */
+	static boolean isHandedIn(ItemStack stack) {
+		return !stack.isEmpty() && !stack.has(DataComponents.VILLAGER_FOOD) && !WorkerSupplies.isWage(stack);
 	}
 
 	static Optional<BlockPos> closest(List<BlockPos> chests, Villager villager) {

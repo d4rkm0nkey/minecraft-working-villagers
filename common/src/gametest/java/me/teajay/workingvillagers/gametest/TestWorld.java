@@ -4,9 +4,9 @@ import java.util.function.Predicate;
 import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.item.WorkContractItem;
 import me.teajay.workingvillagers.job.HiredVillager;
-import me.teajay.workingvillagers.job.PersonalChest;
 import me.teajay.workingvillagers.job.WorkerJobs;
 import me.teajay.workingvillagers.job.WorkerStatus;
+import me.teajay.workingvillagers.job.WorkerSupplies;
 import me.teajay.workingvillagers.station.Workstations;
 import me.teajay.workingvillagers.station.Workstations.ChestRole;
 import net.minecraft.core.BlockPos;
@@ -28,7 +28,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Setting up the tests the way a player would: placing stations and chests, hiring with a
- * contract, assigning, linking chests and filling the personal chest. All positions are
+ * contract, assigning, linking chests and handing over wage and tools. All positions are
  * relative to the test structure.
  */
 final class TestWorld {
@@ -75,10 +75,16 @@ final class TestWorld {
 		station(helper, station).setRole(helper.absolutePos(chest), role);
 	}
 
-	/** A chest with the items as the worker's personal chest. */
-	static void personalChest(GameTestHelper helper, Villager villager, BlockPos pos, ItemStack... items) {
-		chest(helper, pos, items);
-		((HiredVillager) villager).workingvillagers$setPersonalChest(helper.absolutePos(pos));
+	/** Gives the worker the items (wage, tool, seeds) the way a player does: right-click with them. */
+	static void give(GameTestHelper helper, Villager villager, ItemStack... items) {
+		Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+		for (ItemStack item : items) {
+			player.setItemInHand(InteractionHand.MAIN_HAND, item.copy());
+			WorkerSupplies.give(villager, player, InteractionHand.MAIN_HAND);
+			if (!player.getMainHandItem().isEmpty()) {
+				throw helper.assertionException(villager.blockPosition(), "The worker did not take " + item);
+			}
+		}
 	}
 
 	static Container container(GameTestHelper helper, BlockPos pos) {
@@ -90,7 +96,15 @@ final class TestWorld {
 	}
 
 	static int count(GameTestHelper helper, BlockPos pos, Predicate<ItemStack> filter) {
-		return PersonalChest.countIn(container(helper, pos), filter);
+		Container container = container(helper, pos);
+		int count = 0;
+		for (int slot = 0; slot < container.getContainerSize(); slot++) {
+			ItemStack stack = container.getItem(slot);
+			if (!stack.isEmpty() && filter.test(stack)) {
+				count += stack.getCount();
+			}
+		}
+		return count;
 	}
 
 	/**

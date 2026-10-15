@@ -352,9 +352,12 @@ public class Workstations extends SavedData {
 			if (!occupied) {
 				return Optional.empty();
 			}
-			return Optional.of(this.workerName != null
-				? Component.literal(this.workerName)
-				: Component.translatable("message.workingvillagers.status.occupied"));
+			if (this.workerName == null) {
+				return Optional.of(Component.translatable("message.workingvillagers.status.occupied"));
+			}
+			return Optional.of(this.workerName.isEmpty()
+				? Component.translatable("message.workingvillagers.status.unnamed_worker")
+				: Component.literal(this.workerName));
 		}
 
 		/** Whether the stored worker is loaded and works somewhere else now. */

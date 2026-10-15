@@ -3,7 +3,7 @@
   "id": "workingvillagers",
   "version": "${version}",
   "name": "Working Villagers",
-  "description": "Hire unemployed villagers with a work contract and give them real jobs: lumberjacks fell and replant trees, sawyers and stone sawyers cut wood and stone, carpenters craft wooden goods and carriers move items between chests. Every worker earns a daily wage in emeralds.",
+  "description": "Hire unemployed villagers with a work contract and give them real jobs: lumberjacks fell and replant trees, sawyers and stone sawyers cut wood and stone, carpenters craft wooden goods, farmers bring in the harvest, smiths smelt ore and carriers move items between chests. Every worker earns a daily wage in emeralds.",
   "authors": [
     "TeaJay"
   ],

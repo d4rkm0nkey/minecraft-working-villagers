@@ -1,7 +1,6 @@
 package me.teajay.workingvillagers.mixin;
 
 import me.teajay.workingvillagers.carrier.RouteSelection;
-import me.teajay.workingvillagers.job.PersonalChest;
 import me.teajay.workingvillagers.station.StationPicks;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerPlayerGameMode;
@@ -26,8 +25,7 @@ public class ServerPlayerGameModeMixin {
 		ServerPlayer player, Level level, ItemStack stack, InteractionHand hand, BlockHitResult hit, CallbackInfoReturnable<InteractionResult> cir
 	) {
 		if (hand == InteractionHand.MAIN_HAND
-			&& (RouteSelection.onUseBlock(player, hit.getBlockPos()) || StationPicks.onUseBlock(player, hit.getBlockPos())
-				|| PersonalChest.onUseBlock(player, hit.getBlockPos()))) {
+			&& (RouteSelection.onUseBlock(player, hit.getBlockPos()) || StationPicks.onUseBlock(player, hit.getBlockPos()))) {
 			cir.setReturnValue(InteractionResult.SUCCESS_SERVER);
 		}
 	}

@@ -101,8 +101,9 @@ public final class StationNotes {
 		}
 		Direction front = level.getBlockState(pos).getValue(BlockStateProperties.HORIZONTAL_FACING);
 		Optional<Component> occupant = station.get().occupant(level);
-		String text = occupant.map(Component::getString).orElse(BLANK);
-		String content = TAG_CONTENT + Integer.toHexString((text + front).hashCode());
+		// Translated by the client: a name, "hired villager" or "occupied"
+		Component text = occupant.orElse(Component.literal(BLANK));
+		String content = TAG_CONTENT + Integer.toHexString((text.getString() + front).hashCode());
 
 		List<Display.TextDisplay> notes = level.getEntitiesOfClass(
 			Display.TextDisplay.class, new AABB(pos).inflate(1.0), entity -> entity.entityTags().contains(tagAt(pos))
@@ -114,11 +115,11 @@ public final class StationNotes {
 		spawn(level, pos, station.get().type(), front, text, content);
 	}
 
-	private static void spawn(ServerLevel level, BlockPos pos, StationType type, Direction front, String text, String content) {
+	private static void spawn(ServerLevel level, BlockPos pos, StationType type, Direction front, Component text, String content) {
 		RegistryOps<Tag> ops = level.registryAccess().createSerializationContext(NbtOps.INSTANCE);
 		CompoundTag tag = new CompoundTag();
 		tag.putString("id", "minecraft:text_display");
-		tag.put("text", ComponentSerialization.CODEC.encodeStart(ops, Component.literal(text).withColor(INK_COLOR)).getOrThrow());
+		tag.put("text", ComponentSerialization.CODEC.encodeStart(ops, text.copy().withColor(INK_COLOR)).getOrThrow());
 		tag.putInt("background", PAPER_COLOR);
 		tag.putInt("line_width", 80);
 		tag.putString("billboard", "fixed");

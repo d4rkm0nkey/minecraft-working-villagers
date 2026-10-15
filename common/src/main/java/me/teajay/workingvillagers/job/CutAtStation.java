@@ -42,7 +42,7 @@ import org.jspecify.annotations.Nullable;
  * The work at a woodcutter or stonecutter: fetch material from an input chest, cut it at
  * the job site into what the station's order asks for and bring the products to an output
  * chest. Without an order, input chest or output chest the worker does not work, nor
- * before it took its wage from its {@link PersonalChest}.
+ * before it took its wage (see {@link WorkerSupplies}).
  *
  * <p>The worker stands in front of the station and makes {@link Config#CUT_ITEMS_PER_SECOND} items
  * per second, slower than a player. Material and products are kept in the villager's
@@ -74,7 +74,7 @@ public class CutAtStation extends Behavior<Villager> {
 	/** Why the worker waits, and what it cuts right now, for the status in the menu. */
 	private String waitReason = "saw.no_material";
 	private ItemStack cutting = ItemStack.EMPTY;
-	private final PersonalChest personalChest = new PersonalChest();
+	private final WorkerSupplies supplies = new WorkerSupplies();
 
 	public CutAtStation(ResourceKey<VillagerProfession> profession, Supplier<? extends RecipeType<?>> recipeType) {
 		super(ImmutableMap.of(MemoryModuleType.JOB_SITE, MemoryStatus.VALUE_PRESENT), 24000);
@@ -122,7 +122,7 @@ public class CutAtStation extends Behavior<Villager> {
 		villager.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
 		villager.getBrain().eraseMemory(MemoryModuleType.LOOK_TARGET);
 		villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
-		this.personalChest.stop(villager);
+		this.supplies.stop();
 		if (this.trip != null) {
 			this.trip.close(villager);
 			this.trip = null;
@@ -136,7 +136,7 @@ public class CutAtStation extends Behavior<Villager> {
 			return;
 		}
 		this.stateTicks++;
-		if (this.state == State.PLAN && this.personalChest.busy(level, villager, List.of())) {
+		if (this.state == State.PLAN && this.supplies.busy(level, villager, null)) {
 			return; // wage first, the chest sets the status
 		}
 		List<SingleItemRecipe> recipes = this.recipesFor(level, station.products(), timestamp);
@@ -340,7 +340,7 @@ public class CutAtStation extends Behavior<Villager> {
 	 * Material of an earlier order is handed in as well.
 	 */
 	private static Predicate<ItemStack> isProduct(Predicate<ItemStack> isMaterial) {
-		return stack -> Chests.isNotFood(stack) && !isMaterial.test(stack);
+		return stack -> Chests.isHandedIn(stack) && !isMaterial.test(stack);
 	}
 
 	private void setState(State state) {

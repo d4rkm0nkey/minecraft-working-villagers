@@ -8,6 +8,7 @@ import me.teajay.workingvillagers.item.WorkContractItem;
 import me.teajay.workingvillagers.job.HiredVillager;
 import me.teajay.workingvillagers.job.StuckWorkers;
 import me.teajay.workingvillagers.job.WorkerJobs;
+import me.teajay.workingvillagers.job.WorkerSupplies;
 import me.teajay.workingvillagers.station.StationPicks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -20,6 +21,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.entity.ContainerUser;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -55,8 +57,6 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 	@Unique
 	private static final String TAG_CARRIER = "WorkingVillagersCarrier";
 	@Unique
-	private static final String TAG_PERSONAL_CHEST = "WorkingVillagersPersonalChest";
-	@Unique
 	private static final String TAG_PAID_DAY = "WorkingVillagersPaidDay";
 
 	@Unique
@@ -66,7 +66,7 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 	@Unique
 	private @Nullable Component workingvillagers$task;
 	@Unique
-	private @Nullable BlockPos workingvillagers$personalChest;
+	private boolean workingvillagers$problem;
 	@Unique
 	private long workingvillagers$paidDay = -1L;
 	@Unique
@@ -78,13 +78,13 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 	}
 
 	@Override
-	public @Nullable BlockPos workingvillagers$getPersonalChest() {
-		return this.workingvillagers$personalChest;
+	public boolean workingvillagers$hasProblem() {
+		return this.workingvillagers$problem;
 	}
 
 	@Override
-	public void workingvillagers$setPersonalChest(@Nullable BlockPos chest) {
-		this.workingvillagers$personalChest = chest == null ? null : chest.immutable();
+	public void workingvillagers$setProblem(boolean problem) {
+		this.workingvillagers$problem = problem;
 	}
 
 	@Override
@@ -166,7 +166,6 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 	private void workingvillagers$saveEmployer(ValueOutput output, CallbackInfo ci) {
 		output.storeNullable(TAG_EMPLOYER, UUIDUtil.CODEC, this.workingvillagers$employer);
 		output.storeNullable(TAG_CARRIER, CarrierData.CODEC, this.workingvillagers$carrier);
-		output.storeNullable(TAG_PERSONAL_CHEST, BlockPos.CODEC, this.workingvillagers$personalChest);
 		output.putLong(TAG_PAID_DAY, this.workingvillagers$paidDay);
 		if (this.workingvillagers$workDone > 0) {
 			output.putLong(TAG_WORK_DAY, this.workingvillagers$workDay);
@@ -178,7 +177,6 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 	private void workingvillagers$readEmployer(ValueInput input, CallbackInfo ci) {
 		this.workingvillagers$employer = input.read(TAG_EMPLOYER, UUIDUtil.CODEC).orElse(null);
 		this.workingvillagers$carrier = input.read(TAG_CARRIER, CarrierData.CODEC).orElse(null);
-		this.workingvillagers$personalChest = input.read(TAG_PERSONAL_CHEST, BlockPos.CODEC).orElse(null);
 		this.workingvillagers$paidDay = input.getLongOr(TAG_PAID_DAY, -1L);
 		this.workingvillagers$workDay = input.getLongOr(TAG_WORK_DAY, -1L);
 		this.workingvillagers$workDone = input.getIntOr(TAG_WORK_DONE, 0);
@@ -200,15 +198,46 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 			cir.setReturnValue(WorkContractItem.hire(villager, player, stack, hand));
 		} else if (stack.getItem() instanceof WickerBasketItem) {
 			cir.setReturnValue(Carriers.appoint(villager, player, stack, hand));
+		} else if (WorkerSupplies.give(villager, player, hand) instanceof InteractionResult given) {
+			cir.setReturnValue(given);
 		} else if (stack.isEmpty() && hand == InteractionHand.MAIN_HAND && Carriers.isCarrier(villager)) {
 			cir.setReturnValue(player.isShiftKeyDown() ? Carriers.dismiss(villager, player) : Carriers.openMenu(villager, player));
 		}
 	}
 
-	/** A carrier drops its basket with everything in it. */
+	/**
+	 * A carrier drops its basket with everything in it, every worker what it carries: its
+	 * emeralds, tools and what it was working with.
+	 */
 	@Inject(method = "die", at = @At("HEAD"))
 	private void workingvillagers$dropBasket(DamageSource source, CallbackInfo ci) {
-		Carriers.dropBasket((Villager) (Object) this, null);
+		Villager villager = (Villager) (Object) this;
+		Carriers.dropBasket(villager, null);
+		if (this.workingvillagers$employer != null && villager.level() instanceof ServerLevel level) {
+			for (ItemStack stack : villager.getInventory().removeAllItems()) {
+				villager.spawnAtLocation(level, stack);
+			}
+		}
+	}
+
+	/**
+	 * Workers pick up the emeralds, tools and seeds or saplings thrown to them, but only as
+	 * long as they want more of them (vanilla villagers would also pick up every seed).
+	 */
+	@Inject(method = "wantsToPickUp", at = @At("HEAD"), cancellable = true)
+	private void workingvillagers$wantsSupplies(ServerLevel level, ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
+		Villager villager = (Villager) (Object) this;
+		if (WorkerSupplies.isSupply(villager, stack)) {
+			cir.setReturnValue(WorkerSupplies.accepts(villager, stack) > 0);
+		}
+	}
+
+	/** Takes only what the worker still wants of a thrown stack, not the whole stack. */
+	@Inject(method = "pickUpItem", at = @At("HEAD"), cancellable = true)
+	private void workingvillagers$pickUpSupplies(ServerLevel level, ItemEntity entity, CallbackInfo ci) {
+		if (WorkerSupplies.pickUp((Villager) (Object) this, entity)) {
+			ci.cancel();
+		}
 	}
 
 	/**

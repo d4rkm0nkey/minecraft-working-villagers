@@ -1,8 +1,8 @@
 package me.teajay.workingvillagers.job;
 
 import java.util.UUID;
-import me.teajay.workingvillagers.carrier.CarrierData;
 import net.minecraft.core.BlockPos;
+import me.teajay.workingvillagers.carrier.CarrierData;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.Nullable;
 
@@ -41,12 +41,12 @@ public interface HiredVillager {
 	void workingvillagers$setTask(@Nullable Component task);
 
 	/**
-	 * The worker's personal chest, where it takes its wage and work materials from (see
-	 * {@link PersonalChest}); null if it has none.
+	 * Whether the current task is a problem the player has to solve (no wage, no tool, full
+	 * chests, ...). Not saved.
 	 */
-	@Nullable BlockPos workingvillagers$getPersonalChest();
+	boolean workingvillagers$hasProblem();
 
-	void workingvillagers$setPersonalChest(@Nullable BlockPos chest);
+	void workingvillagers$setProblem(boolean problem);
 
 	/** The last day the worker took its wage, -1 if never. */
 	long workingvillagers$getPaidDay();

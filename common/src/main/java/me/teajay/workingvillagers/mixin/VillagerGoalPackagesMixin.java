@@ -9,6 +9,7 @@ import me.teajay.workingvillagers.job.ChopTrees;
 import me.teajay.workingvillagers.job.CraftAtBench;
 import me.teajay.workingvillagers.job.CutAtStation;
 import me.teajay.workingvillagers.job.FarmFields;
+import me.teajay.workingvillagers.job.FindWorkplace;
 import me.teajay.workingvillagers.job.SmeltAtFurnace;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.core.Holder;
@@ -60,6 +61,23 @@ public abstract class VillagerGoalPackagesMixin {
 				Pair.of(99, UpdateActivityFromSchedule.create())
 			));
 		}
+	}
+
+	/**
+	 * Hired villagers without a job look for a workstation of this mod. Before vanilla's
+	 * {@code AssignProfessionFromJobSite} (priority 10), which would give the vanilla
+	 * profession at a stonecutter, composter or blast furnace.
+	 */
+	@Inject(method = "getCorePackage", at = @At("RETURN"), cancellable = true)
+	private static void workingvillagers$findWorkplace(
+		Holder<VillagerProfession> profession,
+		float speedModifier,
+		CallbackInfoReturnable<ImmutableList<Pair<Integer, ? extends BehaviorControl<? super Villager>>>> cir
+	) {
+		cir.setReturnValue(ImmutableList.<Pair<Integer, ? extends BehaviorControl<? super Villager>>>builder()
+			.addAll(cir.getReturnValue())
+			.add(Pair.of(9, new FindWorkplace()))
+			.build());
 	}
 
 	/** Carriers have no job site, vanilla would make them unemployed again. */

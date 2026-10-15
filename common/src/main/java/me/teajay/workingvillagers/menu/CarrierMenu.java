@@ -6,7 +6,6 @@ import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.carrier.CarrierData;
 import me.teajay.workingvillagers.carrier.Route;
 import me.teajay.workingvillagers.carrier.RouteHolder;
-import me.teajay.workingvillagers.job.PersonalChest;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
@@ -24,7 +23,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * The carrier menu: the routes of a carrier (or of a basket in the hand), each with a button
- * to delete it, the carrier's personal chest and the contents of the basket.
+ * to delete it, the carrier's wage and the contents of the basket.
  */
 public class CarrierMenu extends AbstractContainerMenu {
 	public static final int BASKET_X = 62;
@@ -34,8 +33,6 @@ public class CarrierMenu extends AbstractContainerMenu {
 	public static final int SHARE_BUTTON = 50;
 	/** Button of a free route slot: closes the menu and lets the player pick the containers. */
 	public static final int NEW_ROUTE_BUTTON = 60;
-	/** Closes the menu, the player then right-clicks the carrier's personal chest. */
-	public static final int PERSONAL_CHEST_BUTTON = 70;
 	private static final String TAG_ROUTES = "Routes";
 	private static final String TAG_ACTIVE = "Active";
 	private static final String TAG_CAN_EDIT = "CanEdit";
@@ -91,7 +88,7 @@ public class CarrierMenu extends AbstractContainerMenu {
 		this.holder.status().ifPresent(status -> tag.store(TAG_STATUS, ComponentSerialization.CODEC, status));
 		Villager worker = this.holder.worker();
 		if (worker != null && worker.level() instanceof ServerLevel level) {
-			PersonalChestInfo.write(level, worker, tag);
+			SuppliesInfo.write(level, worker, tag);
 		}
 		this.info.setInfo(tag);
 	}
@@ -124,9 +121,9 @@ public class CarrierMenu extends AbstractContainerMenu {
 		return this.info.info().read(TAG_STATUS, ComponentSerialization.CODEC);
 	}
 
-	/** The carrier's personal chest, empty for a basket. */
-	public Optional<PersonalChestInfo> getPersonalChest() {
-		return PersonalChestInfo.read(this.info.info());
+	/** The carrier's wage, empty for a basket. */
+	public Optional<SuppliesInfo> getSupplies() {
+		return SuppliesInfo.read(this.info.info());
 	}
 
 	/** Whether everybody may change the routes. */
@@ -145,14 +142,6 @@ public class CarrierMenu extends AbstractContainerMenu {
 		if (buttonId == SHARE_BUTTON && this.holder != null && this.holder.canChangeSharing(player)) {
 			this.holder.setShared(!this.holder.shared());
 			this.updateInfo();
-			return true;
-		}
-		if (buttonId == PERSONAL_CHEST_BUTTON) {
-			Villager worker = this.holder == null ? null : this.holder.worker();
-			if (worker == null || !this.holder.canEdit(player) || !(player instanceof ServerPlayer serverPlayer)) {
-				return false;
-			}
-			PersonalChest.pick(serverPlayer, worker);
 			return true;
 		}
 		if (buttonId == NEW_ROUTE_BUTTON) {

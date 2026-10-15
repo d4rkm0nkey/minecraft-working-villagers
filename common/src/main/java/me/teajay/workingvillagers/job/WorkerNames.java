@@ -1,12 +1,13 @@
 package me.teajay.workingvillagers.job;
 
 import java.util.List;
+import me.teajay.workingvillagers.Config;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.npc.villager.Villager;
 
 /**
- * Hired villagers get a name, so the player can tell them apart and find the name again on
- * the note at their workstation.
+ * Hired villagers can get a name ({@link Config#RANDOM_NAMES}), so the player can tell them
+ * apart and find the name again on the note at their workstation.
  */
 public final class WorkerNames {
 	private static final List<String> NAMES = List.of(
@@ -20,12 +21,14 @@ public final class WorkerNames {
 	}
 
 	/**
-	 * Gives the villager a random name unless it already has one. Returns its name.
+	 * Gives the villager a random name unless it already has one, if names are switched on
+	 * ({@link Config#RANDOM_NAMES}; vanilla villagers have none, a name tag gives one).
+	 * Returns its name, empty if it has none.
 	 */
 	public static String ensureName(Villager villager) {
-		if (!villager.hasCustomName()) {
+		if (!villager.hasCustomName() && Config.RANDOM_NAMES.get()) {
 			villager.setCustomName(Component.literal(NAMES.get(villager.getRandom().nextInt(NAMES.size()))));
 		}
-		return villager.getCustomName().getString();
+		return villager.hasCustomName() ? villager.getCustomName().getString() : "";
 	}
 }

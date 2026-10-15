@@ -25,8 +25,8 @@ import org.jspecify.annotations.Nullable;
 /**
  * The work of the carrier: go through its routes in turn, fill the basket at the source of a
  * route that has something to carry (and room at its target), bring it to the target. What
- * does not fit into the target goes back to the source. Before work it takes its wage from
- * its {@link PersonalChest}.
+ * does not fit into the target goes back to the source. Before work it takes its wage (see
+ * {@link WorkerSupplies}).
  *
  * <p>The basket's contents are stored with the villager, so nothing is lost when the work is
  * interrupted; the next work session starts by delivering them.
@@ -47,7 +47,7 @@ public class CarryItems extends Behavior<Villager> {
 	private String waitReason = "carrier.nothing";
 	/** The route to look at first next time, so all routes get their turn. */
 	private int nextRoute;
-	private final PersonalChest personalChest = new PersonalChest();
+	private final WorkerSupplies supplies = new WorkerSupplies();
 
 	public CarryItems() {
 		super(ImmutableMap.of(), 24000);
@@ -78,7 +78,7 @@ public class CarryItems extends Behavior<Villager> {
 		WorkerStatus.clear(villager);
 		villager.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
 		villager.getBrain().eraseMemory(MemoryModuleType.LOOK_TARGET);
-		this.personalChest.stop(villager);
+		this.supplies.stop();
 		if (this.trip != null) {
 			this.trip.close(villager);
 			this.trip = null;
@@ -92,7 +92,7 @@ public class CarryItems extends Behavior<Villager> {
 			return;
 		}
 		this.stateTicks++;
-		if (this.state == State.PLAN && this.personalChest.busy(level, villager, List.of())) {
+		if (this.state == State.PLAN && this.supplies.busy(level, villager, null)) {
 			return; // wage first, the chest sets the status
 		}
 		switch (this.state) {

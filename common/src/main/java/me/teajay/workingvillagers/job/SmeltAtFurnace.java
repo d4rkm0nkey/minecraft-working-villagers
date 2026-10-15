@@ -3,7 +3,6 @@ package me.teajay.workingvillagers.job;
 import com.google.common.collect.ImmutableMap;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -68,7 +67,7 @@ public class SmeltAtFurnace extends Behavior<Villager> {
 	private @Nullable Predicate<ItemStack> fetchOre;
 	private boolean fetchFuel;
 	private String waitReason = "smith.no_ore";
-	private final PersonalChest personalChest = new PersonalChest();
+	private final WorkerSupplies supplies = new WorkerSupplies();
 	/** Whether the blast furnace can smelt an item, looked up once per item. */
 	private final Map<Item, Boolean> smeltable = new HashMap<>();
 	private long smeltableTime;
@@ -113,7 +112,7 @@ public class SmeltAtFurnace extends Behavior<Villager> {
 		WorkerStatus.clear(villager);
 		villager.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
 		villager.getBrain().eraseMemory(MemoryModuleType.LOOK_TARGET);
-		this.personalChest.stop(villager);
+		this.supplies.stop();
 		if (this.trip != null) {
 			this.trip.close(villager);
 			this.trip = null;
@@ -128,7 +127,7 @@ public class SmeltAtFurnace extends Behavior<Villager> {
 			return;
 		}
 		this.stateTicks++;
-		if (this.state == State.PLAN && this.personalChest.busy(level, villager, List.of())) {
+		if (this.state == State.PLAN && this.supplies.busy(level, villager, null)) {
 			return; // wage first, the chest sets the status
 		}
 		if (timestamp - this.smeltableTime > RECIPE_REFRESH_TICKS) {
@@ -175,7 +174,7 @@ public class SmeltAtFurnace extends Behavior<Villager> {
 
 	/** What the smith hands in: the results and anything else that is neither material nor food. */
 	private Predicate<ItemStack> isProduct(ServerLevel level) {
-		return stack -> Chests.isNotFood(stack) && !this.isSmeltable(level, stack) && !this.isFuel(level, stack);
+		return stack -> Chests.isHandedIn(stack) && !this.isSmeltable(level, stack) && !this.isFuel(level, stack);
 	}
 
 	private void plan(ServerLevel level, Villager villager, Workstations.Station station, Container furnace) {

@@ -41,12 +41,12 @@ public class WorkContractItem extends Item {
 		}
 
 		hired.workingvillagers$setEmployer(player.getUUID());
-		String name = WorkerNames.ensureName(villager);
+		WorkerNames.ensureName(villager);
 		stack.consume(1, player);
 		villager.makeSound(SoundEvents.VILLAGER_YES);
 		// Happy villager particles
 		level.broadcastEntityEvent(villager, (byte) 14);
-		player.sendOverlayMessage(Component.translatable("message.workingvillagers.contract.hired", name));
+		player.sendOverlayMessage(Component.translatable("message.workingvillagers.contract.hired", villager.getName()));
 		return InteractionResult.SUCCESS_SERVER;
 	}
 }

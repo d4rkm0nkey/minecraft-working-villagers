@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.UUID;
 import me.teajay.workingvillagers.item.WickerBasketItem;
 import me.teajay.workingvillagers.job.HiredVillager;
-import me.teajay.workingvillagers.job.PersonalChest;
 import me.teajay.workingvillagers.station.StationPicks;
 import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.core.BlockPos;
@@ -50,7 +49,6 @@ public final class RouteSelection {
 
 	private static void start(ServerPlayer player, Pending pending) {
 		StationPicks.cancel(player);
-		PersonalChest.cancel(player);
 		PENDING.put(player.getUUID(), pending);
 		player.closeContainer();
 		player.sendOverlayMessage(Component.translatable("message.workingvillagers.route.pick_source"));

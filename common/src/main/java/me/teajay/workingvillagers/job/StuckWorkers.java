@@ -90,7 +90,7 @@ public final class StuckWorkers {
 	 * only the places its work leads it to are out of reach), or if there is no room there.
 	 */
 	private static boolean bringBack(ServerLevel level, Villager villager) {
-		BlockPos workplace = PersonalChest.anchor(level, villager);
+		BlockPos workplace = WorkerSupplies.anchor(level, villager);
 		Optional<BlockPos> spot = StandSpots.find(level, workplace, villager);
 		if (spot.isEmpty() || !level.isLoaded(spot.get()) || StandSpots.isAt(villager, spot.get())) {
 			return false;

@@ -47,8 +47,9 @@ import org.jspecify.annotations.Nullable;
  * anything but crops. A harvested spot gets the same crop again, empty farmland the crop of
  * its neighbours if the farmer has seeds for it, otherwise the seeds it has most of. It keeps
  * up to {@link Config#KEEP_SEEDS} of every kind of seed (seeds, carrots, potatoes, ...) and
- * takes more from its {@link PersonalChest} when it runs out. It needs a hoe from that chest,
- * which wears out like a player's, one use per harvested crop; without a hoe it waits.
+ * plants what it harvests. It needs its wage and a hoe, which the player gives it (also
+ * seeds to start with, see {@link WorkerSupplies}). The hoe wears out like a player's, one
+ * use per harvested crop; without a hoe it waits.
  *
  * <p>When it waits it stands next to the composter, not on it: jumping down from there it
  * would land on the fields.
@@ -64,7 +65,6 @@ public class FarmFields extends Behavior<Villager> {
 	private static final long UNREACHABLE_COOLDOWN = 1200L;
 	/** How close (sideways) the farmer has to be to a crop to work on it. */
 	private static final double REACH = 1.5;
-	private static final PersonalChest.Supply HOE_SUPPLY = new PersonalChest.Supply(FarmFields::isHoe, 1, 1, true, "farmer.no_hoe");
 
 	private enum State { SEARCH, WALK, WORK, DELIVER, WAIT }
 
@@ -75,7 +75,7 @@ public class FarmFields extends Behavior<Villager> {
 	private String waitReason = "farmer.growing";
 	private @Nullable ChestTrip trip;
 	private final Map<BlockPos, Long> unreachable = new HashMap<>();
-	private final PersonalChest personalChest = new PersonalChest();
+	private final WorkerSupplies supplies = new WorkerSupplies();
 
 	public FarmFields() {
 		super(ImmutableMap.of(MemoryModuleType.JOB_SITE, MemoryStatus.VALUE_PRESENT), 24000);
@@ -118,7 +118,7 @@ public class FarmFields extends Behavior<Villager> {
 		villager.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
 		villager.getBrain().eraseMemory(MemoryModuleType.LOOK_TARGET);
 		villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
-		this.personalChest.stop(villager);
+		this.supplies.stop();
 		if (this.trip != null) {
 			this.trip.close(villager);
 			this.trip = null;
@@ -134,7 +134,7 @@ public class FarmFields extends Behavior<Villager> {
 		this.stateTicks++;
 		this.unreachable.values().removeIf(until -> until < timestamp);
 		if (this.state == State.SEARCH && !hasDeliverables(villager.getInventory())
-			&& this.personalChest.busy(level, villager, List.of(HOE_SUPPLY, seedSupply()))) {
+			&& this.supplies.busy(level, villager, WorkerSupplies.HOE)) {
 			return; // the chest sets the status
 		}
 
@@ -195,11 +195,6 @@ public class FarmFields extends Behavior<Villager> {
 			}
 		}
 		return Optional.ofNullable(best);
-	}
-
-	/** Seeds from the personal chest when the farmer has none left. */
-	private static PersonalChest.Supply seedSupply() {
-		return new PersonalChest.Supply(FarmFields::isSeed, 1, Config.KEEP_SEEDS.get(), false, "");
 	}
 
 	private static boolean isRipe(BlockState state) {
@@ -437,7 +432,7 @@ public class FarmFields extends Behavior<Villager> {
 		Map<Item, Integer> keptSeeds = new HashMap<>();
 		for (int slot = 0; slot < amounts.length; slot++) {
 			ItemStack stack = inventory.getItem(slot);
-			if (stack.isEmpty() || isHoe(stack)) {
+			if (stack.isEmpty() || isHoe(stack) || WorkerSupplies.isWage(stack)) {
 				continue;
 			}
 			int keep = 0;

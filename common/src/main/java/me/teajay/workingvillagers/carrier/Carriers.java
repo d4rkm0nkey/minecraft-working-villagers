@@ -48,7 +48,7 @@ public final class Carriers {
 
 		hired.workingvillagers$setEmployer(player.getUUID());
 		hired.workingvillagers$setCarrier(CarrierData.fromBasket(basket));
-		String name = WorkerNames.ensureName(villager);
+		WorkerNames.ensureName(villager);
 		basket.consume(1, player);
 		if (villager.getBrain().hasMemoryValue(MemoryModuleType.POTENTIAL_JOB_SITE)) {
 			villager.releasePoi(MemoryModuleType.POTENTIAL_JOB_SITE);
@@ -58,13 +58,14 @@ public final class Carriers {
 		villager.refreshBrain(level);
 		villager.makeSound(SoundEvents.VILLAGER_YES);
 		level.broadcastEntityEvent(villager, (byte) 14);
-		player.sendSystemMessage(Component.translatable("message.workingvillagers.carrier.appointed", name));
+		player.sendSystemMessage(Component.translatable("message.workingvillagers.carrier.appointed", villager.getName()));
 		return InteractionResult.SUCCESS_SERVER;
 	}
 
 	/**
-	 * The employer takes the basket back (sneak + use with an empty hand). The villager is
-	 * unemployed and no longer under contract.
+	 * The employer takes the basket back (sneak + use with an empty hand), together with what
+	 * the carrier carries (its emeralds). The villager is unemployed and no longer under
+	 * contract.
 	 */
 	public static InteractionResult dismiss(Villager villager, Player player) {
 		if (!(villager.level() instanceof ServerLevel level)) {
@@ -76,6 +77,12 @@ public final class Carriers {
 			return InteractionResult.CONSUME;
 		}
 		dropBasket(villager, player);
+		// Its wage stays with the player, an unhired villager would keep it for good
+		for (ItemStack stack : villager.getInventory().removeAllItems()) {
+			if (!player.getInventory().add(stack)) {
+				villager.spawnAtLocation(level, stack);
+			}
+		}
 		hired.workingvillagers$setEmployer(null);
 		villager.setVillagerData(villager.getVillagerData().withProfession(level.registryAccess(), VillagerProfession.NONE));
 		villager.refreshBrain(level);

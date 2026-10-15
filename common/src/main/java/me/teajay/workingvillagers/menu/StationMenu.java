@@ -14,7 +14,6 @@ import me.teajay.workingvillagers.crafting.StoneFamilies;
 import me.teajay.workingvillagers.crafting.WoodTypes;
 import me.teajay.workingvillagers.job.ChopTrees;
 import me.teajay.workingvillagers.job.HiredVillager;
-import me.teajay.workingvillagers.job.PersonalChest;
 import me.teajay.workingvillagers.job.WorkerJobs;
 import me.teajay.workingvillagers.job.WorkerStatus;
 import me.teajay.workingvillagers.station.StationPicks;
@@ -81,8 +80,6 @@ public class StationMenu extends AbstractContainerMenu {
 	/** Closes the menu, the player then right-clicks chests to link them as inputs / outputs. */
 	public static final int ADD_INPUTS_BUTTON = 305;
 	public static final int ADD_OUTPUTS_BUTTON = 306;
-	/** Closes the menu, the player then right-clicks the worker's personal chest. */
-	public static final int PERSONAL_CHEST_BUTTON = 307;
 	/** Carpenter's bench: fewer / more products to keep in stock. */
 	public static final int STOCK_LESS_BUTTON = 308;
 	public static final int STOCK_MORE_BUTTON = 309;
@@ -184,11 +181,11 @@ public class StationMenu extends AbstractContainerMenu {
 			tag.putInt(TAG_DAILY_LOGS, Config.DAILY_LOGS.get());
 			tag.putInt(TAG_MAX_CHESTS, Config.MAX_CHESTS.get());
 			station.occupant(serverLevel).ifPresent(name -> {
-				tag.putString(TAG_WORKER, name.getString());
+				tag.store(TAG_WORKER, ComponentSerialization.CODEC, name);
 				if (station.worker() != null && serverLevel.getEntity(station.worker()) instanceof Villager villager) {
 					tag.putBoolean(TAG_HIRED_WORKER, true);
 					tag.store(TAG_STATUS, ComponentSerialization.CODEC, WorkerStatus.describe(villager));
-					PersonalChestInfo.write(serverLevel, villager, tag);
+					SuppliesInfo.write(serverLevel, villager, tag);
 					if (this.type == StationType.CHOPPING_BLOCK || this.type == StationType.COMPOSTER) {
 						tag.putInt(TAG_LOGS, ((HiredVillager) villager).workingvillagers$getWorkDone(ChopTrees.today(serverLevel)));
 					}
@@ -317,7 +314,7 @@ public class StationMenu extends AbstractContainerMenu {
 
 	/** The name of the worker, empty if the station is free. */
 	public Optional<Component> getWorker() {
-		return this.info.info().getString(TAG_WORKER).map(Component::literal);
+		return this.info.info().read(TAG_WORKER, ComponentSerialization.CODEC);
 	}
 
 	/** Whether the worker can be taken away here (a hired villager that is nearby). */
@@ -330,9 +327,9 @@ public class StationMenu extends AbstractContainerMenu {
 		return this.info.info().read(TAG_STATUS, ComponentSerialization.CODEC);
 	}
 
-	/** The worker's personal chest, empty if the station has no hired worker. */
-	public Optional<PersonalChestInfo> getPersonalChest() {
-		return PersonalChestInfo.read(this.info.info());
+	/** The wage and tool of the worker, empty if the station has no hired worker. */
+	public Optional<SuppliesInfo> getSupplies() {
+		return SuppliesInfo.read(this.info.info());
 	}
 
 	/**
@@ -435,7 +432,7 @@ public class StationMenu extends AbstractContainerMenu {
 			this.access.execute((level, pos) -> player.openMenu(level.getBlockState(pos).getMenuProvider(level, pos)));
 			return true;
 		}
-		if (buttonId >= ASSIGN_BUTTON && buttonId <= PERSONAL_CHEST_BUTTON) {
+		if (buttonId >= ASSIGN_BUTTON && buttonId <= ADD_OUTPUTS_BUTTON) {
 			if (!(player instanceof ServerPlayer serverPlayer)) {
 				return false;
 			}
@@ -479,12 +476,6 @@ public class StationMenu extends AbstractContainerMenu {
 				WorkerJobs.unassign(level, worker);
 				player.sendOverlayMessage(Component.translatable("message.workingvillagers.assign.removed", worker.getName()));
 				this.updateInfo();
-			}
-			case PERSONAL_CHEST_BUTTON -> {
-				if (station.worker() == null || !(level.getEntity(station.worker()) instanceof Villager worker)) {
-					return false;
-				}
-				PersonalChest.pick(player, worker);
 			}
 			case ADD_INPUTS_BUTTON -> {
 				if (!this.type.isProcessing()) {

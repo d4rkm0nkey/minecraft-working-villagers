@@ -34,14 +34,14 @@ public final class Config {
 	private static final List<Option> OPTIONS = new ArrayList<>();
 
 	public static final IntOption DAILY_WAGE = intOption("workers", "dailyWage", 1, 0, 64,
-		"Emeralds a worker takes from its personal chest before work each day. 0: they work for free",
-		"(and workers without tools then need no personal chest).");
+		"Emeralds a worker takes from what it carries before work each day (give them by right-clicking",
+		"the worker). 0: they work for free.");
+	public static final BoolOption RANDOM_NAMES = boolOption("workers", "randomNames", false,
+		"Give hired villagers a random name (like Anton or Berta). Otherwise only a name tag names them.");
 	public static final IntOption MAX_CHESTS = intOption("workers", "maxChests", 8, 1, 8,
 		"How many chests can be linked to one workstation.");
 	public static final IntOption CHEST_DISTANCE = intOption("workers", "chestDistance", 16, 4, 32,
 		"How far (in blocks) a linked chest may be from its workstation.");
-	public static final IntOption PERSONAL_CHEST_DISTANCE = intOption("workers", "personalChestDistance", 32, 4, 64,
-		"How far a personal chest may be from the workstation (for a carrier: from its first route).");
 
 	public static final IntOption STUCK_SECONDS = intOption("workers", "stuckSeconds", 60, 0, 600,
 		"After this many seconds of trying to get somewhere without getting anywhere (in a hole, boxed in),",

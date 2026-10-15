@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.Unique;
 
 /**
  * The "i" button at the top right of the blast furnace screen, like in the stonecutter: it
- * opens the overview of the smith's station (worker, chests, personal chest).
+ * opens the overview of the smith's station (worker, chests, wage).
  */
 @Mixin(BlastFurnaceScreen.class)
 public abstract class BlastFurnaceScreenMixin extends AbstractFurnaceScreen<BlastFurnaceMenu> {

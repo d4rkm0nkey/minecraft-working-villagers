@@ -46,10 +46,10 @@ import org.jspecify.annotations.Nullable;
  * and it stops for the day after {@link Config#DAILY_LOGS} logs. Without a linked chest the
  * lumberjack does not work at all.
  *
- * <p>It takes its wage, an axe and saplings from its {@link PersonalChest}. The axe wears
- * out like a player's, one use per log; without an axe it waits. It only replants with
- * saplings it carries, and keeps up to {@link Config#KEEP_SAPLINGS} of each kind (also the ones
- * it picks up under the trees), handing in the rest.
+ * <p>It needs its wage and an axe, which the player gives it (see {@link WorkerSupplies}).
+ * The axe wears out like a player's, one use per log; without an axe it waits. It only
+ * replants with saplings it carries, and keeps up to {@link Config#KEEP_SAPLINGS} of each kind
+ * (given to it, or picked up under the trees), handing in the rest.
  *
  * <p>If the chopping block says so, it strips every log while felling the tree, the way
  * its axe strips a log for a player (the axe's block transformer, so wood from data packs
@@ -57,7 +57,6 @@ import org.jspecify.annotations.Nullable;
  */
 public class ChopTrees extends Behavior<Villager> {
 	private static final float SPEED = 0.5F;
-	private static final PersonalChest.Supply AXE_SUPPLY = new PersonalChest.Supply(ChopTrees::isAxe, 1, 1, true, "lumberjack.no_axe");
 	/**
 	 * A master (level 5) needs this much of the time of a novice (level 1), whose slowdown
 	 * is {@link Config#CHOP_SLOWDOWN}.
@@ -88,7 +87,7 @@ public class ChopTrees extends Behavior<Villager> {
 	private @Nullable ChestTrip trip;
 	private @Nullable Block sapling;
 	private final Map<BlockPos, Long> unreachable = new HashMap<>();
-	private final PersonalChest personalChest = new PersonalChest();
+	private final WorkerSupplies supplies = new WorkerSupplies();
 	/** Whether the logs are stripped, as set at the chopping block. */
 	private boolean stripping;
 
@@ -140,7 +139,7 @@ public class ChopTrees extends Behavior<Villager> {
 		villager.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
 		villager.getBrain().eraseMemory(MemoryModuleType.LOOK_TARGET);
 		villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
-		this.personalChest.stop(villager);
+		this.supplies.stop();
 		if (this.tree != null) {
 			level.destroyBlockProgress(villager.getId(), this.tree.base(), -1);
 		}
@@ -160,7 +159,7 @@ public class ChopTrees extends Behavior<Villager> {
 		this.stripping = workplace.strip();
 		this.unreachable.values().removeIf(until -> until < timestamp);
 		if (this.state == State.SEARCH && !hasDeliverables(villager.getInventory())
-			&& this.personalChest.busy(level, villager, List.of(AXE_SUPPLY))) {
+			&& this.supplies.busy(level, villager, WorkerSupplies.AXE)) {
 			return; // the chest sets the status
 		}
 
@@ -192,7 +191,7 @@ public class ChopTrees extends Behavior<Villager> {
 		}
 		Optional<Trees.Tree> found = tired ? Optional.empty() : Trees.findNearest(level, workplace.pos(), this.unreachable);
 		if (found.isPresent()) {
-			if (this.personalChest.busy(level, villager, List.of(AXE_SUPPLY, saplingSupply(level, found.get())))) {
+			if (this.supplies.busy(level, villager, WorkerSupplies.AXE)) {
 				return;
 			}
 			this.tree = found.get();
@@ -380,12 +379,6 @@ public class ChopTrees extends Behavior<Villager> {
 		level.playSound(null, this.tree.base(), SoundEvents.GRASS_PLACE, SoundSource.NEUTRAL, 1.0F, 1.0F);
 	}
 
-	/** Saplings for the tree, fetched from the personal chest if it has them. */
-	private static PersonalChest.Supply saplingSupply(ServerLevel level, Trees.Tree tree) {
-		Item sapling = Trees.saplingFor(level.getBlockState(tree.base())).map(Block::asItem).orElse(Items.AIR);
-		return new PersonalChest.Supply(stack -> stack.is(sapling) && sapling != Items.AIR, tree.bottomLogs().size(), Config.KEEP_SAPLINGS.get(), false, "");
-	}
-
 	static boolean isAxe(ItemStack stack) {
 		return stack.is(ItemTags.AXES);
 	}
@@ -466,7 +459,7 @@ public class ChopTrees extends Behavior<Villager> {
 		Map<Item, Integer> keptSaplings = new HashMap<>();
 		for (int slot = 0; slot < amounts.length; slot++) {
 			ItemStack stack = inventory.getItem(slot);
-			if (!Chests.isNotFood(stack) || isAxe(stack)) {
+			if (!Chests.isHandedIn(stack) || isAxe(stack)) {
 				continue;
 			}
 			int keep = 0;

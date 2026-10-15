@@ -7,7 +7,6 @@ import java.util.Optional;
 import java.util.Set;
 import me.teajay.workingvillagers.crafting.StoneFamilies;
 import me.teajay.workingvillagers.crafting.WoodTypes;
-import me.teajay.workingvillagers.menu.PersonalChestInfo;
 import me.teajay.workingvillagers.menu.StationMenu;
 import me.teajay.workingvillagers.station.StationType;
 import me.teajay.workingvillagers.station.Workstations;
@@ -50,11 +49,12 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	private static final int SHAPES_Y = 77;
 	private static final int STATUS_Y = 29;
 	private static final int SECOND_LINE_Y = 40;
-	private static final int PERSONAL_CHEST_Y = 53;
+	/** The slots with the worker's emeralds, tool and seeds or saplings. */
+	private static final int SUPPLIES_Y = 49;
 	/** Stonecutter: the grid of families or products, as many rows as fit next to the chests. */
 	private static final int STONE_CELLS = GRID_COLUMNS * 6;
 	/** Chopping block: the row with the strip switch. */
-	private static final int STRIP_Y = 68;
+	private static final int STRIP_Y = 71;
 
 	private final boolean orderColumn;
 	/** Where the wood types start, below the products. */
@@ -136,7 +136,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		}
 		this.extractChests(graphics, mouseX, mouseY);
 		this.extractWorkerButton(graphics, mouseX, mouseY);
-		this.extractPersonalChest(graphics, mouseX, mouseY);
+		this.extractSupplies(graphics);
 		for (Hotspot hotspot : this.hotspots) {
 			if (hotspot.contains(mouseX, mouseY)) {
 				graphics.requestCursor(CursorTypes.POINTING_HAND);
@@ -424,20 +424,13 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			List.of(Component.translatable(free ? "gui.workingvillagers.station.assign.tooltip" : "gui.workingvillagers.station.unassign.tooltip")));
 	}
 
-	/** The worker's personal chest with a button to pick it. */
-	private void extractPersonalChest(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-		this.menu.getPersonalChest().ifPresent(info -> {
-			int width = this.personalChestButtonWidth(info);
-			int x = this.leftPos + 7 + COLUMN_WIDTH - width;
-			int y = this.topPos + PERSONAL_CHEST_Y - 2;
-			this.button(graphics, mouseX, mouseY, x, y, width, PersonalChestRow.BUTTON_HEIGHT, PersonalChestRow.buttonLabel(info).getString(),
-				StationMenu.PERSONAL_CHEST_BUTTON, PersonalChestRow.buttonTooltip());
-			this.hotspots.add(new Hotspot(this.leftPos + 7, y, x - this.leftPos - 9, PersonalChestRow.BUTTON_HEIGHT, -1, PersonalChestRow.tooltip(info)));
+	/** What the worker carries for its work: emeralds, tool, seeds or saplings. */
+	private void extractSupplies(GuiGraphicsExtractor graphics) {
+		this.menu.getSupplies().ifPresent(info -> {
+			int y = this.topPos + SUPPLIES_Y;
+			SuppliesRow.extractSlots(graphics, this.font, info, this.leftPos + 7, y);
+			this.hotspots.add(new Hotspot(this.leftPos + 7, y, COLUMN_WIDTH, SuppliesRow.SLOT, -1, SuppliesRow.tooltip(info)));
 		});
-	}
-
-	private int personalChestButtonWidth(PersonalChestInfo info) {
-		return this.font.width(PersonalChestRow.buttonLabel(info)) + 10;
 	}
 
 	private int workerButtonWidth() {
@@ -504,9 +497,11 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		this.secondLine().ifPresent(line -> graphics.text(this.font,
 			this.font.plainSubstrByWidth(line.getString(), COLUMN_WIDTH), 8, SECOND_LINE_Y, line.getStyle().getColor() != null ? 0xFF000000 | line.getStyle().getColor().getValue() : GuiPanels.MUTED_COLOR, false));
 
-		this.menu.getPersonalChest().ifPresent(info -> graphics.text(this.font,
-			this.font.plainSubstrByWidth(PersonalChestRow.line(info).getString(), COLUMN_WIDTH - this.personalChestButtonWidth(info) - 4),
-			8, PERSONAL_CHEST_Y, PersonalChestRow.color(info), false));
+		this.menu.getSupplies().ifPresent(info -> {
+			int x = 7 + SuppliesRow.slotsWidth(info) + 4;
+			graphics.text(this.font, this.font.plainSubstrByWidth(SuppliesRow.line(info).getString(), COLUMN_WIDTH - x + 7),
+				x, SUPPLIES_Y + 5, SuppliesRow.color(info), false);
+		});
 
 		if (this.isStonecutter()) {
 			graphics.text(this.font, this.font.plainSubstrByWidth(this.stoneLabel().getString(), COLUMN_WIDTH - 40), 8, SHAPES_Y - 10, GuiPanels.TEXT_COLOR, false);

@@ -49,7 +49,7 @@ import org.jspecify.annotations.Nullable;
  * the output chests hold fewer products than that.
  *
  * <p>Without an order, input chest or output chest the worker does not work, nor before it
- * took its wage from its {@link PersonalChest}. Material and products are kept in the
+ * took its wage (see {@link WorkerSupplies}). Material and products are kept in the
  * villager's inventory, so nothing is lost when the work is interrupted.
  */
 public class CraftAtBench extends Behavior<Villager> {
@@ -78,7 +78,7 @@ public class CraftAtBench extends Behavior<Villager> {
 	/** Why the worker waits, for the status in the menu. */
 	private Component waitReason = Component.empty();
 	private ItemStack crafting = ItemStack.EMPTY;
-	private final PersonalChest personalChest = new PersonalChest();
+	private final WorkerSupplies supplies = new WorkerSupplies();
 
 	public CraftAtBench() {
 		super(ImmutableMap.of(MemoryModuleType.JOB_SITE, MemoryStatus.VALUE_PRESENT), 24000);
@@ -125,7 +125,7 @@ public class CraftAtBench extends Behavior<Villager> {
 		villager.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
 		villager.getBrain().eraseMemory(MemoryModuleType.LOOK_TARGET);
 		villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
-		this.personalChest.stop(villager);
+		this.supplies.stop();
 		if (this.trip != null) {
 			this.trip.close(villager);
 			this.trip = null;
@@ -139,7 +139,7 @@ public class CraftAtBench extends Behavior<Villager> {
 			return;
 		}
 		this.stateTicks++;
-		if (this.state == State.PLAN && this.personalChest.busy(level, villager, List.of())) {
+		if (this.state == State.PLAN && this.supplies.busy(level, villager, null)) {
 			return; // wage first, the chest sets the status
 		}
 		List<CraftingRecipe> recipes = this.recipesFor(level, station.products(), timestamp);
@@ -510,7 +510,7 @@ public class CraftAtBench extends Behavior<Villager> {
 	 * Material of an earlier order is handed in as well.
 	 */
 	private static Predicate<ItemStack> isProduct(Predicate<ItemStack> isMaterial) {
-		return stack -> Chests.isNotFood(stack) && !isMaterial.test(stack);
+		return stack -> Chests.isHandedIn(stack) && !isMaterial.test(stack);
 	}
 
 	private void setState(State state) {

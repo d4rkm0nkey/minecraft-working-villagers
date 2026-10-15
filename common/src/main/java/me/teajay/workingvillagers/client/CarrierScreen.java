@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import me.teajay.workingvillagers.carrier.Route;
 import me.teajay.workingvillagers.menu.CarrierMenu;
-import me.teajay.workingvillagers.menu.PersonalChestInfo;
+import me.teajay.workingvillagers.menu.SuppliesInfo;
 import me.teajay.workingvillagers.network.RenameRoutePayload;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -135,25 +135,20 @@ public class CarrierScreen extends AbstractContainerScreen<CarrierMenu> {
 			}
 		}
 
-		Optional<PersonalChestInfo> personalChest = this.menu.getPersonalChest();
+		Optional<SuppliesInfo> supplies = this.menu.getSupplies();
 		int y = this.topPos + HINT_Y;
-		if (personalChest.isPresent()) {
-			PersonalChestInfo info = personalChest.get();
-			if (canEdit) {
-				int width = this.personalChestButtonWidth(info);
-				int x = this.rowX() + ROW_WIDTH - width;
-				boolean hovered = GuiPanels.isOver(mouseX, mouseY, x, y, width, PersonalChestRow.BUTTON_HEIGHT);
-				GuiPanels.button(graphics, this.font, x, y, width, PersonalChestRow.BUTTON_HEIGHT, PersonalChestRow.buttonLabel(info).getString(), hovered);
-				if (hovered) {
-					graphics.requestCursor(CursorTypes.POINTING_HAND);
-				}
+		if (supplies.isPresent()) {
+			// The carrier's emeralds, the line next to them; room for one more line only
+			SuppliesInfo info = supplies.get();
+			SuppliesRow.extractSlots(graphics, this.font, info, this.rowX(), y);
+			int x = this.rowX() + SuppliesRow.slotsWidth(info) + 4;
+			int width = ROW_WIDTH - SuppliesRow.slotsWidth(info) - 4;
+			graphics.text(this.font, this.font.plainSubstrByWidth(SuppliesRow.line(info).getString(), width), x, y + 1, SuppliesRow.color(info), false);
+			if (!canEdit) {
+				graphics.text(this.font, this.font.plainSubstrByWidth(Component.translatable("gui.workingvillagers.carrier.hint_not_yours").getString(), width),
+					x, y + 10, GuiPanels.MUTED_COLOR, false);
 			}
-			graphics.text(this.font, this.font.plainSubstrByWidth(PersonalChestRow.line(info).getString(), ROW_WIDTH - this.personalChestButtonWidth(info) - 4),
-				this.rowX() + 1, y + 2, PersonalChestRow.color(info), false);
-			y += 13;
-			if (canEdit) {
-				return; // the buttons explain themselves, there is room for one line only
-			}
+			return;
 		}
 		Component hint = Component.translatable(canEdit ? "gui.workingvillagers.carrier.hint" : "gui.workingvillagers.carrier.hint_not_yours");
 		for (FormattedCharSequence line : this.font.split(hint, ROW_WIDTH)) {
@@ -162,21 +157,9 @@ public class CarrierScreen extends AbstractContainerScreen<CarrierMenu> {
 		}
 	}
 
-	/** 0 if the player may not change the chest. */
-	private int personalChestButtonWidth(PersonalChestInfo info) {
-		return this.menu.canEdit() ? this.font.width(PersonalChestRow.buttonLabel(info)) + 10 : 0;
-	}
-
-	private boolean isOverPersonalChestButton(double mouseX, double mouseY) {
-		return this.menu.getPersonalChest().map(info -> {
-			int width = this.personalChestButtonWidth(info);
-			return width > 0 && GuiPanels.isOver(mouseX, mouseY, this.rowX() + ROW_WIDTH - width, this.topPos + HINT_Y, width, PersonalChestRow.BUTTON_HEIGHT);
-		}).orElse(false);
-	}
-
-	private boolean isOverPersonalChestLine(double mouseX, double mouseY) {
-		return this.menu.getPersonalChest().isPresent()
-			&& GuiPanels.isOver(mouseX, mouseY, this.rowX(), this.topPos + HINT_Y, ROW_WIDTH, PersonalChestRow.BUTTON_HEIGHT);
+	private boolean isOverSupplies(double mouseX, double mouseY) {
+		return this.menu.getSupplies().isPresent()
+			&& GuiPanels.isOver(mouseX, mouseY, this.rowX(), this.topPos + HINT_Y, ROW_WIDTH, SuppliesRow.SLOT);
 	}
 
 	private void smallButton(GuiGraphicsExtractor graphics, int mouseX, int mouseY, int x, int y, String label) {
@@ -226,12 +209,8 @@ public class CarrierScreen extends AbstractContainerScreen<CarrierMenu> {
 			), mouseX, mouseY);
 			return;
 		}
-		if (this.isOverPersonalChestButton(mouseX, mouseY)) {
-			graphics.setComponentTooltipForNextFrame(this.font, PersonalChestRow.buttonTooltip(), mouseX, mouseY);
-			return;
-		}
-		if (this.isOverPersonalChestLine(mouseX, mouseY)) {
-			graphics.setComponentTooltipForNextFrame(this.font, PersonalChestRow.tooltip(this.menu.getPersonalChest().get()), mouseX, mouseY);
+		if (this.isOverSupplies(mouseX, mouseY)) {
+			graphics.setComponentTooltipForNextFrame(this.font, SuppliesRow.tooltip(this.menu.getSupplies().get()), mouseX, mouseY);
 			return;
 		}
 		List<Route> routes = this.menu.getRoutes();
@@ -292,10 +271,6 @@ public class CarrierScreen extends AbstractContainerScreen<CarrierMenu> {
 		}
 		if (this.isOverShare(event.x(), event.y())) {
 			this.click(CarrierMenu.SHARE_BUTTON);
-			return true;
-		}
-		if (this.isOverPersonalChestButton(event.x(), event.y())) {
-			this.click(CarrierMenu.PERSONAL_CHEST_BUTTON);
 			return true;
 		}
 		List<Route> routes = this.menu.getRoutes();
