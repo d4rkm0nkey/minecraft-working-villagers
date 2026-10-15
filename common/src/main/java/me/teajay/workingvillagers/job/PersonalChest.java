@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 import me.teajay.workingvillagers.Config;
 import me.teajay.workingvillagers.carrier.CarrierData;
@@ -205,18 +204,18 @@ public final class PersonalChest {
 
 	// Picking the chest in the world
 
-	/** Who picks a chest for which worker, and how to get back to the menu afterwards. */
-	private record Pick(UUID worker, Consumer<ServerPlayer> reopen, long until) {
+	/** Who picks a chest for which worker. */
+	private record Pick(UUID worker, long until) {
 	}
 
 	/**
 	 * Closes the menu; the player then right-clicks the chest for the worker (clicking its
-	 * current chest again takes it away), and {@code reopen} opens the menu again.
+	 * current chest again takes it away).
 	 */
-	public static void pick(ServerPlayer player, Villager worker, Consumer<ServerPlayer> reopen) {
+	public static void pick(ServerPlayer player, Villager worker) {
 		StationPicks.cancel(player);
 		RouteSelection.cancel(player);
-		PICKS.put(player.getUUID(), new Pick(worker.getUUID(), reopen, player.level().getGameTime() + PICK_TIMEOUT_TICKS));
+		PICKS.put(player.getUUID(), new Pick(worker.getUUID(), player.level().getGameTime() + PICK_TIMEOUT_TICKS));
 		player.closeContainer();
 		player.sendOverlayMessage(Component.translatable("message.workingvillagers.personal_chest.pick", worker.getName()));
 	}
@@ -261,7 +260,6 @@ public final class PersonalChest {
 			level.playSound(null, pos, SoundEvents.BOOK_PAGE_TURN, SoundSource.PLAYERS, 1.0F, 1.2F);
 			player.sendOverlayMessage(Component.translatable("message.workingvillagers.personal_chest.set", worker.getName()));
 		}
-		pick.reopen().accept(player);
 		return true;
 	}
 

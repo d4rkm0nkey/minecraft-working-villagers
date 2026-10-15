@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.carrier.CarrierData;
-import me.teajay.workingvillagers.carrier.Carriers;
 import me.teajay.workingvillagers.carrier.Route;
 import me.teajay.workingvillagers.carrier.RouteHolder;
 import me.teajay.workingvillagers.job.PersonalChest;
@@ -153,7 +152,7 @@ public class CarrierMenu extends AbstractContainerMenu {
 			if (worker == null || !this.holder.canEdit(player) || !(player instanceof ServerPlayer serverPlayer)) {
 				return false;
 			}
-			PersonalChest.pick(serverPlayer, worker, picker -> Carriers.openMenu(worker, picker));
+			PersonalChest.pick(serverPlayer, worker);
 			return true;
 		}
 		if (buttonId == NEW_ROUTE_BUTTON) {

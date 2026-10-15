@@ -478,8 +478,7 @@ public class StationMenu extends AbstractContainerMenu {
 				if (station.worker() == null || !(level.getEntity(station.worker()) instanceof Villager worker)) {
 					return false;
 				}
-				StationType type = this.type;
-				PersonalChest.pick(player, worker, picker -> picker.openMenu(provider(type, level, pos)));
+				PersonalChest.pick(player, worker);
 			}
 			case ADD_INPUTS_BUTTON -> {
 				if (!this.type.isProcessing()) {
