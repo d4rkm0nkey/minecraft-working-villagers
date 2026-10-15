@@ -71,6 +71,18 @@ public final class Config {
 	public static final IntOption CRAFT_INGREDIENTS_PER_TRIP = intOption("carpenter", "ingredientsPerTrip", 32, 1, 64,
 		"How many ingredients the carpenter fetches from the input chests at once (at least one piece's worth).");
 
+	public static final IntOption FIELD_RADIUS = intOption("farmer", "fieldRadius", 8, 2, 16,
+		"How far from the composter (in blocks, sideways) the farmer works the farmland.");
+	public static final DoubleOption SECONDS_PER_CROP = doubleOption("farmer", "secondsPerCrop", 1.5, 0.1, 20.0,
+		"How long the farmer needs to harvest or plant one crop.");
+	public static final IntOption KEEP_SEEDS = intOption("farmer", "keepSeeds", 16, 1, 64,
+		"How many seeds of each kind (wheat seeds, carrots, potatoes, ...) the farmer keeps for planting.");
+
+	public static final IntOption SMELT_BATCH = intOption("smith", "batchSize", 16, 1, 64,
+		"How many items to smelt the smith fetches from an input chest at once.");
+	public static final IntOption FUEL_BATCH = intOption("smith", "fuelPerTrip", 8, 1, 64,
+		"How much fuel the smith fetches at once.");
+
 	public static final IntOption ROUTE_LENGTH = intOption("carrier", "maxRouteLength", 32, 4, 64,
 		"How far (in blocks) source and target of a route may be apart.");
 	public static final IntOption ROUTE_SOURCE_SPREAD = intOption("carrier", "maxSourceSpread", 40, 4, 96,

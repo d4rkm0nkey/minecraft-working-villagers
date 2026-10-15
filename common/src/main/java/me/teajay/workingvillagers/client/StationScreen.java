@@ -34,7 +34,8 @@ import org.jspecify.annotations.Nullable;
  * At the woodcutter and the carpenter's bench a second column on the left sets the order:
  * the product (or its shape) and the wood types to use; at the bench also how many
  * products to keep in stock. At the stonecutter that column shows the stone families
- * first and, once one is opened, its products.
+ * first and, once one is opened, its products. The composter and the blast furnace have
+ * no order: the farmer works the fields around it, the smith smelts what it finds.
  */
 public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	private static final Identifier SLOT_SPRITE = Identifier.withDefaultNamespace("container/slot");
@@ -84,7 +85,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	}
 
 	private static boolean hasOrderColumn(StationMenu menu) {
-		return menu.type().isProcessing();
+		return menu.type().hasOrder();
 	}
 
 	private boolean isStonecutter() {
@@ -125,7 +126,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			String back = Component.translatable("gui.workingvillagers.station.back").getString();
 			int width = this.font.width(back) + 10;
 			this.button(graphics, mouseX, mouseY, left + this.imageWidth - 7 - width, top + 3, width, BUTTON_SIZE, back, StationMenu.BACK_BUTTON,
-				List.of(Component.translatable(this.isBench() ? "gui.workingvillagers.station.back.tooltip.bench" : "gui.workingvillagers.station.back.tooltip")));
+				List.of(Component.translatable(this.backTooltip())));
 		}
 		if (this.orderColumn) {
 			this.extractOrder(graphics, mouseX, mouseY);
@@ -447,8 +448,20 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		return this.font.width(Component.translatable(free ? "gui.workingvillagers.station.assign" : "gui.workingvillagers.station.unassign")) + 10;
 	}
 
+	private String backTooltip() {
+		return switch (this.menu.type()) {
+			case CARPENTER_BENCH -> "gui.workingvillagers.station.back.tooltip.bench";
+			case BLAST_FURNACE -> "gui.workingvillagers.station.back.tooltip.furnace";
+			default -> "gui.workingvillagers.station.back.tooltip";
+		};
+	}
+
 	private Component noChestsWarning() {
-		return Component.translatable(this.menu.type().isProcessing() ? "gui.workingvillagers.station.no_chests" : "gui.workingvillagers.chopping_block.no_chests");
+		return Component.translatable(switch (this.menu.type()) {
+			case CHOPPING_BLOCK -> "gui.workingvillagers.chopping_block.no_chests";
+			case COMPOSTER -> "gui.workingvillagers.composter.no_chests";
+			default -> "gui.workingvillagers.station.no_chests";
+		});
 	}
 
 	private List<Component> chestTooltip(StationMenu.Chest chest, BlockState state) {
@@ -529,8 +542,20 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			: Component.translatable("gui.workingvillagers.station.stone.families");
 	}
 
-	/** Below the worker: the logs of today, or the order. */
+	/** Below the worker: the logs or crops of today, or the order. */
 	private Optional<Component> secondLine() {
+		if (this.menu.type() == StationType.COMPOSTER) {
+			int crops = this.menu.getLogsToday();
+			if (this.menu.getWorker().isEmpty()) {
+				return Optional.of(Component.translatable("gui.workingvillagers.chopping_block.hire"));
+			}
+			return crops < 0 ? Optional.empty() : Optional.of(Component.translatable("gui.workingvillagers.composter.crops", crops));
+		}
+		if (this.menu.type() == StationType.BLAST_FURNACE) {
+			return Optional.of(Component.translatable(this.menu.getWorker().isEmpty()
+				? "gui.workingvillagers.chopping_block.hire"
+				: "gui.workingvillagers.blast_furnace.smelts"));
+		}
 		if (this.menu.type() == StationType.CHOPPING_BLOCK) {
 			int logs = this.menu.getLogsToday();
 			if (this.menu.getWorker().isEmpty()) {

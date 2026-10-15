@@ -147,6 +147,40 @@ def carpenter():
     )
 
 
+def smith():
+    """Dark leather apron with soot and ember burns, and a charcoal cap."""
+    return apron_worker(
+        (75, 50, 35, 255), (55, 36, 25, 255), (230, 120, 40, 255), (45, 45, 50, 255), (25, 25, 30, 255)
+    )
+
+
+def farmer():
+    """Villager profession overlay: denim overalls with straps over a green shirt, and a
+    straw hat with a wide brim (the hat rim of the villager model) and a red band."""
+    image = blank(64)
+    p = image.load()
+    denim, denim_dark, stitch = (60, 90, 140, 255), (45, 70, 110, 255), (200, 170, 80, 255)
+    straw, straw_dark, band = (220, 190, 110, 255), (180, 150, 80, 255), (170, 40, 35, 255)
+
+    def fill(x0, y0, x1, y1, color):
+        for y in range(y0, y1):
+            for x in range(x0, x1):
+                p[x, y] = color(x, y)
+
+    overalls = lambda x, y: denim_dark if y % 4 == 3 else denim
+    fill(0, 46, 28, 58, overalls)  # trousers part of the robe
+    fill(22, 30, 30, 38, overalls)  # bib on the front of the body
+    for y in range(20, 30):
+        p[23, y] = p[28, y] = denim_dark  # straps
+    p[23, 30] = p[28, 30] = stitch  # buttons
+    hat = lambda x, y: straw_dark if (x + 2 * y) % 5 == 0 else straw
+    fill(40, 0, 48, 8, hat)  # crown top
+    fill(32, 8, 64, 11, hat)  # crown sides
+    fill(32, 11, 64, 12, lambda x, y: band)
+    fill(31, 48, 47, 64, hat)  # brim
+    return image
+
+
 WICKER_LIGHT, WICKER_DARK, WICKER_SHADOW = (205, 165, 105, 255), (160, 118, 68, 255), (110, 78, 42, 255)
 
 
@@ -312,6 +346,10 @@ def main():
         "entity/zombie_villager/profession/stonecutter.png": stone_sawyer(),
         "entity/villager/profession/carpenter.png": carpenter(),
         "entity/zombie_villager/profession/carpenter.png": carpenter(),
+        "entity/villager/profession/farmer.png": farmer(),
+        "entity/zombie_villager/profession/farmer.png": farmer(),
+        "entity/villager/profession/smith.png": smith(),
+        "entity/zombie_villager/profession/smith.png": smith(),
     }
     for part, image in woodcutter(jar).items():
         outputs[f"block/woodcutter_{part}.png"] = image

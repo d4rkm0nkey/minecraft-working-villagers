@@ -17,7 +17,11 @@ public enum StationType {
 	CHOPPING_BLOCK(false),
 	WOODCUTTER(true),
 	STONECUTTER(true),
-	CARPENTER_BENCH(true);
+	CARPENTER_BENCH(true),
+	/** The farmer only delivers its harvest. */
+	COMPOSTER(false),
+	/** The smith smelts whatever it finds in the input chests, there is no order. */
+	BLAST_FURNACE(true);
 
 	private final boolean processing;
 
@@ -31,6 +35,19 @@ public enum StationType {
 	 */
 	public boolean isProcessing() {
 		return this.processing;
+	}
+
+	/** Whether the worker needs an order, set in the order column of the overview. */
+	public boolean hasOrder() {
+		return this == WOODCUTTER || this == STONECUTTER || this == CARPENTER_BENCH;
+	}
+
+	/**
+	 * Whether the station is a vanilla block that is also the job site of a vanilla
+	 * profession. It only counts as a workstation of this mod once it has been set up.
+	 */
+	public boolean isVanilla() {
+		return this == STONECUTTER || this == COMPOSTER || this == BLAST_FURNACE;
 	}
 
 	/**
@@ -56,6 +73,8 @@ public enum StationType {
 			case WOODCUTTER -> WorkingVillagers.WOODCUTTER_BLOCK.get().getName();
 			case STONECUTTER -> Blocks.STONECUTTER.getName();
 			case CARPENTER_BENCH -> WorkingVillagers.CARPENTER_BENCH.get().getName();
+			case COMPOSTER -> Blocks.COMPOSTER.getName();
+			case BLAST_FURNACE -> Blocks.BLAST_FURNACE.getName();
 		};
 	}
 
@@ -65,6 +84,8 @@ public enum StationType {
 			case WOODCUTTER -> WorkingVillagers.WOODCUTTER_BLOCK.get();
 			case STONECUTTER -> Blocks.STONECUTTER;
 			case CARPENTER_BENCH -> WorkingVillagers.CARPENTER_BENCH.get();
+			case COMPOSTER -> Blocks.COMPOSTER;
+			case BLAST_FURNACE -> Blocks.BLAST_FURNACE;
 		};
 	}
 
@@ -77,6 +98,10 @@ public enum StationType {
 			return STONECUTTER;
 		} else if (state.is(WorkingVillagers.CARPENTER_BENCH.get())) {
 			return CARPENTER_BENCH;
+		} else if (state.is(Blocks.COMPOSTER)) {
+			return COMPOSTER;
+		} else if (state.is(Blocks.BLAST_FURNACE)) {
+			return BLAST_FURNACE;
 		}
 		return null;
 	}

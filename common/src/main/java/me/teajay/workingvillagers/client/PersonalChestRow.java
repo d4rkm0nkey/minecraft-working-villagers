@@ -67,11 +67,11 @@ final class PersonalChestRow {
 					.withStyle(info.emeralds() < info.wage() ? ChatFormatting.RED : ChatFormatting.GRAY));
 		}
 		if (info.needsTools()) {
-			lines.add(info.axe() < 0
-				? Component.translatable("gui.workingvillagers.personal_chest.no_axe").withStyle(ChatFormatting.RED)
-				: Component.translatable("gui.workingvillagers.personal_chest.axe", info.axe()).withStyle(ChatFormatting.GRAY));
-			lines.add(Component.translatable("gui.workingvillagers.personal_chest.saplings", info.saplings())
-				.withStyle(info.saplings() == 0 ? ChatFormatting.GOLD : ChatFormatting.GRAY));
+			lines.add(info.toolLeft() < 0
+				? Component.translatable("gui.workingvillagers.personal_chest.no_" + info.tool()).withStyle(ChatFormatting.RED)
+				: Component.translatable("gui.workingvillagers.personal_chest." + info.tool(), info.toolLeft()).withStyle(ChatFormatting.GRAY));
+			lines.add(Component.translatable("gui.workingvillagers.personal_chest.stock." + info.tool(), info.stock())
+				.withStyle(info.stock() == 0 ? ChatFormatting.GOLD : ChatFormatting.GRAY));
 		}
 		return lines;
 	}

@@ -2,8 +2,9 @@
 
 Hire unemployed villagers with a work contract and give them real jobs.
 This demo adds the **lumberjack**, the **woodcutter** block, two processing
-professions: the **sawyer** (woodcutter) and the **stone sawyer** (stonecutter), and the
-**carpenter** at the **carpenter's bench**.
+professions: the **sawyer** (woodcutter) and the **stone sawyer** (stonecutter), the
+**carpenter** at the **carpenter's bench**, the **farmer** (composter) and the **smith**
+(blast furnace).
 
 Minecraft 26.3, Fabric (needs Fabric API) and NeoForge.
 
@@ -51,12 +52,12 @@ Minecraft 26.3, Fabric (needs Fabric API) and NeoForge.
 
 ## Personal chest and wage
 
-Every worker (lumberjack, sawyer, stone sawyer, carpenter, carrier) has a personal chest. Pick it
+Every worker (lumberjack, sawyer, stone sawyer, carpenter, farmer, smith, carrier) has a personal chest. Pick it
 with **Pick chest** in the station overview or the carrier menu, then right-click the
 chest (within 32 blocks of the workstation, or of the carrier's first route). Clicking
 the current chest again takes it away. The menus show how many emeralds are left; the
-tooltip shows whether today's wage was paid and, for the lumberjack, its axe and
-saplings.
+tooltip shows whether today's wage was paid and, for the lumberjack and the farmer, its
+tool (axe, hoe) and saplings or seeds.
 
 - **Wage:** before work each day the worker takes 1 emerald out of its chest. Without
   a chest or without an emerald it does not work and waits next to the chest
@@ -68,6 +69,8 @@ saplings.
   saplings of that kind from the chest, and it keeps up to 16 of each kind it picks up
   under trees, handing in the rest. Without saplings it still fells, but does not
   replant.
+- **Farmer tools:** it needs a hoe from the chest, which wears out one use per harvested
+  crop; without one it waits ("needs a hoe"). Seeds come from the chest too.
 
 ## Worker status
 
@@ -155,6 +158,35 @@ A hired villager at the bench becomes a **carpenter**. It is set up like the saw
    an output chest. Material it cannot use goes back to an input chest. Sticks and slabs
    are not made by the carpenter: they come from the sawyer, e.g. via a carrier.
 
+## Farmer
+
+A hired villager at a vanilla **composter** becomes a **farmer** (ordinary villagers still
+become vanilla farmers there). Right-click the composter with an empty hand to open its
+overview (when it is full, the bone meal comes out first; with an item it composts as usual): assign the worker, link chests and pick the personal chest, like at the
+chopping block. **Without a chest the farmer does not work.**
+
+During work hours it harvests ripe crops (any `CropBlock` at full age: wheat, carrots,
+potatoes, beetroots, ...) on farmland within 8 blocks of the composter (3 lower, 2 higher),
+1.5 seconds per crop, and plants the same crop again. Empty farmland gets the crop of its
+neighbours if it has seeds for it, otherwise the seeds it has most of. It keeps up to 16 of
+every kind of seed (`villager_plantable_seeds`), takes more from its personal chest when it
+has none, and brings the rest of the harvest to the nearest chest once there is nothing left
+to do. It needs a hoe from its personal chest (one use per harvested crop). It does not
+till: it only works farmland that is already there. When it waits, it stands next to the
+composter, and hired villagers never trample farmland. The menu shows the crops harvested
+today.
+
+## Smith
+
+A hired villager at a vanilla **blast furnace** becomes a **smith** (ordinary villagers still
+become armorers). The **i** button at the top right of the blast furnace screen opens its
+overview (*Back* leads to the furnace again); there you link input and
+output chests. There is no order: the smith fetches up to 16 items the blast furnace can
+smelt and up to 8 fuel (anything with the `cooking_fuel` component) from the input chests,
+loads the blast furnace, takes out what it made and brings that to an output chest. The
+blast furnace smelts at its usual speed; the experience stays in it for the next player who
+takes something out. An empty bucket in the fuel slot is taken out and handed in.
+
 ## Carrier
 
 A carrier moves items between chests. It has no workstation: its **wicker basket**
@@ -220,7 +252,8 @@ The jars end up in `fabric/build/libs` and `neoforge/build/libs`.
 They hire villagers and set up every workstation like a player would, then check that the
 workers take their wage and deliver: the lumberjack fells a tree, replants it and spares
 builds, nobody works without wage, the sawyer only cuts allowed wood, the stone sawyer
-cuts bricks, the carpenter stops at its stock, the carrier empties its source.
+cuts bricks, the carpenter stops at its stock, the carrier empties its source, the farmer harvests and
+replants (also a raised bed), the smith smelts raw iron, a boxed-in worker is brought back.
 
 - Tests: `common/src/gametest/java`, one function per test, registered by the small test
   mods in `fabric/src/gametest` and `neoforge/src/gametest`.

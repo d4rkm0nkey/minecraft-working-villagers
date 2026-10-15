@@ -57,6 +57,8 @@ nav:
       - Sawyer and stone sawyer: workers/sawyer.md
       - Carpenter: workers/carpenter.md
       - Carrier: workers/carrier.md
+      - Farmer: workers/farmer.md
+      - Smith: workers/smith.md
   - Guides:
       - A wood workshop: guides/wood-workshop.md
       - Worker does not work?: guides/troubleshooting.md

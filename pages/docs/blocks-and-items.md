@@ -66,6 +66,17 @@ Workstation of the [stone sawyer](workers/sawyer.md). When it is used as a works
 it opens the cutter menu of this mod, which looks and works like the vanilla one but
 has the order box and the **i** button.
 
+## Composter (vanilla)
+
+Workstation of the [farmer](workers/farmer.md). Right-click it with an empty hand to open
+its overview. When it is full, the bone meal comes out first; with an item in your hand it
+composts as usual.
+
+## Blast furnace (vanilla)
+
+Workstation of the [smith](workers/smith.md). It opens as usual; the **i** button at
+the top right of its screen opens the overview.
+
 ## Professions
 
 | Profession | Workstation | Hired with |
@@ -75,3 +86,5 @@ has the order box and the **i** button.
 | Stone sawyer | Stonecutter | Work contract |
 | Carpenter | Carpenter's bench | Work contract |
 | Carrier | (wicker basket) | Wicker basket |
+| Farmer | Composter | Work contract |
+| Smith | Blast furnace | Work contract |

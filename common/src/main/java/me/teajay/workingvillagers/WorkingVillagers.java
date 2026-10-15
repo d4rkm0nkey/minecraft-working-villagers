@@ -54,6 +54,10 @@ public final class WorkingVillagers {
 	public static final ResourceKey<VillagerProfession> CARPENTER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("carpenter"));
 	/** Works at the vanilla stonecutter, the job site of the mason. */
 	public static final ResourceKey<VillagerProfession> STONECUTTER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("stonecutter"));
+	/** Works at the vanilla composter, the job site of the vanilla farmer. */
+	public static final ResourceKey<VillagerProfession> FARMER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("farmer"));
+	/** Works at the vanilla blast furnace, the job site of the armorer. */
+	public static final ResourceKey<VillagerProfession> SMITH_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("smith"));
 
 	public static Supplier<Block> CHOPPING_BLOCK;
 	public static Supplier<Item> CHOPPING_BLOCK_ITEM;
@@ -75,6 +79,8 @@ public final class WorkingVillagers {
 	public static Supplier<MenuType<StationMenu>> WOODCUTTER_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> STONECUTTER_STATION_MENU;
 	public static Supplier<MenuType<CarrierMenu>> CARRIER_MENU;
+	public static Supplier<MenuType<StationMenu>> COMPOSTER_STATION_MENU;
+	public static Supplier<MenuType<StationMenu>> BLAST_FURNACE_STATION_MENU;
 	public static Supplier<MenuType<CutterMenu>> WOODCUTTER_MENU;
 	public static Supplier<RecipeType<WoodcuttingRecipe>> WOODCUTTING;
 	public static Supplier<RecipeSerializer<WoodcuttingRecipe>> WOODCUTTING_SERIALIZER;
@@ -110,6 +116,8 @@ public final class WorkingVillagers {
 		registerStonecutter(platform);
 		registerCarpenter(platform);
 		registerCarrier(platform);
+		registerFarmer(platform);
+		registerSmith(platform);
 		platform.registerServerbound(RenameRoutePayload.TYPE, RenameRoutePayload.CODEC, RenameRoutePayload::handle);
 	}
 
@@ -223,6 +231,27 @@ public final class WorkingVillagers {
 		STONECUTTER_STATION_MENU = platform.registerMenu("stonecutter_station", (containerId, inventory) -> new StationMenu(StationType.STONECUTTER, containerId, inventory));
 		STONECUTTER_MENU = platform.registerMenu("stonecutter", (containerId, inventory) -> new CutterMenu(STONECUTTER_KIND, containerId, inventory));
 		registerProfession(platform, "stonecutter", PoiTypes.MASON, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_MASON);
+	}
+
+	/**
+	 * The farmer works at the vanilla composter. Like at the stonecutter, ordinary villagers
+	 * still become (vanilla) farmers there; the overview opens with a right-click with an empty
+	 * hand.
+	 */
+	private static void registerFarmer(Platform platform) {
+		COMPOSTER_STATION_MENU = platform.registerMenu("composter_station", (containerId, inventory) -> new StationMenu(StationType.COMPOSTER, containerId, inventory));
+		registerProfession(platform, "farmer", PoiTypes.FARMER, ImmutableSet.of(
+			Items.WHEAT, Items.WHEAT_SEEDS, Items.BEETROOT_SEEDS, Items.CARROT, Items.POTATO, Items.BEETROOT, Items.BONE_MEAL
+		), SoundEvents.VILLAGER_WORK_FARMER);
+	}
+
+	/**
+	 * The smith works at the vanilla blast furnace; ordinary villagers still become armorers
+	 * there. The overview opens with the "i" button in the blast furnace screen.
+	 */
+	private static void registerSmith(Platform platform) {
+		BLAST_FURNACE_STATION_MENU = platform.registerMenu("blast_furnace_station", (containerId, inventory) -> new StationMenu(StationType.BLAST_FURNACE, containerId, inventory));
+		registerProfession(platform, "smith", PoiTypes.ARMORER, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_ARMORER);
 	}
 
 	@SuppressWarnings("unchecked")

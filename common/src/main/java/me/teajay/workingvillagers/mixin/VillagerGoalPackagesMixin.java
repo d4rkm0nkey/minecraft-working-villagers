@@ -8,6 +8,8 @@ import me.teajay.workingvillagers.carrier.KeepCarrierJob;
 import me.teajay.workingvillagers.job.ChopTrees;
 import me.teajay.workingvillagers.job.CraftAtBench;
 import me.teajay.workingvillagers.job.CutAtStation;
+import me.teajay.workingvillagers.job.FarmFields;
+import me.teajay.workingvillagers.job.SmeltAtFurnace;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.core.Holder;
 import net.minecraft.world.entity.ai.behavior.BehaviorControl;
@@ -46,6 +48,10 @@ public abstract class VillagerGoalPackagesMixin {
 			work = new CraftAtBench();
 		} else if (profession.is(WorkingVillagers.CARRIER_PROFESSION)) {
 			work = new CarryItems();
+		} else if (profession.is(WorkingVillagers.FARMER_PROFESSION)) {
+			work = new FarmFields();
+		} else if (profession.is(WorkingVillagers.SMITH_PROFESSION)) {
+			work = new SmeltAtFurnace();
 		}
 		if (work != null) {
 			cir.setReturnValue(ImmutableList.of(

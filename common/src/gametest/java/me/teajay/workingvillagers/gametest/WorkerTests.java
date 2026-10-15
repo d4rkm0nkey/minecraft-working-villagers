@@ -26,6 +26,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CropBlock;
 
 /**
  * The game tests: hiring, and one test per profession that sets up a station like a player
@@ -57,6 +58,9 @@ public final class WorkerTests {
 		registry.accept("stone_sawyer_cuts_bricks", WorkerTests::stoneSawyerCutsBricks);
 		registry.accept("carpenter_makes_chests", WorkerTests::carpenterMakesChests);
 		registry.accept("carrier_moves_items", WorkerTests::carrierMovesItems);
+		registry.accept("farmer_harvests_and_replants", WorkerTests::farmerHarvestsAndReplants);
+		registry.accept("workers_do_not_trample_farmland", WorkerTests::workersDoNotTrampleFarmland);
+		registry.accept("smith_smelts_ore", WorkerTests::smithSmeltsOre);
 		registry.accept("replaced_station_starts_fresh", WorkerTests::replacedStationStartsFresh);
 	}
 
@@ -221,6 +225,57 @@ public final class WorkerTests {
 			// The stock limit: it stops at two
 			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.CHEST)) == 2, "The carpenter made more than the stock");
 		});
+	}
+
+	/**
+	 * Ripe wheat next to the composter: the farmer brings the wheat to the chest and plants
+	 * the seeds it got from the harvest. An empty spot of farmland gets wheat as well.
+	 */
+	private static void farmerHarvestsAndReplants(GameTestHelper helper) {
+		helper.setBlock(STATION, Blocks.COMPOSTER);
+		// A field in the floor, and a raised bed one block higher
+		List<BlockPos> crops = List.of(new BlockPos(10, 0, 10), new BlockPos(11, 0, 10), new BlockPos(12, 1, 13));
+		BlockPos empty = new BlockPos(12, 0, 10);
+		for (BlockPos crop : crops) {
+			helper.setBlock(crop.below(), Blocks.FARMLAND);
+			helper.setBlock(crop, Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE, CropBlock.MAX_AGE));
+		}
+		helper.setBlock(empty.below(), Blocks.FARMLAND);
+		helper.setBlock(new BlockPos(11, -1, 11), Blocks.WATER);
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, STATION, OUTPUT, ChestRole.OUTPUT);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, STATION);
+		TestWorld.personalChest(helper, worker, PERSONAL_CHEST, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_HOE));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.WHEAT), 3, "wheat in the output chest");
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.IRON_HOE)) == 0, "The farmer delivered its hoe");
+			for (BlockPos crop : crops) {
+				helper.assertBlockPresent(Blocks.WHEAT, crop);
+			}
+			helper.assertBlockPresent(Blocks.WHEAT, empty);
+		});
+	}
+
+	/** A hired villager falling onto farmland leaves it; an ordinary one tramples it. */
+	private static void workersDoNotTrampleFarmland(GameTestHelper helper) {
+		BlockPos worked = new BlockPos(3, 0, 3);
+		BlockPos trampled = new BlockPos(9, 0, 3);
+		helper.setBlock(worked, Blocks.FARMLAND);
+		helper.setBlock(trampled, Blocks.FARMLAND);
+		Villager worker = TestWorld.hireVillager(helper, worked.above(4));
+		Villager villager = helper.spawn(EntityTypes.VILLAGER, trampled.above(4));
+		helper.succeedWhen(() -> {
+			helper.assertTrue(worker.onGround() && villager.onGround(), "Still falling");
+			helper.assertBlockPresent(Blocks.DIRT, trampled);
+			helper.assertBlockPresent(Blocks.FARMLAND, worked);
+		});
+	}
+
+	private static void smithSmeltsOre(GameTestHelper helper) {
+		helper.setBlock(STATION, Blocks.BLAST_FURNACE);
+		Villager worker = processingStation(helper, new ItemStack(Items.RAW_IRON, 4), new ItemStack(Items.COAL, 2));
+		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.IRON_INGOT), 4, "iron ingots in the output chest"));
 	}
 
 	private static void carrierMovesItems(GameTestHelper helper) {

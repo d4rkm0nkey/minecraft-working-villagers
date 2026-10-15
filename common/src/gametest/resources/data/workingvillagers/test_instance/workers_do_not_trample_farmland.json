@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "workingvillagers:workers_do_not_trample_farmland",
+  "max_ticks": 100,
+  "setup_ticks": 1,
+  "structure": "workingvillagers:platform"
+}

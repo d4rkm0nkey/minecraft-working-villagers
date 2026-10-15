@@ -21,6 +21,8 @@ and working at their stations.
 | [Stone sawyer](workers/sawyer.md) | Stonecutter | Cuts stone into stairs, slabs, walls, bricks, ... |
 | [Carpenter](workers/carpenter.md) | Carpenter's bench | Crafts chests, barrels, ladders, tools, boats and other wooden goods |
 | [Carrier](workers/carrier.md) | Wicker basket | Carries items between chests along up to three routes |
+| [Farmer](workers/farmer.md) | Composter | Harvests and replants the fields around its composter |
+| [Smith](workers/smith.md) | Blast furnace | Smelts ore from its input chests in the blast furnace |
 
 Every worker needs a **personal chest** with emeralds in it: it takes one emerald each
 day as its wage. No wage, no work.
@@ -38,7 +40,7 @@ New here? Start with [Installation](installation.md) and then
 
 ## Features at a glance
 
-- Five professions that work together: a lumberjack feeds a sawyer, a carrier brings the
+- Seven professions that work together: a lumberjack feeds a sawyer, a carrier brings the
   planks to a carpenter.
 - Workers really walk to chests, open them and work at their stations, with sounds and
   particles.

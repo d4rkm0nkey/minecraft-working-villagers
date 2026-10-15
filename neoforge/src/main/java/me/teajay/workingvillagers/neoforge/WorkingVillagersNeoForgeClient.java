@@ -22,6 +22,8 @@ public class WorkingVillagersNeoForgeClient {
 			event.register(WorkingVillagers.CARRIER_MENU.get(), CarrierScreen::new);
 			event.register(WorkingVillagers.CARPENTER_BENCH_MENU.get(), CarpenterScreen::new);
 			event.register(WorkingVillagers.CARPENTER_STATION_MENU.get(), StationScreen::new);
+			event.register(WorkingVillagers.COMPOSTER_STATION_MENU.get(), StationScreen::new);
+			event.register(WorkingVillagers.BLAST_FURNACE_STATION_MENU.get(), StationScreen::new);
 		});
 	}
 }

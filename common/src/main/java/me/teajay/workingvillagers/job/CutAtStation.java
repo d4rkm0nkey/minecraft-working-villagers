@@ -108,7 +108,7 @@ public class CutAtStation extends Behavior<Villager> {
 		if (jobSite.isEmpty() || jobSite.get().dimension() != level.dimension()) {
 			return null;
 		}
-		return Workstations.find(level, jobSite.get().pos()).filter(station -> station.type().isProcessing()).orElse(null);
+		return Workstations.find(level, jobSite.get().pos()).filter(station -> station.type().hasOrder()).orElse(null);
 	}
 
 	@Override

@@ -2,7 +2,7 @@
 
 **Hire villagers, pay them a wage and let them do the work.**
 
-Working Villagers turns unemployed villagers into paid employees. Hand one a work contract, give it a workstation and a few chests, and it gets to work: felling trees, sawing planks, crafting chests and carrying goods from one place to another. There are no machines. Every job is done by a villager walking around, opening chests and working at its station.
+Working Villagers turns unemployed villagers into paid employees. Hand one a work contract, give it a workstation and a few chests, and it gets to work: felling trees, sawing planks, crafting chests, farming fields, smelting ore and carrying goods from one place to another. There are no machines. Every job is done by a villager walking around, opening chests and working at its station.
 
 ---
 
@@ -15,6 +15,8 @@ Working Villagers turns unemployed villagers into paid employees. Hand one a wor
 | **Stone sawyer** | Stonecutter | Cuts stone into stairs, slabs, walls, bricks, ... |
 | **Carpenter** | Carpenter's bench | Crafts chests, barrels, ladders, tools, boats and other wooden goods |
 | **Carrier** | Wicker basket | Carries items between chests along up to three routes |
+| **Farmer** | Composter | Harvests and replants the fields around its composter |
+| **Smith** | Blast furnace | Smelts ore from its input chests in the blast furnace |
 
 The workers fit together. A lumberjack supplies the sawyer, and a carrier takes the planks to the carpenter, so you get a whole wood workshop that runs by itself.
 
@@ -45,6 +47,12 @@ Hired villagers never take vanilla jobs and never quit by themselves. Outside wo
 
 - The **carpenter's bench** is a crafting table for wooden things only: chests, barrels, ladders, bookshelves, wooden tools, boats, shields, bows, torches and more. Its menu lists everything and shows what you're missing.
 - The carpenter crafts your order from its input chests and keeps a **stock** you choose, e.g. "always keep 16 chests ready".
+
+## 🌾 Farmer and smith
+
+- A hired villager at a vanilla **composter** becomes a farmer: it harvests the ripe crops around it, replants them and brings the harvest to a chest. It needs a hoe in its personal chest, never tills, never tramples the fields and touches nothing but crops.
+- A hired villager at a vanilla **blast furnace** becomes a smith: it loads the furnace with ore and fuel from its input chests and brings the ingots to its output chests.
+- Right-click the composter with an empty hand, or click the **i** button in the blast furnace screen, to set them up. Ordinary villagers still become vanilla farmers and armorers there.
 
 ## 🧺 Carrier
 

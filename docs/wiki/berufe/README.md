@@ -16,8 +16,8 @@ Alle Berufe folgen dem [Kernloop](../grundlagen/kernloop.md) und den [Lohnstufen
 | [Crafter-Bediener](crafter-bediener.md) | Crafter | Crafter befüllen und auslösen | nein | M4 |
 | [Grubenlogistiker](grubenlogistiker.md) | Förderhaspel | Depots, Trägerkette, Schienen mit Lore, Aufzug zwischen Etagen | Förderhaspel | M4 |
 | [Händler](haendler.md) | Handelskontor | Karawanen zu Nachbardörfern | Handelskontor | M4 |
-| [Farmer](farmer.md) | Composter | Felder säen und ernten | nein | M5 |
-| [Schmied](schmied.md) | Blast Furnace / Smithing Table | Erze schmelzen, Werkzeug reparieren | nein | M5 |
+| [Farmer](farmer.md) | Composter | Felder säen und ernten | nein | umgesetzt (ohne Pflügen) |
+| [Schmied](schmied.md) | Blast Furnace / Smithing Table | Erze schmelzen, Werkzeug reparieren | nein | Schmelzen umgesetzt |
 | [Grubenarbeiter](grubenarbeiter.md) | Grubenpflock | Mit Schnur umrandete Grube ausheben, Leiter als Ausgang | Grubenpflock | Idee |
 | [Brenner](brenner.md) | Brennofen | Glas, Stein, Ziegel, Holzkohle brennen (Ofen ohne Essen) | Brennofen | Idee |
 | [Fischer](fischer.md) | Barrel | Angeln an markiertem Wasser | nein | später |

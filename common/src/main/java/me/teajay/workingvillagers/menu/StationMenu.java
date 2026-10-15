@@ -52,7 +52,8 @@ import org.jspecify.annotations.Nullable;
  * to switch its role and to unlink it. At the chopping block it also shows the logs felled
  * today; at the woodcutter it sets the order, the product's shape and the wood types to
  * use; at the carpenter's bench the product, the wood types and how many to keep in stock;
- * at the stonecutter the product, picked from its stone family.
+ * at the stonecutter the product, picked from its stone family. At the composter it shows
+ * the crops harvested today; the blast furnace has no order.
  *
  * <p>The cutters and the bench open it with a button in their crafting menu and get back
  * with a button.
@@ -151,6 +152,8 @@ public class StationMenu extends AbstractContainerMenu {
 			case WOODCUTTER -> WorkingVillagers.WOODCUTTER_STATION_MENU;
 			case STONECUTTER -> WorkingVillagers.STONECUTTER_STATION_MENU;
 			case CARPENTER_BENCH -> WorkingVillagers.CARPENTER_STATION_MENU;
+			case COMPOSTER -> WorkingVillagers.COMPOSTER_STATION_MENU;
+			case BLAST_FURNACE -> WorkingVillagers.BLAST_FURNACE_STATION_MENU;
 		};
 	}
 
@@ -186,7 +189,7 @@ public class StationMenu extends AbstractContainerMenu {
 					tag.putBoolean(TAG_HIRED_WORKER, true);
 					tag.store(TAG_STATUS, ComponentSerialization.CODEC, WorkerStatus.describe(villager));
 					PersonalChestInfo.write(serverLevel, villager, tag);
-					if (this.type == StationType.CHOPPING_BLOCK) {
+					if (this.type == StationType.CHOPPING_BLOCK || this.type == StationType.COMPOSTER) {
 						tag.putInt(TAG_LOGS, ((HiredVillager) villager).workingvillagers$getWorkDone(ChopTrees.today(serverLevel)));
 					}
 				}
@@ -332,7 +335,10 @@ public class StationMenu extends AbstractContainerMenu {
 		return PersonalChestInfo.read(this.info.info());
 	}
 
-	/** Logs felled today at a chopping block, -1 if unknown (no worker or not loaded). */
+	/**
+	 * Logs felled today at a chopping block, crops harvested today at a composter, -1 if
+	 * unknown (no worker or not loaded).
+	 */
 	public int getLogsToday() {
 		return this.info.info().getIntOr(TAG_LOGS, -1);
 	}

@@ -4,7 +4,11 @@
   "package": "me.teajay.workingvillagers.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "AbstractFurnaceMenuAccessor",
+    "BlastFurnaceMenuMixin",
     "BrainAccessor",
+    "ComposterBlockMixin",
+    "FarmlandBlockMixin",
     "ServerPlayerGameModeMixin",
     "ServerLevelMixin",
     "StonecutterBlockMixin",
@@ -12,6 +16,7 @@
     "VillagerMixin"
   ],
   "client": [
+    "client.BlastFurnaceScreenMixin",
     "client.VillagerRendererMixin"
   ],
   "injectors": {

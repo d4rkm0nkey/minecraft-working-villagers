@@ -1,8 +1,10 @@
 package me.teajay.workingvillagers.menu;
 
 import java.util.Optional;
+import java.util.function.Predicate;
 import me.teajay.workingvillagers.Config;
 import me.teajay.workingvillagers.WorkingVillagers;
+import me.teajay.workingvillagers.job.FarmFields;
 import me.teajay.workingvillagers.job.HiredVillager;
 import me.teajay.workingvillagers.job.PersonalChest;
 import net.minecraft.core.BlockPos;
@@ -15,26 +17,27 @@ import net.minecraft.world.item.ItemStack;
 
 /**
  * What the menus show about a worker's personal chest: where it is, how many days of wage
- * are in it, whether today's wage was taken and, for a lumberjack, its axe and saplings.
+ * are in it, whether today's wage was taken and, for a lumberjack or a farmer, its tool and
+ * what it plants.
  *
  * @param emeralds emeralds in the chest, -1 if the chest is not loaded or gone
  * @param wage the emeralds a worker takes per work day ({@link Config#DAILY_WAGE} of the server)
- * @param axe how much of the lumberjack's axe is left in percent, -1 without an axe, -2 if
- *     the worker needs none
- * @param saplings saplings the lumberjack carries plus those in the chest, -1 if the worker
- *     needs none
+ * @param tool the tool the worker needs ({@code "axe"} or {@code "hoe"}), empty if none
+ * @param toolLeft how much of the tool is left in percent, -1 without one
+ * @param stock what the worker plants (saplings, seeds), carried plus in the chest
  */
-public record PersonalChestInfo(Optional<BlockPos> pos, int emeralds, int wage, boolean paid, int axe, int saplings) {
+public record PersonalChestInfo(Optional<BlockPos> pos, int emeralds, int wage, boolean paid, String tool, int toolLeft, int stock) {
 	private static final String TAG = "PersonalChest";
 	private static final String TAG_POS = "Pos";
 	private static final String TAG_EMERALDS = "Emeralds";
 	private static final String TAG_WAGE = "Wage";
 	private static final String TAG_PAID = "Paid";
-	private static final String TAG_AXE = "Axe";
-	private static final String TAG_SAPLINGS = "Saplings";
+	private static final String TAG_TOOL = "Tool";
+	private static final String TAG_TOOL_LEFT = "ToolLeft";
+	private static final String TAG_STOCK = "Stock";
 
 	public boolean needsTools() {
-		return this.axe != -2;
+		return !this.tool.isEmpty();
 	}
 
 	static void write(ServerLevel level, Villager worker, CompoundTag info) {
@@ -45,19 +48,31 @@ public record PersonalChestInfo(Optional<BlockPos> pos, int emeralds, int wage, 
 		tag.putInt(TAG_EMERALDS, chest.map(container -> PersonalChest.countIn(container, stack -> stack.is(PersonalChest.WAGE))).orElse(-1));
 		tag.putInt(TAG_WAGE, Config.DAILY_WAGE.get());
 		tag.putBoolean(TAG_PAID, PersonalChest.isPaid(level, worker));
+		Predicate<ItemStack> tool = null;
+		Predicate<ItemStack> stock = null;
 		if (worker.getVillagerData().profession().is(WorkingVillagers.LUMBERJACK_PROFESSION)) {
-			int axe = -1;
-			int saplings = 0;
+			tag.putString(TAG_TOOL, "axe");
+			tool = stack -> stack.is(ItemTags.AXES);
+			stock = stack -> stack.is(ItemTags.SAPLINGS);
+		} else if (worker.getVillagerData().profession().is(WorkingVillagers.FARMER_PROFESSION)) {
+			tag.putString(TAG_TOOL, "hoe");
+			tool = stack -> stack.is(ItemTags.HOES);
+			stock = FarmFields::isSeed;
+		}
+		if (tool != null) {
+			int left = -1;
+			int count = 0;
 			for (ItemStack stack : worker.getInventory()) {
-				if (stack.is(ItemTags.AXES) && axe < 0) {
-					axe = stack.isDamageableItem() ? 100 - stack.getDamageValue() * 100 / stack.getMaxDamage() : 100;
-				} else if (stack.is(ItemTags.SAPLINGS)) {
-					saplings += stack.getCount();
+				if (tool.test(stack) && left < 0) {
+					left = stack.isDamageableItem() ? 100 - stack.getDamageValue() * 100 / stack.getMaxDamage() : 100;
+				} else if (stock.test(stack)) {
+					count += stack.getCount();
 				}
 			}
-			saplings += chest.map(container -> PersonalChest.countIn(container, stack -> stack.is(ItemTags.SAPLINGS))).orElse(0);
-			tag.putInt(TAG_AXE, axe);
-			tag.putInt(TAG_SAPLINGS, saplings);
+			Predicate<ItemStack> stocked = stock;
+			count += chest.map(container -> PersonalChest.countIn(container, stocked)).orElse(0);
+			tag.putInt(TAG_TOOL_LEFT, left);
+			tag.putInt(TAG_STOCK, count);
 		}
 		info.put(TAG, tag);
 	}
@@ -69,8 +84,9 @@ public record PersonalChestInfo(Optional<BlockPos> pos, int emeralds, int wage, 
 			tag.getIntOr(TAG_EMERALDS, -1),
 			tag.getIntOr(TAG_WAGE, 1),
 			tag.getBooleanOr(TAG_PAID, false),
-			tag.getIntOr(TAG_AXE, -2),
-			tag.getIntOr(TAG_SAPLINGS, -1)
+			tag.getStringOr(TAG_TOOL, ""),
+			tag.getIntOr(TAG_TOOL_LEFT, -1),
+			tag.getIntOr(TAG_STOCK, 0)
 		));
 	}
 }

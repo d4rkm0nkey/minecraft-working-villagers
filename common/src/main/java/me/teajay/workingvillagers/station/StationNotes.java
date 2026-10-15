@@ -35,8 +35,9 @@ import org.jspecify.annotations.Nullable;
 /**
  * The paper notes on the front of the workstations: the name of the worker, or an empty
  * note if the station is free. They are vanilla text displays, so they need nothing on the
- * client. Notes are kept up to date for the stations near players. A vanilla stonecutter
- * only gets a note once it has been set up as a workstation.
+ * client. Notes are kept up to date for the stations near players. A vanilla station
+ * (stonecutter, blast furnace) only gets a note once it has been set up as a workstation;
+ * the composter has no front and gets none.
  */
 public final class StationNotes {
 	private static final String TAG = "workingvillagers_note";
@@ -90,7 +91,7 @@ public final class StationNotes {
 		if (type == null || !state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
 			return Optional.empty();
 		}
-		return type == StationType.STONECUTTER ? Workstations.findSetUp(level, pos) : Workstations.find(level, pos);
+		return type.isVanilla() ? Workstations.findSetUp(level, pos) : Workstations.find(level, pos);
 	}
 
 	private static void update(ServerLevel level, BlockPos pos) {

@@ -104,11 +104,18 @@ final class TestWorld {
 		}
 	}
 
-	/** The worker's status (as in its menu, as translation key), profession and activity. */
+	/** The worker's status (as in its menu, as translation key), profession, activity and what it carries. */
 	static String describe(Villager worker) {
+		StringBuilder carried = new StringBuilder();
+		for (ItemStack stack : worker.getInventory()) {
+			if (!stack.isEmpty()) {
+				carried.append(carried.isEmpty() ? "" : " ").append(stack.getCount()).append(' ').append(stack.getItem());
+			}
+		}
 		return WorkerStatus.describe(worker).getString()
 			+ ", " + worker.getVillagerData().profession().getRegisteredName()
-			+ ", " + worker.getBrain().getActiveNonCoreActivity().map(Object::toString).orElse("no activity");
+			+ ", " + worker.getBrain().getActiveNonCoreActivity().map(Object::toString).orElse("no activity")
+			+ ", carries: " + (carried.isEmpty() ? "nothing" : carried);
 	}
 
 	/**

@@ -48,6 +48,21 @@ default and its allowed range, so you can edit it with any text editor.
 | `secondsPerIngredient` | 0.5 | 0.05–10.0 | Time per ingredient of a piece, at least one second per piece. A chest (8 planks) takes 4 seconds. |
 | `ingredientsPerTrip` | 32 | 1–64 | Ingredients fetched from the input chests at once (always at least one piece's worth). |
 
+## Farmer
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `fieldRadius` | 8 | 2–16 | How far from the composter (sideways) the farmer works the farmland. |
+| `secondsPerCrop` | 1.5 | 0.1–20.0 | Time to harvest or plant one crop. |
+| `keepSeeds` | 16 | 1–64 | Seeds of each kind it keeps for planting (wheat seeds, carrots, potatoes, ...). |
+
+## Smith
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `batchSize` | 16 | 1–64 | Items to smelt fetched from an input chest at once. |
+| `fuelPerTrip` | 8 | 1–64 | Fuel fetched at once. |
+
 ## Carrier
 
 | Option | Default | Range | What it does |

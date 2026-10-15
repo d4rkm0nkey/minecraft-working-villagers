@@ -23,19 +23,22 @@ import org.jspecify.annotations.Nullable;
 /**
  * The jobs of hired villagers: the player gives a hired villager a workstation (chopping
  * block: lumberjack, woodcutter: sawyer, stonecutter: stone sawyer, carpenter's bench:
- * carpenter) in the station menu,
+ * carpenter, composter: farmer, blast furnace: smith) in the station menu,
  * and takes it away again there. Hired villagers do not take any job by themselves.
  *
  * <p>Vanilla job acquisition only looks at job sites in the {@code acquirable_job_site} tag,
- * which the chopping block, the woodcutter and the carpenter's bench are not part of. The stonecutter is in the
- * tag, ordinary villagers still become masons there.
+ * which the chopping block, the woodcutter and the carpenter's bench are not part of. The stonecutter,
+ * the composter and the blast furnace are in the tag, ordinary villagers still become masons,
+ * farmers and armorers there.
  */
 public final class WorkerJobs {
 	private static final Map<ResourceKey<PoiType>, ResourceKey<VillagerProfession>> JOBS = Map.of(
 		WorkingVillagers.LUMBERJACK_POI, WorkingVillagers.LUMBERJACK_PROFESSION,
 		WorkingVillagers.WOODCUTTER_POI, WorkingVillagers.WOODCUTTER_PROFESSION,
 		WorkingVillagers.CARPENTER_POI, WorkingVillagers.CARPENTER_PROFESSION,
-		PoiTypes.MASON, WorkingVillagers.STONECUTTER_PROFESSION
+		PoiTypes.MASON, WorkingVillagers.STONECUTTER_PROFESSION,
+		PoiTypes.FARMER, WorkingVillagers.FARMER_PROFESSION,
+		PoiTypes.ARMORER, WorkingVillagers.SMITH_PROFESSION
 	);
 	private static final int CHECK_INTERVAL = 20;
 

@@ -8,7 +8,7 @@ These rules apply to every worker.
 
 ## Hiring
 
-- **Lumberjack, sawyer, stone sawyer, carpenter:** right-click an unemployed adult
+- **Lumberjack, sawyer, stone sawyer, carpenter, farmer, smith:** right-click an unemployed adult
   villager with a [work contract](../blocks-and-items.md#work-contract). Then assign it at
   a workstation.
 - **Carrier:** right-click an unemployed adult villager with a
@@ -61,7 +61,8 @@ Every worker has its own **personal chest**: click **Pick chest** in the station
   Without a chest, or without an emerald in it, it does not work. It waits next to the
   chest ("Waiting for wages") and checks again every few seconds, so you can pay it
   late.
-- **Tools:** the lumberjack also takes its axe and saplings from this chest.
+- **Tools:** the lumberjack also takes its axe and saplings from this chest, the farmer
+  its hoe and seeds.
 
 The menu shows how many emeralds are left, i.e. for how many days the worker is paid.
 The tooltip tells you whether today's wage has been paid.
