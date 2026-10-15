@@ -1,24 +1,30 @@
+---
+icon: wv/filled_map
+---
+
 # A wood workshop
 
 This guide connects four workers into a small production chain that turns trees into
 chests, without you touching a single log.
 
-```
- trees ──► Lumberjack ──► [Logs]
-                             │  Sawyer (planks)
-                             ▼
-                          [Planks] ──► Carrier ──► [Workshop input]
-                                                        │  Carpenter (chests)
-                                                        ▼
-                                                    [Chests]
-```
+<div class="wv-flow" role="img" aria-label="Trees go to the lumberjack, logs to the sawyer, planks via the carrier to the carpenter, who makes chests">
+<div class="wv-flow__node">:mc-oak_sapling:Trees</div>
+<div class="wv-flow__step">:mc-head_lumberjack:Lumberjack</div>
+<div class="wv-flow__node">:mc-chest:Logs</div>
+<div class="wv-flow__step">:mc-head_woodcutter:Sawyer</div>
+<div class="wv-flow__node">:mc-chest:Planks</div>
+<div class="wv-flow__step">:mc-head_carrier:Carrier</div>
+<div class="wv-flow__node">:mc-chest:Workshop input</div>
+<div class="wv-flow__step">:mc-head_carpenter:Carpenter</div>
+<div class="wv-flow__node">:mc-chest:Chests</div>
+</div>
 
 ## What you need
 
-- 4 work contracts (12 emeralds, 4 paper, 4 ink sacs) and 1 wicker basket
+- 3 work contracts (9 emeralds, 3 paper, 3 ink sacs) and 1 wicker basket
 - 4 unemployed villagers
 - a chopping block, a woodcutter and a carpenter's bench
-- 4 chests for the chain plus 4 personal chests
+- 4 chests for the chain
 - an axe or two for the lumberjack, emeralds for everybody
 
 ## 1. Lumberjack → logs
@@ -51,12 +57,12 @@ Order: *chest*. Set the stock to, say, 16, so it does not use up all your planks
 
 ## 5. Pay everybody
 
-Each of the four workers needs a personal chest with emeralds (and the lumberjack an
-axe). One emerald per worker and day: a week of work costs 28 emeralds.
+Right-click each of the four workers with emeralds (and the lumberjack with an axe). One emerald per worker and day: a week of work costs 28 emeralds.
 
 ## Ideas to extend it
 
 - A second sawyer makes **slabs** or **sticks** from the planks; a second route of the
   carrier brings them to the workshop for products that need them (barrels, ladders,
-  bookshelves, tools).
-- A stone sawyer with a stonecutter makes stone bricks, stairs and walls from cobblestone.
+  tools).
+- A stone sawyer with a stonecutter makes slabs, stairs and walls from cobblestone, or
+  stone bricks from stone.

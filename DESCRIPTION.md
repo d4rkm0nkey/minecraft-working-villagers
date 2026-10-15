@@ -22,19 +22,19 @@ The workers fit together. A lumberjack supplies the sawyer, and a carrier takes 
 
 ## 📜 Hiring and wages
 
-1. Craft a **work contract** (paper, ink sac and 3 emeralds) and right-click an unemployed villager with it. It's hired and gets a name.
-2. Place a **workstation**, open it and **assign** the villager.
+1. Craft a **work contract** (paper, ink sac and 3 emeralds) and right-click an unemployed villager with it. It's hired.
+2. Place a **workstation**. The villager finds it by itself, walks there and takes the job (or you **assign** one in the menu).
 3. **Link chests:** where the material comes from and where the products go.
-4. Pick a **personal chest** and put emeralds in it. Every worker takes **one emerald a day** as its wage. No wage, no work.
+4. **Right-click the worker with emeralds**, like giving a villager food. Every worker takes **one emerald a day** as its wage. No wage, no work. The lumberjack also needs an axe, the farmer a hoe and some seeds.
 5. During the day the villager works on its own.
 
-Hired villagers never take vanilla jobs and never quit by themselves. Outside work hours they still live like normal villagers: they sleep in beds, chat at the village bell and run from zombies and raids.
+Hired villagers never take vanilla jobs and never quit by themselves. A worker that has no wage or no tool shakes its head at you, and its menu shows what it carries and what is missing. Outside work hours they still live like normal villagers: they sleep in beds, chat at the village bell and run from zombies and raids.
 
 ## 🪓 Lumberjack
 
 - Looks for **natural trees** near its chopping block, chops them down, replants a sapling and takes the logs to a chest.
 - Only touches trees with natural leaves, so **your log houses are safe**.
-- Uses a real axe from its personal chest. The axe wears out like yours, and better axes (and Efficiency) make it faster.
+- Uses a real axe you give it. The axe wears out like yours, and better axes make it faster.
 - Can **strip the logs** while felling if you switch it on.
 
 ## 🪚 Sawyer and stone sawyer
@@ -50,7 +50,7 @@ Hired villagers never take vanilla jobs and never quit by themselves. Outside wo
 
 ## 🌾 Farmer and smith
 
-- A hired villager at a vanilla **composter** becomes a farmer: it harvests the ripe crops around it, replants them and brings the harvest to a chest. It needs a hoe in its personal chest, never tills, never tramples the fields and touches nothing but crops.
+- A hired villager at a vanilla **composter** becomes a farmer: it harvests the ripe crops around it, replants them and brings the harvest to a chest. It needs a hoe you give it, never tills, never tramples the fields and touches nothing but crops.
 - A hired villager at a vanilla **blast furnace** becomes a smith: it loads the furnace with ore and fuel from its input chests and brings the ingots to its output chests.
 - Right-click the composter with an empty hand, or click the **i** button in the blast furnace screen, to set them up. Ordinary villagers still become vanilla farmers and armorers there.
 
@@ -62,13 +62,13 @@ Hired villagers never take vanilla jobs and never quit by themselves. Outside wo
 
 ## 🔍 Always know what's going on
 
-- Every workstation has a **paper note** on its front with its worker's name.
+- Every workstation (except the composter) has a **paper note** on its front with its worker's name. Vanilla stonecutters and blast furnaces get one once they are set up. Give your workers names with a name tag.
 - The menus show what each worker is doing right now: *Chopping a tree (40 %)*, *Cutting Oak Stairs*, *Waiting for wages*, *Done for today*, *Sleeping*, ...
 - If a worker isn't working, the status tells you why.
 
 ## ⚙️ Data packs and configuration
 
-- Woodcutter recipes, wood types and the carpenter's products are **data driven**, so data packs and other mods can add their own wood.
+- Woodcutter recipes and the carpenter's products are **data driven**, so data packs and other mods can add their own wood. The sawyer's orders only know the vanilla wood types for now.
 - `config/workingvillagers.json` sets the wage, the distances, the speeds and the daily limits.
 
 ---

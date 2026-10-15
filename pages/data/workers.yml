@@ -1,0 +1,93 @@
+# The workers, for the cards on the home page and the infoboxes on the worker pages
+# (see hooks/minecraft.py). Values may use :mc-<name>: icons.
+lumberjack:
+  name: Lumberjack
+  page: workers/lumberjack.md
+  head: lumberjack
+  workstation: chopping_block
+  summary: Fells natural trees around its chopping block, replants them and brings the logs to a chest.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-chopping_block: Chopping block"
+    Needs: ":mc-any_axe: An axe (:mc-oak_sapling: saplings optional)"
+    Makes: ":mc-any_log: Logs, :mc-oak_sapling: saplings"
+    Range: 16 blocks
+    Per day: 64 logs
+
+sawyer:
+  name: Sawyer
+  page: workers/sawyer.md
+  head: woodcutter
+  workstation: woodcutter
+  summary: Cuts logs and planks into planks, slabs, stairs, fences, doors and more.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-woodcutter: Woodcutter"
+    Takes: ":mc-any_log: Logs, :mc-any_planks: planks"
+    Makes: ":mc-oak_planks: Planks, :mc-oak_slab: slabs, :mc-oak_stairs: stairs, :mc-oak_door: doors, ..."
+    Speed: 4 items per second
+
+stone_sawyer:
+  name: Stone sawyer
+  page: workers/sawyer.md
+  head: stonecutter
+  workstation: stonecutter
+  summary: Cuts stone into stairs, slabs, walls, bricks and more.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-stonecutter: Stonecutter"
+    Takes: ":mc-stone: Stone of all kinds"
+    Makes: ":mc-stone_bricks: Bricks, stairs, slabs, walls, ..."
+    Speed: 4 items per second
+
+carpenter:
+  name: Carpenter
+  page: workers/carpenter.md
+  head: carpenter
+  workstation: carpenter_bench
+  summary: Crafts chests, barrels, ladders, tools, boats and other wooden goods.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-carpenter_bench: Carpenter's bench"
+    Takes: ":mc-any_planks: Planks, :mc-stick: sticks, :mc-oak_slab: slabs, ..."
+    Makes: ":mc-chest: Chests, :mc-barrel: barrels, :mc-ladder: ladders, :mc-oak_boat: boats, ..."
+    Stock: none, or 1 to 256
+
+carrier:
+  name: Carrier
+  page: workers/carrier.md
+  head: carrier
+  workstation: wicker_basket
+  summary: Carries items between chests along up to three routes.
+  facts:
+    Hired with: ":mc-wicker_basket: Wicker basket"
+    Workstation: none, the basket
+    Routes: up to 3
+    Carries: 6 stacks at a time
+    Route length: up to 32 blocks
+
+farmer:
+  name: Farmer
+  page: workers/farmer.md
+  head: farmer
+  workstation: composter
+  summary: Harvests and replants the fields around its composter.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-composter: Composter"
+    Needs: ":mc-any_hoe: A hoe, :mc-wheat_seeds: seeds"
+    Makes: ":mc-wheat: Wheat, :mc-carrot: carrots, :mc-potato: potatoes, :mc-beetroot: beetroots"
+    Range: 8 blocks
+
+smith:
+  name: Smith
+  page: workers/smith.md
+  head: smith
+  workstation: blast_furnace
+  summary: Smelts ore from its input chests in the blast furnace.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-blast_furnace: Blast furnace"
+    Takes: ":mc-raw_iron: Ore and :mc-coal: fuel"
+    Makes: ":mc-iron_ingot: Ingots"
+    Batch: 16 items, 8 fuel

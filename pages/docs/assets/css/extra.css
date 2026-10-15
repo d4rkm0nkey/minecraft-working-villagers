@@ -1,42 +1,916 @@
-/* Minecraft textures are 16x16 and must not be smoothed when scaled up. */
-img.mc {
-  image-rendering: pixelated;
-  width: 32px;
-  height: 32px;
-  vertical-align: middle;
+/* Working Villagers wiki: Minecraft look on top of Material for MkDocs.
+   Pictures in ../mc/ come from tools/generate_wiki_assets.py. */
+@import url("https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap");
+
+/* ---------------------------------------------------------------- tokens */
+:root {
+  --wv-pixel: "Pixelify Sans", "Nunito Sans", sans-serif;
+
+  --wv-emerald: #17a24a;
+  --wv-emerald-bright: #41e07f;
+  --wv-wood: #5b3d25;
+  --wv-wood-dark: #3a2716;
+  --wv-wood-light: #8a6340;
+
+  --wv-paper: #f6eed6;
+  --wv-paper-deep: #ece0ba;
+  --wv-paper-edge: #baa070;
+  --wv-paper-ink: #3d3122;
+
+  --wv-sky-top: #79a6ff;
+  --wv-sky-bottom: #c4dcff;
+
+  --wv-gui: #c6c6c6;
+  --wv-gui-text: #404040;
+  --wv-slot: #8b8b8b;
+  --wv-slot-dark: #373737;
+
+  --wv-shadow: rgba(40, 26, 15, 0.18);
 }
 
-/* Crafting grids: .craft holds 9 (or 4) cells, .craft-result the output. */
-.recipe {
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: var(--wv-wood);
+  --md-primary-fg-color--light: var(--wv-wood-light);
+  --md-primary-fg-color--dark: var(--wv-wood-dark);
+  --md-primary-bg-color: #fffaf0;
+  --md-accent-fg-color: #0f8a3c;
+  --md-accent-fg-color--transparent: rgba(15, 138, 60, 0.1);
+
+  --md-default-bg-color: #fdfaf2;
+  --md-default-fg-color: rgba(43, 33, 22, 0.92);
+  --md-default-fg-color--light: rgba(43, 33, 22, 0.66);
+  --md-default-fg-color--lighter: rgba(43, 33, 22, 0.36);
+  --md-default-fg-color--lightest: rgba(43, 33, 22, 0.1);
+  --md-typeset-color: rgba(43, 33, 22, 0.92);
+  --md-typeset-a-color: #0d7a35;
+  --md-code-bg-color: #f3ecd9;
+  --md-code-fg-color: #4a3826;
+  --md-footer-bg-color: #241910;
+  --md-footer-bg-color--dark: #1a120b;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-hue: 30;
+  --md-primary-fg-color: var(--wv-wood);
+  --md-primary-fg-color--light: var(--wv-wood-light);
+  --md-primary-fg-color--dark: var(--wv-wood-dark);
+  --md-primary-bg-color: #fffaf0;
+  --md-accent-fg-color: var(--wv-emerald-bright);
+  --md-accent-fg-color--transparent: rgba(65, 224, 127, 0.1);
+
+  --md-default-bg-color: #1c1915;
+  --md-default-fg-color: rgba(240, 232, 216, 0.9);
+  --md-default-fg-color--light: rgba(240, 232, 216, 0.64);
+  --md-default-fg-color--lighter: rgba(240, 232, 216, 0.34);
+  --md-default-fg-color--lightest: rgba(240, 232, 216, 0.1);
+  --md-typeset-color: rgba(240, 232, 216, 0.88);
+  --md-typeset-a-color: #5fe08f;
+  --md-code-bg-color: #26221d;
+  --md-code-fg-color: #e9dcc4;
+  --md-footer-bg-color: #14100c;
+  --md-footer-bg-color--dark: #0e0b08;
+
+  --wv-paper: #2a241b;
+  --wv-paper-deep: #352d21;
+  --wv-paper-edge: #6e5a3a;
+  --wv-paper-ink: #efe3c8;
+  --wv-sky-top: #0b1330;
+  --wv-sky-bottom: #2a3f6e;
+  --wv-shadow: rgba(0, 0, 0, 0.45);
+}
+
+/* -------------------------------------------------------------- pixels */
+.mc-item,
+.wv-pixel {
+  image-rendering: pixelated;
+}
+
+/* ------------------------------------------------------------ headings */
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3,
+.md-typeset h4 {
+  font-family: var(--wv-pixel);
+  letter-spacing: 0.01em;
+}
+.md-typeset h1 {
+  font-weight: 600;
+  color: var(--md-default-fg-color);
+  text-shadow: 3px 3px 0 var(--md-default-fg-color--lightest);
+  margin-bottom: 1rem;
+}
+.md-typeset h2 {
+  display: flow-root;
+  font-weight: 600;
+  padding-bottom: 0.3rem;
+  border-bottom: 4px solid transparent;
+  border-image: repeating-linear-gradient(90deg,
+      var(--md-default-fg-color--lightest) 0 8px, transparent 8px 12px) 4;
+}
+.md-typeset h3 {
+  font-weight: 500;
+}
+.md-typeset h2 .headerlink,
+.md-typeset h3 .headerlink {
+  font-family: var(--md-text-font-family);
+}
+
+/* Square emerald bullets. */
+.md-typeset ul:not(.task-list) > li::marker {
+  content: "■  ";
+  color: var(--md-accent-fg-color);
+  font-size: 0.75em;
+}
+.md-typeset ol > li::marker {
+  font-family: var(--wv-pixel);
+  font-weight: 600;
+  color: var(--md-accent-fg-color);
+}
+
+/* -------------------------------------------------------------- header */
+.md-header,
+.md-tabs {
+  background-color: var(--wv-wood-dark);
+  background-image:
+    linear-gradient(rgba(34, 22, 12, 0.62), rgba(34, 22, 12, 0.62)),
+    url("../mc/ui/spruce_planks.png");
+  background-size: auto, 64px 64px;
+  image-rendering: pixelated;
+}
+.md-header {
+  box-shadow: none;
+}
+.md-header--shadow {
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
+}
+.md-header__title,
+.md-header__topic,
+.md-tabs__link,
+.md-source__repository {
+  font-family: var(--wv-pixel);
+}
+.md-header__topic:first-child {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.45);
+}
+.md-header__button.md-logo img {
+  image-rendering: pixelated;
+  height: 1.8rem;
+}
+
+.md-tabs {
+  position: relative;
+  padding-bottom: 12px;
+}
+.md-tabs__link {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.45);
+}
+.md-tabs__item--active .md-tabs__link {
+  color: #fff6a0;
+  opacity: 1;
+}
+.md-tabs__link:hover {
+  color: #fff6a0;
+}
+
+/* A strip of grass under the tabs (or under the header on small screens). */
+.md-tabs::after,
+.wv-grass-edge::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 12px;
+  background: url("../mc/ui/grass_strip.png") repeat-x 0 0 / 32px 12px;
+  image-rendering: pixelated;
+}
+@media screen and (max-width: 76.234375em) {
+  .md-header::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -10px;
+    height: 10px;
+    background: url("../mc/ui/grass_strip.png") repeat-x 0 -2px / 32px 12px;
+    image-rendering: pixelated;
+  }
+}
+
+/* -------------------------------------------------------------- sidebar */
+.md-nav {
+  font-family: var(--wv-pixel);
+  font-size: 0.74rem;
+}
+.md-nav__title {
+  font-weight: 600;
+}
+.md-nav--primary .md-nav__item--section > .md-nav__link {
+  color: var(--md-default-fg-color--light);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.66rem;
+}
+.md-nav__link .md-icon svg,
+.md-nav__link > svg,
+.md-nav__link .twemoji svg {
+  width: 1rem;
+  height: 1rem;
+}
+.md-nav__link--active {
+  color: var(--md-accent-fg-color);
+  font-weight: 600;
+}
+.md-search__input {
+  font-family: var(--wv-pixel);
+}
+
+/* -------------------------------------------------------------- buttons */
+.md-typeset .md-button {
+  font-family: var(--wv-pixel);
+  font-weight: 500;
+  font-size: 0.85rem;
+  color: #fff;
+  text-shadow: 2px 2px 0 #3f3f3f;
+  padding: 0.35rem 1.4rem;
+  border-style: solid;
+  border-width: 6px;
+  border-radius: 0;
+  border-image: url("../mc/ui/button.png") 3 fill / 6px stretch;
+  background: none;
+  image-rendering: pixelated;
+  transition: none;
+}
+.md-typeset .md-button:hover,
+.md-typeset .md-button:focus-visible {
+  color: #ffffa0;
+  background: none;
+  border-image-source: url("../mc/ui/button_highlighted.png");
+}
+.md-typeset .md-button--primary {
+  border-image-source: url("../mc/ui/button_green.png");
+}
+.md-typeset .md-button--primary:hover,
+.md-typeset .md-button--primary:focus-visible {
+  border-image-source: url("../mc/ui/button_highlighted_green.png");
+}
+
+/* --------------------------------------------------------------- icons */
+.mc-icon {
+  position: relative;
+  display: inline-block;
+  width: 1.45em;
+  height: 1.45em;
+  vertical-align: -0.38em;
+  margin: 0 0.06em;
+}
+.mc-icon img {
+  width: 100%;
+  height: 100%;
+}
+.mc-cycle img:not(.is-active) {
+  display: none;
+}
+
+/* Minecraft tooltip: dark violet box with a purple frame. */
+[data-tip]:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  z-index: 10;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  transform: translateX(-50%);
+  padding: 3px 7px 4px;
+  white-space: nowrap;
+  font-family: var(--wv-pixel);
+  font-size: 0.7rem;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #fff;
+  text-shadow: 2px 2px 0 #3e3e3e;
+  background: rgba(16, 0, 16, 0.94);
+  border: 2px solid #3b0a8a;
+  border-image: linear-gradient(#5000ff, #28007f) 1;
+  outline: 2px solid rgba(16, 0, 16, 0.94);
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------- crafting table */
+.md-typeset .mc-recipe {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0.6rem 1.2rem 1rem 0;
+  vertical-align: top;
+}
+.mc-gui {
+  display: inline-block;
+  padding: 8px 14px 14px;
+  background: var(--wv-gui);
+  border: 2px solid #000;
+  border-radius: 6px;
+  box-shadow:
+    inset 4px 4px 0 #fff,
+    inset -4px -4px 0 #555,
+    6px 6px 0 var(--wv-shadow);
+}
+.mc-gui__title {
+  font-family: var(--wv-pixel);
+  font-size: 0.7rem;
+  color: var(--wv-gui-text);
+  margin: 0 0 4px 4px;
+}
+.mc-gui__body {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
-  flex-wrap: wrap;
-  margin: 1rem 0;
+  gap: 14px;
 }
-.craft {
+.mc-grid {
   display: grid;
-  grid-template-columns: repeat(3, 4.6rem);
-  gap: 3px;
+  grid-template-columns: repeat(3, 36px);
 }
-.craft span, .craft-result {
-  display: flex;
+.mc-slot {
+  position: relative;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  height: 3.2rem;
-  padding: 0 2px;
-  font-size: 0.62rem;
-  line-height: 1.15;
-  background: var(--md-code-bg-color);
-  border: 1px solid var(--md-default-fg-color--lightest);
-  border-radius: 3px;
+  width: 36px;
+  height: 36px;
+  background: var(--wv-slot);
+  box-shadow:
+    inset 2px 2px 0 var(--wv-slot-dark),
+    inset -2px -2px 0 #fff;
 }
-.craft-result {
-  width: 5.4rem;
+.mc-slot img,
+.mc-slot .mc-icon {
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  vertical-align: 0;
+}
+.mc-slot .mc-icon:hover::after {
+  bottom: calc(100% + 8px);
+}
+.mc-slot:hover {
+  background-color: #a3a3a3;
+}
+.mc-slot--result {
+  width: 52px;
+  height: 52px;
+}
+.mc-count {
+  position: absolute;
+  right: 3px;
+  bottom: 1px;
+  font-family: var(--wv-pixel);
+  font-size: 0.8rem;
+  color: #fff;
+  text-shadow: 2px 2px 0 #3f3f3f;
+}
+.mc-arrow {
+  width: 48px;
+  height: 34px;
+  background: url("../mc/ui/arrow.png") 0 0 / 100% 100%;
+  image-rendering: pixelated;
+}
+.md-typeset .mc-recipe figcaption {
+  margin: 0.7rem 0 0;
+  font-family: var(--wv-pixel);
+  font-size: 0.75rem;
+  font-style: normal;
+  color: var(--md-default-fg-color--light);
+  max-width: none;
+}
+.mc-recipe__note {
+  margin-left: 0.5em;
+  padding: 0 0.4em;
+  border: 1px solid var(--md-default-fg-color--lighter);
+  font-size: 0.6rem;
+}
+
+/* -------------------------------------------------------------- infobox */
+.md-typeset .wv-infobox {
+  float: right;
+  clear: right;
+  width: 15.5rem;
+  margin: 0 0 1.2rem 1.6rem;
+  font-size: 0.68rem;
+  background: var(--wv-paper);
+  border: 2px solid var(--wv-paper-edge);
+  box-shadow: 5px 5px 0 var(--wv-shadow);
+}
+.wv-infobox__title {
+  padding: 0.35rem 0.7rem;
+  font-family: var(--wv-pixel);
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #fff;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.45);
+  background:
+    linear-gradient(rgba(34, 22, 12, 0.45), rgba(34, 22, 12, 0.45)),
+    url("../mc/ui/oak_planks.png") 0 0 / 48px 48px;
+  image-rendering: pixelated;
+}
+.wv-infobox__art,
+.wv-card__art {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 0.2rem;
+  padding: 0.6rem 0.5rem 14px;
+  background: linear-gradient(var(--wv-sky-top), var(--wv-sky-bottom));
+}
+.wv-infobox__art::after,
+.wv-card__art::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 16px;
+  background:
+    url("../mc/ui/grass_strip.png") repeat-x 0 0 / 32px 12px,
+    url("../mc/ui/dirt.png") repeat-x 0 0 / 32px 32px;
+  image-rendering: pixelated;
+}
+.wv-infobox__art img,
+.wv-card__art img {
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.25));
+}
+.wv-infobox__head {
+  width: 6rem;
+}
+.wv-infobox__station {
+  width: 4.4rem;
+}
+.md-typeset .wv-infobox dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.35rem 0.6rem;
+  margin: 0;
+  padding: 0.7rem;
+}
+.md-typeset .wv-infobox dt {
+  font-family: var(--wv-pixel);
+  font-weight: 600;
+  color: var(--wv-paper-ink);
+  opacity: 0.75;
+}
+.md-typeset .wv-infobox dd {
+  margin: 0;
+  color: var(--wv-paper-ink);
+}
+@media screen and (max-width: 44.984375em) {
+  .md-typeset .wv-infobox {
+    float: none;
+    width: auto;
+    margin: 0 0 1.4rem;
+  }
+}
+
+/* ----------------------------------------------------------- admonitions */
+.md-typeset .admonition,
+.md-typeset details {
+  font-size: 0.74rem;
+  color: var(--wv-paper-ink);
+  background: var(--wv-paper);
+  border: 2px solid var(--wv-paper-edge);
+  border-radius: 0;
+  box-shadow: 4px 4px 0 var(--wv-shadow);
+}
+.md-typeset .admonition-title,
+.md-typeset summary {
+  font-family: var(--wv-pixel);
+  font-weight: 600;
+  font-size: 0.78rem;
+  background: var(--wv-paper-deep) !important;
+  border: none;
+  padding-left: 2.6rem !important;
+}
+.md-typeset .admonition-title::before,
+.md-typeset summary::before {
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+  background: url("../mc/items/book.png") center / contain no-repeat !important;
+  image-rendering: pixelated;
+  width: 1.2rem;
+  height: 1.2rem;
+  left: 0.7rem;
+  top: 0.55rem;
+}
+.md-typeset .tip > .admonition-title::before,
+.md-typeset .tip > summary::before {
+  background-image: url("../mc/items/emerald.png") !important;
+}
+.md-typeset .info > .admonition-title::before,
+.md-typeset .info > summary::before {
+  background-image: url("../mc/items/map.png") !important;
+}
+.md-typeset .warning > .admonition-title::before,
+.md-typeset .warning > summary::before,
+.md-typeset .danger > .admonition-title::before,
+.md-typeset .danger > summary::before {
+  background-image: url("../mc/items/barrier.png") !important;
+}
+.md-typeset .admonition.tip, .md-typeset details.tip { border-color: var(--wv-paper-edge); border-left: 6px solid var(--wv-emerald); }
+.md-typeset .admonition.info, .md-typeset details.info { border-color: var(--wv-paper-edge); border-left: 6px solid #3b78c4; }
+.md-typeset .admonition.note, .md-typeset details.note { border-color: var(--wv-paper-edge); border-left: 6px solid var(--wv-wood-light); }
+.md-typeset .admonition.warning, .md-typeset details.warning,
+.md-typeset .admonition.danger, .md-typeset details.danger { border-color: var(--wv-paper-edge); border-left: 6px solid #c43b3b; }
+.md-typeset .admonition-title,
+.md-typeset summary {
+  color: var(--wv-paper-ink);
+}
+
+/* --------------------------------------------------------------- tables */
+.md-typeset table:not([class]) {
+  font-size: 0.72rem;
+  border: 2px solid var(--md-default-fg-color--lightest);
+  border-radius: 0;
+  box-shadow: 4px 4px 0 var(--md-default-fg-color--lightest);
+}
+.md-typeset table:not([class]) th {
+  font-family: var(--wv-pixel);
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
+  background:
+    linear-gradient(rgba(34, 22, 12, 0.5), rgba(34, 22, 12, 0.5)),
+    url("../mc/ui/oak_planks.png") 0 0 / 48px 48px;
+  image-rendering: pixelated;
+}
+.md-typeset table:not([class]) tbody tr:nth-child(even) {
+  background: var(--md-default-fg-color--lightest);
+}
+.md-typeset table:not([class]) tbody tr:hover {
+  background: var(--md-accent-fg-color--transparent);
+  box-shadow: none;
+}
+
+/* ---------------------------------------------------------- content tabs */
+.md-typeset .tabbed-labels > label {
+  font-family: var(--wv-pixel);
+  font-size: 0.78rem;
+}
+
+/* ------------------------------------------------------------------ home */
+.wv-hero {
+  position: relative;
+  overflow: hidden;
+  margin: -0.4rem 0 2.4rem;
+  padding: 2.6rem 1.6rem 0;
+  text-align: center;
+  border: 2px solid #000;
+  box-shadow: 6px 6px 0 var(--wv-shadow);
+  background:
+    radial-gradient(circle at 86% 22%, rgba(255, 255, 255, 0.5) 0 2.2rem, transparent 2.3rem),
+    linear-gradient(var(--wv-sky-top), var(--wv-sky-bottom) 78%);
+}
+[data-md-color-scheme="slate"] .wv-hero {
+  background:
+    radial-gradient(1px 1px at 12% 18%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 28% 40%, #fff 50%, transparent 51%),
+    radial-gradient(2px 2px at 44% 12%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 66% 34%, #fff 50%, transparent 51%),
+    radial-gradient(2px 2px at 74% 8%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 92% 46%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 6% 52%, #fff 50%, transparent 51%),
+    linear-gradient(var(--wv-sky-top), var(--wv-sky-bottom) 78%);
+}
+.wv-hero__sun {
+  position: absolute;
+  top: 1.4rem;
+  right: 9%;
+  width: 3.2rem;
+  height: 3.2rem;
+  background: #fff6a6;
+  box-shadow: 0 0 0 0.5rem rgba(255, 246, 166, 0.35);
+}
+[data-md-color-scheme="slate"] .wv-hero__sun {
+  background: #e8ecf4;
+  box-shadow: inset -0.9rem 0 0 #c7cdd9, 0 0 0 0.5rem rgba(232, 236, 244, 0.12);
+}
+.wv-hero__cloud {
+  position: absolute;
+  height: 1.2rem;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 1.2rem -1.2rem 0 rgba(255, 255, 255, 0.9);
+}
+[data-md-color-scheme="slate"] .wv-hero__cloud {
+  opacity: 0.12;
+}
+.wv-hero__logo {
+  width: 6rem;
+  image-rendering: pixelated;
+  filter: drop-shadow(4px 4px 0 rgba(0, 0, 0, 0.3));
+}
+.md-typeset .wv-hero__title {
+  margin: 0.6rem 0 0.2rem;
+  font-family: var(--wv-pixel);
   font-weight: 700;
+  font-size: 2.6rem;
+  line-height: 1.1;
+  color: #fff;
+  text-shadow: 4px 4px 0 #3f3f3f;
+}
+.md-typeset .wv-hero__tagline {
+  margin: 0 auto 1.4rem;
+  max-width: 30rem;
+  font-family: var(--wv-pixel);
+  font-size: 1rem;
+  color: #fff;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.45);
+}
+.wv-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem 1rem;
+}
+.md-typeset .wv-hero__actions .md-button {
+  margin: 0;
+  min-width: 11rem;
+}
+.wv-hero__village {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  flex-wrap: nowrap;
+  gap: 0.2rem;
+  margin: 2rem -1.6rem 0;
+  padding: 0 1rem 40px;
+}
+.wv-hero__village::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 44px;
+  background:
+    url("../mc/ui/grass_strip.png") repeat-x 0 0 / 32px 12px,
+    url("../mc/ui/dirt.png") repeat 0 0 / 32px 32px;
+  image-rendering: pixelated;
+}
+.wv-villager {
+  position: relative;
+  z-index: 1;
+}
+.wv-hero__village,
+.wv-hero__village img {
+  image-rendering: pixelated;
+}
+.wv-villager {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: -2px;
+}
+.wv-villager img:first-child {
+  width: 4.6rem;
+  margin-bottom: -2.1rem;
+  image-rendering: auto;
+  animation: wv-bob 2.4s ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+.wv-villager img:last-child {
+  position: relative;
+  width: 3.8rem;
+  image-rendering: auto;
+  filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.25));
+}
+@keyframes wv-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wv-villager img:first-child {
+    animation: none;
+  }
+}
+@media screen and (max-width: 44.984375em) {
+  .md-typeset .wv-hero__title {
+    font-size: 1.9rem;
+  }
+  .wv-villager:nth-child(n + 5) {
+    display: none;
+  }
+  .wv-hero__sun {
+    top: 0.8rem;
+    right: 0.8rem;
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+/* Worker cards. */
+.wv-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: 1rem;
+  margin: 1rem 0 2rem;
+}
+.md-typeset .wv-card {
+  display: flex;
+  flex-direction: column;
+  color: var(--md-default-fg-color);
+  background: var(--wv-paper);
+  border: 2px solid var(--wv-paper-edge);
+  box-shadow: 4px 4px 0 var(--wv-shadow);
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.md-typeset a.wv-card:hover,
+.md-typeset a.wv-card:focus-visible {
+  color: var(--md-default-fg-color);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--wv-shadow);
   border-color: var(--md-accent-fg-color);
 }
-.recipe .arrow {
-  font-size: 1.4rem;
+.wv-card__head {
+  width: 5rem;
+}
+.wv-card__station {
+  width: 3.8rem;
+}
+.wv-card__name {
+  padding: 0.6rem 0.8rem 0.1rem;
+  font-family: var(--wv-pixel);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--wv-paper-ink);
+}
+.wv-card__text {
+  padding: 0 0.8rem 0.8rem;
+  font-size: 0.68rem;
+  line-height: 1.5;
+  color: var(--wv-paper-ink);
+  opacity: 0.85;
+}
+
+/* Steps: numbered tiles with an item in a slot. */
+.md-typeset ol.wv-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: 0.8rem;
+  margin: 1rem 0 2rem;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+.md-typeset .wv-steps > li {
+  position: relative;
+  margin: 0;
+  padding: 0.9rem 0.8rem 0.8rem;
+  font-size: 0.7rem;
+  line-height: 1.5;
+  background: var(--md-code-bg-color);
+  border: 2px solid var(--md-default-fg-color--lightest);
+  counter-increment: step;
+}
+.md-typeset .wv-steps > li::marker {
+  content: none;
+}
+.md-typeset .wv-steps > li::before {
+  content: counter(step);
+  position: absolute;
+  top: 0.5rem;
+  right: 0.7rem;
+  font-family: var(--wv-pixel);
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: var(--md-default-fg-color--lighter);
+}
+.wv-steps .mc-slot {
+  margin-bottom: 0.5rem;
+}
+.wv-steps strong {
+  display: block;
+  font-family: var(--wv-pixel);
+  font-size: 0.82rem;
+}
+
+/* Production chain of the wood workshop. */
+.wv-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem 0;
+  margin: 1.2rem 0 1.6rem;
+  padding: 1rem 0.6rem;
+  background: var(--md-code-bg-color);
+  border: 2px solid var(--md-default-fg-color--lightest);
+}
+.wv-flow__node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 3.3rem;
+  font-family: var(--wv-pixel);
+  font-size: 0.62rem;
+  line-height: 1.2;
+  text-align: center;
+}
+.wv-flow__node .mc-icon {
+  width: 2.6rem;
+  height: 2.6rem;
+}
+.wv-flow__step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 3.7rem;
+  font-family: var(--wv-pixel);
+  font-size: 0.6rem;
+  color: var(--md-default-fg-color--light);
+}
+.wv-flow__step .mc-icon {
+  width: 2.8rem;
+  height: 2.8rem;
+}
+.wv-flow__step::after {
+  content: "";
+  width: 100%;
+  height: 4px;
+  margin-top: 0.2rem;
+  background: repeating-linear-gradient(90deg, var(--md-accent-fg-color) 0 6px, transparent 6px 10px);
+}
+.wv-flow__step::before {
+  content: "";
+  order: 2;
+  align-self: flex-end;
+  width: 0;
+  height: 0;
+  margin: 0 -2px -6px 0;
+  border: 5px solid transparent;
+  border-left: 7px solid var(--md-accent-fg-color);
+}
+.wv-flow__step::after {
+  order: 1;
+}
+
+/* --------------------------------------------------------------- footer */
+.md-footer {
+  position: relative;
+  margin-top: 14px;
+  background-color: #241910;
+  background-image:
+    linear-gradient(rgba(20, 13, 7, 0.72), rgba(20, 13, 7, 0.72)),
+    url("../mc/ui/dirt.png");
+  background-size: auto, 48px 48px;
+  image-rendering: pixelated;
+}
+.md-footer::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -12px;
+  height: 12px;
+  background: url("../mc/ui/grass_strip.png") repeat-x 0 0 / 32px 12px;
+  image-rendering: pixelated;
+}
+.md-footer-meta {
+  background: rgba(0, 0, 0, 0.35);
+}
+.md-footer__title,
+.md-footer__direction {
+  font-family: var(--wv-pixel);
+}
+.md-copyright {
+  font-size: 0.6rem;
+}
+
+/* Planned workers: framed with construction tape. */
+.md-typeset .wv-card--planned {
+  border: 6px solid #f2c318;
+  border-image: repeating-linear-gradient(-45deg, #f2c318 0 10px, #222 10px 20px) 6;
+}
+.md-typeset a.wv-card--planned:hover,
+.md-typeset a.wv-card--planned:focus-visible {
+  border-color: #f2c318;
+}
+.wv-card--planned .wv-card__art {
+  background:
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.06) 0 14px, transparent 14px 28px),
+    linear-gradient(var(--wv-sky-top), var(--wv-sky-bottom));
+}
+.wv-card__symbol {
+  width: 3.4rem;
+  margin: 0 0.4rem 0.9rem;
+}
+.wv-card__station-name {
+  padding: 0 0.8rem 0.3rem;
+  font-family: var(--wv-pixel);
+  font-size: 0.62rem;
+  color: var(--wv-paper-ink);
+  opacity: 0.7;
 }

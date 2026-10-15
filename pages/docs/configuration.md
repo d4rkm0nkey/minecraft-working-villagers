@@ -1,3 +1,7 @@
+---
+icon: wv/clock
+---
+
 # Configuration
 
 The settings are in **`config/workingvillagers.json`** in your Minecraft directory (or the
@@ -13,17 +17,17 @@ default and its allowed range, so you can edit it with any text editor.
   and leaves the file alone, so you can fix it.
 - Lines starting with `//` are comments.
 
-## Workers
+## Workers (`workers`)
 
 | Option | Default | Range | What it does |
 | --- | --- | --- | --- |
-| `dailyWage` | 1 | 0–64 | Emeralds a worker takes from its personal chest each work day. **0**: workers work for free, and workers that need no tools (everyone but the lumberjack) then need no personal chest. |
+| `dailyWage` | 1 | 0–64 | Emeralds a worker takes each work day from the emeralds it carries. **0**: workers work for free; the lumberjack still needs an axe and the farmer a hoe. |
 | `maxChests` | 8 | 1–8 | Chests that can be linked to one workstation. |
 | `chestDistance` | 16 | 4–32 | How far a linked chest may be from its workstation. |
-| `personalChestDistance` | 32 | 4–64 | How far a personal chest may be from the workstation (carrier: from its first route's source). |
+| `randomNames` | false | | Give hired villagers a random name (like Anton or Berta). Otherwise only a name tag names them. |
 | `stuckSeconds` | 60 | 0–600 | After this many seconds of trying to get somewhere without getting anywhere, a worker is brought back to its workstation (carrier: its first route's source). **0**: never; the menu only shows that it is stuck. |
 
-## Lumberjack
+## Lumberjack (`lumberjack`)
 
 | Option | Default | Range | What it does |
 | --- | --- | --- | --- |
@@ -32,38 +36,38 @@ default and its allowed range, so you can edit it with any text editor.
 | `dailyLogs` | 64 | 1–4096 | Logs per day, then it stops for the day. |
 | `chopSlowdown` | 8.0 | 1.0–32.0 | How many times as long as a player with the same axe it needs for a tree. `1.0` is as fast as you. |
 | `restSeconds` | 30 | 0–600 | Break after each delivery. |
-| `keepSaplings` | 16 | 1–64 | Saplings of each kind it carries for replanting. |
+| `keepSaplings` | 16 | 1–64 | Saplings of each kind it carries for replanting (and takes when you give them). |
 
-## Sawyer and stone sawyer
+## Sawyer and stone sawyer (`sawyer`)
 
 | Option | Default | Range | What it does |
 | --- | --- | --- | --- |
 | `itemsPerSecond` | 4 | 1–64 | Items made per second, at least one second per cut. |
 | `batchSize` | 16 | 1–64 | Items of material fetched from the input chest at once. |
 
-## Carpenter
+## Carpenter (`carpenter`)
 
 | Option | Default | Range | What it does |
 | --- | --- | --- | --- |
 | `secondsPerIngredient` | 0.5 | 0.05–10.0 | Time per ingredient of a piece, at least one second per piece. A chest (8 planks) takes 4 seconds. |
 | `ingredientsPerTrip` | 32 | 1–64 | Ingredients fetched from the input chests at once (always at least one piece's worth). |
 
-## Farmer
+## Farmer (`farmer`)
 
 | Option | Default | Range | What it does |
 | --- | --- | --- | --- |
 | `fieldRadius` | 8 | 2–16 | How far from the composter (sideways) the farmer works the farmland. |
 | `secondsPerCrop` | 1.5 | 0.1–20.0 | Time to harvest or plant one crop. |
-| `keepSeeds` | 16 | 1–64 | Seeds of each kind it keeps for planting (wheat seeds, carrots, potatoes, ...). |
+| `keepSeeds` | 16 | 1–64 | Seeds of each kind it keeps for planting (wheat seeds, carrots, potatoes, ...) and takes when you give them. |
 
-## Smith
+## Smith (`smith`)
 
 | Option | Default | Range | What it does |
 | --- | --- | --- | --- |
 | `batchSize` | 16 | 1–64 | Items to smelt fetched from an input chest at once. |
 | `fuelPerTrip` | 8 | 1–64 | Fuel fetched at once. |
 
-## Carrier
+## Carrier (`carrier`)
 
 | Option | Default | Range | What it does |
 | --- | --- | --- | --- |

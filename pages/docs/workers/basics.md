@@ -1,3 +1,7 @@
+---
+icon: wv/emerald
+---
+
 # Hiring and wages
 
 These rules apply to every worker.
@@ -9,31 +13,47 @@ These rules apply to every worker.
 ## Hiring
 
 - **Lumberjack, sawyer, stone sawyer, carpenter, farmer, smith:** right-click an unemployed adult
-  villager with a [work contract](../blocks-and-items.md#work-contract). Then assign it at
-  a workstation.
+  villager with a [work contract](../blocks-and-items.md#work-contract). Then it looks for
+  a free workstation by itself.
 - **Carrier:** right-click an unemployed adult villager with a
   [wicker basket](../blocks-and-items.md#wicker-basket). The basket is contract and
   workstation at once, no work contract needed.
 
 Only villagers without a profession can be hired: no nitwits, no babies, no villagers
-that already have a job. A hired villager gets a random name unless it already has one.
+that already have a job. Hired villagers get no name, just like vanilla villagers. Use a
+name tag to tell them apart. (The config option `randomNames` gives them a random name
+like Anton or Berta.)
 
-Hired villagers **never take a vanilla job** by themselves, not even when they stand
-right next to a stonecutter or a composter. They do take part in normal village life:
-they sleep in beds, meet at the village bell and flee from zombies and raids.
+Hired villagers **never take a vanilla job** (lectern, smithing table, ...). They do take
+part in normal village life: they sleep in beds, meet at the village bell and flee from
+zombies and raids.
+
+## Finding a workstation
+
+A hired villager without a job looks for a **free workstation of this mod** within
+**48 blocks** that it can walk to: a chopping block, woodcutter, stonecutter, carpenter's
+bench, composter or blast furnace. It walks there and takes the job (green particles),
+just like vanilla villagers claim their job sites.
+
+At a stonecutter, composter or blast furnace a hired villager becomes the stone sawyer,
+farmer or smith of this mod. Unhired villagers still become vanilla masons, farmers and
+armorers there.
 
 ## Assigning and removing
 
-Open the workstation menu (at the woodcutter, stonecutter and carpenter's bench: the
-**i** button at the top right of the crafting menu) and click **Assign**. The menu
-closes; right-click a hired villager. It becomes the worker of this station. A villager
-that already works somewhere else moves to the new station.
+To pick a specific worker yourself, open the workstation menu (at the woodcutter,
+stonecutter, carpenter's bench and blast furnace: the **i** button at the top right of
+its screen; at the composter: right-click it with an empty hand) and click **Assign**. The menu closes; right-click a hired villager. It becomes the
+worker of this station. A villager that already works somewhere else moves to the new
+station.
 
-**Remove** takes the worker away again. It stays hired and keeps its name, so you can
-assign it somewhere else without a new contract.
+**Remove** takes the worker away again. It stays hired and keeps its name. It does not
+go back to that same station by itself for one day, but it may take another free one.
 
-Every workstation has a small **paper note** on its front with the name of its worker.
-An empty note means the station is free.
+Every workstation has a small **paper note** on its front with the name of its worker,
+or *Hired villager* if it has no name. An empty note means the station is free. A
+vanilla stonecutter or blast furnace only gets a note once it is set up or has a hired
+worker. The composter has no front and gets no note.
 
 ## Linking chests
 
@@ -44,28 +64,58 @@ other mods):
 - up to **8 chests** per station
 - within **16 blocks** of the station
 
-Click **+ Chest** (lumberjack) or **+ Input** / **+ Output** (the others). The menu
+Click **+ Chest** (lumberjack and farmer) or **+ Input** / **+ Output** (the others). The menu
 closes; right-click the chests you want to link. Right-click a linked chest again to
 unlink it. Right-click the workstation to finish; its menu opens again.
 
-The menu lists the linked chests with a bar showing how full each one is. One click on
-*Input* / *Output* switches a chest's role, the **×** unlinks it.
+The menu lists the linked chests with a bar showing how full each one is. The **×**
+unlinks a chest. At the stations with input and output chests, one click on *Input* /
+*Output* switches a chest's role.
 
-## Personal chest and wage
+## Wage and tools
 
-Every worker has its own **personal chest**: click **Pick chest** in the station menu
-(or in the carrier menu) and right-click a chest within **32 blocks** of the workstation
-(for a carrier: of its first route). Click the current chest again to take it away.
+Give a worker its wage and tools directly, like you give a villager food:
+**right-click the worker** with emeralds, its tool or what it plants, or **throw** the
+items next to it. It walks over, picks them up and keeps them in its own inventory.
+Happy villager particles show that it took them. If it already has enough, it shakes
+its head and takes nothing.
 
-- **Wage:** before work each day the worker takes **1 emerald** from its personal chest.
-  Without a chest, or without an emerald in it, it does not work. It waits next to the
-  chest ("Waiting for wages") and checks again every few seconds, so you can pay it
-  late.
-- **Tools:** the lumberjack also takes its axe and saplings from this chest, the farmer
-  its hoe and seeds.
+The limits in the table count for both ways: a worker only picks up what it still wants
+and leaves the rest on the ground. Throwing needs the `mob_griefing` game rule (like
+vanilla mobs picking up items); right-clicking always works.
 
-The menu shows how many emeralds are left, i.e. for how many days the worker is paid.
-The tooltip tells you whether today's wage has been paid.
+| Worker | Needs | Carries up to |
+| --- | --- | --- |
+| every worker | :mc-emerald: emeralds | 64 |
+| lumberjack | :mc-any_axe: an axe, optionally :mc-oak_sapling: saplings | 2 axes, 16 saplings of each kind |
+| farmer | :mc-any_hoe: a hoe, :mc-wheat_seeds: seeds to start with | 2 hoes, 16 seeds of each kind |
+
+- **Wage:** before work each day the worker takes **1 emerald** from what it carries.
+  64 emeralds pay for 64 work days. Without an emerald it does not work. It waits next
+  to its workstation ("Waiting for wages") and checks again every few seconds, so you
+  can pay it late.
+- **Tools:** the lumberjack needs an axe, the farmer a hoe. The sawyer, stone sawyer,
+  carpenter, smith and carrier only need emeralds.
+- Workers never hand in their emeralds or their tool to the output chests.
+- **A hired worker that dies drops everything it carries:** emeralds, tools and
+  material.
+
+!!! note
+    With `dailyWage` set to 0 in the [configuration](../configuration.md) workers work
+    for free. The lumberjack still needs an axe and the farmer a hoe.
+
+The station menu (and the carrier menu) shows a row of **slots** with what the worker
+carries: its emeralds, its tool with the durability bar and its saplings or seeds. Empty
+slots are faded, a missing wage or tool is tinted red. Next to them it says *Paid for 5
+more days*, *Works for free* or what is missing, e.g. *Needs an emerald!*. The tooltip
+shows the details, e.g. whether today's wage has been paid.
+
+## Complaining
+
+A worker that cannot work (no wage, no tool, no seeds, chests full, a chest or the
+station out of reach, no material, no ore or fuel, no chest linked, stuck) **shakes its head** with
+the "no" sound now and then while a player is within 8 blocks. The menu tells you why;
+see [Worker does not work?](../guides/troubleshooting.md).
 
 ## Work hours
 

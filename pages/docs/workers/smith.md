@@ -1,3 +1,8 @@
+---
+icon: wv/head-smith
+workers: [smith]
+---
+
 # Smith
 
 Hired with a work contract, the smith works at a vanilla **blast furnace**. It loads the
@@ -13,8 +18,9 @@ output chests.
 1. Place a blast furnace.
 2. Open it and click the **i** button at the top right of the furnace screen to open its
    overview. (**Back** in the overview leads to the furnace again.)
-3. **Assign** a hired villager, link chests with **+ Input** and **+ Output**, and pick
-   its **personal chest**.
+3. Link chests with **+ Input** and **+ Output**. A hired villager without a job finds
+   the blast furnace by itself; **Assign** picks a specific one.
+4. Right-click the smith with emeralds for its wage.
 
 **Without an input chest and an output chest the smith does not work.**
 

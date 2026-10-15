@@ -1,3 +1,7 @@
+---
+icon: wv/map
+---
+
 # Installation
 
 ## Requirements
@@ -14,8 +18,9 @@ that is just your game.
 ## Fabric
 
 1. Install the [Fabric Loader](https://fabricmc.net/use/installer/) for Minecraft 26.3
-   (version 0.19 or later).
-2. Download [Fabric API](https://modrinth.com/mod/fabric-api) for Minecraft 26.3.
+   (version 0.19.5 or later).
+2. Download [Fabric API](https://modrinth.com/mod/fabric-api) for Minecraft 26.3
+   (version 0.162.0+26.3 or later).
 3. Download `working-villagers-fabric-<version>.jar`.
 4. Put both jars into the `mods` folder of your Minecraft directory:
     - Windows: `%appdata%\.minecraft\mods`
@@ -25,7 +30,8 @@ that is just your game.
 
 ## NeoForge
 
-1. Install [NeoForge](https://neoforged.net/) for Minecraft 26.3.
+1. Install [NeoForge](https://neoforged.net/) for Minecraft 26.3 (version 26.3.0.58-beta
+   or later).
 2. Download `working-villagers-neoforge-<version>.jar`.
 3. Put it into the `mods` folder (see above).
 4. Start Minecraft with the *NeoForge* profile.

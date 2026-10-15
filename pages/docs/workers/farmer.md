@@ -1,3 +1,8 @@
+---
+icon: wv/head-farmer
+workers: [farmer]
+---
+
 # Farmer
 
 Hired with a work contract, the farmer works at a vanilla **composter**. It harvests the
@@ -14,9 +19,10 @@ harvest to a chest.
 2. **Right-click** the composter with an **empty hand** to open its overview. (With an
    item in your hand it composts as usual; when it is full, the bone meal comes out
    first.)
-3. **Assign** a hired villager, link at least one **chest** (**+ Chest**) and pick its
-   **personal chest**.
-4. Put its wage (emeralds), a **hoe** and some **seeds** into the personal chest.
+3. Link at least one **chest** (**+ Chest**). A hired villager without a job finds the
+   composter by itself; **Assign** picks a specific one.
+4. Right-click the farmer with its wage (emeralds), a **hoe** and some **seeds** to start
+   with.
 
 **Without a chest or a hoe the farmer does not work.**
 
@@ -35,13 +41,13 @@ During work hours the farmer:
    inventory is full).
 
 It keeps up to **16** of every kind of seed (wheat seeds, beetroot seeds, carrots,
-potatoes, ...) for planting and hands in the rest. When it has no seeds left, it takes
-some from its personal chest.
+potatoes, ...) for planting and hands in the rest. After the first harvest it replants
+from what it harvests.
 
 The hoe wears out like a player's, one use per harvested crop, and is gone when it
-breaks. Then the farmer takes the next one from its personal chest, or waits ("needs a
-hoe"). The tooltip of the personal chest in the menu shows how much of the hoe is left and
-how many seeds there are.
+breaks. Then the farmer uses its second hoe, if it carries one (it takes up to 2), or
+waits ("needs a hoe"). The menu shows the hoe with its durability bar and the seeds it
+carries.
 
 The menu shows how many crops it harvested today.
 

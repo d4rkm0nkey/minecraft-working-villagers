@@ -1,3 +1,7 @@
+---
+icon: wv/oak_sapling
+---
+
 # Beta notes
 
 Working Villagers is in an early beta. Thanks for testing!
@@ -15,6 +19,8 @@ Working Villagers is in an early beta. Thanks for testing!
 - A worker that gets stuck (in a hole, boxed in) is brought back to its workstation after
   a minute. If there is no room at the workstation either, it stays stuck until you free it.
 - No integration with JEI/EMI/REI or Jade yet.
+
+What comes next is on [Planned features](planned.md).
 
 ## Reporting bugs
 

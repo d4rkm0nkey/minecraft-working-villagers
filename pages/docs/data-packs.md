@@ -1,3 +1,7 @@
+---
+icon: wv/writable_book
+---
+
 # Data packs and other mods
 
 Most of what the workers can make is data driven, so data packs (and mods) can add their
@@ -24,7 +28,7 @@ bamboo mosaic. Add your items to the tag if they are not in one of these.
 
 ## Carpenter's bench
 
-The bench offers every vanilla **crafting recipe** (shaped or shapeless) whose result is
+The bench offers every **crafting recipe** (shaped or shapeless) whose result is
 in the item tag `workingvillagers:joinery`. To add a product, add its item to the tag:
 
 ```json title="data/workingvillagers/tags/item/joinery.json"

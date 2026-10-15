@@ -1,3 +1,8 @@
+---
+icon: wv/head-carpenter
+workers: [carpenter]
+---
+
 # Carpenter
 
 Hired with a work contract, works at the **carpenter's bench**.
@@ -9,14 +14,10 @@ yourself: its menu lists everything it can make, items you lack the ingredients 
 greyed out, and the tooltip shows what they need. Pick one and take the result; it is
 made from the ingredients in your inventory. Shift-click makes as many as possible.
 
-<div class="recipe" markdown>
-<div class="craft"><span>Wooden Slab</span><span>Wooden Slab</span><span>Wooden Slab</span><span></span><span>Iron Ingot</span><span></span><span>Log</span><span></span><span>Log</span></div>
-<span class="arrow">→</span>
-<span class="craft-result">Carpenter's Bench</span>
-</div>
+[[craft: any_wooden_slab any_wooden_slab any_wooden_slab / _ iron_ingot _ / any_log _ any_log -> carpenter_bench]]
 
 It makes: chests, trapped chests, barrels, crafting tables, ladders, bowls, composters,
-bookshelves, wooden tools, boats and boats with chest, shelves, hanging signs, item
+bookshelves, chiseled bookshelves, wooden tools, boats and boats with chest, shelves, hanging signs, item
 frames, paintings, armor stands, bows, crossbows, fishing rods, shields, torches,
 tripwire hooks and campfires.
 
@@ -39,7 +40,7 @@ soon as some are taken out. Handy for "always keep 16 chests ready".
 
 During work hours the carpenter:
 
-1. fetches the ingredients for up to **32 items' worth** from the input chests (they
+1. fetches up to **32 ingredients** from the input chests, e.g. enough for 4 chests (they
    may be spread over several chests; it only sets off when all of them together are
    enough for at least one piece),
 2. makes the products at the bench (half a second per ingredient, at least one second

@@ -4,34 +4,38 @@ Hire unemployed villagers with a work contract and give them real jobs.
 This demo adds the **lumberjack**, the **woodcutter** block, two processing
 professions: the **sawyer** (woodcutter) and the **stone sawyer** (stonecutter), the
 **carpenter** at the **carpenter's bench**, the **farmer** (composter) and the **smith**
-(blast furnace).
+(blast furnace), and the **carrier**, hired with a **wicker basket**, which carries items
+between chests.
 
 Minecraft 26.3, Fabric (needs Fabric API) and NeoForge.
 
 ## Lumberjack
 
 1. **Craft a work contract** (paper + ink sac + 3 emeralds) and right-click an
-   unemployed adult villager with it. The villager is now under contract and gets a
-   name (unless it already has one).
-2. **Place a chopping block** (an axe above a log) and right-click it to open its menu.
-   **Assign** (next to the worker line) closes the menu; then right-click a hired
-   villager and it becomes the lumberjack of this chopping block. A worker that already
-   works somewhere else moves here. **Remove** takes the worker away again: it is
-   unemployed but stays hired. Hired villagers never take a job by themselves, and no
-   vanilla jobs either.
+   unemployed adult villager with it. The villager is now under contract. It gets no
+   name (like vanilla villagers; a name tag names it), unless `workers.randomNames` is on.
+2. **Place a chopping block** (an axe above a log). A hired villager without a job looks
+   for a free workstation of this mod within 48 blocks that it can walk to (chopping
+   block, woodcutter, stonecutter, carpenter's bench, composter, blast furnace), walks
+   there and takes the job (green particles), like vanilla villagers claim job sites.
+   Right-click the block to open its menu: **Assign** (next to the worker line) closes
+   the menu; then right-click a hired villager to pick a specific worker. A worker that
+   already works somewhere else moves here. **Remove** takes the worker away again: it is
+   unemployed but stays hired, and it does not go back to that same station by itself for
+   one day or until the server restarts (another free one it may take). Hired villagers never take vanilla jobs.
 3. **Chests:** **+ Chest** below the chest list closes the menu; then right-click chests
    (up to 8, within 16 blocks) to link them, or a linked one to unlink it.
    Right-clicking the chopping block ends this and opens the menu again. The menu shows
    the lumberjack, what it is doing, the logs felled today, and the chests with how full
    they are; the × next to a chest unlinks it.
    **Without a chest the lumberjack does not work.**
-4. **Personal chest:** every worker needs one (see below). The lumberjack takes its
-   wage, an axe and saplings from it.
+4. **Wage and tools:** right-click the lumberjack with emeralds, an axe and optionally
+   saplings (see below).
 5. During work hours (like other professions) the lumberjack looks for natural trees
    within 16 blocks of the chopping block, walks up to the trunk and hacks at it, fells it, replants a sapling and brings the wood to the
    nearest chest. A tree takes eight times as long as for a player with the same axe (for now
    all workers are novices; a master would need five times as long). After each delivery it rests for 30 seconds, and it stops for the day
-   after 64 logs. Trees count as natural when they grow on dirt, grass, podzol, mud or moss and have non-persistent
+   after 64 logs. Trees count as natural when they grow on dirt, grass, podzol, mycelium, mud or moss (`#minecraft:substrate_overworld`) and have non-persistent
    leaves, so builds made of logs are left alone. Needs the `mob_griefing` game rule.
 6. **Strip logs** (switch in the chopping block menu, off by default): the lumberjack
    strips every log while felling, so the chest gets stripped logs. It uses the stripping
@@ -44,38 +48,57 @@ Minecraft 26.3, Fabric (needs Fabric API) and NeoForge.
 - Workers walk to the front of a chest (or barrel), open it like a player, move the
   items and close it again. At the woodcutter and stonecutter they stand in front of
   the station.
-- Every workstation has a paper note on its front with the name of its worker; an
-  empty note means the station is free. (A vanilla stonecutter only gets a note once it
-  is set up or has a hired worker.) The menu of the woodcutter and stonecutter also
+- Every workstation except the composter has a paper note on its front with the name of
+  its worker ("Hired villager" in the player's language if it has none); an empty note
+  means the station is free. (A vanilla stonecutter or blast furnace only gets a note once
+  it is set up or has a hired worker; the composter has no front and gets none.) The menu of the woodcutter and stonecutter also
   shows the worker.
-- Hired villagers never take vanilla jobs, not even right next to a stonecutter.
+- Hired villagers never take vanilla jobs (lectern etc.). At a stonecutter, composter or
+  blast furnace a hired villager becomes the stone sawyer, farmer or smith of this mod;
+  unhired villagers still become masons, farmers and armorers.
 
-## Personal chest and wage
+## Wage and tools
 
-Every worker (lumberjack, sawyer, stone sawyer, carpenter, farmer, smith, carrier) has a personal chest. Pick it
-with **Pick chest** in the station overview or the carrier menu, then right-click the
-chest (within 32 blocks of the workstation, or of the carrier's first route). Clicking
-the current chest again takes it away. The menus show how many emeralds are left; the
-tooltip shows whether today's wage was paid and, for the lumberjack and the farmer, its
-tool (axe, hoe) and saplings or seeds.
+Workers carry their wage and tools in their own inventory. The player gives them
+directly, like food to a villager: **right-click the worker** holding emeralds, its tool
+or what it plants, or **throw** the items next to it (it walks over and picks them up).
+Throwing needs the `mob_griefing` game rule (like vanilla mobs picking up items);
+right-clicking always works. The limits below count for both: a worker only takes what it
+still wants and leaves the rest on the ground. Giving shows happy villager particles; a
+worker that already has enough shakes its head and takes nothing. Workers never hand in their emeralds or their tool to the output
+chests. A hired worker that dies drops everything it carries (emeralds, tools, material).
 
-- **Wage:** before work each day the worker takes 1 emerald out of its chest. Without
-  a chest or without an emerald it does not work and waits next to the chest
-  ("Waiting for wages"), checking every few seconds.
-- **Lumberjack tools:** it needs an axe from the chest. The axe wears out like a
-  player's (one use per log, Unbreaking counts) and is gone when it breaks; then the
-  lumberjack takes the next one, or waits ("needs an axe"). Chopping speed depends on
-  the axe. It only replants with saplings it carries: before a tree it takes up to 16
-  saplings of that kind from the chest, and it keeps up to 16 of each kind it picks up
-  under trees, handing in the rest. Without saplings it still fells, but does not
-  replant.
-- **Farmer tools:** it needs a hoe from the chest, which wears out one use per harvested
-  crop; without one it waits ("needs a hoe"). Seeds come from the chest too.
+- **Wage:** a worker carries up to 64 emeralds (64 work days at the default wage).
+  Before work each day it takes `dailyWage` (default 1) emerald from them. Without an
+  emerald it does not work and waits next to its workstation ("Waiting for wages"),
+  checking every few seconds.
+- **Lumberjack:** needs an axe (carries up to 2), optionally saplings (up to 16 of each
+  kind, `lumberjack.keepSaplings`). The axe wears out like a player's (one use per log,
+  Unbreaking counts) and is gone when it breaks; without one it waits ("needs an axe").
+  Chopping speed depends on the axe. It only replants with saplings it carries (given,
+  or picked up under the trees) and hands in the rest; it never fetches saplings from
+  a chest. Without saplings it still fells, but does not replant.
+- **Farmer:** needs a hoe (carries up to 2), which wears out one use per harvested crop;
+  without one it waits ("needs a hoe"). It needs seeds to start with (up to 16 of each
+  kind, `farmer.keepSeeds`); afterwards it replants from its harvest.
+- **Sawyer, stone sawyer, carpenter, smith, carrier:** only emeralds.
+- With `dailyWage` 0 they work for free; the lumberjack still needs an axe and the farmer
+  a hoe.
+
+The station overview and the carrier menu show a row of slots: the emeralds the worker
+carries (with count), its tool with the durability bar (lumberjack and farmer) and its
+saplings or seeds. Empty slots are faded, a missing wage or tool is tinted red. Next to
+them: "Paid for N more days", "Works for free" or what is missing ("Needs an emerald!",
+"Needs an axe!", "Needs a hoe!"). The tooltip shows the details (e.g. whether today's
+wage was paid).
+
+A worker that cannot work (no wage, tool or seeds, chests full, chest or station out of
+reach, no material, no ore or fuel, no chest linked, stuck) shakes its head with the
+"no" sound now and then while a player is within 8 blocks.
 
 ## Worker status
 
-The menus of the chopping block, the woodcutter and stonecutter overview and the carrier
-show what the worker is doing right now: during work hours the step of its work (looking
+The overview of every workstation and the carrier menu show what the worker is doing right now: during work hours the step of its work (looking
 for a tree, chopping 40 %, cutting stairs, carrying items for a route, waiting because the
 chests are full, done for today, ...), otherwise what its day brings (sleeping, going to
 bed, chatting with another villager or at the village square, free time, fleeing, hiding
@@ -133,7 +156,7 @@ the cutter menu of this mod (it looks and works like the vanilla one).
 
 The carpenter's bench (three wooden slabs, an iron ingot in the middle, two logs as legs)
 is a crafting table for wooden things only: chests, barrels, crafting tables, ladders,
-bowls, composters, bookshelves, wooden tools, boats and boats with chest, shelves,
+bowls, composters, bookshelves, chiseled bookshelves, wooden tools, boats and boats with chest, shelves,
 hanging signs, item frames, paintings, armor stands, bows, crossbows, fishing rods,
 shields, torches, tripwire hooks, trapped chests and campfires. Its menu lists all of them;
 the ones the player lacks the ingredients for are greyed out, the tooltip shows what they
@@ -151,8 +174,8 @@ A hired villager at the bench becomes a **carpenter**. It is set up like the saw
 2. **Stock:** in the overview, **-** / **+** set how many products the carpenter keeps in
    the output chests (no limit, 1, 2, 4, ... 256). It stops at that many and goes on as
    soon as some are taken out.
-3. During work hours it fetches the ingredients for up to 32 items' worth from the input
-   chests (they may be spread over several chests; it only sets off when all of them
+3. During work hours it fetches up to 32 ingredients (`ingredientsPerTrip`, e.g. 4
+   chests' worth) from the input chests (they may be spread over several chests; it only sets off when all of them
    together are enough for one piece), makes the products at the bench (half a second
    per ingredient, at least a second per piece, with shavings flying) and brings them to
    an output chest. Material it cannot use goes back to an input chest. Sticks and slabs
@@ -162,16 +185,15 @@ A hired villager at the bench becomes a **carpenter**. It is set up like the saw
 
 A hired villager at a vanilla **composter** becomes a **farmer** (ordinary villagers still
 become vanilla farmers there). Right-click the composter with an empty hand to open its
-overview (when it is full, the bone meal comes out first; with an item it composts as usual): assign the worker, link chests and pick the personal chest, like at the
+overview (when it is full, the bone meal comes out first; with an item it composts as usual): assign the worker and link chests, like at the
 chopping block. **Without a chest the farmer does not work.**
 
 During work hours it harvests ripe crops (any `CropBlock` at full age: wheat, carrots,
 potatoes, beetroots, ...) on farmland within 8 blocks of the composter (3 lower, 2 higher),
 1.5 seconds per crop, and plants the same crop again. Empty farmland gets the crop of its
 neighbours if it has seeds for it, otherwise the seeds it has most of. It keeps up to 16 of
-every kind of seed (`villager_plantable_seeds`), takes more from its personal chest when it
-has none, and brings the rest of the harvest to the nearest chest once there is nothing left
-to do. It needs a hoe from its personal chest (one use per harvested crop). It does not
+every kind of seed (`villager_plantable_seeds`), replanting from its harvest, and brings the rest of the harvest to the nearest chest once there is nothing left
+to do. It needs a hoe it carries (one use per harvested crop). It does not
 till: it only works farmland that is already there. When it waits, it stands next to the
 composter, and hired villagers never trample farmland. The menu shows the crops harvested
 today.
@@ -193,7 +215,7 @@ A carrier moves items between chests. It has no workstation: its **wicker basket
 (sugar cane around a stick handle) is workstation and contract at once.
 
 1. **Hand over the basket:** right-click an unemployed adult villager with the basket.
-   It takes the basket, gets a name and becomes a carrier (no work contract needed).
+   It takes the basket and becomes a carrier (no work contract needed).
 2. **Routes** (up to 3) are managed in the carrier menu: right-click the carrier with an
    empty hand. Each route shows its name, source and target (hover for the containers
    and the length); the one it is carrying items for is green.
@@ -214,7 +236,8 @@ A carrier moves items between chests. It has no workstation: its **wicker basket
    carried. When all sources are empty, it strolls around near its first source and
    looks again every few seconds.
 4. **Taking the basket back:** sneak + right-click the carrier with an empty hand. The
-   basket comes back with its routes and contents, the villager is unemployed again. A
+   basket comes back with its routes and contents, and so do the carrier's emeralds and
+   anything else it carried; the villager is unemployed again. A
    carrier that dies drops its basket.
 
 All carriers are novices for now; later the capacity is meant to grow with the level.
@@ -250,10 +273,14 @@ The jars end up in `fabric/build/libs` and `neoforge/build/libs`.
 `./gradlew build` also runs the game tests on a test server of each loader
 (`./gradlew :fabric:runGameTest`, `./gradlew :neoforge:runGameTestServer` on their own).
 They hire villagers and set up every workstation like a player would, then check that the
-workers take their wage and deliver: the lumberjack fells a tree, replants it and spares
-builds, nobody works without wage, the sawyer only cuts allowed wood, the stone sawyer
-cuts bricks, the carpenter stops at its stock, the carrier empties its source, the farmer harvests and
-replants (also a raised bed), the smith smelts raw iron, a boxed-in worker is brought back.
+workers take their wage and deliver: a contract hires an unemployed villager but not an
+employed one, a hired villager finds a free stonecutter by itself, a worker picks up thrown
+emeralds, a station put where another kind stood starts fresh, the lumberjack fells a tree
+(also on grass and mud), replants it and spares builds, nobody works without wage, the
+sawyer only cuts allowed wood, the stone sawyer cuts bricks, the carpenter stops at its
+stock, the carrier empties its source, the farmer harvests and replants (also a raised
+bed), hired villagers do not trample farmland, the smith smelts raw iron, a boxed-in worker
+is brought back.
 
 - Tests: `common/src/gametest/java`, one function per test, registered by the small test
   mods in `fabric/src/gametest` and `neoforge/src/gametest`.
@@ -270,5 +297,7 @@ replants (also a raised bed), the smith smelts raw iron, a boxed-in worker is br
 - `fabric`, `neoforge`: entrypoints, registration and mod metadata
 - `tools`: generators for the textures and the chopping block model (the carpenter's bench
   model and its vise texture are not generated but edited by hand, e.g. in Blockbench)
-  (`generate_textures.py <minecraft jar>`) and the woodcutter recipes
-  (`generate_woodcutting_recipes.py`)
+  (`generate_textures.py <minecraft jar>`), the woodcutter recipes
+  (`generate_woodcutting_recipes.py`), the game test structures
+  (`generate_test_structures.py`) and the pictures and icons of the wiki
+  (`generate_wiki_assets.py <minecraft jar>`, needs Pillow and NumPy)

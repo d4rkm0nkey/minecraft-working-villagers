@@ -2,36 +2,71 @@ site_name: Working Villagers
 site_description: Hire villagers, pay them a wage and let them do the work.
 site_url: https://d4rkm0nkey.github.io/minecraft-working-villagers/
 repo_url: https://github.com/d4rkm0nkey/minecraft-working-villagers
+repo_name: Working Villagers
 docs_dir: docs
+copyright: >-
+  Working Villagers is not an official Minecraft product. Not approved by or associated
+  with Mojang or Microsoft. Minecraft textures © Mojang.
 
 theme:
   name: material
+  custom_dir: overrides
   favicon: assets/img/icon.png
   logo: assets/img/icon.png
+  font:
+    text: Nunito Sans
+    code: JetBrains Mono
+  icon:
+    repo: fontawesome/brands/github
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: brown
-      accent: green
+      primary: custom
+      accent: custom
       toggle:
         icon: material/weather-night
-        name: Dark mode
+        name: Night
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: brown
-      accent: green
+      primary: custom
+      accent: custom
       toggle:
         icon: material/weather-sunny
-        name: Light mode
+        name: Day
   features:
+    - navigation.tabs
+    - navigation.instant
+    - navigation.instant.progress
     - navigation.sections
     - navigation.top
     - navigation.footer
     - search.suggest
+    - search.highlight
     - content.tabs.link
+    - content.code.copy
+    - toc.follow
+
+hooks:
+  - hooks/minecraft.py
 
 extra_css:
   - assets/css/extra.css
+
+extra_javascript:
+  - assets/js/extra.js
+
+extra:
+  generator: false
+  social:
+    - icon: simple/modrinth
+      link: https://modrinth.com/mod/KeMxY5TX
+      name: Modrinth
+    - icon: simple/curseforge
+      link: https://www.curseforge.com/projects/1745342
+      name: CurseForge
+    - icon: fontawesome/brands/github
+      link: https://github.com/d4rkm0nkey/minecraft-working-villagers
+      name: Source code and issues
 
 markdown_extensions:
   - admonition
@@ -41,6 +76,12 @@ markdown_extensions:
   - toc:
       permalink: true
   - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      options:
+        custom_icons:
+          - overrides/.icons
   - pymdownx.tasklist:
       custom_checkbox: true
   - pymdownx.superfences
@@ -49,8 +90,9 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - Installation: installation.md
-  - Getting started: getting-started.md
+  - Getting started:
+      - Installation: installation.md
+      - Your first worker: getting-started.md
   - Workers:
       - Hiring and wages: workers/basics.md
       - Lumberjack: workers/lumberjack.md
@@ -67,3 +109,4 @@ nav:
       - Configuration: configuration.md
       - Data packs: data-packs.md
       - Beta notes: beta.md
+      - Planned features: planned.md
