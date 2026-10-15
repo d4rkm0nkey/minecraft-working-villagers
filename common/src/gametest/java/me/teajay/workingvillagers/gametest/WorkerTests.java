@@ -10,6 +10,7 @@ import me.teajay.workingvillagers.carrier.Route;
 import me.teajay.workingvillagers.item.WorkContractItem;
 import me.teajay.workingvillagers.job.HiredVillager;
 import me.teajay.workingvillagers.job.WorkerStatus;
+import me.teajay.workingvillagers.station.Workstations;
 import me.teajay.workingvillagers.station.Workstations.ChestRole;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -56,6 +57,7 @@ public final class WorkerTests {
 		registry.accept("stone_sawyer_cuts_bricks", WorkerTests::stoneSawyerCutsBricks);
 		registry.accept("carpenter_makes_chests", WorkerTests::carpenterMakesChests);
 		registry.accept("carrier_moves_items", WorkerTests::carrierMovesItems);
+		registry.accept("replaced_station_starts_fresh", WorkerTests::replacedStationStartsFresh);
 	}
 
 	private static void contractHiresUnemployed(GameTestHelper helper) {
@@ -81,6 +83,21 @@ public final class WorkerTests {
 			helper.assertFalse(((HiredVillager) villager).workingvillagers$isHired(), "A farmer or a baby must not be hired");
 			helper.assertFalse(contract.isEmpty(), "The contract was used up although nobody was hired");
 		}
+		helper.succeed();
+	}
+
+	/** A station put where another kind of station was must not take over its settings. */
+	private static void replacedStationStartsFresh(GameTestHelper helper) {
+		helper.setBlock(STATION, WorkingVillagers.WOODCUTTER_BLOCK.get());
+		TestWorld.station(helper, STATION).setOrder(Items.STICK);
+		TestWorld.chest(helper, INPUT);
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, STATION, INPUT, ChestRole.INPUT);
+		TestWorld.link(helper, STATION, OUTPUT, ChestRole.OUTPUT);
+		helper.setBlock(STATION, WorkingVillagers.CARPENTER_BENCH.get());
+		Workstations.Station bench = TestWorld.station(helper, STATION);
+		helper.assertTrue(bench.order() == null, "The carpenter's bench took over the order of the woodcutter");
+		helper.assertTrue(bench.chestCount() == 0, "The carpenter's bench took over the chests of the woodcutter");
 		helper.succeed();
 	}
 

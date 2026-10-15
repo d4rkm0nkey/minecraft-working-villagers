@@ -82,11 +82,21 @@ public class Workstations extends SavedData {
 			}
 			return Optional.empty();
 		}
-		Station station = workstations.stations.computeIfAbsent(
-			pos.immutable(), key -> new Station(key, List.of(), List.of(), Optional.empty(), Optional.empty(), Optional.empty(), List.of(), 0, false)
-		);
+		Station station = workstations.stations.get(pos);
+		// The block was replaced by another kind of station before the old entry was dropped
+		if (station != null && station.type != null && station.type != type) {
+			station = null;
+			workstations.setDirty();
+		}
+		if (station == null) {
+			station = new Station(pos.immutable(), Optional.empty(), List.of(), List.of(), Optional.empty(), Optional.empty(), Optional.empty(), List.of(), 0, false);
+			workstations.stations.put(station.pos, station);
+		}
 		station.owner = workstations;
-		station.type = type;
+		if (station.type != type) {
+			station.type = type;
+			station.setDirty();
+		}
 		return Optional.of(station);
 	}
 
@@ -96,7 +106,7 @@ public class Workstations extends SavedData {
 	public static Optional<Station> findSetUp(ServerLevel level, BlockPos pos) {
 		Workstations workstations = level.getDataStorage().computeIfAbsent(TYPE);
 		Station station = workstations.stations.get(pos);
-		return station == null || station.isEmpty() ? Optional.empty() : find(level, pos);
+		return station == null || station.isEmpty() ? Optional.empty() : find(level, pos).filter(found -> !found.isEmpty());
 	}
 
 	public static @Nullable Container getContainer(Level level, BlockPos pos) {
@@ -113,6 +123,7 @@ public class Workstations extends SavedData {
 	public static final class Station {
 		private static final Codec<Station> CODEC = RecordCodecBuilder.create(i -> i.group(
 			BlockPos.CODEC.fieldOf("pos").forGetter(station -> station.pos),
+			Codec.STRING.optionalFieldOf("type").forGetter(station -> Optional.ofNullable(station.type).map(Enum::name)),
 			BlockPos.CODEC.listOf().optionalFieldOf("inputs", List.of()).forGetter(station -> station.inputs),
 			BlockPos.CODEC.listOf().optionalFieldOf("outputs", List.of()).forGetter(station -> station.outputs),
 			BuiltInRegistries.ITEM.byNameCodec().optionalFieldOf("order").forGetter(station -> Optional.ofNullable(station.order)),
@@ -139,21 +150,31 @@ public class Workstations extends SavedData {
 		/** Chopping block: whether the lumberjack strips the logs before handing them in. */
 		private boolean strip;
 		private @Nullable Workstations owner;
-		private StationType type = StationType.CHOPPING_BLOCK;
+		/** The kind of station the settings belong to, unknown for entries saved before it was stored. */
+		private @Nullable StationType type;
 
 		private Station(
-			BlockPos pos, List<BlockPos> inputs, List<BlockPos> outputs, Optional<Item> order, Optional<UUID> worker, Optional<String> workerName,
+			BlockPos pos, Optional<String> type, List<BlockPos> inputs, List<BlockPos> outputs, Optional<Item> order, Optional<UUID> worker, Optional<String> workerName,
 			List<String> woods, int stock, boolean strip
 		) {
 			this.woods = new LinkedHashSet<>(woods);
 			this.stock = stock;
 			this.strip = strip;
 			this.pos = pos;
+			this.type = type.flatMap(Station::typeByName).orElse(null);
 			this.inputs = new ArrayList<>(inputs);
 			this.outputs = new ArrayList<>(outputs);
 			this.order = order.orElse(null);
 			this.worker = worker.orElse(null);
 			this.workerName = workerName.orElse(null);
+		}
+
+		private static Optional<StationType> typeByName(String name) {
+			try {
+				return Optional.of(StationType.valueOf(name));
+			} catch (IllegalArgumentException e) {
+				return Optional.empty();
+			}
 		}
 
 		public BlockPos pos() {
