@@ -4,6 +4,8 @@
 
 Working Villagers turns unemployed villagers into paid employees. Hand one a work contract, give it a workstation and a few chests, and it gets to work: felling trees, sawing planks, crafting chests, farming fields, smelting ore and carrying goods from one place to another. There are no machines. Every job is done by a villager walking around, opening chests and working at its station.
 
+📖 **[Read the wiki](https://d4rkm0nkey.github.io/minecraft-working-villagers/)** for the full guide to every worker.
+
 ---
 
 ## 👷 The workers
