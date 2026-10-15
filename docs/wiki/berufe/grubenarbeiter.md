@@ -7,7 +7,7 @@ Der Grubenarbeiter hebt eine Grube aus, die der Spieler mit Schnur umrandet: Er 
 ## Workstation: Grubenpflock
 
 - Ein Holzpflock mit aufgewickelter Schnur, z. B. aus Stöcken, Brettern und Schnur. Er steht am Rand der Grube.
-- Kein Vanilla-Block ist frei: Der Grindstone gehört dem Weaponsmith, die [Grubenwerkbank](minenarbeiter.md) dem Minenarbeiter. Nur angeheuerte Dorfbewohner arbeiten am Grubenpflock, wie am Woodcutter.
+- Kein Vanilla-Block ist frei: Der Grindstone gehört dem Weaponsmith, die [Grubenwerkbank](minenarbeiter.md) dem Minenarbeiter. Nur angeheuerte Dorfbewohner arbeiten am Grubenpflock, wie an Hackklotz und Holzsäge.
 - Für Spieler hat er keine eigene Funktion. Ein Rechtsklick öffnet die Stationsübersicht.
 
 ## Die Grube markieren
@@ -23,7 +23,7 @@ Regeln für den Ring:
 - Die Schnüre dürfen dem Gelände folgen, also auf unterschiedlicher Höhe liegen, aber höchstens **4 Blöcke** auseinander (Startwert, Config). Sonst kommt „Ring zu uneben“.
 - Jede Schnur muss auf einem festen Block liegen. Eine Schnur über einem Loch zählt nicht.
 - Der Block unter jeder Schnur bleibt stehen. Er ist der Rand der Grube, die Schnur bleibt so liegen und die Leiter hat eine Wand.
-- Größe: höchstens **64 Blöcke** Grundfläche innen, z. B. 8×8 oder 4×16 (Startwert, Config). Ist der Ring größer, kommt „Grube zu groß (x von 64)“. Der ganze Ring muss in der Reichweite der Station liegen (32 Blöcke, wie bei den Kisten).
+- Größe: höchstens **64 Blöcke** Grundfläche innen, z. B. 8×8 oder 4×16 (Startwert, Config). Ist der Ring größer, kommt „Grube zu groß (x von 64)“. Der ganze Ring muss in der Reichweite der Station liegen (wie bei den Kisten: Standard 16 Blöcke, per Config höchstens 32).
 - Wird eine Schnur entfernt, pausiert der Grubenarbeiter mit „Wartet: Schnur unterbrochen“. Neu wählen ist nicht nötig, sobald der Ring wieder geschlossen ist und an derselben Stelle liegt.
 
 ## Tiefe
@@ -67,7 +67,7 @@ Die tiefste mögliche Sohle liegt damit höchstens *Maximum* Blöcke unter dem B
 
 ## Arbeitsablauf
 
-1. Lohn, Schaufel, Spitzhacke und Leitern aus der [persönlichen Kiste](../wirtschaft/anheuern-und-lohn.md) holen.
+1. Lohn nehmen und prüfen, ob er Schaufel, Spitzhacke und Leitern dabeihat. Der Spieler gibt sie ihm direkt, per Rechtsklick oder zuwerfen, wie heute Axt und Hacke (siehe [Anheuern & Lohn](../wirtschaft/anheuern-und-lohn.md#stand-der-umsetzung)).
 2. Über die Leiter in die Grube steigen (am Anfang: zum Leiterplatz laufen).
 3. Die oberste noch nicht fertige Schicht abgraben. Er nimmt immer das passende Werkzeug: Schaufel für Erde, Sand, Kies, Ton; Spitzhacke für Stein und Erze.
 4. Ist die Schicht fertig: eine Leiter an den Leiterplatz setzen und eine Schicht tiefer weitermachen.
@@ -76,16 +76,16 @@ Die tiefste mögliche Sohle liegt damit höchstens *Maximum* Blöcke unter dem B
 
 Er gräbt nie den Block, auf dem er steht, und arbeitet in jeder Schicht vom Leiterplatz weg. Ein Tagespensum begrenzt den Aushub: **256 Blöcke** pro Arbeitstag (Startwert, Config, wie die 64 Stämme beim [Holzfäller](holzfaeller.md)).
 
-## Persönliche Kiste / Zielkiste
+## Was er dabeihat / Zielkiste
 
-| Persönliche Kiste | Zielkiste |
+| Bekommt er direkt vom Spieler | Zielkiste |
 | --- | --- |
-| Lohn, Schaufel, Spitzhacke, Leitern, optional Fackeln | Erde, Sand, Kies, Ton, Bruchstein, Erze, Feuerstein |
+| Emeralds, Schaufel, Spitzhacke, Leitern, optional Fackeln | Erde, Sand, Kies, Ton, Bruchstein, Erze, Feuerstein |
 
 - Schaufel, Spitzhacke und Leitern sind Pflicht. Fehlt etwas, wartet er mit „Wartet: braucht eine Schaufel“ bzw. „... eine Spitzhacke“ oder „... Leitern“.
 - Eine Quellkiste braucht er nicht, er liefert nur ab (wie der Holzfäller am Hackklotz).
 - **Der ganze Aushub kommt in die Zielkiste**, er wirft nichts weg. Darum geht es: Erde, Sand, Kies und Stein als Rohstoff. Ist die Zielkiste voll, wartet er mit „Zielkiste voll“.
-- Werkzeuge nutzen sich ab wie beim Spieler. Kaputte Werkzeuge holt er neu aus der persönlichen Kiste.
+- Werkzeuge nutzen sich ab wie beim Spieler. Er trägt wie der Holzfäller ein Ersatzwerkzeug je Sorte; ist alles kaputt, wartet er, bis man ihm neues gibt.
 
 ## Was er gräbt und was nicht
 
@@ -94,11 +94,11 @@ Er gräbt nie den Block, auf dem er steht, und arbeitet in jeder Schicht vom Lei
 - **Werkzeugstufe:** Braucht ein Block eine bessere Spitzhacke (z. B. Diamanterz mit Steinspitzhacke), bleibt er als Säule stehen und der Status meldet es. Mit besserer Spitzhacke gräbt er sie beim nächsten Durchgang ab.
 - **Wasser und Lava:** Er gräbt keinen Block weg, der an eine Flüssigkeit grenzt, weder an der Wand noch am Boden. Die Grube läuft also nie voll. Der Status meldet „Flüssigkeit in der Grube“.
 - **Kies und Sand** über ihm fallen nach; das ist gewollt, er gräbt sie in der nächsten Runde.
-- **Licht:** Liegen Fackeln in der persönlichen Kiste, setzt er auf der Sohle etwa alle 6 Blöcke eine, damit nachts in der Grube nichts spawnt.
+- **Licht:** Hat er Fackeln dabei, setzt er auf der Sohle etwa alle 6 Blöcke eine, damit nachts in der Grube nichts spawnt.
 
 ## Menü
 
-- Status, Arbeiter, persönliche Kiste, Zielkisten wie bei den anderen Stationen.
+- Status, Arbeiter, Zeile „Lohn und Werkzeug“ (Emeralds, Schaufel, Spitzhacke, Leitern, Fackeln) und Zielkisten wie bei den anderen Stationen.
 - **Grube wählen**, **Leiterplatz wählen**, **Tiefe** (− / +).
 - Anzeige: Größe der Grube, aktuelle Schicht von *Tiefe*, Aushub heute.
 - Optional: Umriss und Leiterplatz kurz mit Partikeln anzeigen.

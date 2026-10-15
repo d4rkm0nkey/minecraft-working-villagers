@@ -1,6 +1,6 @@
 # Beruf: Träger
 
-[← Berufe](README.md) · Station: **keine – der Weidenkorb ist die Workstation** · Phase: **M4** (Demo umgesetzt)
+[← Berufe](README.md) · Station: **keine – der Weidenkorb ist die Workstation** · Phase: **umgesetzt** (ohne Filter und Level)
 
 Der Träger bewegt Items zwischen Kisten. Er hat keinen Arbeitsblock: Sein Weidenkorb auf dem Rücken ist Workstation und Arbeitsvertrag zugleich.
 
@@ -9,7 +9,8 @@ Der Träger bewegt Items zwischen Kisten. Er hat keinen Arbeitsblock: Sein Weide
 - Weidenkorb craften (Zuckerrohr um einen Stock als Henkel).
 - Einen arbeitslosen, erwachsenen Dorfbewohner mit dem Korb in der Hand antippen: Er nimmt den Korb und wird Träger. Ein Arbeitsvertrag ist nicht nötig.
 - Nitwits können vorerst keine Träger werden.
-- Zurücknehmen: Schleichen + Rechtsklick mit leerer Hand. Der Korb kommt mit Wegen und Inhalt zurück, der Dorfbewohner ist wieder arbeitslos. Stirbt der Träger, fällt der Korb samt Inhalt zu Boden.
+- **Lohn:** Wie alle Arbeiter nimmt er sich vor der Arbeit seinen Tageslohn (Standard 1 Emerald) aus den Emeralds, die er bei sich trägt. Man gibt sie ihm per Rechtsklick oder wirft sie ihm zu. Ohne Emerald wartet er mit „Wartet auf Lohn“ an der Quelle seines ersten Wegs (siehe [Anheuern & Lohn](../wirtschaft/anheuern-und-lohn.md#stand-der-umsetzung)).
+- Zurücknehmen: Schleichen + Rechtsklick mit leerer Hand. Der Korb kommt mit Wegen und Inhalt zurück, dazu alles, was er sonst bei sich trägt (übrige Emeralds). Der Dorfbewohner ist wieder arbeitslos und nicht mehr unter Vertrag. Stirbt der Träger, fällt der Korb samt Inhalt zu Boden, ebenso seine Emeralds.
 
 ## Transportwege
 
@@ -30,6 +31,7 @@ Rechtsklick mit leerer Hand auf den Träger öffnet sein Menü:
 - **×** löscht einen Weg gezielt. Hat er gerade Items dieses Wegs im Korb, bringt er sie zum Ziel des ersten Wegs.
 - Wer Wege ändern darf (anlegen, umbenennen, löschen), stellt der Arbeitgeber oben rechts ein: **Nur Arbeitgeber** oder **Alle dürfen**. Operatoren und der Besitzer einer Einzelspielerwelt dürfen immer.
 - Darunter der Korbinhalt: Items lassen sich herausnehmen, aber nicht hineinlegen.
+- Die Zeile **„Lohn und Werkzeug“** zeigt seine Emeralds und wie viele Tage sie noch reichen.
 - Rechtsklick mit dem Korb in die Luft öffnet dasselbe Menü für die Wege, die auf dem Korb gespeichert sind.
 
 ## Arbeitsablauf
@@ -52,13 +54,13 @@ Noch nicht umgesetzt: Der Träger nimmt alles aus der Quelle mit. Spätere Idee:
 
 ## Typische Wege
 
-Farm-Zielkiste → [Vorratskammer](../wirtschaft/beduerfnisse.md#vorratskammer), Stämme → Holzsäge-Quelltruhe, Barren → Crafter-Kiste, Fertigware → Verkaufskiste.
+Farm-Zielkiste → [Vorratskammer](../wirtschaft/beduerfnisse.md#vorratskammer), Stämme vom [Holzfäller](holzfaeller.md) → Eingang des [Holzsägers](holzsaeger.md), Barren → Crafter-Kiste, Fertigware → Verkaufskiste.
 
-## In der Mine
+## In der Mine (Konzept)
 
 Der [Grubenlogistiker](grubenlogistiker.md) trägt neue Depots automatisch in die Wege der Träger seiner Mine ein. Jeder Träger bedient einen Abschnitt (Depot n → Depot n−1) wie eine Eimerkette, bis eine Schienenstrecke den Abschnitt übernimmt.
 
-## Master-Fähigkeit
+## Master-Fähigkeit (Konzept)
 
 Nutzt ein Lasttier (Esel/Lama) für größere Distanzen oder Chest-Minecart-Strecken.
 

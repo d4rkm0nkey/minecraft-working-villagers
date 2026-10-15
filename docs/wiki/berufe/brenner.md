@@ -9,7 +9,7 @@ Der Brenner bedient den Brennofen: Er brennt Baustoffe wie Glas, Stein, Terrakot
 - Ein neuer Ofen, der wie der Vanilla-Ofen funktioniert, nur **ohne Lebensmittel und ohne Erze**. Optik: gemauerter Ofen aus Ziegeln, damit er neben Ofen, Blast Furnace und Smoker erkennbar ist.
 - Rezept: 1 Ofen + 4 Ziegel (wie der Blast Furnace einen Ofen braucht).
 - Spieler können ihn wie einen Ofen benutzen, mit Rezeptbuch, Brennstoff und Erfahrung.
-- Ist der POI für den Brenner. Nur angeheuerte Dorfbewohner arbeiten daran, wie am Woodcutter.
+- Ist der POI für den Brenner. Nur angeheuerte Dorfbewohner arbeiten daran, wie an Hackklotz und Holzsäge.
 
 ### Was der Brennofen kann
 

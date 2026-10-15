@@ -15,14 +15,14 @@ Jeder Beruf hat ein eigenes Buch, das ihn dem Spieler im Spiel erklärt: Station
 
 | Buch | Inhalt | Verkauft von |
 | --- | --- | --- |
-| **Der Arbeitgeber** (Grundlagen) | Arbeitsvertrag, Anheuern, Stationen zuweisen, persönliche Kiste und Lohn, Arbeitszeiten, Kisten verknüpfen | Bibliothekar |
-| Holzfäller | Hackklotz, Baumfarm, Axt und Setzlinge, Entrinden | Fletcher, Bibliothekar |
-| Holzsäger | Holzsäge (Woodcutter), Auftrag und Holzarten | Fletcher, Bibliothekar |
-| Tischler | Hobelbank, Produkte, Vorrat | Fletcher, Bibliothekar |
-| Steinsäger | Steinsäge (Stonecutter), Steinfamilien | Mason, Bibliothekar |
-| Farmer | Composter, Felder, Saatgut | Farmer, Bibliothekar |
-| Schmied | Blast Furnace, Erz und Brennstoff | Armorer, Toolsmith, Bibliothekar |
-| Träger | Korb, Transportwege | Cartographer, Bibliothekar |
+| **Der Arbeitgeber** (Grundlagen) | Arbeitsvertrag, Anheuern, Station finden und zuweisen, Lohn und Werkzeug geben, Arbeitszeiten, Kisten verknüpfen | Bibliothekar |
+| [Holzfäller](../berufe/holzfaeller.md) | Hackklotz, Baumfarm, Axt und Setzlinge, Entrinden | Fletcher, Bibliothekar |
+| [Holzsäger](../berufe/holzsaeger.md) | Holzsäge (Woodcutter), Auftrag und Holzarten | Fletcher, Bibliothekar |
+| [Tischler](../berufe/tischler.md) | Hobelbank, Produkte, Vorrat | Fletcher, Bibliothekar |
+| [Steinsäger](../berufe/steinsaeger.md) | Steinsäge (Stonecutter), Steinfamilien | Mason, Bibliothekar |
+| [Bauer](../berufe/farmer.md) | Komposter, Felder, Saatgut | Farmer, Bibliothekar |
+| [Schmied](../berufe/schmied.md) | Schmelzofen, Erz und Brennstoff | Armorer, Toolsmith, Bibliothekar |
+| [Träger](../berufe/traeger.md) | Weidenkorb, Transportwege | Cartographer, Bibliothekar |
 | [Grubenarbeiter](../berufe/grubenarbeiter.md) | Grubenpflock, Ring aus Schnur, Tiefe, Leiter | Mason, Bibliothekar |
 | [Brenner](../berufe/brenner.md) | Brennofen, Auftrag, was er brennt und was nicht | Mason, Bibliothekar |
 
@@ -42,9 +42,9 @@ Jeder neue Beruf bekommt sein Buch mit der Umsetzung. Er wird dem Vanilla-Beruf 
 Jedes Berufsbuch hat dieselbe Gliederung, damit man sich schnell zurechtfindet. Etwa 6–8 Seiten:
 
 1. **Titelseite:** Name des Berufs, ein Satz, was er tut.
-2. **Station:** welcher Block, wie man ihn bekommt (Rezept in Worten), Sneak-Rechtsklick bei Vanilla-Stationen.
+2. **Station:** welcher Block, wie man ihn bekommt (Rezept in Worten) und wie man die Übersicht öffnet; bei Vanilla-Stationen anders als gewohnt: Komposter mit leerer Hand rechtsklicken, beim Schmelzofen und bei der Steinsäge der Knopf **i** im Menü.
 3. **Einrichten:** die Schritte von der Station bis zum ersten Arbeitstag.
-4. **Kisten:** was in die persönliche Kiste, die Input- und die Output-Kiste gehört.
+4. **Lohn, Werkzeug und Kisten:** was man dem Arbeiter gibt und was in die Eingangs- und die Ausgangskiste gehört.
 5. **Ablauf:** was der Arbeiter über den Tag tut, Tagespensum.
 6. **Statusmeldungen:** die häufigsten „Wartet: …“ und was zu tun ist.
 7. **Tipps:** woher die Rohstoffe kommen, wohin die Produkte gehen (Kette zu anderen Berufen).
@@ -54,9 +54,9 @@ Beispiel, Seite 3 im Buch „Holzfäller“:
 > **Einrichten**
 >
 > 1. Hackklotz hinstellen.
-> 2. Rechtsklick, „Zuweisen“, dann den angeheuerten Dorfbewohner anklicken.
-> 3. „+ Output“ und eine Kiste anklicken.
-> 4. Persönliche Kiste wählen, Axt, Setzlinge und Emeralds hinein.
+> 2. Ein angeheuerter Dorfbewohner ohne Arbeit findet ihn selbst. Oder: Rechtsklick, „Zuweisen“, dann den Dorfbewohner anklicken.
+> 3. „+ Kiste“ und eine Kiste anklicken.
+> 4. Den Holzfäller mit Emeralds, einer Axt und Setzlingen rechtsklicken.
 
 ## Umsetzung
 

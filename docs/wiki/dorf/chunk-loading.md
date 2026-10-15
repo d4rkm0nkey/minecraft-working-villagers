@@ -2,12 +2,14 @@
 
 [← Wiki-Start](../README.md)
 
-Gekaufte Dörfer halten ihre Chunks selbst geladen, solange die [Dorfkasse](dorf-und-kauf.md#dorfkasse) Löhne und Unterhalt deckt. Ein eigener Chunkloader-Block ist nicht nötig: Glocke und besetzte Workstations sind die Anker.
+**Stand der Umsetzung:** Noch nichts davon ist umgesetzt. Arbeiter arbeiten nur, solange ihre Chunks geladen sind, also meist nur in der Nähe eines Spielers.
+
+Konzept: Gekaufte Dörfer halten ihre Chunks selbst geladen, solange die [Dorfkasse](dorf-und-kauf.md#dorfkasse) Löhne und Unterhalt deckt. Ein eigener Chunkloader-Block ist nicht nötig: Glocke und besetzte Workstations sind die Anker.
 
 ## Welche Chunks geladen bleiben
 
 - **Dorfkern:** die Chunks um die Glocke (z. B. 3×3), damit Betten, Dorfkasse und Arbeiter auf dem Heimweg aktiv bleiben.
-- **Pro besetzter Workstation:** der Chunk der Station, alle Chunks des Arbeitsbereichs und der verknüpften Kisten. Da alles maximal 32 Blöcke von der Station entfernt liegt, sind das meist 2–6 Chunks.
+- **Pro besetzter Workstation:** der Chunk der Station, alle Chunks des Arbeitsbereichs und der verknüpften Kisten. Kisten liegen standardmäßig höchstens 16 Blöcke von der Station entfernt (Config, höchstens 32), deshalb sind das meist 2–6 Chunks.
 - **Außenposten:** Stationen dürfen außerhalb des Dorfes stehen (z. B. eine Mine bis 256 Blöcke von der Glocke). Der Arbeiter braucht dann ein Bett am Außenposten; der Weg dazwischen wird nicht geladen.
 - **Etagenmine:** nur die Chunks ihrer Grundfläche (3×3, mit Grubenlogistiker 5×5, mit allen Lorenrouten 7×7), egal wie viele Etagen; die günstigste Art, viel Erz zu fördern (siehe [Die Mine](../grundlagen/mine.md#chunk-loading)).
 - **Stollen mit Schiene:** alle Chunks entlang der registrierten Strecke und der Depots, damit die Lore nicht in einem entladenen Chunk stehen bleibt (siehe [Grubenlogistiker](../berufe/grubenlogistiker.md#chunk-loading)).

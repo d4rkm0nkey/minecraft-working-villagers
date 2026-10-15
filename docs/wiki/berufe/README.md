@@ -2,36 +2,40 @@
 
 [← Wiki-Start](../README.md)
 
-Fast jeder Vanilla-Beruf hat schon eine Workstation, die sich als Arbeitsauftrag deuten lässt. Damit wächst der Mod ohne neue Blöcke. Neu sind nur Woodcutter, Hobelbank, Grubenwerkbank, Förderhaspel, Grubenpflock, Brennofen und für den Handel Handelstresen bzw. Handelskontor.
+Fast jeder Vanilla-Beruf hat schon eine Workstation, die sich als Arbeitsauftrag deuten lässt. Damit wächst der Mod ohne neue Blöcke. Neu sind nur Hackklotz, Holzsäge (Woodcutter), Hobelbank, Grubenwerkbank, Förderhaspel, Grubenpflock, Brennofen und für den Handel Handelstresen bzw. Handelskontor. Umgesetzt sind davon Hackklotz, Holzsäge und Hobelbank; der [Träger](traeger.md) braucht statt eines Blocks den Weidenkorb.
 
-Alle Berufe folgen dem [Kernloop](../grundlagen/kernloop.md) und den [Lohnstufen](../wirtschaft/anheuern-und-lohn.md#lohnstufen). Jede Berufsseite beschreibt nur, was den Beruf besonders macht, inklusive seiner Master-Fähigkeit. Im Spiel erklärt jeden Beruf sein [Berufsbuch](../grundlagen/berufsbuecher.md).
+Alle Berufe folgen dem [Kernloop](../grundlagen/kernloop.md) und den [Lohnstufen](../wirtschaft/anheuern-und-lohn.md#lohnstufen) (Lohnstufen sind noch Konzept, siehe [Stand der Umsetzung](../wirtschaft/anheuern-und-lohn.md#stand-der-umsetzung)). Jede Berufsseite beschreibt nur, was den Beruf besonders macht, inklusive seiner Master-Fähigkeit. Im Spiel erklärt jeden Beruf sein [Berufsbuch](../grundlagen/berufsbuecher.md).
 
 | Beruf | Workstation | Arbeit als Angestellter | Neuer Block? | Phase |
 | --- | --- | --- | --- | --- |
-| [Holzfäller](holzfaeller.md) | Woodcutter | Baumfarm | Woodcutter | M1 |
+| [Holzfäller](holzfaeller.md) | Hackklotz | Bäume im Umkreis fällen und nachpflanzen | Hackklotz | umgesetzt (ohne Bereich/Raster) |
+| [Holzsäger](holzsaeger.md) | Holzsäge (Woodcutter) | Stämme zu Brettern, Stufen, Treppen … | Holzsäge | umgesetzt |
+| [Steinsäger](steinsaeger.md) | Steinsäge | Stein zu Ziegeln, Stufen, Treppen, Mauern | nein | umgesetzt |
 | [Tischler](tischler.md) | Hobelbank | Holzgegenstände aus Planks, Sticks, Slabs | Hobelbank | umgesetzt |
 | [Minenarbeiter](minenarbeiter.md) | Grubenwerkbank | Steinbruch, Stollen, Etagenmine | Grubenwerkbank | M3 |
 | [Handelsangestellter](handelsangestellter.md) | Handelstresen / Lectern | Verkauf über Vanilla-Trades | ggf. Handelstresen | M2 |
-| [Träger](traeger.md) | Barrel / Kiste | Items von Kiste A nach Kiste B | nein | M4 |
+| [Träger](traeger.md) | keine (Weidenkorb) | Items von Kiste A nach Kiste B, bis zu 3 Wege | nein (Item Weidenkorb) | umgesetzt (ohne Filter) |
 | [Crafter-Bediener](crafter-bediener.md) | Crafter | Crafter befüllen und auslösen | nein | M4 |
 | [Grubenlogistiker](grubenlogistiker.md) | Förderhaspel | Depots, Trägerkette, Schienen mit Lore, Aufzug zwischen Etagen | Förderhaspel | M4 |
 | [Händler](haendler.md) | Handelskontor | Karawanen zu Nachbardörfern | Handelskontor | M4 |
-| [Farmer](farmer.md) | Composter | Felder säen und ernten | nein | umgesetzt (ohne Pflügen) |
-| [Schmied](schmied.md) | Blast Furnace / Smithing Table | Erze schmelzen, Werkzeug reparieren | nein | Schmelzen umgesetzt |
+| [Farmer](farmer.md) (im Spiel: Bauer) | Komposter | Vorhandene Felder ernten und neu säen | nein | umgesetzt (ohne Pflügen) |
+| [Schmied](schmied.md) | Schmelzofen / Schmiedetisch | Erze schmelzen, Werkzeug reparieren | nein | Schmelzen umgesetzt |
 | [Grubenarbeiter](grubenarbeiter.md) | Grubenpflock | Mit Schnur umrandete Grube ausheben, Leiter als Ausgang | Grubenpflock | Idee |
 | [Brenner](brenner.md) | Brennofen | Glas, Stein, Ziegel, Holzkohle brennen (Ofen ohne Essen) | Brennofen | Idee |
 | [Fischer](fischer.md) | Barrel | Angeln an markiertem Wasser | nein | später |
 | [Hirte](hirte.md) | Loom | Schafe scheren, Wolle sortieren | nein | später |
 | [Metzger](metzger.md) | Smoker | Tiere züchten, schlachten, räuchern | nein | später |
 | [Gerber](gerber.md) | Cauldron | Leder verarbeiten | nein | später |
-| [Maurer](maurer.md) | Stonecutter | Stein zu Ziegeln, Stufen, Treppen | nein | später |
+| [Maurer](maurer.md) | Steinsäge | Ausbau des Steinsägers (Glattstein, Master) | nein | später |
 | [Pfeilmacher](pfeilmacher.md) | Fletching Table | Pfeile herstellen | nein | später |
 | [Kartograf](kartograf.md) | Cartography Table | Gebiete und Dörfer erkunden | nein | später |
 | [Kleriker](kleriker.md) | Brewing Stand | Tränke brauen | nein | später |
 | [Bibliothekar](bibliothekar.md) | Lectern | Lagerverwaltung, Inventarliste | nein | später |
 | [Wache](wache.md) | – (Idee) | Schutz von Minen und Karawanen | offen | Idee |
 
-Priorität nach V1: [Farmer](farmer.md), [Schmied](schmied.md), [Träger](traeger.md). Damit ist die Kette Holz/Erz → Barren → Crafter geschlossen (siehe [Logistik](../grundlagen/logistik.md)).
+Umgesetzt sind: Holzfäller, Holzsäger, Steinsäger, Tischler, Bauer, Schmied (Schmelzen) und Träger. Damit läuft die Holzkette Holzfäller → Holzsäger → Tischler, verbunden durch Träger (siehe [Logistik](../grundlagen/logistik.md)).
+
+Als Nächstes stehen auf der [Roadmap](../planung/roadmap.md): Wirtschaft und Dorf (M2), der [Minenarbeiter](minenarbeiter.md) für Erz und Stein (M3) und der [Crafter-Bediener](crafter-bediener.md) (M4). Erst mit Minenarbeiter und Crafter-Bediener ist die Kette Erz → Barren → Crafter geschlossen.
 
 ## Vorlage für neue Berufsseiten
 
@@ -41,7 +45,8 @@ Priorität nach V1: [Farmer](farmer.md), [Schmied](schmied.md), [Träger](traege
 <Ein Satz: was er tut.>
 ## Workstation
 ## Arbeitsablauf
-## Quellkiste / Zielkiste
+## Kisten (Eingang / Ausgang)
+## Stand der Umsetzung
 ## Master-Fähigkeit
 ## Sonderfälle & offene Fragen
 ## Berufsbuch (welcher Vanilla-Beruf verkauft es)

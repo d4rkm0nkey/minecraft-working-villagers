@@ -40,7 +40,7 @@ Hauptgänge sehen aus wie Vanilla-Minenschächte: Stützen aus Zaunpfosten und B
 - Lava und Wasser werden mit Bruchstein verschlossen, nie durchbrochen.
 - Kies und Sand: wartet, bis sie gefallen sind, und baut sie dann ab.
 - Mobs: flieht wie Vanilla-Villager. Optional Begleitschutz durch eine [Wache](wache.md).
-- Verletzt sich der Arbeiter, sinkt die Moral; stirbt er, landet der Tod mit Ursache im [Sterberegister](../dorf/dorfbuch.md#register), Werkzeug und Lohnguthaben sind verloren.
+- Verletzt sich der Arbeiter, sinkt die Moral; stirbt er, lässt er wie alle Arbeiter alles fallen, was er bei sich trägt (Emeralds, Werkzeug, Material; so ist es schon umgesetzt). Geplant: Der Tod landet mit Ursache im [Sterberegister](../dorf/dorfbuch.md#register).
 - Minen weit vom Dorf sind **Außenposten** mit eigenem Bett (siehe [Chunk-Loading](../dorf/chunk-loading.md)).
 
 ## Lange Stollen

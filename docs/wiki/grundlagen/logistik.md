@@ -6,9 +6,9 @@ Arbeiter sprechen nie direkt miteinander, sondern nur über Kisten. Dadurch läs
 
 ```mermaid
 flowchart LR
-    HF[Holzfäller<br/>Woodcutter] --> KS[(Kiste: Stämme)]
+    HF[Holzfäller<br/>Hackklotz] --> KS[(Kiste: Stämme)]
     MA[Minenarbeiter<br/>Grubenwerkbank] --> KE[(Kiste: Erz, Stein)]
-    KE --> SM[Schmied<br/>Hochofen]
+    KE --> SM[Schmied<br/>Schmelzofen]
     SM --> KB[(Kiste: Barren)]
     KS -->|Träger| CK[(Crafter-Kiste)]
     KB -->|Träger| CK
@@ -20,7 +20,7 @@ Rohstoffe fließen von links nach rechts; der Crafter ist der einzige Punkt, an 
 
 ## Beteiligte Berufe
 
-- [Träger](../berufe/traeger.md): bewegt Items zwischen Kisten nach Route und Filter.
+- [Träger](../berufe/traeger.md): bewegt Items zwischen Kisten nach Route (Filter geplant).
 - [Crafter-Bediener](../berufe/crafter-bediener.md): befüllt und bedient einen Vanilla-Crafter.
 - [Schmied](../berufe/schmied.md): schmilzt Erz zu Barren.
 - [Grubenlogistiker](../berufe/grubenlogistiker.md): baut Depots, Schienen mit Lore und den Aufzug der [Etagenmine](mine.md).
@@ -34,6 +34,8 @@ Rohstoffe fließen von links nach rechts; der Crafter ist der einzige Punkt, an 
 
 ## Beispielkette Holz
 
-[Holzfäller](../berufe/holzfaeller.md) → Kiste Stämme → Woodcutter-Bediener (Bretter) → Crafter (Kisten, Zäune) → Verkauf über [Handelsangestellten](../berufe/handelsangestellter.md). Drei Angestellte, null Handarbeit.
+[Holzfäller](../berufe/holzfaeller.md) am Hackklotz → Kiste Stämme → [Träger](../berufe/traeger.md) → [Holzsäger](../berufe/holzsaeger.md) an der Holzsäge (Bretter, Stufen, Zäune, Stöcke) → Träger → [Tischler](../berufe/tischler.md) an der Hobelbank (Kisten, Fässer, Leitern) → Verkauf über [Handelsangestellten](../berufe/handelsangestellter.md).
+
+**Stand der Umsetzung:** Die Kette bis zum Tischler läuft im Spiel, verbunden durch Träger. Der Handelsangestellte fehlt noch. Auch [Steinsäger](../berufe/steinsaeger.md), [Bauer](../berufe/farmer.md) und [Schmied](../berufe/schmied.md) arbeiten schon über Kisten; Minenarbeiter, Crafter-Bediener und Grubenlogistiker sind Konzept.
 
 Verarbeitete Waren bringen beim Verkauf deutlich mehr als Rohstoffe (siehe [Einnahmen](../wirtschaft/einnahmen.md)).

@@ -6,12 +6,16 @@ Lohn ist die zentrale Bremse: Ein Angestellter muss mehr Wert erzeugen, als er k
 
 ## Wer kann angeheuert werden?
 
+Konzept (Stand der Umsetzung siehe [unten](#stand-der-umsetzung)):
+
 - Nur Dorfbewohner eines [gekauften Dorfes](../dorf/dorf-und-kauf.md).
-- Arbeitslose Dorfbewohner können angeheuert werden. Nitwits nur als [Träger](../berufe/traeger.md) (einfachste Arbeit, halber Lohn) – endlich ein Nutzen für sie.
+- Arbeitslose Dorfbewohner können angeheuert werden. Idee: Nitwits nur als [Träger](../berufe/traeger.md) (einfachste Arbeit, halber Lohn) – endlich ein Nutzen für sie. Noch nicht umgesetzt, Nitwits lassen sich bisher gar nicht anheuern.
 - Berufstätige Villager mit Handelsangeboten können nicht angeheuert werden, damit Handel nicht kaputtgeht. Alternative: Anheuern löscht die Trades (Config).
 - Das Level eines angeheuerten Villagers steigt durch Arbeit statt durch Handel (Novice → Master).
 
 ## Lohnstufen
+
+Planwerte; im Spiel gibt es noch keine Lohnstufen. Derzeit zahlt man jedem Arbeiter **1 Emerald pro Arbeitstag** (Config `workers.dailyWage`, 0–64), siehe [Stand der Umsetzung](#stand-der-umsetzung).
 
 | Level | Lohn (Emerald/Woche) | Effekt |
 | --- | --- | --- |
@@ -28,6 +32,22 @@ Die ursprünglich genannten 100 Emeralds pro Woche sind für Early Game sehr vie
 - Alle Löhne kommen aus der [Dorfkasse](../dorf/dorf-und-kauf.md#dorfkasse) (Barrel neben der Glocke). Am Zahltag nimmt sich der Villager seinen Lohn selbst.
 - Alternativ zahlt der Spieler per Rechtsklick mit Emeralds im Voraus (Guthaben in Wochen).
 
+### Stand der Umsetzung
+
+**Anheuern:** Den Arbeitsvertrag craftet man formlos aus Papier, Tintenbeutel und 3 Emeralds. Rechtsklick damit auf einen arbeitslosen, erwachsenen Dorfbewohner stellt ihn ein, in jedem Dorf und auch außerhalb; einen Dorfkauf gibt es noch nicht. Berufstätige Dorfbewohner und Nitwits lassen sich nicht anheuern. Eine Anheuergebühr gibt es nicht, der Vertrag ist der Preis. Den [Träger](../berufe/traeger.md) stellt man statt mit Vertrag mit dem Weidenkorb ein.
+
+**Arbeitszeit:** die normale Vanilla-Arbeitszeit der Dorfbewohner; nachts schlafen sie.
+
+**Lohn:** Eine Dorfkasse gibt es noch nicht, auch keine persönliche Kiste mehr. Der Spieler gibt Lohn und Werkzeug direkt, wie Futter: Rechtsklick auf den Arbeiter mit Emeralds, Werkzeug oder Saatgut, oder die Items vor ihm fallen lassen. Der Arbeiter trägt sie selbst bei sich:
+
+- bis zu 64 Emeralds; vor der Arbeit nimmt er sich den Tageslohn (Standard 1 Emerald). Ohne Emerald wartet er an seiner Station.
+- Holzfäller: bis zu 2 Äxte und 16 Setzlinge je Sorte. Farmer: bis zu 2 Hacken und 16 Saatgut je Sorte zum Start, danach pflanzt er aus der Ernte nach.
+- Hat er genug, schüttelt er den Kopf. Zugeworfene Items nimmt er nur bis zu denselben Höchstmengen auf. Stirbt er, lässt er alles fallen.
+- Der Lohn ist für alle gleich (Config `workers.dailyWage`, 0 = umsonst). Lohnstufen, Level, Moral und Kündigung gibt es noch nicht; alle Arbeiter sind Novizen.
+- Kann er nicht arbeiten, schüttelt er ab und zu den Kopf mit dem „Nein“-Sound, wenn ein Spieler in der Nähe ist.
+
+Später sollen [Dorftruhen](../planung/roadmap.md#weitere-geplante-punkte) das ergänzen.
+
 ## Moral statt Strafe
 
 - Moral 0–100. Steigt durch pünktlichen Lohn, eigenes Bett, Nachtruhe, Glocke in Reichweite, erfüllte [Bedürfnisse](beduerfnisse.md).
@@ -36,7 +56,7 @@ Die ursprünglich genannten 100 Emeralds pro Woche sind für Early Game sehr vie
 
 ## Kosten neben dem Lohn
 
-- Werkzeug nutzt sich ab und muss in der Quellkiste nachgefüllt werden.
+- Werkzeug nutzt sich ab und muss nachgegeben werden (derzeit direkt an den Arbeiter, siehe [Stand der Umsetzung](#stand-der-umsetzung)).
 - Verbrauchsmaterial: Setzlinge, Fackeln, Stützblöcke.
 - Unterhalt für geladene Chunks (siehe [Chunk-Loading](../dorf/chunk-loading.md)).
 - Nahrung und Unterkunft sind keine Pflichtkosten, sondern senken den Lohn (siehe [Bedürfnisse](beduerfnisse.md)).

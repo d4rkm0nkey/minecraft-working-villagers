@@ -6,7 +6,7 @@ Working Villagers macht Dorfbewohner zu bezahlten Angestellten, die Rohstoffe wi
 
 ## Designprinzipien
 
-- **Vanilla first:** Bestehende Berufe, Workstations, Kisten und der Crafter werden genutzt. Neue Blöcke nur, wo eine Lücke klafft ([Woodcutter](../berufe/holzfaeller.md), [Grubenwerkbank](../berufe/minenarbeiter.md)).
+- **Vanilla first:** Bestehende Berufe, Workstations, Kisten und der Crafter werden genutzt. Neue Blöcke nur, wo eine Lücke klafft ([Hackklotz](../berufe/holzfaeller.md), [Holzsäge](../berufe/holzsaeger.md), [Hobelbank](../berufe/tischler.md), [Grubenwerkbank](../berufe/minenarbeiter.md)).
 - **Sichtbare Arbeit:** Jeder Ertrag entsteht durch eine Handlung, die man in der Welt sieht. Keine unsichtbare Item-Generierung aus dem Nichts.
 - **Kosten statt Gratis-Loot:** Lohn in Emeralds, Werkzeugverschleiß und Setzlinge sind die Bremse. Automatisierung spart Zeit, nicht Ressourcen.
 - **Kisten sind die Schnittstelle:** Jeder Arbeiter liest aus Kisten und schreibt in Kisten. Damit funktionieren Hopper, Crafter und Redstone wie gewohnt (siehe [Logistik](logistik.md)).

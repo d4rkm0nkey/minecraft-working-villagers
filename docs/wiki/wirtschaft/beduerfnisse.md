@@ -21,7 +21,7 @@ Angestellte haben Bedürfnisse. Jedes erfüllte Bedürfnis senkt ihren Lohn, wei
 | Abwechslung (ab Journeyman) | 3 verschiedene Nahrungsmittel pro Woche | wie Nahrung | −10 % | nur kein Rabatt |
 | Komfort (ab Expert) | Luxusgut pro Woche: Kuchen, Honig, Kürbiskuchen | 1 pro Woche | −10 % | nur kein Rabatt |
 
-Der Rabatt ist auf **−50 %** gedeckelt, Emeralds bleiben also immer nötig. Beispiel: Ein Novice kostet 16 Emeralds; mit Nahrung und Bett nur noch 10. Für 7 Brote pro Woche braucht man 21 Weizen, das schafft ein [Farmer](../berufe/farmer.md) nebenbei.
+Der Rabatt ist auf **−50 %** gedeckelt, Emeralds bleiben also immer nötig. Beispiel: Ein Novice kostet 16 Emeralds; mit Nahrung und Bett nur noch 10. (Planwerte; derzeit kostet jeder Arbeiter 1 Emerald pro Arbeitstag, Config `workers.dailyWage`, und Bedürfnisse gibt es noch nicht.) Für 7 Brote pro Woche braucht man 21 Weizen, das schafft ein [Farmer](../berufe/farmer.md) nebenbei.
 
 ## Vorratskammer
 

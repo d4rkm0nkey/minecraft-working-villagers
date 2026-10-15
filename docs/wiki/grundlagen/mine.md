@@ -68,7 +68,7 @@ Die Minenarbeiter bauen ihre Gänge so, dass sie wie die generierten Minenschäc
 - **Schienen** mittig im Hauptgang, Weichen an Kreuzungen.
 - **Abbaustrecken** bleiben schlicht ohne Stützen, damit der Holzbedarf überschaubar bleibt.
 
-Das Holz für Stützen kommt aus der Quellkiste. Hier zahlt sich der [Holzfäller](../berufe/holzfaeller.md) aus: Bretter und Zäune aus dem Woodcutter gehen direkt in die Mine. Wer die Optik nicht will, kann Stützen in der Config abschalten.
+Das Holz für Stützen kommt aus der Quellkiste. Hier zahlt sich der [Holzfäller](../berufe/holzfaeller.md) aus: Bretter und Zäune vom [Holzsäger](../berufe/holzsaeger.md) gehen direkt in die Mine. Wer die Optik nicht will, kann Stützen in der Config abschalten.
 
 ## Größe der Mine: Ausbau mit dem Logistiker
 

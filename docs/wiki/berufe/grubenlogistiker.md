@@ -41,7 +41,7 @@ Stufe 2 ersetzt Stufe 1 nicht sofort: Solange die Schiene noch nicht bis zur Fro
 - Das Depot steht in einer seitlichen Nische (1 Block tief), damit der Stollen frei bleibt, und bekommt eine Fackel.
 - Ist das neue Depot fertig, nutzen die Minenarbeiter nur noch dieses: Es wird automatisch ihre Zielkiste und ihre Quelle für Fackeln und Werkzeug. Zum alten Depot laufen sie nicht mehr. Das alte Depot wird zur reinen Umschlagstation für die Träger (bzw. später zur Ladestelle der Lore, falls es das letzte vor der Front bleibt).
 - Der Logistiker trägt jedes neue Depot automatisch in die Routen der zugeordneten [Träger](traeger.md) ein: Jeder Träger bedient einen Abschnitt (Depot n → Depot n−1), wie eine Eimerkette.
-- Die Reichweitenregel (Bereich und Kisten max. 32 Blöcke von der Station, siehe [Steuerung](../grundlagen/steuerung.md#grenzen)) gilt im Stollen ab dem jeweils letzten Depot. Depots verlängern also die Reichweite der Mine.
+- Die Reichweitenregel (Kisten standardmäßig max. 16, per Config höchstens 32 Blöcke von der Station, siehe [Steuerung](../grundlagen/steuerung.md#grenzen)) gilt im Stollen ab dem jeweils letzten Depot. Depots verlängern also die Reichweite der Mine.
 
 ## Stufe 2: Schiene und Lore
 
