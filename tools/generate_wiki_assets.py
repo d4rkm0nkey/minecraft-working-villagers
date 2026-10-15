@@ -394,10 +394,11 @@ def villager_head(assets, profession):
     faces += entity_box(skin, 24, 0, (2, 4, 2), (3, -1, -2))
     rim = profession_tex.crop((30, 47, 64, 64))
     if rim.getbbox():
-        # The hat rim: a 16x16 plate, one pixel thick, laid flat around the head.
+        # The hat rim: a 16x16 plate, one pixel thick, laid flat around the head. The model
+        # tips it forward, so the bottom row of its texture is at the front of the head.
         y = 5
         corners = ((-4, y + 1, -4), (12, y + 1, -4), (-4, y + 1, 12))
-        faces.append(Face(corners, skin, [(31, 48), (47, 48), (31, 64)]))
+        faces.append(Face(corners, skin, [(31, 64), (47, 64), (31, 48)]))
         # Its edges: the front one is the plate's bottom row, the side one a column of its side.
         faces.append(Face(((12, y + 1, -4), (-4, y + 1, -4), (12, y, -4)), skin, [(47, 47), (63, 47), (47, 48)]))
         faces.append(Face(((-4, y + 1, -4), (-4, y + 1, 12), (-4, y, -4)), skin, [(30, 64), (30, 48), (31, 64)]))

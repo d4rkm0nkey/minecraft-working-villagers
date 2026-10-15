@@ -85,73 +85,200 @@ def lumberjack():
     return image
 
 
-def apron_worker(cloth, cloth_dark, dust, cap, cap_dark, goggles=False):
-    """Villager profession overlay (64x64, vanilla villager UV layout): a work apron with
-    dust on it and a cap; optionally safety goggles on the cap."""
-    image = blank(64)
-    p = image.load()
-    strap = (70, 50, 35, 255)
-
-    def apron(x, y):
-        if (x * 7 + y * 13) % 11 == 0:
-            return dust
-        return cloth_dark if y % 4 == 3 else cloth
-
-    for y in range(46, 60):
-        for x in range(6, 14):
-            p[x, y] = apron(x, y)  # apron on the front of the robe
-    for y in range(28, 38):
-        for x in range(23, 29):
-            p[x, y] = apron(x, y)  # bib on the front of the body
-    for y in range(20, 28):
-        p[23, y] = p[28, y] = strap  # neck straps
-    for x in range(16, 44):
-        p[x, 36] = strap  # apron string around the waist
-    for x in range(0, 28):
-        p[x, 45] = strap
-    for y in range(0, 8):
-        for x in range(40, 48):
-            p[x, y] = cap if (x + y) % 5 else cap_dark  # cap top
-    for y in range(8, 11):
-        for x in range(32, 64):
-            p[x, y] = cap if y < 10 else cap_dark  # cap band
-    if goggles:
-        glass, frame = (120, 180, 200, 255), (40, 40, 45, 255)
-        for x in range(40, 48):
-            p[x, 11] = frame
-        for x in (41, 42, 45, 46):
-            p[x, 11] = glass
-        for x in list(range(32, 40)) + list(range(48, 64)):
-            p[x, 11] = frame  # strap around the head
-    return image
+def hat_rim(p, color, reach, front=0):
+    """Paints the hat rim of the villager model, a 16x16 plate around the head, as a brim
+    `reach` pixels wide with `front` more pixels at the front. The model tips the plate
+    forward, so the bottom rows of its texture are at the front; it is painted on both
+    faces so it shows from above and below."""
+    for x0 in (31, 48):
+        for v in range(16):
+            for u in range(16):
+                side = max(4 - u, u - 11)
+                if 4 <= u < 12 and 4 <= v < 12:
+                    continue  # inside the head
+                if side <= reach and 4 - v <= reach and v - 11 <= reach + front:
+                    p[x0 + u, 48 + v] = color(u, v)
 
 
 def wood_sawyer():
-    """Leather apron covered in sawdust and a green cap."""
-    return apron_worker(
-        (120, 80, 45, 255), (100, 65, 35, 255), (225, 200, 150, 255), (60, 110, 60, 255), (40, 80, 40, 255)
-    )
+    """Villager profession overlay: an olive flat cap with a short peak (the front of the
+    hat rim); an olive work shirt with sawdust on it, leather braces, brown trousers and
+    boots."""
+    image = blank(64)
+    p = image.load()
+    olive, olive_dark, olive_light = (120, 130, 70, 255), (95, 104, 52, 255), (140, 150, 88, 255)
+    cap, cap_dark, cap_fleck = (78, 86, 45, 255), (58, 64, 32, 255), (105, 112, 70, 255)
+    sawdust, braces, buckle = (230, 205, 150, 255), (100, 62, 34, 255), (200, 170, 80, 255)
+    trousers, trousers_dark, boots = (105, 75, 48, 255), (85, 60, 38, 255), (45, 34, 26, 255)
+
+    def fill(x0, y0, x1, y1, color):
+        for y in range(y0, y1):
+            for x in range(x0, x1):
+                p[x, y] = color(x, y)
+
+    shirt = lambda x, y: sawdust if (x * 7 + y * 13) % 17 == 0 else olive_dark if y % 4 == 3 else olive
+    trouser = lambda x, y: sawdust if (x * 5 + y * 3) % 19 == 0 else trousers_dark if x % 3 == 0 else trousers
+    fill(16, 20, 44, 38, shirt)  # body
+    fill(6, 38, 14, 44, shirt)  # jacket top
+    fill(0, 44, 28, 54, shirt)  # jacket, upper part
+    fill(0, 54, 28, 64, trouser)  # jacket, lower part: trousers
+    fill(0, 54, 28, 55, lambda x, y: braces)  # waistband
+    for y in range(38, 54):
+        for x in ((7, 12) if y < 44 else (7, 12, 21, 26)):
+            p[x, y] = braces  # braces over the shoulders, down the front and back
+    for y in range(20, 38):
+        p[23, y] = p[28, y] = p[38, y] = p[41, y] = braces  # braces on the body
+    p[7, 52] = p[12, 52] = buckle
+    fill(44, 22, 60, 34, shirt)  # arms
+    fill(40, 38, 64, 46, shirt)  # crossed arms, middle part
+    fill(0, 22, 16, 34, trouser)  # legs
+    fill(0, 34, 16, 38, lambda x, y: boots)
+    tweed = lambda x, y: cap_fleck if (x * 3 + y * 5) % 7 == 0 else cap
+    fill(40, 0, 48, 8, tweed)  # cap top
+    fill(32, 8, 64, 10, tweed)  # cap sides
+    fill(32, 10, 64, 11, lambda x, y: cap_dark)
+    fill(40, 8, 48, 9, lambda x, y: cap_dark)  # seam where the crown is pulled over the peak
+    hat_rim(p, lambda u, v: cap_dark if v == 13 else cap, 0, front=2)  # peak
+    return image
 
 
 def stone_sawyer():
-    """Grey canvas apron covered in stone dust, a dark cap and safety goggles."""
-    return apron_worker(
-        (110, 110, 115, 255), (90, 90, 95, 255), (200, 200, 200, 255), (70, 70, 80, 255), (50, 50, 60, 255), goggles=True
-    )
+    """Villager profession overlay: a ribbed grey wool cap with safety goggles on it and a
+    dust mask over the nose; a light grey smock covered in stone dust with a belt, dark
+    grey trousers and boots."""
+    image = blank(64)
+    p = image.load()
+    smock, smock_dark, dust = (150, 150, 155, 255), (125, 125, 130, 255), (215, 215, 212, 255)
+    wool, wool_dark = (95, 98, 105, 255), (72, 75, 82, 255)
+    glass, glass_light, frame = (110, 170, 195, 255), (175, 220, 235, 255), (40, 40, 45, 255)
+    mask, mask_dark = (228, 226, 218, 255), (195, 193, 185, 255)
+    belt, buckle = (60, 50, 45, 255), (170, 170, 175, 255)
+    trousers, boots = (75, 75, 82, 255), (40, 38, 38, 255)
+
+    def fill(x0, y0, x1, y1, color):
+        for y in range(y0, y1):
+            for x in range(x0, x1):
+                p[x, y] = color(x, y)
+
+    work = lambda x, y: dust if (x * x + y * 3) % 7 == 0 else smock_dark if y % 4 == 3 else smock
+    fill(16, 20, 44, 38, work)  # body
+    fill(6, 38, 14, 44, work)  # jacket top
+    fill(0, 44, 28, 60, work)  # jacket: the smock
+    fill(0, 60, 28, 64, lambda x, y: trousers)  # jacket, lower part
+    fill(0, 52, 28, 53, lambda x, y: belt)  # belt
+    p[9, 52] = p[10, 52] = buckle
+    fill(44, 22, 60, 34, work)  # arms
+    fill(40, 38, 64, 46, work)  # crossed arms, middle part
+    fill(0, 22, 16, 34, lambda x, y: trousers)  # legs
+    fill(0, 34, 16, 38, lambda x, y: boots)
+    fill(40, 0, 48, 8, lambda x, y: wool_dark if x % 2 else wool)  # wool cap top
+    fill(32, 8, 64, 12, lambda x, y: wool_dark if x % 2 else wool)  # ribbed sides
+    fill(32, 11, 64, 12, lambda x, y: wool_dark)  # turned up edge
+    fill(32, 10, 64, 11, lambda x, y: frame)  # goggle strap
+    fill(41, 9, 47, 11, lambda x, y: frame)  # goggles pushed up on the cap
+    p[42, 9] = p[45, 9] = glass_light
+    p[42, 10] = p[43, 10] = p[45, 10] = p[46, 10] = glass
+    p[43, 9] = p[46, 9] = glass
+    fill(24, 0, 32, 6, lambda x, y: mask_dark if y == 5 else mask)  # dust mask over the nose
+    fill(32, 15, 40, 16, lambda x, y: mask_dark)  # its strings around the head
+    fill(48, 15, 64, 16, lambda x, y: mask_dark)
+    return image
 
 
 def carpenter():
-    """Blue canvas apron covered in wood shavings and a red cap."""
-    return apron_worker(
-        (70, 95, 140, 255), (55, 75, 115, 255), (235, 210, 150, 255), (150, 45, 40, 255), (110, 32, 30, 255)
-    )
+    """Villager profession overlay: a folded paper hat with a pencil behind the ear; a sand
+    coloured work smock with wood shavings on it, a short leather tool apron at the waist
+    with a yellow folding rule in its pocket, brown corduroy trousers and boots."""
+    image = blank(64)
+    p = image.load()
+    smock, smock_dark, shavings = (215, 195, 150, 255), (185, 165, 122, 255), (240, 225, 185, 255)
+    leather, leather_dark = (125, 82, 48, 255), (92, 58, 32, 255)
+    rule, rule_mark = (235, 195, 45, 255), (60, 50, 30, 255)
+    cord, cord_dark, boots = (100, 72, 48, 255), (80, 56, 36, 255), (45, 35, 28, 255)
+    paper, paper_fold, print_ = (238, 236, 228, 255), (200, 198, 190, 255), (150, 150, 150, 255)
+    wood, graphite = (225, 185, 60, 255), (50, 50, 55, 255)
+
+    def fill(x0, y0, x1, y1, color):
+        for y in range(y0, y1):
+            for x in range(x0, x1):
+                p[x, y] = color(x, y)
+
+    work = lambda x, y: shavings if (x * 7 + y * 11) % 13 == 0 else smock_dark if y % 4 == 3 else smock
+    fill(16, 20, 44, 38, work)  # body
+    fill(6, 38, 14, 44, work)  # jacket top
+    fill(0, 44, 28, 56, work)  # jacket, upper part
+    fill(0, 56, 28, 64, lambda x, y: cord_dark if x % 2 else cord)  # jacket, lower part: trousers
+    fill(0, 52, 28, 53, lambda x, y: leather_dark)  # belt of the tool apron
+    fill(5, 53, 15, 59, lambda x, y: leather)  # tool apron on the front of the robe
+    fill(5, 58, 15, 59, lambda x, y: leather_dark)  # hem
+    fill(6, 55, 14, 56, lambda x, y: leather_dark)  # pocket seam
+    p[9, 55] = p[10, 55] = leather  # the pockets are split in the middle
+    for y in range(50, 56):
+        p[12, y] = rule_mark if y % 2 else rule  # folding rule standing in the pocket
+    p[7, 54] = p[7, 55] = graphite  # a pencil in the other pocket
+    p[7, 53] = wood
+    fill(44, 22, 60, 34, work)  # arms
+    fill(40, 38, 64, 46, work)  # crossed arms, middle part
+    fill(0, 22, 16, 34, lambda x, y: cord_dark if x % 2 else cord)  # legs
+    fill(0, 34, 16, 38, lambda x, y: boots)
+    fill(40, 0, 48, 8, lambda x, y: paper_fold if x == 44 else print_ if y in (2, 5) and x in (41, 42, 46) else paper)  # hat top, a folded newspaper
+    fill(32, 8, 64, 11, lambda x, y: paper)  # hat sides
+    fill(32, 11, 64, 12, lambda x, y: paper_fold)  # folded edge
+    for x0 in (40, 56):  # the fold forms a point on the front and the back
+        for i in range(3):
+            p[x0 + 3 - i, 8 + i] = p[x0 + 4 + i, 8 + i] = paper_fold
+    for x in range(34, 38):
+        p[x, 13] = wood  # pencil behind the ear
+    p[33, 13] = graphite
+    return image
 
 
 def smith():
-    """Dark leather apron with soot and ember burns, and a charcoal cap."""
-    return apron_worker(
-        (75, 50, 35, 255), (55, 36, 25, 255), (230, 120, 40, 255), (45, 45, 50, 255), (25, 25, 30, 255)
-    )
+    """Villager profession overlay: no hat, only a leather headband; a heavy black leather
+    apron down to the knees with ember burns over a linen shirt with rolled up sleeves,
+    leather gloves, dark trousers and boots."""
+    image = blank(64)
+    p = image.load()
+    leather, leather_dark, leather_light = (42, 38, 36, 255), (28, 25, 24, 255), (66, 60, 54, 255)
+    linen, linen_dark = (160, 145, 118, 255), (132, 118, 92, 255)
+    glove, glove_dark = (110, 72, 42, 255), (82, 52, 30, 255)
+    trousers, boots, strap = (58, 54, 60, 255), (32, 27, 25, 255), (95, 60, 30, 255)
+    ember, ember_bright = (225, 105, 35, 255), (250, 190, 80, 255)
+
+    def fill(x0, y0, x1, y1, color):
+        for y in range(y0, y1):
+            for x in range(x0, x1):
+                p[x, y] = color(x, y)
+
+    shirt = lambda x, y: linen_dark if (x * 3 + y * 5) % 9 == 0 else linen
+    apron = lambda x, y: leather_light if (x * 7 + y * 3) % 10 == 0 else leather_dark if y % 5 == 4 else leather
+    fill(16, 20, 44, 38, shirt)  # body
+    fill(22, 27, 30, 38, apron)  # bib on the front of the body
+    fill(6, 38, 14, 44, shirt)  # jacket top
+    fill(0, 44, 28, 52, shirt)  # jacket, upper part
+    fill(0, 52, 28, 64, lambda x, y: trousers)  # jacket, lower part
+    fill(5, 44, 15, 62, apron)  # apron on the front of the robe, wrapping around the edges
+    for x in range(0, 28):
+        if not 5 <= x < 15:
+            p[x, 52] = strap  # apron string around the waist
+    for y in range(20, 27):
+        p[23, y] = p[28, y] = strap  # neck straps over the shoulders
+    for i in range(8):
+        p[36 + i, 26 + i] = p[43 - i, 26 + i] = strap  # straps crossed on the back
+    for x, y, color in [(7, 48, ember), (12, 51, ember_bright), (9, 55, ember), (13, 58, ember),
+                        (6, 59, ember_bright), (10, 60, ember), (25, 31, ember), (27, 35, ember_bright)]:
+        p[x, y] = color  # burns from flying sparks
+    fill(44, 22, 60, 31, shirt)  # arms: rolled up sleeves
+    fill(44, 30, 60, 31, lambda x, y: linen_dark)  # rolled up cuff
+    fill(44, 31, 60, 34, lambda x, y: glove)  # gloves
+    fill(52, 22, 56, 26, lambda x, y: glove)  # end of the arm
+    fill(40, 38, 64, 46, lambda x, y: glove_dark if (x + y) % 4 == 0 else glove)  # crossed arms, middle part
+    fill(0, 22, 16, 34, lambda x, y: trousers)  # legs
+    fill(0, 34, 16, 38, lambda x, y: boots)
+    fill(32, 9, 64, 10, lambda x, y: strap)  # headband
+    fill(32, 10, 64, 11, lambda x, y: glove_dark)
+    p[60, 11] = p[61, 12] = glove_dark  # knot ends on the back of the head
+    return image
 
 
 def farmer():
@@ -226,20 +353,43 @@ def wicker_basket_entity():
 
 
 def carrier():
-    """Villager profession overlay: leather straps of the basket over the shoulders, on the
-    front, top and back of the robe, and a straw hat band."""
+    """Villager profession overlay: a brown felt travelling hat with a brim (the hat rim) and
+    a teal band; a teal travelling tunic with a belt, the leather straps of the basket over
+    the shoulders, brown trousers and tall boots."""
     image = blank(64)
     p = image.load()
+    teal, teal_dark, teal_light = (45, 125, 125, 255), (32, 98, 100, 255), (70, 150, 148, 255)
+    felt, felt_dark = (110, 80, 55, 255), (85, 60, 40, 255)
     strap, buckle = (90, 60, 35, 255), (200, 170, 80, 255)
+    trousers, boots, boots_dark = (95, 75, 55, 255), (70, 45, 28, 255), (50, 32, 20, 255)
+
+    def fill(x0, y0, x1, y1, color):
+        for y in range(y0, y1):
+            for x in range(x0, x1):
+                p[x, y] = color(x, y)
+
+    tunic = lambda x, y: teal_light if (x * 3 + y * 7) % 13 == 0 else teal_dark if y % 4 == 3 else teal
+    fill(16, 20, 44, 38, tunic)  # body
+    fill(6, 38, 14, 44, tunic)  # jacket top
+    fill(0, 44, 28, 58, tunic)  # jacket: the tunic
+    fill(0, 58, 28, 64, lambda x, y: trousers)  # jacket, lower part
+    fill(0, 54, 28, 55, lambda x, y: strap)  # belt
     for y in range(38, 44):
-        p[7, y] = p[12, y] = strap  # robe top (shoulders)
+        p[7, y] = p[12, y] = strap  # basket straps on the robe top (shoulders)
     for y in range(44, 53):
         p[7, y] = p[12, y] = strap  # robe front
     for y in range(44, 55):
         p[21, y] = p[26, y] = strap  # robe back, down to the basket
     p[7, 50] = p[12, 50] = buckle
-    for x in range(32, 64):
-        p[x, 9] = (215, 190, 120, 255)  # hat band
+    fill(44, 22, 60, 34, tunic)  # arms
+    fill(40, 38, 64, 46, tunic)  # crossed arms, middle part
+    fill(0, 22, 16, 28, lambda x, y: trousers)  # legs
+    fill(0, 28, 16, 38, lambda x, y: boots_dark if y in (28, 37) else boots)  # tall boots
+    felt_cloth = lambda x, y: felt_dark if (x * 5 + y * 3) % 11 == 0 else felt
+    fill(40, 0, 48, 8, felt_cloth)  # hat top
+    fill(32, 8, 64, 10, felt_cloth)  # hat sides
+    fill(32, 10, 64, 11, lambda x, y: teal_dark)  # hat band
+    hat_rim(p, lambda u, v: felt_dark if max(4 - u, u - 11, 4 - v, v - 11) == 2 else felt, 2)  # brim
     return image
 
 
