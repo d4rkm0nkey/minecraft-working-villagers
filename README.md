@@ -21,8 +21,11 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
    adult villager with it. The villager is now under contract. One that already has a
    vanilla job stays at its block and becomes the worker of this mod there (a farmer at
    its composter, a mason as stone sawyer at its stonecutter, a shepherd at its loom, a
-   butcher at its smoker, an armorer or toolsmith as smith), unless it has traded already
-   (it would lose its trades) or its job has no work in this mod (librarian, ...). It gets no
+   butcher at its smoker, an armorer or toolsmith as smith), keeping its trades and level,
+   unless its job has no work in this mod (librarian, ...). These workers trade like their
+   vanilla counterparts (the smith like an armorer at a blast furnace, like a toolsmith at a
+   smithing table), level up by trading and restock at their workstation; right-click with
+   an empty hand, or sneak, to trade. It gets no
    name (like vanilla villagers; a name tag names it), unless `workers.randomNames` is on.
 2. **Place a chopping block** (an axe above a log). A hired villager without a job looks
    for a free workstation of this mod within 48 blocks that it can walk to (chopping
@@ -481,8 +484,8 @@ sawyer only cuts allowed wood, the stone sawyer cuts bricks, the carpenter stops
 stock, the carrier empties its source, the farmer harvests and replants (also a raised
 bed), the shepherd shears sheep over the fence of a pen and breeds a lamb with wheat, the
 butcher slaughters cows down to the herd size, breeds a piglet and smokes chicken, a
-vanilla farmer is hired and stays at its composter (but not one that has traded, nor a
-librarian), hired villagers do not trample farmland, the smith smelts raw iron, the kiln operator
+vanilla farmer is hired and stays at its composter and gets farmer trades, one that has
+traded keeps its trades and experience, a librarian is not hired, hired villagers do not trample farmland, the smith smelts raw iron, the kiln operator
 fires glass but leaves meat and raw iron alone and fires cobblestone twice for smooth stone,
 the pit digger digs a pit with a ladder down to its bottom without touching the ring, the
 shop assistant sells wheat to a farmer until its trade is sold out, ordinary villagers do

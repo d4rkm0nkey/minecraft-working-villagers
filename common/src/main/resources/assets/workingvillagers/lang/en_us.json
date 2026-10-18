@@ -440,6 +440,5 @@
   "gui.workingvillagers.station.back.tooltip.smoker": "Back to the smoker",
   "message.workingvillagers.contract.nitwit": "A nitwit does not work.",
   "message.workingvillagers.contract.no_job": "There is no work for a %s in this mod yet.",
-  "message.workingvillagers.contract.traded": "%s has traded already and would lose its trades.",
   "message.workingvillagers.contract.hired_here": "%s signed the contract and now works at the same block as a %s of this mod."
 }

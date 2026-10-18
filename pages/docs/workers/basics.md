@@ -30,11 +30,25 @@ mod there:
 | Butcher | :mc-smoker: Smoker | [Butcher](butcher.md) |
 | Armorer, toolsmith | :mc-blast_furnace: Blast furnace, :mc-smithing_table: smithing table | [Smith](smith.md) |
 
-Not hired are nitwits, babies, villagers whose job has no work in this mod yet (librarian,
-cartographer, ...) and villagers you or someone else **traded with**: they would lose their
-trades. Hired villagers get no name, just like vanilla villagers. Use a
+Not hired are nitwits, babies and villagers whose job has no work in this mod yet (librarian,
+cartographer, ...). Hired villagers get no name, just like vanilla villagers. Use a
 name tag to tell them apart. (The config option `randomNames` gives them a random name
 like Anton or Berta.)
+
+### Trading with workers
+
+The workers in the table above **trade like their vanilla counterparts**: the farmer like a
+farmer, the stone sawyer like a mason, the shepherd and the butcher like theirs, the smith
+like an armorer (at a blast furnace) or a toolsmith (at a smithing table). A villager you
+traded with **keeps its trades and its level** when you hire it. They level up by trading
+like vanilla villagers and restock their trades at their workstation during work hours.
+
+Right-click a worker with an **empty hand** to trade (the trading screen takes the emeralds
+from your inventory). With emeralds or its tools in your hand you give them to it instead;
+**sneak** and right-click to trade anyway. The other workers (lumberjack, sawyer, carpenter,
+...) do not trade.
+
+A worker that loses its job keeps its trades for when it gets a job of the same kind again.
 
 Hired villagers **never take a vanilla job** (lectern, cartography table, ...). They do take
 part in normal village life: they sleep in beds, meet at the village bell and flee from

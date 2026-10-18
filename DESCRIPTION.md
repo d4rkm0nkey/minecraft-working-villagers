@@ -28,7 +28,7 @@ The workers fit together. A lumberjack supplies the sawyer, and a carrier takes 
 
 ## 📜 Hiring and wages
 
-1. Craft a **work contract** (paper, ink sac and 3 emeralds) and right-click a villager with it. It's hired. A farmer, mason, shepherd, butcher, armorer or toolsmith that has not traded yet keeps its block and simply starts working for you.
+1. Craft a **work contract** (paper, ink sac and 3 emeralds) and right-click a villager with it. It's hired. A farmer, mason, shepherd, butcher, armorer or toolsmith keeps its block, its trades and its level, and simply starts working for you. These workers still trade with you like before.
 2. Place a **workstation**. The villager finds it by itself, walks there and takes the job (or you **assign** one in the menu).
 3. **Link chests:** where the material comes from and where the products go.
 4. **Right-click the worker with emeralds**, like giving a villager food. Every worker takes **one emerald a day** as its wage. No wage, no work. The lumberjack also needs an axe, the farmer a hoe and some seeds, the shepherd shears, the pit digger a shovel, a pickaxe and ladders.

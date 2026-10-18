@@ -31,6 +31,7 @@ import me.teajay.workingvillagers.network.RenameRoutePayload;
 import me.teajay.workingvillagers.station.StationType;
 import me.teajay.workingvillagers.platform.Platform;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvent;
@@ -252,11 +253,23 @@ public final class WorkingVillagers {
 	private static void registerProfession(
 		Platform platform, String name, ResourceKey<PoiType> jobSite, ImmutableSet<Item> requestedItems, @Nullable SoundEvent workSound
 	) {
-		registerProfession(platform, name, poi -> poi.is(jobSite), requestedItems, workSound);
+		registerProfession(platform, name, poi -> poi.is(jobSite), requestedItems, workSound, null);
 	}
 
 	private static void registerProfession(
-		Platform platform, String name, Predicate<Holder<PoiType>> jobSite, ImmutableSet<Item> requestedItems, @Nullable SoundEvent workSound
+		Platform platform, String name, ResourceKey<PoiType> jobSite, ImmutableSet<Item> requestedItems, @Nullable SoundEvent workSound,
+		@Nullable ResourceKey<VillagerProfession> tradesLike
+	) {
+		registerProfession(platform, name, poi -> poi.is(jobSite), requestedItems, workSound, tradesLike);
+	}
+
+	/**
+	 * Registers a profession of this mod. {@code tradesLike}: the vanilla profession whose
+	 * trades it has (see {@code TradeFamilies}), null for a worker that does not trade.
+	 */
+	private static void registerProfession(
+		Platform platform, String name, Predicate<Holder<PoiType>> jobSite, ImmutableSet<Item> requestedItems, @Nullable SoundEvent workSound,
+		@Nullable ResourceKey<VillagerProfession> tradesLike
 	) {
 		platform.register(Registries.VILLAGER_PROFESSION, name, () -> new VillagerProfession(
 			Component.translatable("entity." + MOD_ID + ".villager." + name),
@@ -265,7 +278,7 @@ public final class WorkingVillagers {
 			requestedItems,
 			ImmutableSet.of(),
 			workSound,
-			Int2ObjectMaps.emptyMap()
+			tradesLike == null ? Int2ObjectMaps.emptyMap() : BuiltInRegistries.VILLAGER_PROFESSION.getValueOrThrow(tradesLike).tradeSetsByLevel()
 		));
 	}
 
@@ -320,7 +333,7 @@ public final class WorkingVillagers {
 	private static void registerStonecutter(Platform platform) {
 		STONECUTTER_STATION_MENU = platform.registerMenu("stonecutter_station", (containerId, inventory) -> new StationMenu(StationType.STONECUTTER, containerId, inventory));
 		STONECUTTER_MENU = platform.registerMenu("stonecutter", (containerId, inventory) -> new CutterMenu(STONECUTTER_KIND, containerId, inventory));
-		registerProfession(platform, "stonecutter", PoiTypes.MASON, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_MASON);
+		registerProfession(platform, "stonecutter", PoiTypes.MASON, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_MASON, VillagerProfession.MASON);
 	}
 
 	/**
@@ -332,7 +345,7 @@ public final class WorkingVillagers {
 		COMPOSTER_STATION_MENU = platform.registerMenu("composter_station", (containerId, inventory) -> new StationMenu(StationType.COMPOSTER, containerId, inventory));
 		registerProfession(platform, "farmer", PoiTypes.FARMER, ImmutableSet.of(
 			Items.WHEAT, Items.WHEAT_SEEDS, Items.BEETROOT_SEEDS, Items.CARROT, Items.POTATO, Items.BEETROOT, Items.BONE_MEAL
-		), SoundEvents.VILLAGER_WORK_FARMER);
+		), SoundEvents.VILLAGER_WORK_FARMER, VillagerProfession.FARMER);
 	}
 
 	/**
@@ -342,7 +355,7 @@ public final class WorkingVillagers {
 	 */
 	private static void registerShepherd(Platform platform) {
 		LOOM_STATION_MENU = platform.registerMenu("loom_station", (containerId, inventory) -> new StationMenu(StationType.LOOM, containerId, inventory));
-		registerProfession(platform, "shepherd", PoiTypes.SHEPHERD, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_SHEPHERD);
+		registerProfession(platform, "shepherd", PoiTypes.SHEPHERD, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_SHEPHERD, VillagerProfession.SHEPHERD);
 	}
 
 	/**
@@ -351,7 +364,7 @@ public final class WorkingVillagers {
 	 */
 	private static void registerButcher(Platform platform) {
 		SMOKER_STATION_MENU = platform.registerMenu("smoker_station", (containerId, inventory) -> new StationMenu(StationType.SMOKER, containerId, inventory));
-		registerProfession(platform, "butcher", PoiTypes.BUTCHER, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_BUTCHER);
+		registerProfession(platform, "butcher", PoiTypes.BUTCHER, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_BUTCHER, VillagerProfession.BUTCHER);
 	}
 
 	/**
@@ -362,7 +375,8 @@ public final class WorkingVillagers {
 	private static void registerSmith(Platform platform) {
 		BLAST_FURNACE_STATION_MENU = platform.registerMenu("blast_furnace_station", (containerId, inventory) -> new StationMenu(StationType.BLAST_FURNACE, containerId, inventory));
 		SMITHING_TABLE_STATION_MENU = platform.registerMenu("smithing_table_station", (containerId, inventory) -> new StationMenu(StationType.SMITHING_TABLE, containerId, inventory));
-		registerProfession(platform, "smith", poi -> poi.is(PoiTypes.ARMORER) || poi.is(PoiTypes.TOOLSMITH), ImmutableSet.of(), SoundEvents.VILLAGER_WORK_ARMORER);
+		registerProfession(platform, "smith", poi -> poi.is(PoiTypes.ARMORER) || poi.is(PoiTypes.TOOLSMITH), ImmutableSet.of(), SoundEvents.VILLAGER_WORK_ARMORER,
+			VillagerProfession.ARMORER);
 	}
 
 	/**

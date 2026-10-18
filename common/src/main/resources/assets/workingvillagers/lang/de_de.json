@@ -440,6 +440,5 @@
   "gui.workingvillagers.station.back.tooltip.smoker": "Zurück zum Räucherofen",
   "message.workingvillagers.contract.nitwit": "Ein Nichtsnutz arbeitet nicht.",
   "message.workingvillagers.contract.no_job": "Für den Beruf %s gibt es in dieser Mod noch keine Arbeit.",
-  "message.workingvillagers.contract.traded": "%s hat schon gehandelt und würde seine Angebote verlieren.",
   "message.workingvillagers.contract.hired_here": "%s hat den Vertrag unterschrieben und arbeitet jetzt am selben Block als %s dieser Mod."
 }

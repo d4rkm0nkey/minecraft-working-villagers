@@ -4,6 +4,7 @@
   "package": "me.teajay.workingvillagers.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "AbstractVillagerAccessor",
     "AbstractFurnaceMenuAccessor",
     "BaseContainerBlockEntityAccessor",
     "BlastFurnaceMenuMixin",

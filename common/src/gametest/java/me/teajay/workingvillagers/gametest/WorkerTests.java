@@ -120,6 +120,7 @@ public final class WorkerTests {
 		registry.accept("shepherd_shears_over_fence", WorkerTests::shepherdShearsOverFence);
 		registry.accept("shepherd_breeds_sheep", WorkerTests::shepherdBreedsSheep);
 		registry.accept("contract_hires_at_job_site", WorkerTests::contractHiresAtJobSite);
+		registry.accept("contract_keeps_trades", WorkerTests::contractKeepsTrades);
 		registry.accept("butcher_slaughters_surplus", WorkerTests::butcherSlaughtersSurplus);
 		registry.accept("butcher_breeds_pigs", WorkerTests::butcherBreedsPigs);
 		registry.accept("butcher_smokes_meat", WorkerTests::butcherSmokesMeat);
@@ -175,26 +176,20 @@ public final class WorkerTests {
 		helper.succeed();
 	}
 
-	/**
-	 * Not hired: a farmer without a job site, a baby, a farmer that has traded (it would lose
-	 * its trades) and a librarian (no job of this mod at a lectern).
-	 */
+	/** Not hired: a farmer without a job site, a baby and a librarian (no job of this mod at a lectern). */
 	private static void contractRejectsEmployed(GameTestHelper helper) {
 		Villager farmer = helper.spawn(EntityTypes.VILLAGER, WORKER);
 		farmer.setVillagerData(farmer.getVillagerData().withProfession(helper.getLevel().registryAccess(), VillagerProfession.FARMER));
 		Villager baby = helper.spawn(EntityTypes.VILLAGER, WORKER.east(2));
 		baby.setAge(-24000);
-		Villager trader = vanillaWorker(helper, new BlockPos(4, 0, 4), Blocks.COMPOSTER, VillagerProfession.FARMER);
-		trader.setVillagerXp(1);
 		Villager librarian = vanillaWorker(helper, new BlockPos(9, 0, 2), Blocks.LECTERN, VillagerProfession.LIBRARIAN);
 		Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-		for (Villager villager : new Villager[] {farmer, baby, trader, librarian}) {
+		for (Villager villager : new Villager[] {farmer, baby, librarian}) {
 			ItemStack contract = new ItemStack(WorkingVillagers.WORK_CONTRACT.get());
 			WorkContractItem.hire(villager, player, contract, InteractionHand.MAIN_HAND);
 			helper.assertFalse(((HiredVillager) villager).workingvillagers$isHired(), "Hired although it must not be: " + villager.getVillagerData().profession().getRegisteredName());
 			helper.assertFalse(contract.isEmpty(), "The contract was used up although nobody was hired");
 		}
-		helper.assertTrue(trader.getVillagerData().profession().is(VillagerProfession.FARMER), "The trader lost its job");
 		helper.succeed();
 	}
 
@@ -223,6 +218,24 @@ public final class WorkerTests {
 		helper.assertTrue(farmer.getBrain().getMemory(MemoryModuleType.JOB_SITE).map(site -> site.pos().equals(helper.absolutePos(composter))).orElse(false),
 			"The farmer left its composter");
 		helper.assertTrue(TestWorld.station(helper, composter).worker() != null, "The composter does not know its worker");
+		helper.assertFalse(farmer.getOffers().isEmpty(), "The farmer of this mod has no trades");
+		helper.succeed();
+	}
+
+	/** A vanilla farmer somebody traded with keeps its trades and its experience when it is hired. */
+	private static void contractKeepsTrades(GameTestHelper helper) {
+		BlockPos composter = STATION.below();
+		Villager farmer = vanillaWorker(helper, composter, Blocks.COMPOSTER, VillagerProfession.FARMER);
+		net.minecraft.world.item.trading.MerchantOffers offers = new net.minecraft.world.item.trading.MerchantOffers();
+		offers.add(new net.minecraft.world.item.trading.MerchantOffer(new net.minecraft.world.item.trading.ItemCost(Items.WHEAT, 20),
+			new ItemStack(Items.EMERALD), 12, 2, 0.05F));
+		farmer.setOffers(offers);
+		farmer.setVillagerXp(5);
+		WorkContractItem.hire(farmer, helper.makeMockPlayer(GameType.SURVIVAL), new ItemStack(WorkingVillagers.WORK_CONTRACT.get()), InteractionHand.MAIN_HAND);
+		helper.assertTrue(((HiredVillager) farmer).workingvillagers$isHired(), "The farmer was not hired");
+		helper.assertTrue(farmer.getVillagerData().profession().is(WorkingVillagers.FARMER_PROFESSION), "Not the farmer of this mod");
+		helper.assertTrue(farmer.getOffers().size() == 1 && farmer.getOffers().getFirst().getCostA().is(Items.WHEAT), "The trades were lost: " + farmer.getOffers().size());
+		helper.assertTrue(farmer.getVillagerXp() == 5, "The experience was lost");
 		helper.succeed();
 	}
 

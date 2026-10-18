@@ -22,6 +22,7 @@ import net.minecraft.world.entity.ai.village.poi.PoiManager;
 import net.minecraft.world.entity.ai.village.poi.PoiRecord;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.npc.villager.VillagerProfession;
+import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.phys.AABB;
 import org.jspecify.annotations.Nullable;
 
@@ -55,6 +56,8 @@ public final class WorkerJobs {
 		Map.entry(WorkingVillagers.MINER_POI, WorkingVillagers.MINER_PROFESSION)
 	);
 	private static final int CHECK_INTERVAL = 20;
+	/** How close to its workstation a worker fills up its trades. */
+	private static final double RESTOCK_DISTANCE = 4.0;
 	/** How far from a station a villager that holds it is looked for before its ticket is given back. */
 	private static final double LOST_TICKET_RANGE = 64.0;
 	/** How long a worker taken away from a station does not take it again by itself. */
@@ -102,6 +105,7 @@ public final class WorkerJobs {
 		if (worker) {
 			StuckWorkers.check(level, villager, CHECK_INTERVAL);
 			WorkerStatus.complain(level, villager, CHECK_INTERVAL);
+			restock(level, villager);
 		}
 		if (!unemployed) {
 			// Keep the station's note up to date (renamed worker, worker from before names existed)
@@ -114,6 +118,19 @@ public final class WorkerJobs {
 				.filter(station -> !station.hasWorker(villager.getUUID(), name))
 				.ifPresent(station -> station.setWorker(villager.getUUID(), name));
 		}
+	}
+
+	/**
+	 * A worker that trades (see {@link TradeFamilies}) fills up its trades at its workstation
+	 * during work hours, like a vanilla villager at its job site (whose work it does not do).
+	 */
+	private static void restock(ServerLevel level, Villager villager) {
+		if (!villager.getBrain().isActive(Activity.WORK) || !villager.shouldRestock(level)) {
+			return;
+		}
+		villager.getBrain().getMemory(MemoryModuleType.JOB_SITE)
+			.filter(site -> site.dimension() == level.dimension() && site.pos().closerToCenterThan(villager.position(), RESTOCK_DISTANCE))
+			.ifPresent(site -> villager.restock());
 	}
 
 	/** Whether the villager has one of the jobs of this mod (carriers included). */
@@ -166,8 +183,8 @@ public final class WorkerJobs {
 
 	/**
 	 * Why a villager with a vanilla job cannot be hired and keep working at its job site:
-	 * a nitwit, no job site, no job of this mod there (a librarian), or it has traded already
-	 * and would lose its trades. Null if it can (see {@link #keepJobSite}).
+	 * a nitwit, no job site, or no job of this mod there (a librarian). Null if it can (see
+	 * {@link #keepJobSite}); one that traded keeps its trades (see {@link TradeFamilies}).
 	 */
 	public static @Nullable Component checkKeepJobSite(ServerLevel level, Villager villager) {
 		Holder<VillagerProfession> profession = villager.getVillagerData().profession();
@@ -178,9 +195,6 @@ public final class WorkerJobs {
 		boolean job = site.flatMap(pos -> level.getPoiManager().getType(pos.pos())).flatMap(Holder::unwrapKey).filter(JOBS::containsKey).isPresent();
 		if (!job) {
 			return Component.translatable("message.workingvillagers.contract.no_job", profession.value().name());
-		}
-		if (villager.getVillagerXp() > 0) {
-			return Component.translatable("message.workingvillagers.contract.traded", villager.getName());
 		}
 		return null;
 	}

@@ -11,8 +11,8 @@ them; above it, it slaughters. With coal it smokes the meat.
 
 !!! note
     Ordinary (not hired) villagers still become vanilla butchers at smokers. A vanilla
-    butcher you have not traded with yet can be hired directly: it stays at its smoker and
-    becomes the butcher of this mod.
+    butcher can be hired directly: it stays at its smoker, keeps its trades and becomes the
+    butcher of this mod. The butcher trades like a vanilla butcher.
 
 ## Setting it up
 

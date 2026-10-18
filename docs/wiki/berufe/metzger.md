@@ -7,7 +7,7 @@ Der Metzger hält die Tiere rund um seinen Räucherofen auf einer eingestellten 
 ## Workstation: Räucherofen
 
 - Der normale Vanilla-Räucherofen; über seinem Menü stehen die Reiter der Station (siehe [Steuerung](../grundlagen/steuerung.md#stationsübersicht)). Spieler können weiter selbst darin räuchern; was fertig ist, nimmt der Metzger mit heraus.
-- Vanilla-Fleischer arbeiten weiter an Räucheröfen, außer an eingerichteten. Ein Fleischer, mit dem noch niemand gehandelt hat, lässt sich direkt anheuern und bleibt als Metzger an seinem Räucherofen (siehe [Anheuern & Lohn](../wirtschaft/anheuern-und-lohn.md#stand-der-umsetzung)).
+- Vanilla-Fleischer arbeiten weiter an Räucheröfen, außer an eingerichteten. Ein Fleischer lässt sich direkt anheuern und bleibt als Metzger an seinem Räucherofen, mit seinen Angeboten; der Metzger handelt wie ein Fleischer (siehe [Anheuern & Lohn](../wirtschaft/anheuern-und-lohn.md#stand-der-umsetzung)).
 - Kisten: mindestens eine **Ausgangskiste**; **Eingangskisten** sind freiwillig und halten Futter und Kohle für ihn.
 
 ## Stand der Umsetzung
