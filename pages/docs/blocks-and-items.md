@@ -44,6 +44,48 @@ buttons and sticks.
 
 [[craft: any_wooden_slab any_wooden_slab any_wooden_slab / _ iron_ingot _ / any_log _ any_log -> carpenter_bench]]
 
+## Pit stake
+
+:mc-pit_stake: Workstation of the [pit digger](workers/pit-digger.md). Its overview picks the
+pit (a ring of string on the ground), the place of the ladder and the depth. Villagers walk
+around it instead of climbing on it.
+
+[[craft: _ string _ / _ stick _ / _ any_planks _ -> pit_stake]]
+
+## Kiln
+
+:mc-kiln: A brick furnace for building materials and workstation of the
+[kiln operator](workers/kiln-operator.md). Works like a furnace, with its recipe book and
+at its speed, but fires no food and nothing the blast furnace can smelt: glass, stone,
+smooth stone, bricks, terracotta, charcoal, dyes, ... The **i** button at the top right of
+its screen opens the overview.
+
+[[craft: _ brick _ / brick furnace brick / _ brick _ -> kiln]]
+
+## Trading counter
+
+:mc-trading_counter: Workstation of the [shop assistant](workers/shop-assistant.md).
+Right-click it to open its overview. Villagers walk around it instead of climbing on it.
+
+[[craft: any_wooden_slab any_wooden_slab any_wooden_slab / any_planks emerald any_planks / any_planks any_planks any_planks -> trading_counter]]
+
+## Mining bench
+
+:mc-mining_bench: Workstation of the [miner](workers/miner.md). For you it is a **mill**,
+used like a stonecutter: cobblestone and other stone to gravel, gravel to sand or flint,
+sandstone back to sand. The **i** button at the top right of its screen opens the overview,
+where you pick the miner's tunnel.
+
+[[craft: smooth_stone any_pickaxe smooth_stone / cobblestone iron_ingot cobblestone / cobblestone cobblestone cobblestone -> mining_bench]]
+
+## Village chest
+
+:mc-village_chest: A chest every worker nearby takes its wage, tools, saplings, seeds,
+ladders and torches from by itself, see [Village chests](workers/basics.md#village-chests).
+Use it like a chest: two village chests next to each other form a double chest (sneak while placing to keep them apart).
+
+[[craft shapeless: chest emerald -> village_chest]]
+
 ## Stonecutter (vanilla)
 
 :mc-stonecutter: Workstation of the [stone sawyer](workers/sawyer.md). Every stonecutter
@@ -72,3 +114,7 @@ the top right of its screen opens the overview.
 | :mc-head_carrier: Carrier | (wicker basket) | :mc-wicker_basket: Wicker basket |
 | :mc-head_farmer: Farmer | :mc-composter: Composter | :mc-work_contract: Work contract |
 | :mc-head_smith: Smith | :mc-blast_furnace: Blast furnace | :mc-work_contract: Work contract |
+| :mc-head_pit_digger: Pit digger | :mc-pit_stake: Pit stake | :mc-work_contract: Work contract |
+| :mc-head_kiln_operator: Kiln operator | :mc-kiln: Kiln | :mc-work_contract: Work contract |
+| :mc-head_shop_assistant: Shop assistant | :mc-trading_counter: Trading counter | :mc-work_contract: Work contract |
+| :mc-head_miner: Miner | :mc-mining_bench: Mining bench | :mc-work_contract: Work contract |

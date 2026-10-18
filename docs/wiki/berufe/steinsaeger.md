@@ -30,7 +30,7 @@ Wie beim [Holzsäger](holzsaeger.md#arbeitsablauf): Lohn nehmen, bis zu 16 Items
 ## Stand der Umsetzung
 
 - Umgesetzt wie oben beschrieben, ohne Werkzeug.
-- Stein im Ofen zu Glattstein brennen kann er nicht. Das soll der [Brenner](brenner.md) übernehmen.
+- Stein im Ofen zu Glattstein brennen kann er nicht. Das übernimmt der [Brenner](brenner.md).
 - Der [Maurer](maurer.md) bleibt als Konzept für später (z. B. mit Master-Fähigkeit).
 
 ## Siehe auch

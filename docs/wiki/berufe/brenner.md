@@ -1,8 +1,23 @@
 # Beruf: Brenner
 
-[← Berufe](README.md) · Station: **Brennofen** (neu) · Phase: **Idee**
+[← Berufe](README.md) · Station: **Brennofen** (neu) · Phase: **umgesetzt** (ohne Master-Fähigkeit)
 
 Der Brenner bedient den Brennofen: Er brennt Baustoffe wie Glas, Stein, Terrakotta und Ziegel, macht Holzkohle und Farbstoffe. Er ist der dritte Ofen-Beruf neben dem [Schmied](schmied.md) am Blast Furnace und dem [Metzger](metzger.md) am Smoker.
+
+## Stand der Umsetzung
+
+- **Brennofen:** eigener Block mit Block-Entity, Rezept 1 Ofen + 4 Ziegel (Kreuz). Für Spieler wie ein Ofen: Ofen-Rezeptbuch (ohne Essen-Reiter), Brennstoff, Erfahrung, Hopper. Normales Ofentempo, Licht beim Brennen, Rauch auch oben aus dem „Kamin“. Texturen: die Ofen-Texturen mit Ziegeln statt Bruchstein (`tools/generate_textures.py`).
+- **Was er brennt** steht in `KilnRecipes`: alle Zutaten von `minecraft:smelting`-Rezepten, außer solchen mit einem Essen-Rezept (Buch-Kategorie `food`) oder einem `minecraft:blasting`-Rezept und außer dem Item-Tag `workingvillagers:kiln_excluded` (leer). Liegt etwas anderes im Eingangsslot, tickt der Ofen wie ohne Zutat (Brennstoff brennt weiter herunter), es wird nicht gebrannt. Hopper und Shift-Klick legen nur Brennbares hinein.
+- Der Knopf **i** oben rechts im Ofen-Fenster öffnet die Stationsübersicht, **Zurück** führt wieder zum Ofen.
+- **Auftrag:** Die Übersicht zeigt alle Produkte des Brennofens (5 Reihen, bei mehr mit Seiten). Kein Produkt gewählt = **Alles** (jede Zutat einmal brennen). Ein Klick wählt ein Produkt, ein zweiter Klick hebt die Wahl wieder auf.
+- **Mehrstufig:** Mit Auftrag nimmt er nur Zutaten, die (bis zu vier Brennvorgänge) zum Produkt führen. Zwischenstufen (Stein für Glatten Stein) behält er und legt sie wieder ein, sie landen nicht in der Zielkiste.
+- **Vorrat** wie an der Hobelbank (nur mit gewähltem Produkt): ist er erreicht, holt er nichts mehr nach und wartet mit „Vorrat voll“.
+- **Brennstoff** ist alles mit `cooking_fuel`, was er nicht brennen soll: Bei Auftrag „Holzkohle“ sind Stämme Zutat, bei anderen Aufträgen Brennstoff. Was er selbst aus dem Ofen genommen hat (Holzkohle, Stein bei „Alles“), merkt er sich und liefert es ab, statt es zu verfeuern oder noch einmal zu brennen (nicht gespeichert: nach einem Neustart zählt es wieder als Material).
+- Der Ablauf ist der des Schmieds (`SmeltAtFurnace`, Art `KILN`): bis zu 16 Zutaten (Config `kilnOperator.batchSize`) und 8 Brennstoff (`kilnOperator.fuelPerTrip`) pro Gang.
+- **Status:** „Holt Material und Brennstoff“, „Befüllt den Brennofen“, „Brennt“, „Wartet auf etwas zum Brennen“, „Wartet auf Brennstoff“, „Wartet: kommt nicht an den Brennofen“, „Vorrat voll (x/y)“.
+- Profession `workingvillagers:kiln_operator` mit eigener Kleidung (terrakottafarbene Schürze, ziegelrote Mütze).
+- **Nicht umgesetzt:** Master-Fähigkeit (es gibt noch keine Stufen).
+- **Offene Fragen entschieden:** Der Brennofen brennt im normalen Ofentempo. Im Auftrag „Alles“ ist alles dabei, was er brennen kann, auch Kaktus und Schwamm.
 
 ## Workstation: Brennofen
 

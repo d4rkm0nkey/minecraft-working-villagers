@@ -101,6 +101,10 @@ nav:
       - Carrier: workers/carrier.md
       - Farmer: workers/farmer.md
       - Smith: workers/smith.md
+      - Pit digger: workers/pit-digger.md
+      - Miner: workers/miner.md
+      - Kiln operator: workers/kiln-operator.md
+      - Shop assistant: workers/shop-assistant.md
   - Guides:
       - A wood workshop: guides/wood-workshop.md
       - Worker does not work?: guides/troubleshooting.md

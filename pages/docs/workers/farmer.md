@@ -11,7 +11,8 @@ harvest to a chest.
 
 !!! note
     Ordinary (not hired) villagers still become vanilla farmers at composters. Only hired
-    villagers become farmers of this mod.
+    villagers become farmers of this mod. A station you have set up (linked chests) is
+    kept for hired workers, and **Assign** makes room there.
 
 ## Setting it up
 

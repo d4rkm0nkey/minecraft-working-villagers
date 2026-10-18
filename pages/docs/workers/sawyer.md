@@ -49,7 +49,8 @@ no detour over planks: one log gives 8 slabs or 4 stairs directly.
 
 !!! note
     Ordinary (not hired) villagers still become masons at stonecutters. Only hired
-    villagers become stone sawyers.
+    villagers become stone sawyers. A station you have set up (linked chests) is
+    kept for hired workers, and **Assign** makes room there.
 
 ## Worker and chests
 

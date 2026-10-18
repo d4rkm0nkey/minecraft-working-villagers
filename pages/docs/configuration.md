@@ -21,7 +21,7 @@ default and its allowed range, so you can edit it with any text editor.
 
 | Option | Default | Range | What it does |
 | --- | --- | --- | --- |
-| `dailyWage` | 1 | 0–64 | Emeralds a worker takes each work day from the emeralds it carries. **0**: workers work for free; the lumberjack still needs an axe and the farmer a hoe. |
+| `dailyWage` | 1 | 0–64 | Emeralds a worker takes each work day from the emeralds it carries. **0**: workers work for free; they still need their tools. |
 | `maxChests` | 8 | 1–8 | Chests that can be linked to one workstation. |
 | `chestDistance` | 16 | 4–32 | How far a linked chest may be from its workstation. |
 | `randomNames` | false | | Give hired villagers a random name (like Anton or Berta). Otherwise only a name tag names them. |
@@ -67,6 +67,48 @@ default and its allowed range, so you can edit it with any text editor.
 | `batchSize` | 16 | 1–64 | Items to smelt fetched from an input chest at once. |
 | `fuelPerTrip` | 8 | 1–64 | Fuel fetched at once. |
 
+## Kiln operator (`kilnOperator`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `batchSize` | 16 | 1–64 | Items to fire fetched from an input chest at once. |
+| `fuelPerTrip` | 8 | 1–64 | Fuel fetched at once. |
+
+## Shop assistant (`shopAssistant`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `tradeRadius` | 24 | 4–48 | How far from the trading counter it looks for villagers to sell to. |
+| `secondsPerTrade` | 2.0 | 0.25–20.0 | How long one trade takes. |
+
+## Pit digger (`pitDigger`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `maxArea` | 64 | 4–256 | Blocks of ground a pit may have at most (inside the ring). |
+| `maxDepth` | 16 | 1–64 | The deepest depth that can be set at the pit stake. |
+| `maxUnevenness` | 4 | 0–8 | How far apart in height the strings of a ring may lie. |
+| `dailyBlocks` | 256 | 1–4096 | Blocks per day, then it stops for the day. |
+| `digSlowdown` | 8.0 | 1.0–32.0 | How many times as long as a player with the same tool it needs for a block, but at least `minSecondsPerBlock`. `1.0` is as fast as you. |
+| `minSecondsPerBlock` | 2.0 | 0.25–20.0 | How long it needs at least for a block, however good its tool (dirt with an iron shovel). Plants take a quarter of it. |
+| `keepLadders` | 64 | 1–64 | Ladders it carries at most (and takes when you give them). |
+| `keepTorches` | 16 | 0–64 | Torches it carries at most. **0**: it takes none and leaves the pit dark. |
+
+## Miner (`miner`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `maxTunnelLength` | 32 | 4–64 | How long a tunnel may be at most. |
+| `maxBranchLength` | 16 | 0–32 | How long the side tunnels may be at most. **0**: no side tunnels. |
+| `dailyBlocks` | 256 | 1–4096 | Blocks per day, then it stops for the day. |
+| `digSlowdown` | 8.0 | 1.0–32.0 | How many times as long as a player with the same pickaxe it needs for a block, but at least `minSecondsPerBlock`. |
+| `minSecondsPerBlock` | 1.5 | 0.25–20.0 | How long it needs at least for a block, however good its pickaxe. |
+| `supports` | true | | Wooden supports every 4 blocks. `false`: none, torches straight on the wall. |
+| `keepFences` | 16 | 0–64 | Fences it carries at most. |
+| `keepPlanks` | 16 | 0–64 | Planks it carries at most. |
+| `keepSealBlocks` | 16 | 1–64 | Cobblestone it keeps of what it digs, for sealing water and lava and closing holes. |
+| `keepTorches` | 16 | 0–64 | Torches it carries at most. **0**: none, the tunnel stays dark. |
+
 ## Carrier (`carrier`)
 
 | Option | Default | Range | What it does |
@@ -78,6 +120,15 @@ default and its allowed range, so you can edit it with any text editor.
 !!! note
     Lowering a distance does not unlink chests or routes that are already set up; it only
     applies to new ones.
+
+## Village chests (`villageChests`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `enabled` | true | | Workers take their supplies from village chests. `false`: village chests are ordinary chests. |
+| `radius` | 48 | 8–128 | How far (horizontally) a village chest may be from a worker's workstation. Up or down it is always 24 blocks. |
+| `wageDays` | 3 | 1–16 | For how many days a worker takes its wage at once. |
+| `takeEnchanted` | false | | Workers also take enchanted and renamed tools. |
 
 ## Example: a relaxed survival setup
 

@@ -91,3 +91,57 @@ smith:
     Takes: ":mc-raw_iron: Ore and :mc-coal: fuel"
     Makes: ":mc-iron_ingot: Ingots"
     Batch: 16 items, 8 fuel
+
+pit_digger:
+  name: Pit digger
+  page: workers/pit-digger.md
+  head: pit_digger
+  workstation: pit_stake
+  summary: Digs out a pit you mark with string, layer by layer, with a ladder as the way out.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-pit_stake: Pit stake"
+    Needs: ":mc-iron_shovel: A shovel, :mc-iron_pickaxe: a pickaxe, :mc-ladder: ladders (:mc-torch: torches optional)"
+    Makes: ":mc-dirt: Dirt, :mc-sand: sand, :mc-gravel: gravel, :mc-cobblestone: cobblestone, ..."
+    Pit: up to 64 blocks, 16 deep
+    Per day: 256 blocks
+
+miner:
+  name: Miner
+  page: workers/miner.md
+  head: miner
+  workstation: mining_bench
+  summary: Digs a tunnel with supports into a hill, side tunnels or stairs down, follows the ores and seals off water and lava.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-mining_bench: Mining bench"
+    Needs: ":mc-iron_pickaxe: A pickaxe (:mc-oak_fence: fences, :mc-oak_planks: planks and :mc-torch: torches optional)"
+    Makes: ":mc-cobblestone: Cobblestone, :mc-raw_iron: ores, :mc-gravel: gravel, ..."
+    Tunnel: 3×3, up to 32 long, side tunnels up to 16
+    Per day: 256 blocks
+
+kiln_operator:
+  name: Kiln operator
+  page: workers/kiln-operator.md
+  head: kiln_operator
+  workstation: kiln
+  summary: Fires glass, stone, bricks, terracotta and charcoal in the kiln.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-kiln: Kiln"
+    Takes: ":mc-sand: Sand, :mc-cobblestone: cobblestone, :mc-clay_ball: clay, :mc-any_log: logs, ... and :mc-coal: fuel"
+    Makes: ":mc-glass: Glass, :mc-smooth_stone: smooth stone, :mc-brick: bricks, :mc-charcoal: charcoal, ..."
+    Stock: none, or 1 to 256
+
+shop_assistant:
+  name: Shop assistant
+  page: workers/shop-assistant.md
+  head: shop_assistant
+  workstation: trading_counter
+  summary: Sells goods from its chests to the villagers around, through their own trades, and brings in emeralds.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-trading_counter: Trading counter"
+    Takes: ":mc-wheat: Wheat, :mc-stick: sticks, :mc-paper: paper, ... whatever villagers buy"
+    Makes: ":mc-emerald: Emeralds"
+    Range: 24 blocks

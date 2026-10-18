@@ -11,7 +11,8 @@ output chests.
 
 !!! note
     Ordinary (not hired) villagers still become armorers at blast furnaces. Only hired
-    villagers become smiths.
+    villagers become smiths. A station you have set up (linked chests) is
+    kept for hired workers, and **Assign** makes room there.
 
 ## Setting it up
 
@@ -48,3 +49,5 @@ furnace). You can watch and use it at any time.
 - An empty bucket left over from a lava bucket is taken out and handed in.
 - The smith only fills the blast furnace with the same item it is already smelting, so
   a stack you put in by hand is finished first.
+- Glass, stone, bricks and charcoal are not smelted in the blast furnace; that is the job
+  of the [kiln operator](kiln-operator.md).

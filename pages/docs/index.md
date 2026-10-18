@@ -24,13 +24,18 @@ hide:
 <span class="wv-villager" style="--delay: .7s"><img src="assets/mc/heads/smith.png" alt=""><img src="assets/mc/blocks/blast_furnace.png" alt=""></span>
 <span class="wv-villager" style="--delay: 1.1s"><img src="assets/mc/heads/stonecutter.png" alt=""><img src="assets/mc/blocks/stonecutter.png" alt=""></span>
 <span class="wv-villager" style="--delay: .5s"><img src="assets/mc/heads/carrier.png" alt=""><img src="assets/mc/blocks/chest.png" alt=""></span>
+<span class="wv-villager" style="--delay: .3s"><img src="assets/mc/heads/pit_digger.png" alt=""><img src="assets/mc/blocks/pit_stake.png" alt=""></span>
+<span class="wv-villager" style="--delay: .8s"><img src="assets/mc/heads/kiln_operator.png" alt=""><img src="assets/mc/blocks/kiln.png" alt=""></span>
+<span class="wv-villager" style="--delay: .6s"><img src="assets/mc/heads/shop_assistant.png" alt=""><img src="assets/mc/blocks/trading_counter.png" alt=""></span>
+<span class="wv-villager" style="--delay: 1s"><img src="assets/mc/heads/miner.png" alt=""><img src="assets/mc/blocks/mining_bench.png" alt=""></span>
 </div>
 </div>
 
 Working Villagers turns unemployed villagers into paid employees. You hand them a work
 contract, give them a workstation and a few chests, and they start working: felling
-trees, sawing planks, crafting chests, farming fields, smelting ore and carrying items
-from one place to another.
+trees, sawing planks, crafting chests, farming fields, smelting ore, digging pits and tunnels, firing
+glass and bricks, selling goods to the villagers and carrying items from one place to
+another.
 There are no machines: everything is done by villagers walking around, opening chests
 and working at their stations.
 
@@ -66,7 +71,6 @@ New here? Start with [Installation](installation.md) and then
   particles.
 - Hired villagers find a free workstation by themselves, never take vanilla jobs and
   never leave their job by themselves.
-- Each workstation (except the composter) shows its worker on a paper note.
 - The menus show what each worker is doing right now: chopping 40 %, waiting for wages,
   done for today, sleeping, ...
 - Lumberjacks only touch natural trees, so your log houses are safe.

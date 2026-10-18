@@ -25,7 +25,7 @@ Der Träger bewegt Items zwischen Kisten. Er hat keinen Arbeitsblock: Sein Weide
 
 Rechtsklick mit leerer Hand auf den Träger öffnet sein Menü:
 
-- Die drei Wegplätze mit Name, Von- und Nach-Koordinaten. Der Tooltip zeigt Behälterart und Länge. Der erste freie Platz ist der Knopf „+ Neuer Weg“.
+- Die drei Wegplätze mit Name, Von- und Nach-Behälter (deren [Namen](../grundlagen/steuerung.md#kisten-benennen)). Der Tooltip zeigt die Länge. Der erste freie Platz ist der Knopf „+ Neuer Weg“.
 - **✎** benennt einen Weg um (Enter speichert, Esc bricht ab).
 - Der Weg, für den er gerade Items im Korb hat, ist grün hinterlegt.
 - **×** löscht einen Weg gezielt. Hat er gerade Items dieses Wegs im Korb, bringt er sie zum Ziel des ersten Wegs.

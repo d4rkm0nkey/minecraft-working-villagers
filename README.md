@@ -4,8 +4,10 @@ Hire unemployed villagers with a work contract and give them real jobs.
 This demo adds the **lumberjack**, the **woodcutter** block, two processing
 professions: the **sawyer** (woodcutter) and the **stone sawyer** (stonecutter), the
 **carpenter** at the **carpenter's bench**, the **farmer** (composter) and the **smith**
-(blast furnace), and the **carrier**, hired with a **wicker basket**, which carries items
-between chests.
+(blast furnace), the **pit digger** at the **pit stake**, the **kiln operator** at the
+**kiln**, the **shop assistant** at the **trading counter**, the **miner** at the
+**mining bench**, and the **carrier**, hired
+with a **wicker basket**, which carries items between chests.
 
 Minecraft 26.3, Fabric (needs Fabric API) and NeoForge.
 
@@ -52,14 +54,16 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
 - Workers walk to the front of a chest (or barrel), open it like a player, move the
   items and close it again. At the woodcutter and stonecutter they stand in front of
   the station.
-- Every workstation except the composter has a paper note on its front with the name of
-  its worker ("Hired villager" in the player's language if it has none); an empty note
-  means the station is free. (A vanilla stonecutter or blast furnace only gets a note once
-  it is set up or has a hired worker; the composter has no front and gets none.) The menu of the woodcutter and stonecutter also
-  shows the worker.
+- The menu of every workstation shows its worker ("Hired villager" in the player's
+  language if it has no name), or "Free". (Earlier versions put a paper note with the
+  name on the front of the stations; notes left in a world remove themselves when they are
+  loaded.)
 - Hired villagers never take vanilla jobs (lectern etc.). At a stonecutter, composter or
   blast furnace a hired villager becomes the stone sawyer, farmer or smith of this mod;
-  unhired villagers still become masons, farmers and armorers.
+  unhired villagers still become masons, farmers and armorers, except at one that is set
+  up (chests, order or worker): vanilla job acquisition skips it. *Assign* there makes an
+  ordinary villager that works there and has never traded (villager XP 0) unemployed;
+  one that has traded keeps its job.
 
 ## Wage and tools
 
@@ -85,9 +89,39 @@ chests. A hired worker that dies drops everything it carries (emeralds, tools, m
 - **Farmer:** needs a hoe (carries up to 2), which wears out one use per harvested crop;
   without one it waits ("needs a hoe"). It needs seeds to start with (up to 16 of each
   kind, `farmer.keepSeeds`); afterwards it replants from its harvest.
-- **Sawyer, stone sawyer, carpenter, smith, carrier:** only emeralds.
-- With `dailyWage` 0 they work for free; the lumberjack still needs an axe and the farmer
-  a hoe.
+- **Pit digger:** needs a shovel and a pickaxe (up to 2 of each) and ladders (up to 64,
+  `pitDigger.keepLadders`), optionally torches (up to 16, `pitDigger.keepTorches`). The
+  tools wear out one use per block.
+- **Miner:** needs a pickaxe (up to 2); optionally fences and planks for the supports (up
+  to 16 each, `miner.keepFences`, `miner.keepPlanks`) and torches (up to 16,
+  `miner.keepTorches`). It keeps up to 16 cobblestone of what it digs
+  (`miner.keepSealBlocks`) for sealing water and lava and closing holes.
+- **Sawyer, stone sawyer, carpenter, smith, kiln operator, shop assistant, carrier:** only
+  emeralds.
+
+### Village chests
+
+A **village chest** (shapeless: chest + emerald) is a chest every worker nearby takes its
+supplies from by itself: every worker whose workstation (a carrier: the source of its
+first route) is within 48 blocks horizontally and 24 up or down
+(`villageChests.radius`). Place as many as you like; a worker walks to the closest one
+that has what it wants. Giving directly still works.
+
+- **When:** before its first work of the day it fetches whatever runs low; during the day
+  only what it cannot work without (no wage, its tool broke, no ladders). If no village
+  chest has it, it waits as before.
+- **What:** emeralds for 3 days (`villageChests.wageDays`) once it has less than a day's
+  wage; a spare tool once it has none or only one with a tenth of its durability left (the
+  most worn one first, so tools get used up; one about to break only if it has none);
+  saplings, seeds, ladders and torches up to the amount it keeps once it has less than a
+  quarter of it (kinds it already has first).
+- **Not:** enchanted or renamed tools (`villageChests.takeEnchanted`). Workers put nothing
+  into a village chest.
+- Two village chests side by side form a double chest, like vanilla chests.
+- The village chest's screen shows the workers it serves, what one of them lacks that no
+  village chest has, and for how many days the emeralds pay all their wages. Hoppers and
+  carriers can fill it like any chest.
+- With `dailyWage` 0 they work for free; they still need their tools.
 
 The station overview and the carrier menu show a row of slots: the emeralds the worker
 carries (with count), its tool with the durability bar (lumberjack and farmer) and its
@@ -213,6 +247,92 @@ loads the blast furnace, takes out what it made and brings that to an output che
 blast furnace smelts at its usual speed; the experience stays in it for the next player who
 takes something out. An empty bucket in the fuel slot is taken out and handed in.
 
+## Pit digger
+
+A hired villager at the **pit stake** (string, stick and planks) becomes a **pit digger**.
+The player lays **string** on the ground as a closed ring (strings connect straight only,
+each on solid ground, up to `pitDigger.maxUnevenness` 4 blocks up and down), clicks *Pick
+pit* in the stake's overview and right-clicks a string of the ring. Everything inside the
+ring (seen from above, any shape, 2 to `pitDigger.maxArea` 64 blocks, the whole ring within
+the chest distance of the stake) is dug out down to the depth set with *-* / *+* (1 to
+`pitDigger.maxDepth` 16), counted from the highest string; the height is stored when the
+pit is picked. The blocks under the strings stay as the rim; while a string is missing the
+pit digger waits.
+
+It digs top down, layer by layer from the ladder outwards, with the shovel or the pickaxe,
+whichever is faster (`pitDigger.digSlowdown`: 8 times a player's time, at least
+`pitDigger.minSecondsPerBlock` 2 seconds per block). As soon as the
+ladder column (inside the ring next to the string closest to the stake, or where *Ladder*
+puts it) gets deeper it puts a ladder against the wall, and it only gets in and out of the
+pit by that ladder: vanilla villagers do not path over ladders, so climbing is moved by
+hand. It only digs the block tag `workingvillagers:pit_diggable` (natural ground, stone,
+ores, leaves, plants); builds stay, and so does a column under one, blocks its pickaxe is
+too weak for and blocks next to water or lava. With torches it lights the floor about every
+six blocks. Everything it digs goes to its chest: when the drops of the next block would not
+fit into its inventory any more, after `pitDigger.dailyBlocks` 256 blocks a day and when
+the pit is done it climbs out and delivers; at the end of the work day it climbs out. The menu shows the size of the pit, the depth and the
+blocks dug today.
+
+## Miner
+
+A hired villager at the **mining bench** (smooth stone, any pickaxe, iron ingot and
+cobblestone) becomes a **miner**. *Pick tunnel* in the overview (the *i* button of the
+mill), then a right-click on the side of a block within the chest distance picks the
+tunnel: it goes horizontally into that block, away from the clicked side, the block being
+the middle of its bottom row (`Tunnel`, stored at the station). *-* / *+* set the length (1
+to `miner.maxTunnelLength` 32), a button switches between a **tunnel** (3 wide, 3 high) and
+**stairs** (1 wide, 3 high, one block down per block), and the side tunnels (1 wide, 2 high,
+every 4 blocks left and right, 0 to `miner.maxBranchLength` 16 in steps of 4).
+
+The tunnel is a list of sections (a slice of the tunnel, a block of a side tunnel, a step),
+each with its cells, floor, shell and fixtures. `DigTunnel` finishes them in order: first it
+seals water and lava in the shell, the cells and the floor with cobblestone, then digs the
+cells top down (`workingvillagers:mine_diggable`; anything else, or a block its pickaxe is
+too weak for, blocks the tunnel with the position in the status), then closes holes in the
+floor. It stands only in finished sections or in front of the tunnel. Behind the front it
+digs the ores (`workingvillagers:miner_ores`) next to the finished cells and the ores that
+hang on them (not next to liquids), puts up the supports (every 4th slice: fences at the
+sides, planks under the ceiling; `miner.supports`) and torches (every 8th block) when it has
+the material, and closes new holes in the floor. Digging takes `miner.digSlowdown` 8 times a
+player's time with the same pickaxe, at least `miner.minSecondsPerBlock` 1.5 seconds. It
+delivers like the pit digger (when the next drops do not fit, after `miner.dailyBlocks` 256
+blocks a day, when the tunnel is done) and keeps 16 cobblestone.
+
+For players the bench is a **mill** (`CutterMenu` with recipe type
+`workingvillagers:milling`, items in `workingvillagers:millable`): cobblestone, cobbled
+deepslate, stone, andesite, diorite, granite and tuff to gravel, gravel to sand or flint,
+sandstone to 4 sand.
+
+## Kiln operator
+
+The **kiln** (a furnace with four bricks) works like a furnace for players, with the
+furnace recipe book, but only fires the furnace recipes that are neither food (recipe book
+category "food") nor smeltable in a blast furnace, minus the item tag
+`workingvillagers:kiln_excluded`: glass, stone, smooth stone, bricks, terracotta, charcoal,
+dyes, ... Anything else stays in its input slot. A hired villager there becomes a **kiln
+operator**; the **i** button in the kiln screen opens the overview. It works like the smith,
+and in the overview a product can be picked from everything the kiln makes: then it only
+fires what makes that product, fires it again until it is the product (cobblestone, stone,
+smooth stone; the stone in between stays with it), keeps a stock like the carpenter and does
+not burn its material as fuel (logs for charcoal). Without a product it fires everything
+once. What it took out of the kiln is handed in, even if it could burn.
+
+## Shop assistant
+
+A hired villager at the **trading counter** (three wooden slabs over planks with an emerald)
+becomes a **shop assistant**. It sells the goods of its input chests to ordinary villagers
+with a job within `shopAssistant.tradeRadius` 24 blocks of the counter, through their own
+trades: only trades that buy an item for emeralds (no second cost), not sold out, at the
+villager's current price (demand included). For the nearest such customer it fetches what
+the customer's trades take (up to 64 items), walks over and trades every
+`shopAssistant.secondsPerTrade` 2 seconds; each trade uses the offer
+(`MerchantOffer.increaseUses` via `notifyTrade`), so the villager earns experience, levels up
+and has to restock at its workstation like after trading with a player. The emeralds it
+earns are counted apart from its wage and brought to an output chest (at the latest once it
+has 32); unsold goods go back into an input chest. The overview shows the emeralds earned
+today. Statuses: "Waiting for goods to sell", "nobody nearby buys these goods", "the buyers
+are sold out until they restock".
+
 ## Carrier
 
 A carrier moves items between chests. It has no workstation: its **wicker basket**
@@ -283,8 +403,16 @@ emeralds, a station put where another kind stood starts fresh, the lumberjack fe
 (also on grass and mud), replants it and spares builds, nobody works without wage, the
 sawyer only cuts allowed wood, the stone sawyer cuts bricks, the carpenter stops at its
 stock, the carrier empties its source, the farmer harvests and replants (also a raised
-bed), hired villagers do not trample farmland, the smith smelts raw iron, a boxed-in worker
-is brought back.
+bed), hired villagers do not trample farmland, the smith smelts raw iron, the kiln operator
+fires glass but leaves meat and raw iron alone and fires cobblestone twice for smooth stone,
+the pit digger digs a pit with a ladder down to its bottom without touching the ring, the
+shop assistant sells wheat to a farmer until its trade is sold out, ordinary villagers do
+not take a set-up composter and *Assign* makes room at one, a boxed-in worker is brought
+back, a lumberjack takes its wage, the more worn axe and saplings from a village chest but
+leaves a renamed axe there, the miner digs a 3×3 tunnel with supports and a torch, side
+tunnels and stairs, digs iron ore in the wall and the one behind it, seals lava and stops
+at planks in its way, and the mill turns cobblestone into gravel and gravel into sand and
+flint.
 
 - Tests: `common/src/gametest/java`, one function per test, registered by the small test
   mods in `fabric/src/gametest` and `neoforge/src/gametest`.
@@ -292,6 +420,10 @@ is brought back.
   (structure, time limit, environment). `test_environment/work_hours.json` sets the clock
   to the villagers' work hours.
 - The structures are empty grass platforms written by `tools/generate_test_structures.py`.
+- The tests run side by side, so they set `villageChests.radius` to 8: the village chest
+  of one test does not reach the workers of the test next to it. The miner digs at a
+  player's speed in the tests (`miner.digSlowdown` 1).
+- In the tests the floor of the platform is at y 0 (the air layer above the grass).
 - A failure message names the worker's status, e.g. "Waiting for wages", which usually
   tells what went wrong.
 

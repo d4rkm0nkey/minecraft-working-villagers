@@ -8,7 +8,7 @@ Der Tischler stellt aus Planks, Sticks und Slabs alle Holzgegenstände her, die 
 
 - Eigener Block statt der Vanilla-Werkbank. An einer Werkbank würde der Spieler erwarten, dass der Arbeiter *alles* craftet. Die Hobelbank sagt dagegen schon durch ihre Optik: Hier wird nur Holz verarbeitet.
 - Rezept: drei Holz-Slabs oben, Eisenbarren in der Mitte, zwei Stämme als Beine. Das passt zur Holzsäge (Eisen + Holz).
-- Optik: Tisch mit dicker Platte, vier Beinen und Querstreben, an der rechten Seite ein eiserner Schraubstock mit Knebel. Vorne hängt wie bei allen Stationen die Notiz mit dem Namen des Arbeiters.
+- Optik: Tisch mit dicker Platte, vier Beinen und Querstreben, an der rechten Seite ein eiserner Schraubstock mit Knebel.
 - Auch der Spieler kann an ihr arbeiten: Ein Menü listet alle Tischler-Rezepte. Was er mangels Zutaten im Inventar nicht bauen kann, ist ausgegraut; der Tooltip nennt die Zutaten. Die Hobelbank ist damit eine Werkbank nur für Holz, aber mit Rezeptliste statt 3×3-Raster.
 - Das Menü funktioniert wie bei der Holzsäge: Auftrag setzen, **i** öffnet die Übersicht mit Arbeiter, Input- und Output-Kisten.
 

@@ -28,8 +28,8 @@ it with emeralds. It needs no tool.
 Right-click the carrier with an **empty hand**. The menu shows:
 
 - what the carrier is doing,
-- its routes (up to 3) with name, source and target. Hover for the exact containers and
-  the length. The route it is currently working on is green.
+- its routes (up to 3) with name, source and target, by the names of the containers
+  (see [naming chests](basics.md#naming-chests)). Hover for the length. The route it is currently working on is green.
 - the basket contents, which you can take out.
 
 ### Adding a route

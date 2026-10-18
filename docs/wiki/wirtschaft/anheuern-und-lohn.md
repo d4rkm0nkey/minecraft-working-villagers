@@ -34,7 +34,7 @@ Die ursprünglich genannten 100 Emeralds pro Woche sind für Early Game sehr vie
 
 ### Stand der Umsetzung
 
-**Anheuern:** Den Arbeitsvertrag craftet man formlos aus Papier, Tintenbeutel und 3 Emeralds. Rechtsklick damit auf einen arbeitslosen, erwachsenen Dorfbewohner stellt ihn ein, in jedem Dorf und auch außerhalb; einen Dorfkauf gibt es noch nicht. Berufstätige Dorfbewohner und Nitwits lassen sich nicht anheuern. Eine Anheuergebühr gibt es nicht, der Vertrag ist der Preis. Den [Träger](../berufe/traeger.md) stellt man statt mit Vertrag mit dem Weidenkorb ein.
+**Anheuern:** Den Arbeitsvertrag craftet man formlos aus Papier, Tintenbeutel und 3 Emeralds. Rechtsklick damit auf einen arbeitslosen, erwachsenen Dorfbewohner stellt ihn ein, in jedem Dorf und auch außerhalb; einen Dorfkauf gibt es noch nicht. Berufstätige Dorfbewohner und Nitwits lassen sich nicht anheuern. Eine Anheuergebühr gibt es nicht, der Vertrag ist der Preis. Den [Träger](../berufe/traeger.md) stellt man statt mit Vertrag mit dem Weidenkorb ein. Geplant: [ein Vertrag je Beruf](arbeitsvertraege.md), nur in Truhen von Strukturen zu finden statt craftbar.
 
 **Arbeitszeit:** die normale Vanilla-Arbeitszeit der Dorfbewohner; nachts schlafen sie.
 
@@ -46,7 +46,7 @@ Die ursprünglich genannten 100 Emeralds pro Woche sind für Early Game sehr vie
 - Der Lohn ist für alle gleich (Config `workers.dailyWage`, 0 = umsonst). Lohnstufen, Level, Moral und Kündigung gibt es noch nicht; alle Arbeiter sind Novizen.
 - Kann er nicht arbeiten, schüttelt er ab und zu den Kopf mit dem „Nein“-Sound, wenn ein Spieler in der Nähe ist.
 
-Später sollen [Dorftruhen](../planung/roadmap.md#weitere-geplante-punkte) das ergänzen.
+Ergänzend gibt es [Dorftruhen](../dorf/dorftruhen.md): Jeder Arbeiter in der Nähe holt sich daraus selbst, was ihm ausgeht (Lohn für 3 Tage, Ersatzwerkzeug, Setzlinge, Saatgut, Leitern, Fackeln).
 
 ## Moral statt Strafe
 

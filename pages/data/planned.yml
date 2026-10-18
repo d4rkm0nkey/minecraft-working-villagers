@@ -2,32 +2,11 @@
 # `icon` stands for the work, `workstation` is a vanilla block icon or omitted for a
 # new block of the mod. Values may use :mc-<name>: icons.
 next:
-  miner:
-    name: Miner
-    icon: iron_pickaxe
-    station: Mining bench (new block)
-    summary: Quarries stone and digs tunnels in a set pattern, places torches and seals off lava and water.
-  pit_digger:
-    name: Pit digger
-    icon: iron_shovel
-    station: Pit stake (new block)
-    summary: Digs out a pit you mark with string, layer by layer, with a ladder as the way out. For basements, foundations, sand and clay pits.
   mine_logistician:
     name: Mine logistician
     icon: minecart
     station: Haulage winch (new block)
     summary: Keeps long tunnels going with depot chests, later with rails, minecarts and a lift between the levels of a mine.
-  kiln_operator:
-    name: Kiln operator
-    icon: bricks
-    station: Kiln (new block)
-    summary: Fires glass, smooth stone, bricks, terracotta and charcoal in a brick kiln.
-  shop_assistant:
-    name: Shop assistant
-    icon: emerald
-    workstation: lectern
-    station: Trading counter or lectern
-    summary: Sells goods from a chest through the trades of the villagers around it and brings in emeralds.
   crafter_operator:
     name: Crafter operator
     icon: crafting_table

@@ -36,8 +36,8 @@ lumberjack looks for trees within 16 blocks of it.
 ## 3. Let it find the chopping block
 
 A hired villager without a job looks for a free workstation within 48 blocks. It walks
-to the chopping block and takes the job (green particles). The block now carries a paper
-note with the worker's name (or *Hired villager*).
+to the chopping block and takes the job (green particles). The chopping block's menu now
+shows it as the worker.
 
 !!! tip
     To pick a specific villager, right-click the chopping block to open its menu and

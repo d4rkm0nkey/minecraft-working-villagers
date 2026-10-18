@@ -2,7 +2,7 @@
 
 **Hire villagers, pay them a wage and let them do the work.**
 
-Working Villagers turns unemployed villagers into paid employees. Hand one a work contract, give it a workstation and a few chests, and it gets to work: felling trees, sawing planks, crafting chests, farming fields, smelting ore and carrying goods from one place to another. There are no machines. Every job is done by a villager walking around, opening chests and working at its station.
+Working Villagers turns unemployed villagers into paid employees. Hand one a work contract, give it a workstation and a few chests, and it gets to work: felling trees, sawing planks, crafting chests, farming fields, smelting ore, digging pits, firing glass and bricks, selling goods to the villagers and carrying goods from one place to another. There are no machines. Every job is done by a villager walking around, opening chests and working at its station.
 
 📖 **[Read the wiki](https://d4rkm0nkey.github.io/minecraft-working-villagers/)** for the full guide to every worker.
 
@@ -19,6 +19,10 @@ Working Villagers turns unemployed villagers into paid employees. Hand one a wor
 | **Carrier** | Wicker basket | Carries items between chests along up to three routes |
 | **Farmer** | Composter | Harvests and replants the fields around its composter |
 | **Smith** | Blast furnace | Smelts ore from its input chests in the blast furnace |
+| **Pit digger** | Pit stake | Digs out a pit you mark with string, layer by layer, with a ladder as the way out |
+| **Kiln operator** | Kiln | Fires glass, stone, bricks, terracotta and charcoal in a brick kiln |
+| **Shop assistant** | Trading counter | Sells goods from its chests to the villagers around and brings in emeralds |
+| **Miner** | Mining bench | Digs a tunnel with supports into a hill, follows the ores and seals off water and lava |
 
 The workers fit together. A lumberjack supplies the sawyer, and a carrier takes the planks to the carpenter, so you get a whole wood workshop that runs by itself.
 
@@ -27,8 +31,10 @@ The workers fit together. A lumberjack supplies the sawyer, and a carrier takes 
 1. Craft a **work contract** (paper, ink sac and 3 emeralds) and right-click an unemployed villager with it. It's hired.
 2. Place a **workstation**. The villager finds it by itself, walks there and takes the job (or you **assign** one in the menu).
 3. **Link chests:** where the material comes from and where the products go.
-4. **Right-click the worker with emeralds**, like giving a villager food. Every worker takes **one emerald a day** as its wage. No wage, no work. The lumberjack also needs an axe, the farmer a hoe and some seeds.
+4. **Right-click the worker with emeralds**, like giving a villager food. Every worker takes **one emerald a day** as its wage. No wage, no work. The lumberjack also needs an axe, the farmer a hoe and some seeds, the pit digger a shovel, a pickaxe and ladders.
 5. During the day the villager works on its own.
+
+Tired of handing out emeralds? Put wages, tools, saplings and seeds into a **village chest** (a chest plus an emerald). Every worker nearby takes what it runs low on by itself, before the first work of the day.
 
 Hired villagers never take vanilla jobs and never quit by themselves. A worker that has no wage or no tool shakes its head at you, and its menu shows what it carries and what is missing. Outside work hours they still live like normal villagers: they sleep in beds, chat at the village bell and run from zombies and raids.
 
@@ -54,7 +60,24 @@ Hired villagers never take vanilla jobs and never quit by themselves. A worker t
 
 - A hired villager at a vanilla **composter** becomes a farmer: it harvests the ripe crops around it, replants them and brings the harvest to a chest. It needs a hoe you give it, never tills, never tramples the fields and touches nothing but crops.
 - A hired villager at a vanilla **blast furnace** becomes a smith: it loads the furnace with ore and fuel from its input chests and brings the ingots to its output chests.
-- Right-click the composter with an empty hand, or click the **i** button in the blast furnace screen, to set them up. Ordinary villagers still become vanilla farmers and armorers there.
+- Right-click the composter with an empty hand, or click the **i** button in the blast furnace screen, to set them up. Ordinary villagers still become vanilla farmers and armorers there, but not at one you have set up.
+
+## ⛏️ Pit digger and kiln operator
+
+- Lay **string** on the ground in a closed ring and pick it at the **pit stake**: the pit digger digs out everything inside, layer by layer, down to the depth you set. It puts a ladder down the wall as it goes, never digs next to water or lava, leaves builds alone and brings every block it digs to its chest. Basements, foundations, sand and clay pits, or a simple quarry.
+- The **kiln** is a brick furnace for building materials: glass, stone, smooth stone, bricks, terracotta, charcoal, ... It fires no food and no ore, so smoker, blast furnace and kiln each have their own job. The kiln operator fires everything from its input chests, or only what makes the product you pick, firing twice where needed (cobblestone to smooth stone), and keeps a stock you choose.
+
+## ⛏️ Miner
+
+- Pick a tunnel at the **mining bench** with one click on the side of a block: the miner digs a **3×3 tunnel** into the hill, with **wooden supports** every 4 blocks and torches, like a mineshaft. Side tunnels for branch mining or **stairs** down are a click away.
+- It digs out the **ores** in the walls and the veins behind them, seals off **water and lava** with cobblestone, closes holes in the floor, and brings everything to its chest.
+- For you, the mining bench is a **mill**: cobblestone to gravel, gravel to sand and flint. The stone from the mine becomes sand for glass.
+
+## 💰 Shop assistant
+
+- The **trading counter** turns a hired villager into a shop assistant. It sells what you put into its input chests to the villagers around, through their own trades: wheat to the farmer, sticks to the fletcher, paper to the librarian.
+- Real vanilla trades: prices follow demand, trades sell out until the villagers restock, and the villagers level up from the trading.
+- The emeralds go to its output chest. Finally a worker that earns the wages of the others.
 
 ## 🧺 Carrier
 
@@ -64,7 +87,7 @@ Hired villagers never take vanilla jobs and never quit by themselves. A worker t
 
 ## 🔍 Always know what's going on
 
-- Every workstation (except the composter) has a **paper note** on its front with its worker's name. Vanilla stonecutters and blast furnaces get one once they are set up. Give your workers names with a name tag.
+- Every workstation's menu shows who works there. Give your workers names with a name tag.
 - The menus show what each worker is doing right now: *Chopping a tree (40 %)*, *Cutting Oak Stairs*, *Waiting for wages*, *Done for today*, *Sleeping*, ...
 - If a worker isn't working, the status tells you why.
 

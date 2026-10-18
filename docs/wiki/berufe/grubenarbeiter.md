@@ -1,8 +1,22 @@
 # Beruf: Grubenarbeiter
 
-[← Berufe](README.md) · Station: **Grubenpflock** (neu) · Phase: **Idee**
+[← Berufe](README.md) · Station: **Grubenpflock** (neu) · Phase: **umgesetzt** (ohne Master-Fähigkeit, ohne Partikel-Umriss)
 
 Der Grubenarbeiter hebt eine Grube aus, die der Spieler mit Schnur umrandet: Er gräbt alles innerhalb des Rings Schicht für Schicht bis zur eingestellten Tiefe ab, setzt dabei eine Leiter als Ausgang und bringt den Aushub in die Zielkiste. Gut für Keller, Fundamente, Sand- und Tongruben und als einfacher Steinbruch vor der [Mine](../grundlagen/mine.md).
+
+## Stand der Umsetzung
+
+- **Grubenpflock:** Pfosten mit aufgewickelter Schnur, Rezept Schnur über Stock über Brett. Rechtsklick öffnet die Übersicht mit **Grube wählen**, **Leiter**, **Tiefe − / +**, Größe der Grube und „Heute gegraben x / 256“.
+- **Ring** (`Pit.find`): Schnüre verbinden sich gerade (N/S/O/W), auch einen Block höher oder tiefer, und zählen nur auf festem Boden. Innen ist, was vom Rand nicht erreichbar ist; der Rand darf dabei auch schräg gehen, eine fehlende Ecke ist also eine Lücke. Zum Ring gehören nur die Schnüre, die ans Innere grenzen. Prüfungen mit Meldung: nicht geschlossen, zu groß (Config `pitDigger.maxArea`, 64), zu klein (unter 2), zu uneben (`pitDigger.maxUnevenness`, 4), zu weit (Kistenreichweite). Gespeichert werden Ring, Innenfläche, Leiterplatz und die Höhe der höchsten Schnur, bei der Station in `Workstations`.
+- **Tiefe** 1 bis `pitDigger.maxDepth` (16), Standard 4, ab der höchsten Schnur; nie tiefer als 5 Blöcke über der Welt-Untergrenze.
+- **Graben** (`DigPit`): unter dem Rand streng Schicht für Schicht. Er gräbt nie tiefer, solange in der aktuellen Schicht noch ein Block offen ist (auch der, auf dem er steht – dafür wechselt er den Platz – oder einer, an den er gerade nicht herankommt – dann versucht er erst andere Standplätze und wartet nur, wenn keiner geht, mit „Wartet: kommt in der Grube nicht an x y z heran“). In jeder Schicht zuerst die Leiterspalte, dann vom Leiterplatz weg. Die Leiterspalte gräbt er ab der zweiten Schicht von oben im Schacht: Er steht auf dem Block, gräbt ihn unter sich weg, setzt die Leiter und rutscht nach. Kommt er von seinem Platz aus ohne Klettern an den Block der Leiterspalte heran (er steht unten im Loch daneben), gräbt er ihn von der Seite. Muss er aus der Grube und die Leiterspalte endet über ihm, gräbt er sie erst bis zu sich herunter, auch nach Feierabend. So entsteht nie ein Loch, aus dem die Leiter nicht herausführt. Hügel bis 8 Blöcke über der höchsten Schnur werden vorher von oben abgetragen; was er dort nicht erreicht, lässt er aus. Als Hügel zählt nur, was ohne Lücke auf dem Boden steht: Eine Baumkrone über der Grube bleibt hängen, darunter gräbt er weiter. Gräbt nur `workingvillagers:pit_diggable` (Erde, Gras, Sand, Kies, Ton, Schlamm, Schnee, Stein und Sorten, Erze, Laub, Pflanzen). Ein anderer Block sperrt die Spalte darunter nur, wenn er direkt aufliegt (eine Brücke mit Luft darunter nicht). Nicht gegraben: Blöcke neben Wasser/Lava, Blöcke, für die die Spitzhacke zu schwach ist, der Block, auf dem er steht (außer in der Leiterspalte, dort hält ihn die Leiter). Zeit: Spielerzeit mit dem Werkzeug × `pitDigger.digSlowdown` (8 für Anfänger, wie beim Holzfäller bis 5 für Meister), mindestens `pitDigger.minSecondsPerBlock` (2 Sekunden) pro Block, Pflanzen ein Viertel davon. Werkzeug: Schaufel oder Spitzhacke, was schneller ist; eine Nutzung pro Block. Drops wie beim Spieler mit diesem Werkzeug (Verzauberungen zählen).
+- **Leiter:** Sobald ein Block der Leiterspalte gegraben ist, setzt er dort eine Leiter an die Wand; fehlende Leitern holt er nach. Die Leiterspalte ist die Innenspalte neben der Schnur, die der Station am nächsten liegt, oder die mit **Leiter** gewählte. Ab 2 Blöcken unter der Ausstiegsschnur ist die Grube „tief“: Dann steigt er nur über die Leiter hinein und heraus. Das Klettern bewegt ihn direkt (hinüber und senkrecht), weil Vanilla keine Wege über Leitern plant. Ab dieser Tiefe sind Leitern Pflicht.
+- **Abliefern:** wenn die Ausbeute des nächsten Blocks nicht mehr ins Inventar passt (statt fest „6 von 8 Plätzen“: Lohn, Werkzeuge, Leitern und Fackeln belegen schon bis zu 7 Plätze), nach `pitDigger.dailyBlocks` (256) Blöcken, wenn nichts mehr zu tun ist. Alles außer Lohn, Werkzeug, Leitern und Fackeln kommt in die Zielkiste. Nach Feierabend steigt er erst aus der Grube, bevor er sein Tagwerk beendet.
+- **Fackeln** (optional, `pitDigger.keepTorches`): auf der Sohle, wenn im Umkreis von 5 Blöcken keine steht. Fackeln einer früheren Sohle hebt er beim Tiefergraben wieder auf.
+- **Status:** u. a. „Gräbt Schicht x von y“, „Ebnet den Boden“, „Steigt die Leiter hinunter/hinauf“, „Wartet: Schnur unterbrochen“, „Wartet: Flüssigkeit in der Grube“, „Wartet: braucht eine bessere Spitzhacke“, „Grube fertig“, „Grube fertig, einige Säulen bleiben stehen“, „Feierabend für heute“, „Wartet: braucht eine Schaufel / Spitzhacke / Leitern“.
+- Profession `workingvillagers:pit_digger` mit eigener Kleidung (braune Arbeitshose mit Latz, gelber Helm).
+- **Nicht umgesetzt:** Master-Fähigkeit (behutsames Graben), Partikel-Umriss der Grube (beim Wählen gibt es nur kurz Partikel auf dem Ring und am Leiterplatz).
+- **Offene Fragen entschieden:** Gruben stapeln ist erlaubt. Kann die Wand keine Leiter halten (Luft, Sand), setzt er dort keine; das Klettern funktioniert trotzdem, für den Spieler fehlt dann eine Sprosse.
 
 ## Workstation: Grubenpflock
 
@@ -74,7 +88,7 @@ Die tiefste mögliche Sohle liegt damit höchstens *Maximum* Blöcke unter dem B
 5. Ist das Inventar fast voll (6 von 8 Plätzen) oder Feierabend, steigt er hinaus und liefert ab.
 6. Ist die Sohle erreicht: Status „Grube fertig“. Er hört auf, bis die Tiefe erhöht oder eine neue Grube gewählt wird.
 
-Er gräbt nie den Block, auf dem er steht, und arbeitet in jeder Schicht vom Leiterplatz weg. Ein Tagespensum begrenzt den Aushub: **256 Blöcke** pro Arbeitstag (Startwert, Config, wie die 64 Stämme beim [Holzfäller](holzfaeller.md)).
+Er gräbt nie den Block, auf dem er steht (außer in der Leiterspalte: Dort gräbt er sich nach unten, die Leiter hält ihn), und arbeitet in jeder Schicht vom Leiterplatz weg. Ein Tagespensum begrenzt den Aushub: **256 Blöcke** pro Arbeitstag (Startwert, Config, wie die 64 Stämme beim [Holzfäller](holzfaeller.md)).
 
 ## Was er dabeihat / Zielkiste
 

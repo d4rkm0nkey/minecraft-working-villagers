@@ -12,6 +12,10 @@ Ein eigenes Werkzeug gibt es nicht. Wo etwas in der Welt ausgewählt werden muss
 - Kisten verknüpfen: **„+ Eingang“** bzw. **„+ Ausgang“** (am Hackklotz und am Komposter nur **„+ Kiste“**), dann Rechtsklick auf Kisten; nochmal klicken entfernt sie. Rechtsklick auf die Workstation beendet die Auswahl und öffnet das Menü wieder.
 - Transportwege des [Trägers](../berufe/traeger.md): „+ Neuer Weg“, dann Quelle und Ziel anklicken.
 
+## Kisten benennen
+
+Im Menü einer Kiste oder eines Fasses steht oben rechts **✎**: Ein Klick macht den Titel zum Textfeld, Enter speichert (bis 24 Zeichen), Esc bricht ab. Gespeichert wird der Vanilla-Name (wie vom Amboss), bei Doppelkisten in beiden Hälften. Stationsübersicht und Träger-Menü zeigen diesen Namen; ohne Namen steht dort grau die Blockart.
+
 ## Stationsübersicht
 
 ### Stand der Umsetzung
@@ -28,7 +32,7 @@ Jede Station hat eine einzige Übersicht ohne Reiter. Man öffnet sie so:
 Inhalt der Übersicht:
 
 - **Arbeiter** mit Name und Status („Macht gerade: …“). Ist die Station frei, holt **„Zuweisen“** einen angeheuerten Dorfbewohner; **„Abziehen“** nimmt ihn wieder weg, er bleibt eingestellt.
-- **Kisten** (höchstens 8): Art, Füllstand und Entfernung im Tooltip. An Stationen mit Eingang schaltet ein Klick die Rolle zwischen **Eingang** und **Ausgang** um; „Kiste entfernen“ löst die Verknüpfung.
+- **Kisten** (höchstens 8) mit ihrem Namen; Art, Füllstand und Entfernung im Tooltip. Koordinaten zeigt kein Menü. An Stationen mit Eingang schaltet ein Klick die Rolle zwischen **Eingang** und **Ausgang** um; „Kiste entfernen“ löst die Verknüpfung.
 - **Auftrag** (nur Holzsäge, Steinsäge, Hobelbank): Erzeugnis und Holzsorten, bei der Steinsäge Material und Erzeugnis, an der Hobelbank zusätzlich der Vorrat. Am Hackklotz steht hier der Schalter „Stämme entrinden“.
 - Zeile **„Lohn und Werkzeug“**: was der Arbeiter bei sich trägt (Emeralds, Axt oder Hacke, Setzlinge oder Saatgut) und wie lange der Lohn reicht. Geben geht nur direkt am Arbeiter (Rechtsklick oder zuwerfen).
 

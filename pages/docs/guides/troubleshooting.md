@@ -16,7 +16,7 @@ the status does not help, go through this list.
 | *Waiting for wages (give them an emerald)* | Right-click the worker with an emerald (one per work day). |
 | *Cannot work (chest or order missing)* | Link the chests (lumberjack and farmer: one chest; others: an input and an output) and, at a cutter or the bench, set an order. A lumberjack also shows this when the game rule `mob_griefing` is off. |
 | *Waiting: cannot reach the chest* | Clear the front of the chest, or move it to where the worker can walk. |
-| *Waiting: cannot reach the saw* / *the bench* / *the blast furnace* | Clear the front of the workstation. |
+| *Waiting: cannot reach the saw* / *the bench* / *the blast furnace* / *the kiln* | Clear the front of the workstation. |
 | *Waiting: chests are full* | Empty the output chests or link another one. |
 | *Waiting: needs an axe (give them one)* | Right-click the lumberjack with an axe. |
 | *Waiting: no tree found* | No natural tree within 16 blocks of the chopping block, or none it can reach. |
@@ -31,6 +31,22 @@ the status does not help, go through this list.
 | *Waiting: needs a hoe (give them one)* | Right-click the farmer with a hoe. |
 | *Waiting for something to smelt* | The smith's input chests have nothing the blast furnace can smelt. |
 | *Waiting for fuel* | Put coal, charcoal or other fuel into the smith's input chests. |
+| *Waiting for something to fire* | The kiln operator's input chests have nothing the kiln can fire, or nothing for the picked product. |
+| *Stock is full (16/16)* at a kiln | The output chests hold as many of the product as set. Take some out or raise the stock. |
+| *Waiting: no pit picked* | Lay a closed ring of string and click **Pick pit** at the pit stake. |
+| *Waiting: the string ring is broken* | A string of the ring is gone. Put it back where it was, or pick the pit again. |
+| *Waiting: needs a shovel* / *a pickaxe* / *ladders (give them ...)* | Right-click the pit digger with it. It needs ladders once the pit is deeper than one block. |
+| *Waiting: needs a better pickaxe* | Only blocks are left that its pickaxe cannot mine (e.g. diamond ore with a stone pickaxe). Give it a better one. |
+| *Waiting: water or lava in the pit* | Only blocks next to water or lava are left. Remove the liquid, then it digs on. |
+| *Pit finished, some pillars stay* | Blocks it does not dig (builds, logs) and everything under them stay. |
+| *Waiting: cannot reach the pit at x y z* | It found no way to the block at these coordinates, e.g. because of pillars or steps it cannot climb. It tries again after a while. |
+| *Waiting: no tunnel picked* | Click **Pick tunnel** at the mining bench, then right-click the side of the block where the tunnel starts. |
+| *Waiting: the tunnel is blocked at x y z* | A block the miner does not dig (planks, rails, a chest of a mineshaft, bricks) is in the way. Take it away. |
+| *Waiting: needs cobblestone to seal off water or lava* | Give the miner some cobblestone. Afterwards it keeps 16 of what it digs. |
+| *Tunnel finished* | Make the tunnel longer with **+**, or pick a new one. |
+| *Waiting for goods to sell* | The shop assistant's input chests are empty. |
+| *Waiting: nobody nearby buys these goods* | No villager with a job within 24 blocks of the trading counter buys anything from the input chests for emeralds. Check their trades, or put other goods in. |
+| *Waiting: the buyers are sold out until they restock* | The buyers' trades are used up. Villagers restock at their workstation during the day. |
 | *Nothing to carry, strolling around* | All sources of the carrier are empty, or the targets are full. |
 | *Stuck: cannot get anywhere* | The worker is in a hole, boxed in or behind a fence. After a minute it is brought back to its workstation (a carrier: to the source of its first route). If it stays stuck, clear a free spot next to the workstation or dig it out. |
 | *Sleeping*, *Free time*, *Chatting ...* | Not work time. Workers work from the morning to the afternoon. |
@@ -48,9 +64,8 @@ the status does not help, go through this list.
 - [ ] **Thrown items stay on the ground?** Workers only pick up thrown items while the
   game rule `mob_griefing` is on, and only what they still want. Right-click the worker
   with them instead.
-- [ ] **Still assigned?** The note on the workstation shows the worker's name (or
-  *Hired villager*; the composter has no note, open its menu instead). An empty note
-  means nobody works there. A free station within 48
+- [ ] **Still assigned?** The menu of the workstation shows its worker; *Free* means
+  nobody works there. A free station within 48
   blocks is taken by the next hired villager without a job; use **Assign** to pick one.
 
 ### Lumberjack
@@ -81,6 +96,26 @@ the status does not help, go through this list.
 
 - [ ] An input and an output chest linked (the **i** button in the blast furnace screen).
 - [ ] Something to smelt **and** fuel in the input chests.
+
+### Pit digger
+
+- [ ] A pit is picked: the overview shows its size. The ring of string is closed and
+  within 16 blocks of the stake.
+- [ ] At least one chest linked.
+- [ ] It carries a shovel, a pickaxe and ladders.
+- [ ] Not already at 256 blocks today.
+
+### Kiln operator
+
+- [ ] An input and an output chest linked (the **i** button in the kiln screen).
+- [ ] Something the kiln fires **and** fuel in the input chests. With a product picked,
+  only what makes that product counts.
+
+### Shop assistant
+
+- [ ] An input and an output chest linked.
+- [ ] Villagers with jobs within 24 blocks of the trading counter whose trades buy the goods
+  for emeralds (not hired workers, not nitwits).
 
 ### Carrier
 
