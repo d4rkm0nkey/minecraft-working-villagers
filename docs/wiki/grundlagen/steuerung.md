@@ -40,6 +40,8 @@ Zuweisen ist meist gar nicht nötig: Ein angeheuerter Dorfbewohner ohne Arbeit s
 
 ### Konzept (noch nicht umgesetzt)
 
+- **[Menüs überarbeiten](../planung/menues.md):** Reiter Block · Arbeit · Auftrag statt Knopf **i** und „Zurück“, jedes Menü in Vanilla-Breite und passend für 854×480.
+
 - Reiter „Auftrag“ für den Modus, z. B. Abbaumodus der Mine.
 - Reiter „Bereich“: Größe, Position und Visualisierung an/aus. Arbeitsbereiche gibt es noch nicht; Holzfäller und Bauer arbeiten im festen Umkreis ihrer Station.
 - Reiter „Personal“: Lohn ändern, Entlassen.

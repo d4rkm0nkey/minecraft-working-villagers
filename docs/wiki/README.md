@@ -47,3 +47,4 @@ Umgesetzt sind bisher: [Holzfäller](berufe/holzfaeller.md), [Holzsäger](berufe
 - [Roadmap](planung/roadmap.md)
 - [Risiken & offene Fragen](planung/risiken-und-fragen.md)
 - [Ideensammlung](planung/ideensammlung.md) – Richtungen und Feature-Ideen
+- [Menüs überarbeiten](planung/menues.md) – Konzept: Reiter statt „i“, alles passt in 854×480
