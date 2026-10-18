@@ -22,6 +22,8 @@ public enum StationType {
 	COMPOSTER(false),
 	/** The smith smelts whatever it finds in the input chests, there is no order. */
 	BLAST_FURNACE(true),
+	/** The pit digger only delivers what it digs. */
+	PIT_STAKE(false),
 	/** The kiln operator fires everything, or only what makes the order. */
 	KILN(true),
 	/** The shop assistant sells the goods of the input chests, the emeralds go to the output chests. */
@@ -84,6 +86,7 @@ public enum StationType {
 			case CARPENTER_BENCH -> WorkingVillagers.CARPENTER_BENCH.get().getName();
 			case COMPOSTER -> Blocks.COMPOSTER.getName();
 			case BLAST_FURNACE -> Blocks.BLAST_FURNACE.getName();
+			case PIT_STAKE -> WorkingVillagers.PIT_STAKE.get().getName();
 			case KILN -> WorkingVillagers.KILN.get().getName();
 			case TRADING_COUNTER -> WorkingVillagers.TRADING_COUNTER.get().getName();
 		};
@@ -97,6 +100,7 @@ public enum StationType {
 			case CARPENTER_BENCH -> WorkingVillagers.CARPENTER_BENCH.get();
 			case COMPOSTER -> Blocks.COMPOSTER;
 			case BLAST_FURNACE -> Blocks.BLAST_FURNACE;
+			case PIT_STAKE -> WorkingVillagers.PIT_STAKE.get();
 			case KILN -> WorkingVillagers.KILN.get();
 			case TRADING_COUNTER -> WorkingVillagers.TRADING_COUNTER.get();
 		};
@@ -115,6 +119,8 @@ public enum StationType {
 			return COMPOSTER;
 		} else if (state.is(Blocks.BLAST_FURNACE)) {
 			return BLAST_FURNACE;
+		} else if (state.is(WorkingVillagers.PIT_STAKE.get())) {
+			return PIT_STAKE;
 		} else if (state.is(WorkingVillagers.KILN.get())) {
 			return KILN;
 		} else if (state.is(WorkingVillagers.TRADING_COUNTER.get())) {

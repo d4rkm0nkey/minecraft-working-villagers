@@ -49,8 +49,12 @@ final class SuppliesRow {
 		return new ItemStack(switch (kind) {
 			case "axe" -> Items.IRON_AXE;
 			case "hoe" -> Items.IRON_HOE;
+			case "shovel" -> Items.IRON_SHOVEL;
+			case "pickaxe" -> Items.IRON_PICKAXE;
 			case "saplings" -> Items.OAK_SAPLING;
 			case "seeds" -> Items.WHEAT_SEEDS;
+			case "ladders" -> Items.LADDER;
+			case "torches" -> Items.TORCH;
 			default -> Items.BARRIER;
 		});
 	}

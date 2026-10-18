@@ -36,7 +36,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * The settings of all workstations of a dimension: linked chests, the order and the
- * worker of the mod that works there.
+ * worker of the mod that works there, the pit of a pit stake.
  *
  * <p>They are kept here instead of in block entities because the vanilla stonecutter is a
  * workstation as well. Entries of stations that are gone are dropped when looked up.
@@ -89,7 +89,10 @@ public class Workstations extends SavedData {
 			workstations.setDirty();
 		}
 		if (station == null) {
-			station = new Station(pos.immutable(), Optional.empty(), List.of(), List.of(), Optional.empty(), Optional.empty(), Optional.empty(), List.of(), 0, false);
+			station = new Station(
+				pos.immutable(), Optional.empty(), List.of(), List.of(), Optional.empty(), Optional.empty(), Optional.empty(), List.of(), 0, false,
+				Optional.empty(), Pit.DEFAULT_DEPTH
+			);
 			workstations.stations.put(station.pos, station);
 		}
 		station.owner = workstations;
@@ -131,7 +134,9 @@ public class Workstations extends SavedData {
 			Codec.STRING.optionalFieldOf("worker_name").forGetter(station -> Optional.ofNullable(station.workerName)),
 			Codec.STRING.listOf().optionalFieldOf("woods", List.of()).forGetter(station -> List.copyOf(station.woods)),
 			Codec.INT.optionalFieldOf("stock", 0).forGetter(station -> station.stock),
-			Codec.BOOL.optionalFieldOf("strip", false).forGetter(station -> station.strip)
+			Codec.BOOL.optionalFieldOf("strip", false).forGetter(station -> station.strip),
+			Pit.CODEC.optionalFieldOf("pit").forGetter(station -> Optional.ofNullable(station.pit)),
+			Codec.INT.optionalFieldOf("depth", Pit.DEFAULT_DEPTH).forGetter(station -> station.depth)
 		).apply(i, Station::new));
 
 		private final BlockPos pos;
@@ -149,14 +154,20 @@ public class Workstations extends SavedData {
 		private int stock;
 		/** Chopping block: whether the lumberjack strips the logs before handing them in. */
 		private boolean strip;
+		/** Pit stake: the pit to dig, null until one is picked. */
+		private @Nullable Pit pit;
+		/** Pit stake: how deep to dig, below the highest string of the ring. */
+		private int depth;
 		private @Nullable Workstations owner;
 		/** The kind of station the settings belong to, unknown for entries saved before it was stored. */
 		private @Nullable StationType type;
 
 		private Station(
 			BlockPos pos, Optional<String> type, List<BlockPos> inputs, List<BlockPos> outputs, Optional<Item> order, Optional<UUID> worker, Optional<String> workerName,
-			List<String> woods, int stock, boolean strip
+			List<String> woods, int stock, boolean strip, Optional<Pit> pit, int depth
 		) {
+			this.pit = pit.orElse(null);
+			this.depth = depth;
 			this.woods = new LinkedHashSet<>(woods);
 			this.stock = stock;
 			this.strip = strip;
@@ -222,6 +233,29 @@ public class Workstations extends SavedData {
 				WoodTypes.ALL.forEach(wood -> this.woods.add(wood.name()));
 			}
 			this.setOrder(product);
+		}
+
+		/** Pit stake: the pit to dig, null until one is picked. */
+		public @Nullable Pit pit() {
+			return this.pit;
+		}
+
+		public void setPit(@Nullable Pit pit) {
+			this.pit = pit;
+			this.setDirty();
+		}
+
+		/** Pit stake: how deep to dig, below the highest string of the ring. */
+		public int depth() {
+			return Math.clamp(this.depth, 1, Config.PIT_MAX_DEPTH.get());
+		}
+
+		public void setDepth(int depth) {
+			int clamped = Math.clamp(depth, 1, Config.PIT_MAX_DEPTH.get());
+			if (this.depth != clamped) {
+				this.depth = clamped;
+				this.setDirty();
+			}
 		}
 
 		/** Woodcutter and carpenter's bench: the wood types the order may be made of. */
@@ -410,7 +444,7 @@ public class Workstations extends SavedData {
 
 		private boolean isEmpty() {
 			return this.inputs.isEmpty() && this.outputs.isEmpty() && this.order == null && this.worker == null && this.woods.isEmpty() && this.stock == 0
-				&& !this.strip;
+				&& !this.strip && this.pit == null && this.depth == Pit.DEFAULT_DEPTH;
 		}
 
 		private void setDirty() {

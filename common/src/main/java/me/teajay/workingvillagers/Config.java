@@ -93,6 +93,24 @@ public final class Config {
 	public static final DoubleOption SECONDS_PER_TRADE = doubleOption("shopAssistant", "secondsPerTrade", 2.0, 0.25, 20.0,
 		"How long one trade with a villager takes.");
 
+	public static final IntOption PIT_MAX_AREA = intOption("pitDigger", "maxArea", 64, 4, 256,
+		"How many blocks of ground (inside the string ring) a pit may have at most.");
+	public static final IntOption PIT_MAX_DEPTH = intOption("pitDigger", "maxDepth", 16, 1, 64,
+		"How deep (in blocks, below the highest string of the ring) a pit may be at most.");
+	public static final IntOption PIT_MAX_UNEVENNESS = intOption("pitDigger", "maxUnevenness", 4, 0, 8,
+		"How far apart (in height) the strings of a ring may lie at most.");
+	public static final IntOption PIT_DAILY_BLOCKS = intOption("pitDigger", "dailyBlocks", 256, 1, 4096,
+		"After this many blocks a day the pit digger stops for the day.");
+	public static final DoubleOption DIG_SLOWDOWN = doubleOption("pitDigger", "digSlowdown", 8.0, 1.0, 32.0,
+		"How many times as long as a player with the same tool a (novice) pit digger needs for a block,",
+		"but at least minSecondsPerBlock.");
+	public static final DoubleOption MIN_DIG_SECONDS = doubleOption("pitDigger", "minSecondsPerBlock", 2.0, 0.25, 20.0,
+		"How long the pit digger needs at least for a block, however good its tool (plants take a quarter of it).");
+	public static final IntOption KEEP_LADDERS = intOption("pitDigger", "keepLadders", 64, 1, 64,
+		"How many ladders the pit digger carries at most.");
+	public static final IntOption KEEP_TORCHES = intOption("pitDigger", "keepTorches", 16, 0, 64,
+		"How many torches the pit digger carries at most (0: it takes none).");
+
 	public static final IntOption ROUTE_LENGTH = intOption("carrier", "maxRouteLength", 32, 4, 64,
 		"How far (in blocks) source and target of a route may be apart.");
 	public static final IntOption ROUTE_SOURCE_SPREAD = intOption("carrier", "maxSourceSpread", 40, 4, 96,
@@ -101,7 +119,7 @@ public final class Config {
 		"How many stacks a carrier carries at once (its basket holds 6).");
 
 	public static final BoolOption VILLAGE_CHESTS = boolOption("villageChests", "enabled", true,
-		"Workers take their wage, tools, saplings and seeds from village chests nearby.",
+		"Workers take their wage, tools, saplings, seeds, ladders and torches from village chests nearby.",
 		"Off: village chests are ordinary chests.");
 	public static final IntOption VILLAGE_CHEST_RADIUS = intOption("villageChests", "radius", 48, 8, 128,
 		"How far (in blocks, horizontally) a village chest may be from a worker's workstation (24 up or down).");

@@ -20,7 +20,7 @@ import net.minecraft.world.item.Items;
 /**
  * What the menus show about what a worker carries for its work (see {@link WorkerSupplies}):
  * its emeralds, whether today's wage was taken and the tools of its job and what it uses up
- * (saplings, seeds, ...).
+ * (saplings, seeds, ladders, ...).
  *
  * @param emeralds the emeralds the worker carries
  * @param wage the emeralds a worker takes per work day ({@link Config#DAILY_WAGE} of the server)
@@ -44,7 +44,7 @@ public record SuppliesInfo(int emeralds, int wage, boolean paid, List<Slot> tool
 	private static final String TAG_VILLAGE_CHESTS = "VillageChests";
 
 	/**
-	 * A tool or something the worker uses up: its kind ({@code "axe"}, {@code "seeds"},
+	 * A tool or something the worker uses up: its kind ({@code "axe"}, {@code "ladders"},
 	 * ...) and what the worker carries of it. {@code required}: the worker cannot work
 	 * without it.
 	 */

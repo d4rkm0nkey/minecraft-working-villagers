@@ -12,6 +12,7 @@ import me.teajay.workingvillagers.item.WorkContractItem;
 import me.teajay.workingvillagers.job.HiredVillager;
 import me.teajay.workingvillagers.job.WorkerStatus;
 import me.teajay.workingvillagers.job.WorkerSupplies;
+import me.teajay.workingvillagers.station.Pit;
 import me.teajay.workingvillagers.station.Workstations;
 import me.teajay.workingvillagers.station.Workstations.ChestRole;
 import net.minecraft.core.BlockPos;
@@ -80,6 +81,11 @@ public final class WorkerTests {
 		registry.accept("replaced_station_starts_fresh", WorkerTests::replacedStationStartsFresh);
 		registry.accept("kiln_operator_fires_glass", WorkerTests::kilnOperatorFiresGlass);
 		registry.accept("kiln_operator_fires_smooth_stone", WorkerTests::kilnOperatorFiresSmoothStone);
+		registry.accept("pit_digger_digs_pit", WorkerTests::pitDiggerDigsPit);
+		registry.accept("pit_digger_digs_small_pit", WorkerTests::pitDiggerDigsSmallPit);
+		registry.accept("pit_digger_finishes_half_dug_pit", WorkerTests::pitDiggerFinishesHalfDugPit);
+		registry.accept("pit_digger_climbs_out_of_half_dug_pit", WorkerTests::pitDiggerClimbsOutOfHalfDugPit);
+		registry.accept("pit_digger_finishes_played_pit", WorkerTests::pitDiggerFinishesPlayedPit);
 		registry.accept("shop_assistant_sells_wheat", WorkerTests::shopAssistantSellsWheat);
 		registry.accept("old_station_notes_are_removed", WorkerTests::oldStationNotesAreRemoved);
 		registry.accept("village_chest_supplies_lumberjack", WorkerTests::villageChestSuppliesLumberjack);
@@ -401,6 +407,196 @@ public final class WorkerTests {
 			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.SMOOTH_STONE), 2, "smooth stone in the output chest");
 			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.STONE)) == 0, "The kiln operator delivered stone");
 			TestWorld.assertHolds(helper, worker, INPUT, stack -> stack.is(Items.SAND), 2, "sand left in the input chest");
+		});
+	}
+
+	/**
+	 * A 4×4 pit marked with string on a mound of dirt, 3 deep: the pit digger digs it out,
+	 * puts ladders down to the bottom and a torch on the floor, leaves the ring and
+	 * everything outside it alone and brings the dirt to the chest.
+	 */
+	private static void pitDiggerDigsPit(GameTestHelper helper) {
+		pitDiggerDigsPit(helper, 4, false, false);
+	}
+
+	/**
+	 * A 3×3 pit: the pit digger reaches every block from the ladder column it starts on, and
+	 * still has to dig the ladder column with the rest of each layer.
+	 */
+	private static void pitDiggerDigsSmallPit(GameTestHelper helper) {
+		pitDiggerDigsPit(helper, 3, false, false);
+	}
+
+	/**
+	 * A 3×3 pit dug out to the bottom except for the column of the ladder (as earlier
+	 * versions left it): the pit digger digs the ladder column, puts the ladders in and gets
+	 * out again.
+	 */
+	private static void pitDiggerFinishesHalfDugPit(GameTestHelper helper) {
+		pitDiggerDigsPit(helper, 3, true, false);
+	}
+
+	/** The same, with the pit digger down in the hole at the start. */
+	private static void pitDiggerClimbsOutOfHalfDugPit(GameTestHelper helper) {
+		pitDiggerDigsPit(helper, 3, true, true);
+	}
+
+	/**
+	 * A pit {@code size}×{@code size} inside, starting at x 9, z 9, 3 deep. {@code halfDug}:
+	 * everything but the ladder column (x 9) is dug out already.
+	 */
+	private static void pitDiggerDigsPit(GameTestHelper helper, int size, boolean halfDug, boolean startInHole) {
+		int ground = 5;
+		int far = 9 + size;
+		for (int x = 4; x <= 16; x++) {
+			for (int z = 4; z <= 16; z++) {
+				for (int y = 1; y <= ground; y++) {
+					helper.setBlock(new BlockPos(x, y, z), y == ground ? Blocks.GRASS_BLOCK : Blocks.DIRT);
+				}
+			}
+		}
+		// The ring around the inside, one string still missing
+		BlockPos gap = new BlockPos(far, ground + 1, far);
+		for (int i = 8; i <= far; i++) {
+			for (BlockPos string : List.of(new BlockPos(i, ground + 1, 8), new BlockPos(i, ground + 1, far), new BlockPos(8, ground + 1, i), new BlockPos(far, ground + 1, i))) {
+				if (!string.equals(gap)) {
+					helper.setBlock(string, Blocks.TRIPWIRE);
+				}
+			}
+		}
+		if (halfDug) {
+			for (BlockPos pos : BlockPos.betweenClosed(new BlockPos(10, ground - 2, 9), new BlockPos(far - 1, ground, far - 1))) {
+				helper.setBlock(pos, Blocks.AIR);
+			}
+		}
+		BlockPos stake = new BlockPos(6, ground + 1, 10);
+		helper.setBlock(stake, WorkingVillagers.PIT_STAKE.get());
+		helper.assertTrue(Pit.find(helper.getLevel(), helper.absolutePos(new BlockPos(8, ground + 1, 8)), helper.absolutePos(stake)).left().isEmpty(),
+			"An open ring was taken as a pit");
+		helper.setBlock(gap, Blocks.TRIPWIRE);
+		Pit pit = Pit.find(helper.getLevel(), helper.absolutePos(new BlockPos(8, ground + 1, 8)), helper.absolutePos(stake))
+			.left().orElseThrow(() -> helper.assertionException(gap, "The closed ring is no pit"));
+		helper.assertTrue(pit.inside().size() == size * size, "The pit has " + pit.inside().size() + " blocks instead of " + size * size);
+		Workstations.Station station = TestWorld.station(helper, stake);
+		station.setPit(pit);
+		station.setDepth(3);
+		BlockPos output = new BlockPos(6, ground + 1, 13);
+		TestWorld.chest(helper, output);
+		TestWorld.link(helper, stake, output, ChestRole.OUTPUT);
+		Villager worker = TestWorld.hireVillager(helper, new BlockPos(5, ground + 1, 6));
+		TestWorld.assign(helper, worker, stake);
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_SHOVEL), new ItemStack(Items.IRON_PICKAXE), new ItemStack(Items.LADDER, 8),
+			new ItemStack(Items.TORCH, 4));
+		// It starts on the ladder column (the block under it has to be dug like every other), or
+		// down in the hole
+		Vec3 start = helper.absoluteVec(Vec3.atBottomCenterOf(startInHole ? new BlockPos(10, ground - 2, 10) : new BlockPos(9, ground + 1, 10)));
+		worker.teleportTo(start.x, start.y, start.z);
+		// It never gets stuck on the way (a worker that does is brought back after a minute)
+		helper.failIfEver(() -> helper.assertFalse(((HiredVillager) worker).workingvillagers$getStuckWatch().isStuck(), "The pit digger got stuck: " + TestWorld.describe(worker)));
+		// The ladder goes into the column inside closest to the stake, against the ring
+		BlockPos ladder = new BlockPos(9, 0, 10);
+		helper.succeedWhen(() -> {
+			for (int x = 9; x < far; x++) {
+				for (int z = 9; z < far; z++) {
+					for (int y = ground - 2; y <= ground; y++) {
+						BlockPos pos = new BlockPos(x, y, z);
+						Block expected = x == ladder.getX() && z == ladder.getZ() ? Blocks.LADDER : Blocks.AIR;
+						// A torch on the floor
+						boolean torch = y == ground - 2 && helper.getBlockState(pos).is(Blocks.TORCH);
+						if (!helper.getBlockState(pos).is(expected) && !torch) {
+							throw helper.assertionException(pos, "Expected " + expected + ", found " + helper.getBlockState(pos) + "; worker: " + TestWorld.describe(worker)
+								+ " at " + helper.relativePos(worker.blockPosition()));
+						}
+					}
+					// The floor stays (grass may grow on it in the light)
+					BlockPos floor = new BlockPos(x, ground - 3, z);
+					helper.assertTrue(helper.getBlockState(floor).is(Blocks.DIRT) || helper.getBlockState(floor).is(Blocks.GRASS_BLOCK),
+						"The floor of the pit was dug at " + floor);
+				}
+			}
+			for (int i = 8; i <= far; i++) {
+				helper.assertBlockPresent(Blocks.GRASS_BLOCK, new BlockPos(i, ground, 8));
+				helper.assertBlockPresent(Blocks.GRASS_BLOCK, new BlockPos(8, ground, i));
+			}
+			TestWorld.assertHolds(helper, worker, output, stack -> stack.is(Items.DIRT), halfDug ? size * 3 - 1 : size * size * 3 - 1, "dirt in the output chest");
+			helper.assertFalse(Pit.find(helper.getLevel(), helper.absolutePos(gap), helper.absolutePos(stake)).left().isEmpty(), "The ring was damaged");
+			helper.assertTrue(worker.getY() > helper.absolutePos(new BlockPos(0, ground, 0)).getY(), "The pit digger is still in the pit: " + TestWorld.describe(worker));
+			int torches = 0;
+			for (BlockPos pos : BlockPos.betweenClosed(new BlockPos(9, ground - 2, 9), new BlockPos(far - 1, ground - 2, far - 1))) {
+				torches += helper.getBlockState(pos).is(Blocks.TORCH) ? 1 : 0;
+			}
+			helper.assertTrue(halfDug ? torches <= 1 : torches == 1, "Expected one torch on the floor, found " + torches);
+		});
+	}
+
+	/**
+	 * A pit as it was left in a played world by an earlier version: a 3×3 pit with a ring
+	 * without corners, the stake right next to the exit, dug out 4 deep except for two
+	 * columns (one of them the ladder column), no ladders, and leaves of a tree above those
+	 * columns. The pit digger finishes it.
+	 */
+	private static void pitDiggerFinishesPlayedPit(GameTestHelper helper) {
+		for (int x = 4; x <= 18; x++) {
+			for (int z = 5; z <= 18; z++) {
+				helper.setBlock(new BlockPos(x, 1, z), Blocks.STONE);
+				for (int y = 2; y <= 4; y++) {
+					helper.setBlock(new BlockPos(x, y, z), Blocks.DIRT);
+				}
+				helper.setBlock(new BlockPos(x, 5, z), Blocks.GRASS_BLOCK);
+			}
+		}
+		List<BlockPos> dug = new java.util.ArrayList<>(List.of(new BlockPos(11, 0, 12)));
+		for (int x = 9; x <= 10; x++) {
+			for (int z = 10; z <= 12; z++) {
+				dug.add(new BlockPos(x, 0, z));
+			}
+		}
+		for (BlockPos column : dug) {
+			for (int y = 2; y <= 5; y++) {
+				helper.setBlock(column.atY(y), Blocks.AIR);
+			}
+		}
+		List<BlockPos> ring = new java.util.ArrayList<>();
+		for (int i = 9; i <= 11; i++) {
+			ring.add(new BlockPos(i, 6, 9));
+			ring.add(new BlockPos(i, 6, 13));
+		}
+		for (int i = 10; i <= 12; i++) {
+			ring.add(new BlockPos(8, 6, i));
+			ring.add(new BlockPos(12, 6, i));
+		}
+		ring.forEach(string -> helper.setBlock(string, Blocks.TRIPWIRE));
+		// The crown of a tree hangs over the pit: it stays, the ground below is dug
+		BlockState leaves = Blocks.BIRCH_LEAVES.defaultBlockState().setValue(net.minecraft.world.level.block.LeavesBlock.PERSISTENT, true);
+		helper.setBlock(new BlockPos(11, 9, 10), leaves);
+		helper.setBlock(new BlockPos(11, 10, 11), leaves);
+		List<BlockPos> inside = new java.util.ArrayList<>();
+		for (int x = 9; x <= 11; x++) {
+			for (int z = 10; z <= 12; z++) {
+				inside.add(helper.absolutePos(new BlockPos(x, 6, z)));
+			}
+		}
+		BlockPos stake = new BlockPos(13, 6, 11);
+		helper.setBlock(stake, WorkingVillagers.PIT_STAKE.get().defaultBlockState().setValue(net.minecraft.world.level.block.HorizontalDirectionalBlock.FACING, Direction.WEST));
+		Pit pit = new Pit(ring.stream().map(helper::absolutePos).toList(), inside, helper.absolutePos(new BlockPos(12, 6, 11)),
+			helper.absolutePos(new BlockPos(11, 5, 11)), helper.absolutePos(new BlockPos(0, 6, 0)).getY());
+		Workstations.Station station = TestWorld.station(helper, stake);
+		station.setPit(pit);
+		BlockPos output = new BlockPos(15, 6, 15);
+		TestWorld.chest(helper, output);
+		TestWorld.link(helper, stake, output, ChestRole.OUTPUT);
+		Villager worker = TestWorld.hireVillager(helper, new BlockPos(15, 6, 11));
+		TestWorld.assign(helper, worker, stake);
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_SHOVEL), new ItemStack(Items.IRON_PICKAXE), new ItemStack(Items.LADDER, 8));
+		helper.failIfEver(() -> helper.assertFalse(((HiredVillager) worker).workingvillagers$getStuckWatch().isStuck(), "The pit digger got stuck: " + TestWorld.describe(worker)));
+		helper.succeedWhen(() -> {
+			for (int y = 2; y <= 5; y++) {
+				BlockPos pos = new BlockPos(11, y, 11);
+				if (!helper.getBlockState(pos).is(Blocks.LADDER) || !helper.getBlockState(new BlockPos(11, y, 10)).isAir()) {
+					throw helper.assertionException(pos, "Not dug yet; worker: " + TestWorld.describe(worker) + " at " + helper.relativePos(worker.blockPosition()));
+				}
+			}
+			helper.assertTrue(worker.getY() > helper.absolutePos(new BlockPos(0, 5, 0)).getY(), "The pit digger is still in the pit: " + TestWorld.describe(worker));
 		});
 	}
 

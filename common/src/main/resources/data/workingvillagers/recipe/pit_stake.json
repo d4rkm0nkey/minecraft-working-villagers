@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "S": "minecraft:string",
+    "T": "minecraft:stick",
+    "P": "#minecraft:planks"
+  },
+  "pattern": [
+    "S",
+    "T",
+    "P"
+  ],
+  "result": {
+    "id": "workingvillagers:pit_stake"
+  }
+}

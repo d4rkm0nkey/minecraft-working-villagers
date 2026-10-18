@@ -29,15 +29,17 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.npc.villager.VillagerProfession;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.TorchBlock;
 import org.jspecify.annotations.Nullable;
 
 /**
  * What a worker carries for its work besides the material: its wage ({@link Config#DAILY_WAGE}
- * emeralds per work day) and its tools (the lumberjack's axe, the farmer's hoe), plus what
- * it uses up (saplings, seeds). The player gives these to the worker directly, like food to
+ * emeralds per work day) and its tools (the lumberjack's axe, the farmer's hoe, the pit
+ * digger's shovel and pickaxe), plus what it uses up (saplings, seeds, ladders, torches). The player gives these to the worker directly, like food to
  * a villager: right-click the worker with them, or throw them to it. Or the worker takes
  * them from a {@link VillageChests village chest} nearby: before the first work of the day
  * whatever runs low, during the day only what it cannot work without. Without its wage for
@@ -74,7 +76,7 @@ public final class WorkerSupplies {
 	}
 
 	/**
-	 * Something the worker uses up at work (saplings, seeds, ...): it keeps up to
+	 * Something the worker uses up at work (saplings, seeds, ladders, ...): it keeps up to
 	 * {@code keep} of each kind. {@code required} ones keep it from working while it has none
 	 * (the work checks that itself, see {@link #busy}).
 	 */
@@ -83,8 +85,12 @@ public final class WorkerSupplies {
 
 	public static final Tool AXE = new Tool("axe", stack -> stack.is(ItemTags.AXES), "lumberjack.no_axe");
 	public static final Tool HOE = new Tool("hoe", stack -> stack.is(ItemTags.HOES), "farmer.no_hoe");
+	public static final Tool SHOVEL = new Tool("shovel", stack -> stack.is(ItemTags.SHOVELS), "pit_digger.no_shovel");
+	public static final Tool PICKAXE = new Tool("pickaxe", stack -> stack.is(ItemTags.PICKAXES), "pit_digger.no_pickaxe");
 	public static final Stock SAPLINGS = new Stock("saplings", stack -> stack.is(ItemTags.SAPLINGS), Config.KEEP_SAPLINGS::get, "", false);
 	public static final Stock SEEDS = new Stock("seeds", FarmFields::isSeed, Config.KEEP_SEEDS::get, "farmer.no_seeds", false);
+	public static final Stock LADDERS = new Stock("ladders", stack -> stack.is(Items.LADDER), Config.KEEP_LADDERS::get, "pit_digger.no_ladders", true);
+	public static final Stock TORCHES = new Stock("torches", WorkerSupplies::isTorch, Config.KEEP_TORCHES::get, "", false);
 
 	private int waitTicks;
 	/** On the way to a village chest, null otherwise. */
@@ -240,10 +246,13 @@ public final class WorkerSupplies {
 		if (profession.is(WorkingVillagers.FARMER_PROFESSION)) {
 			return List.of(HOE);
 		}
+		if (profession.is(WorkingVillagers.PIT_DIGGER_PROFESSION)) {
+			return List.of(SHOVEL, PICKAXE);
+		}
 		return List.of();
 	}
 
-	/** What the worker uses up at work (saplings, seeds, ...). */
+	/** What the worker uses up at work (saplings, seeds, ladders, ...). */
 	public static List<Stock> stocksOf(Villager villager) {
 		Holder<VillagerProfession> profession = villager.getVillagerData().profession();
 		if (profession.is(WorkingVillagers.LUMBERJACK_PROFESSION)) {
@@ -252,12 +261,20 @@ public final class WorkerSupplies {
 		if (profession.is(WorkingVillagers.FARMER_PROFESSION)) {
 			return List.of(SEEDS);
 		}
+		if (profession.is(WorkingVillagers.PIT_DIGGER_PROFESSION)) {
+			return Config.KEEP_TORCHES.get() > 0 ? List.of(LADDERS, TORCHES) : List.of(LADDERS);
+		}
 		return List.of();
+	}
+
+	/** A torch that stands on the ground (torch, soul torch, ...), not a redstone torch. */
+	public static boolean isTorch(ItemStack stack) {
+		return stack.getItem() instanceof BlockItem item && item.getBlock() instanceof TorchBlock;
 	}
 
 	/**
 	 * How many of the stack the worker takes: emeralds up to {@link #MAX_EMERALDS}, each tool
-	 * of its job up to two, and what it uses up (saplings, seeds) up to the amount it
+	 * of its job up to two, and what it uses up (saplings, seeds, ladders) up to the amount it
 	 * keeps of each kind. 0 if it does not want it or has no room.
 	 */
 	public static int accepts(Villager villager, ItemStack stack) {

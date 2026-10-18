@@ -35,7 +35,8 @@ import org.jspecify.annotations.Nullable;
  * products to keep in stock. At the stonecutter that column shows the stone families
  * first and, once one is opened, its products; at the kiln it shows everything the kiln
  * makes and how many to keep in stock. The composter and the blast furnace have no order:
- * the farmer works the fields around it, the smith smelts what it finds.
+ * the farmer works the fields around it, the smith smelts what it finds. The pit stake
+ * picks the pit and its ladder and sets the depth.
  */
 public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	private static final Identifier SLOT_SPRITE = Identifier.withDefaultNamespace("container/slot");
@@ -56,6 +57,9 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	private static final int STONE_CELLS = GRID_COLUMNS * 6;
 	/** Chopping block: the row with the strip switch. */
 	private static final int STRIP_Y = 71;
+	/** Pit stake: the row with the pit and the one with its depth. */
+	private static final int PIT_Y = 71;
+	private static final int DEPTH_Y = 86;
 	/** Kiln: rows of products on one page. */
 	private static final int KILN_ROWS = 5;
 	private static final int KILN_CELLS = GRID_COLUMNS * KILN_ROWS;
@@ -108,8 +112,18 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		return this.menu.type() == StationType.KILN;
 	}
 
+	private boolean isPitStake() {
+		return this.menu.type() == StationType.PIT_STAKE;
+	}
+
 	private static int chestsY(StationMenu menu) {
-		return hasOrderColumn(menu) ? 29 : 95;
+		if (hasOrderColumn(menu)) {
+			return 29;
+		}
+		return switch (menu.type()) {
+			case PIT_STAKE -> 111;
+			default -> 95;
+		};
 	}
 
 	/**
@@ -145,6 +159,9 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		}
 		if (this.menu.type() == StationType.CHOPPING_BLOCK) {
 			this.extractStrip(graphics, mouseX, mouseY);
+		}
+		if (this.isPitStake()) {
+			this.extractPit(graphics, mouseX, mouseY);
 		}
 		this.extractChests(graphics, mouseX, mouseY);
 		this.extractWorkerButton(graphics, mouseX, mouseY);
@@ -361,6 +378,30 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		}
 	}
 
+	/** Pit stake: the pit (pick it, the ladder) and how deep to dig. */
+	private void extractPit(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+		int right = this.leftPos + 7 + COLUMN_WIDTH;
+		String pick = Component.translatable("gui.workingvillagers.pit.pick").getString();
+		int pickWidth = this.font.width(pick) + 10;
+		this.button(graphics, mouseX, mouseY, right - pickWidth, this.topPos + PIT_Y - 2, pickWidth, BUTTON_SIZE, pick, StationMenu.PICK_PIT_BUTTON, List.of(
+			Component.translatable("gui.workingvillagers.pit.pick.tooltip"),
+			Component.translatable("gui.workingvillagers.pit.pick.tooltip2").withStyle(ChatFormatting.GRAY)
+		));
+		int y = this.topPos + DEPTH_Y - 2;
+		List<Component> depthTooltip = List.of(
+			Component.translatable("gui.workingvillagers.pit.depth.tooltip"),
+			Component.translatable("gui.workingvillagers.pit.depth.tooltip2", this.menu.getMaxDepth()).withStyle(ChatFormatting.GRAY)
+		);
+		this.button(graphics, mouseX, mouseY, right - BUTTON_SIZE, y, BUTTON_SIZE, BUTTON_SIZE, "+", StationMenu.DEPTH_MORE_BUTTON, depthTooltip);
+		this.button(graphics, mouseX, mouseY, right - 2 * BUTTON_SIZE - 2, y, BUTTON_SIZE, BUTTON_SIZE, "-", StationMenu.DEPTH_LESS_BUTTON, depthTooltip);
+		if (this.menu.getPit().isPresent()) {
+			String ladder = Component.translatable("gui.workingvillagers.pit.ladder").getString();
+			int ladderWidth = this.font.width(ladder) + 10;
+			this.button(graphics, mouseX, mouseY, right - 2 * BUTTON_SIZE - 6 - ladderWidth, y, ladderWidth, BUTTON_SIZE, ladder, StationMenu.PICK_LADDER_BUTTON,
+				List.of(Component.translatable("gui.workingvillagers.pit.ladder.tooltip")));
+		}
+	}
+
 	/** Carpenter's bench and kiln: how many products to keep in the output chests, with buttons to change it. */
 	private void extractStock(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
 		int right = this.leftPos + 7 + COLUMN_WIDTH;
@@ -516,6 +557,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		return Component.translatable(switch (this.menu.type()) {
 			case CHOPPING_BLOCK -> "gui.workingvillagers.chopping_block.no_chests";
 			case COMPOSTER -> "gui.workingvillagers.composter.no_chests";
+			case PIT_STAKE -> "gui.workingvillagers.pit_stake.no_chests";
 			default -> "gui.workingvillagers.station.no_chests";
 		});
 	}
@@ -583,6 +625,17 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			GuiPanels.scrollingText(graphics, this.font, Component.translatable("gui.workingvillagers.chopping_block.strip").getString(), 8, STRIP_Y,
 				COLUMN_WIDTH - this.stripButtonWidth() - 4, GuiPanels.TEXT_COLOR);
 		}
+		if (this.isPitStake()) {
+			Component pit = this.menu.getPit()
+				.map(size -> (Component) Component.translatable("gui.workingvillagers.pit.size", size[0], size[1], size[2]))
+				.orElse(Component.translatable("gui.workingvillagers.pit.none"));
+			int pickWidth = this.font.width(Component.translatable("gui.workingvillagers.pit.pick")) + 10;
+			GuiPanels.scrollingText(graphics, this.font, pit.getString(), 8, PIT_Y, COLUMN_WIDTH - pickWidth - 4,
+				this.menu.getPit().isPresent() ? GuiPanels.TEXT_COLOR : GuiPanels.WARNING_COLOR);
+			int ladderWidth = this.menu.getPit().isPresent() ? this.font.width(Component.translatable("gui.workingvillagers.pit.ladder")) + 14 : 0;
+			GuiPanels.scrollingText(graphics, this.font, Component.translatable("gui.workingvillagers.pit.depth", this.menu.getDepth()).getString(), 8, DEPTH_Y,
+				COLUMN_WIDTH - 2 * BUTTON_SIZE - ladderWidth - 6, GuiPanels.TEXT_COLOR);
+		}
 		if (this.isBench() || this.isKiln()) {
 			int stock = this.menu.getStock();
 			Component text = this.isKiln() && this.menu.getOrder().isEmpty()
@@ -616,6 +669,13 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 				return Optional.of(Component.translatable("gui.workingvillagers.chopping_block.hire"));
 			}
 			return crops < 0 ? Optional.empty() : Optional.of(Component.translatable("gui.workingvillagers.composter.crops", crops));
+		}
+		if (this.isPitStake()) {
+			int blocks = this.menu.getLogsToday();
+			if (this.menu.getWorker().isEmpty()) {
+				return Optional.of(Component.translatable("gui.workingvillagers.chopping_block.hire"));
+			}
+			return blocks < 0 ? Optional.empty() : Optional.of(Component.translatable("gui.workingvillagers.pit.today", blocks, this.menu.getDailyLogs()));
 		}
 		if (this.menu.type() == StationType.TRADING_COUNTER) {
 			int earned = this.menu.getLogsToday();

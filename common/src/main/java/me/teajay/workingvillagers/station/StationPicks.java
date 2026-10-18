@@ -1,5 +1,6 @@
 package me.teajay.workingvillagers.station;
 
+import com.mojang.datafixers.util.Either;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -17,12 +18,14 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.level.block.Blocks;
 import org.jspecify.annotations.Nullable;
 
 /**
  * Picking things for a workstation in the world, started with a button in its menu: the
- * worker (right-click a hired villager) or chests (right-click containers, each click links
- * or unlinks one). Right-clicking the workstation ends picking chests and opens its menu
+ * worker (right-click a hired villager), chests (right-click containers, each click links
+ * or unlinks one), at a pit stake the pit and its ladder (right-click a string).
+ * Right-clicking the workstation ends picking chests and opens its menu
  * again; unfinished picking runs out after two minutes.
  */
 public final class StationPicks {
@@ -32,18 +35,36 @@ public final class StationPicks {
 	private StationPicks() {
 	}
 
-	/** What is picked for which station; {@code role} is null when picking the worker. */
-	private record Pending(BlockPos station, @Nullable ChestRole role, long until) {
+	/** Pit stake: picking the ring of the pit, or the string where the ladder goes. */
+	private enum PitPick { RING, LADDER }
+
+	/**
+	 * What is picked for which station; {@code role} and {@code pit} are null when picking
+	 * the worker.
+	 */
+	private record Pending(BlockPos station, @Nullable ChestRole role, @Nullable PitPick pit, long until) {
 	}
 
 	public static void pickWorker(ServerPlayer player, BlockPos station) {
-		start(player, new Pending(station.immutable(), null, player.level().getGameTime() + TIMEOUT_TICKS),
+		start(player, new Pending(station.immutable(), null, null, player.level().getGameTime() + TIMEOUT_TICKS),
 			Component.translatable("message.workingvillagers.assign.pick"));
 	}
 
 	public static void pickChests(ServerPlayer player, BlockPos station, ChestRole role) {
-		start(player, new Pending(station.immutable(), role, player.level().getGameTime() + TIMEOUT_TICKS),
+		start(player, new Pending(station.immutable(), role, null, player.level().getGameTime() + TIMEOUT_TICKS),
 			Component.translatable(role == ChestRole.INPUT ? "message.workingvillagers.chests.pick_input" : "message.workingvillagers.chests.pick_output"));
+	}
+
+	/** Pit stake: the player right-clicks a string of the ring around the pit. */
+	public static void pickPit(ServerPlayer player, BlockPos station) {
+		start(player, new Pending(station.immutable(), null, PitPick.RING, player.level().getGameTime() + TIMEOUT_TICKS),
+			Component.translatable("message.workingvillagers.pit.pick"));
+	}
+
+	/** Pit stake: the player right-clicks the string of the ring where the ladder goes. */
+	public static void pickLadder(ServerPlayer player, BlockPos station) {
+		start(player, new Pending(station.immutable(), null, PitPick.LADDER, player.level().getGameTime() + TIMEOUT_TICKS),
+			Component.translatable("message.workingvillagers.pit.pick_ladder"));
 	}
 
 	private static void start(ServerPlayer player, Pending pending, Component message) {
@@ -71,7 +92,7 @@ public final class StationPicks {
 	 */
 	public static boolean onUseVillager(ServerPlayer player, Villager villager) {
 		Pending pending = pending(player);
-		if (pending == null || pending.role() != null) {
+		if (pending == null || pending.role() != null || pending.pit() != null) {
 			return false;
 		}
 		PENDING.remove(player.getUUID());
@@ -96,6 +117,9 @@ public final class StationPicks {
 	 */
 	public static boolean onUseBlock(ServerPlayer player, BlockPos pos) {
 		Pending pending = pending(player);
+		if (pending != null && pending.pit() != null) {
+			return onPickPit(player, pending, pos);
+		}
 		if (pending == null || pending.role() == null) {
 			return false;
 		}
@@ -130,6 +154,57 @@ public final class StationPicks {
 				station.chestCount(), Config.MAX_CHESTS.get()
 			));
 		}
+		return true;
+	}
+
+	/**
+	 * A right-click while picking the pit or the ladder: a string (or the block below it)
+	 * picks; the station ends picking and opens its menu again; anything else does what it
+	 * does otherwise.
+	 */
+	private static boolean onPickPit(ServerPlayer player, Pending pending, BlockPos pos) {
+		ServerLevel level = player.level();
+		Optional<Workstations.Station> found = Workstations.find(level, pending.station());
+		if (found.isEmpty()) {
+			PENDING.remove(player.getUUID());
+			return false;
+		}
+		Workstations.Station station = found.get();
+		if (pos.equals(pending.station())) {
+			PENDING.remove(player.getUUID());
+			player.openMenu(StationMenu.provider(station.type(), level, pos));
+			return true;
+		}
+		if (!level.getBlockState(pos).is(Blocks.TRIPWIRE) && !level.getBlockState(pos.above()).is(Blocks.TRIPWIRE)) {
+			return false;
+		}
+		Either<Pit, Component> result;
+		if (pending.pit() == PitPick.LADDER) {
+			Pit pit = station.pit();
+			if (pit == null) {
+				PENDING.remove(player.getUUID());
+				player.sendOverlayMessage(Component.translatable("message.workingvillagers.pit.none"));
+				return true;
+			}
+			result = pit.withLadderAt(pos, level);
+		} else {
+			result = Pit.find(level, pos, pending.station());
+		}
+		Optional<Component> problem = result.right();
+		if (problem.isPresent()) {
+			player.sendOverlayMessage(problem.get());
+			return true;
+		}
+		Pit pit = result.left().orElseThrow();
+		PENDING.remove(player.getUUID());
+		station.setPit(pit);
+		for (BlockPos string : pit.ring()) {
+			level.sendParticles(ParticleTypes.HAPPY_VILLAGER, string.getX() + 0.5, string.getY() + 0.3, string.getZ() + 0.5, 2, 0.2, 0.1, 0.2, 0.0);
+		}
+		mark(level, pit.ladder());
+		player.sendOverlayMessage(pending.pit() == PitPick.LADDER
+			? Component.translatable("message.workingvillagers.pit.ladder_set")
+			: Component.translatable("message.workingvillagers.pit.picked", pit.width(), pit.length(), pit.inside().size()));
 		return true;
 	}
 

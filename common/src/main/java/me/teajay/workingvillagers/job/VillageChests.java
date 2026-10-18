@@ -30,7 +30,7 @@ import net.minecraft.world.phys.AABB;
  * saplings, seeds, ... up to the amount it keeps once it has less than a quarter of that.
  */
 public final class VillageChests {
-	/** How far up or down a village chest may be from the workplace. */
+	/** How far up or down a village chest may be from the workplace (the pit digger's pit). */
 	public static final int VERTICAL_REACH = 24;
 
 	private VillageChests() {
@@ -77,7 +77,7 @@ public final class VillageChests {
 
 	/**
 	 * What the worker cannot work without and finds in none of its village chests, as the
-	 * kind of the supply ({@code "wage"}, {@code "axe"}, {@code "seeds"}, ...); empty if it
+	 * kind of the supply ({@code "wage"}, {@code "axe"}, {@code "ladders"}, ...); empty if it
 	 * lacks nothing (or knows where to get it).
 	 */
 	public static Optional<String> missing(ServerLevel level, Villager worker) {

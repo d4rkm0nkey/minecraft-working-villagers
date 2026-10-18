@@ -18,6 +18,7 @@ import me.teajay.workingvillagers.job.HiredVillager;
 import me.teajay.workingvillagers.job.WorkerJobs;
 import me.teajay.workingvillagers.job.WorkerStatus;
 import me.teajay.workingvillagers.station.ContainerNames;
+import me.teajay.workingvillagers.station.Pit;
 import me.teajay.workingvillagers.station.StationPicks;
 import me.teajay.workingvillagers.station.StationType;
 import me.teajay.workingvillagers.station.Workstations;
@@ -54,7 +55,8 @@ import org.jspecify.annotations.Nullable;
  * today; at the woodcutter it sets the order, the product's shape and the wood types to
  * use; at the carpenter's bench the product, the wood types and how many to keep in stock;
  * at the stonecutter the product, picked from its stone family. At the composter it shows
- * the crops harvested today; the blast furnace has no order. At the kiln it sets the product
+ * the crops harvested today; the blast furnace has no order. At the pit stake it shows the
+ * blocks dug today and picks the pit, its ladder and depth; at the kiln it sets the product
  * (none: everything) and how many to keep in stock.
  *
  * <p>The cutters, the bench and the furnaces open it with a button in their own menu and get
@@ -88,6 +90,13 @@ public class StationMenu extends AbstractContainerMenu {
 	public static final int STOCK_MORE_BUTTON = 309;
 	/** Chopping block: turns stripping the logs on or off. */
 	public static final int STRIP_BUTTON = 310;
+	/** Pit stake: closes the menu, the player then right-clicks a string of the ring around the pit. */
+	public static final int PICK_PIT_BUTTON = 311;
+	/** Pit stake: closes the menu, the player then right-clicks the string where the ladder goes. */
+	public static final int PICK_LADDER_BUTTON = 312;
+	/** Pit stake: less / more deep. */
+	public static final int DEPTH_LESS_BUTTON = 313;
+	public static final int DEPTH_MORE_BUTTON = 314;
 	/**
 	 * Stonecutter: plus the index of the product in all families one after another, orders
 	 * it (or clears the order if it is the order already).
@@ -126,6 +135,12 @@ public class StationMenu extends AbstractContainerMenu {
 	private static final String TAG_STOCK = "Stock";
 	private static final String TAG_STRIP = "Strip";
 	private static final String TAG_FAMILIES = "Families";
+	private static final String TAG_PIT = "Pit";
+	private static final String TAG_WIDTH = "Width";
+	private static final String TAG_LENGTH = "Length";
+	private static final String TAG_AREA = "Area";
+	private static final String TAG_DEPTH = "Depth";
+	private static final String TAG_MAX_DEPTH = "MaxDepth";
 
 	private final StationType type;
 	private final ContainerLevelAccess access;
@@ -161,6 +176,7 @@ public class StationMenu extends AbstractContainerMenu {
 			case CARPENTER_BENCH -> WorkingVillagers.CARPENTER_STATION_MENU;
 			case COMPOSTER -> WorkingVillagers.COMPOSTER_STATION_MENU;
 			case BLAST_FURNACE -> WorkingVillagers.BLAST_FURNACE_STATION_MENU;
+			case PIT_STAKE -> WorkingVillagers.PIT_STAKE_MENU;
 			case KILN -> WorkingVillagers.KILN_STATION_MENU;
 			case TRADING_COUNTER -> WorkingVillagers.TRADING_COUNTER_MENU;
 		};
@@ -190,7 +206,10 @@ public class StationMenu extends AbstractContainerMenu {
 			Workstations.Station station = found.get();
 			CompoundTag tag = new CompoundTag();
 			tag.store(TAG_STATION, BlockPos.CODEC, pos);
-			tag.putInt(TAG_DAILY_LOGS, Config.DAILY_LOGS.get());
+			tag.putInt(TAG_DAILY_LOGS, switch (this.type) {
+				case PIT_STAKE -> Config.PIT_DAILY_BLOCKS.get();
+				default -> Config.DAILY_LOGS.get();
+			});
 			tag.putInt(TAG_MAX_CHESTS, Config.MAX_CHESTS.get());
 			station.occupant(serverLevel).ifPresent(name -> {
 				tag.store(TAG_WORKER, ComponentSerialization.CODEC, name);
@@ -198,7 +217,7 @@ public class StationMenu extends AbstractContainerMenu {
 					tag.putBoolean(TAG_HIRED_WORKER, true);
 					tag.store(TAG_STATUS, ComponentSerialization.CODEC, WorkerStatus.describe(villager));
 					SuppliesInfo.write(serverLevel, villager, tag);
-					if (this.type == StationType.CHOPPING_BLOCK || this.type == StationType.COMPOSTER
+					if (this.type == StationType.CHOPPING_BLOCK || this.type == StationType.COMPOSTER || this.type == StationType.PIT_STAKE
 						|| this.type == StationType.TRADING_COUNTER) {
 						tag.putInt(TAG_LOGS, ((HiredVillager) villager).workingvillagers$getWorkDone(ChopTrees.today(serverLevel)));
 					}
@@ -226,6 +245,18 @@ public class StationMenu extends AbstractContainerMenu {
 
 			if (this.type == StationType.CHOPPING_BLOCK) {
 				tag.putBoolean(TAG_STRIP, station.strip());
+			}
+			if (this.type == StationType.PIT_STAKE) {
+				tag.putInt(TAG_DEPTH, station.depth());
+				tag.putInt(TAG_MAX_DEPTH, Config.PIT_MAX_DEPTH.get());
+				Pit pit = station.pit();
+				if (pit != null) {
+					CompoundTag pitTag = new CompoundTag();
+					pitTag.putInt(TAG_WIDTH, pit.width());
+					pitTag.putInt(TAG_LENGTH, pit.length());
+					pitTag.putInt(TAG_AREA, pit.inside().size());
+					tag.put(TAG_PIT, pitTag);
+				}
 			}
 			if (station.order() != null) {
 				tag.putString(TAG_ORDER, BuiltInRegistries.ITEM.getKey(station.order()).toString());
@@ -355,8 +386,9 @@ public class StationMenu extends AbstractContainerMenu {
 	}
 
 	/**
-	 * Logs felled today at a chopping block, crops harvested today at a composter, emeralds
-	 * earned today at a trading counter, -1 if unknown (no worker or not loaded).
+	 * Logs felled today at a chopping block, crops harvested today at a composter, blocks dug
+	 * today at a pit stake, emeralds earned today at a trading counter, -1 if unknown (no
+	 * worker or not loaded).
 	 */
 	public int getLogsToday() {
 		return this.info.info().getIntOr(TAG_LOGS, -1);
@@ -429,6 +461,20 @@ public class StationMenu extends AbstractContainerMenu {
 		return this.clientFamilies;
 	}
 
+	/** Pit stake: the size of the picked pit (width, length, blocks of ground), empty if none. */
+	public Optional<int[]> getPit() {
+		return this.info.info().getCompound(TAG_PIT).map(pit -> new int[] {pit.getIntOr(TAG_WIDTH, 0), pit.getIntOr(TAG_LENGTH, 0), pit.getIntOr(TAG_AREA, 0)});
+	}
+
+	/** Pit stake: how deep to dig. */
+	public int getDepth() {
+		return this.info.info().getIntOr(TAG_DEPTH, Pit.DEFAULT_DEPTH);
+	}
+
+	public int getMaxDepth() {
+		return this.info.info().getIntOr(TAG_MAX_DEPTH, 16);
+	}
+
 	/** Carpenter's bench and kiln: how many products to keep in stock, 0 for no limit. */
 	public int getStock() {
 		return this.info.info().getIntOr(TAG_STOCK, 0);
@@ -458,7 +504,7 @@ public class StationMenu extends AbstractContainerMenu {
 			this.access.execute((level, pos) -> player.openMenu(level.getBlockState(pos).getMenuProvider(level, pos)));
 			return true;
 		}
-		if (buttonId >= ASSIGN_BUTTON && buttonId <= ADD_OUTPUTS_BUTTON) {
+		if (buttonId >= ASSIGN_BUTTON && buttonId <= ADD_OUTPUTS_BUTTON || buttonId == PICK_PIT_BUTTON || buttonId == PICK_LADDER_BUTTON) {
 			if (!(player instanceof ServerPlayer serverPlayer)) {
 				return false;
 			}
@@ -509,6 +555,18 @@ public class StationMenu extends AbstractContainerMenu {
 				}
 				StationPicks.pickChests(player, pos, ChestRole.INPUT);
 			}
+			case PICK_PIT_BUTTON -> {
+				if (this.type != StationType.PIT_STAKE) {
+					return false;
+				}
+				StationPicks.pickPit(player, pos);
+			}
+			case PICK_LADDER_BUTTON -> {
+				if (this.type != StationType.PIT_STAKE || station.pit() == null) {
+					return false;
+				}
+				StationPicks.pickLadder(player, pos);
+			}
 			default -> StationPicks.pickChests(player, pos, ChestRole.OUTPUT);
 		}
 		return true;
@@ -526,6 +584,10 @@ public class StationMenu extends AbstractContainerMenu {
 		}
 		if (this.type == StationType.CHOPPING_BLOCK && buttonId == STRIP_BUTTON) {
 			station.setStrip(!station.strip());
+			return true;
+		}
+		if (this.type == StationType.PIT_STAKE && (buttonId == DEPTH_LESS_BUTTON || buttonId == DEPTH_MORE_BUTTON)) {
+			station.setDepth(station.depth() + (buttonId == DEPTH_MORE_BUTTON ? 1 : -1));
 			return true;
 		}
 		if (this.type == StationType.KILN) {

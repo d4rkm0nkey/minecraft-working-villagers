@@ -25,7 +25,8 @@ import org.jspecify.annotations.Nullable;
 /**
  * The jobs of hired villagers at their workstations (chopping block: lumberjack, woodcutter:
  * sawyer, stonecutter: stone sawyer, carpenter's bench: carpenter, composter: farmer, blast
- * furnace: smith, kiln: kiln operator, trading counter: shop assistant). A hired villager without a job looks for a free one itself (see
+ * furnace: smith, pit stake: pit digger, kiln: kiln operator, trading counter: shop
+ * assistant). A hired villager without a job looks for a free one itself (see
  * {@link FindWorkplace}); the player can also give it one in the station menu, and take it
  * away again there. Hired villagers do not take any vanilla job.
  *
@@ -42,6 +43,7 @@ public final class WorkerJobs {
 		PoiTypes.MASON, WorkingVillagers.STONECUTTER_PROFESSION,
 		PoiTypes.FARMER, WorkingVillagers.FARMER_PROFESSION,
 		PoiTypes.ARMORER, WorkingVillagers.SMITH_PROFESSION,
+		WorkingVillagers.PIT_DIGGER_POI, WorkingVillagers.PIT_DIGGER_PROFESSION,
 		WorkingVillagers.KILN_OPERATOR_POI, WorkingVillagers.KILN_OPERATOR_PROFESSION,
 		WorkingVillagers.SHOP_ASSISTANT_POI, WorkingVillagers.SHOP_ASSISTANT_PROFESSION
 	);

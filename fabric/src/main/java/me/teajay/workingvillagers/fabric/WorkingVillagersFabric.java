@@ -35,6 +35,7 @@ public class WorkingVillagersFabric implements ModInitializer {
 				output.accept(WorkingVillagers.CHOPPING_BLOCK_ITEM.get());
 				output.accept(WorkingVillagers.WOODCUTTER_ITEM.get());
 				output.accept(WorkingVillagers.CARPENTER_BENCH_ITEM.get());
+				output.accept(WorkingVillagers.PIT_STAKE_ITEM.get());
 				output.accept(WorkingVillagers.KILN_ITEM.get());
 				output.accept(WorkingVillagers.TRADING_COUNTER_ITEM.get());
 				output.accept(WorkingVillagers.VILLAGE_CHEST_ITEM.get());

@@ -9,6 +9,7 @@ import me.teajay.workingvillagers.block.CarpenterBenchBlock;
 import me.teajay.workingvillagers.block.ChoppingBlock;
 import me.teajay.workingvillagers.block.KilnBlock;
 import me.teajay.workingvillagers.block.KilnBlockEntity;
+import me.teajay.workingvillagers.block.PitStakeBlock;
 import me.teajay.workingvillagers.block.TradingCounterBlock;
 import me.teajay.workingvillagers.block.VillageChestBlock;
 import me.teajay.workingvillagers.block.VillageChestBlockEntity;
@@ -71,6 +72,8 @@ public final class WorkingVillagers {
 	public static final ResourceKey<VillagerProfession> FARMER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("farmer"));
 	/** Works at the vanilla blast furnace, the job site of the armorer. */
 	public static final ResourceKey<VillagerProfession> SMITH_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("smith"));
+	public static final ResourceKey<PoiType> PIT_DIGGER_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("pit_digger"));
+	public static final ResourceKey<VillagerProfession> PIT_DIGGER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("pit_digger"));
 	public static final ResourceKey<PoiType> KILN_OPERATOR_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("kiln_operator"));
 	public static final ResourceKey<VillagerProfession> KILN_OPERATOR_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("kiln_operator"));
 	public static final ResourceKey<PoiType> SHOP_ASSISTANT_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("shop_assistant"));
@@ -106,6 +109,12 @@ public final class WorkingVillagers {
 	);
 
 	public static Supplier<MenuType<CutterMenu>> STONECUTTER_MENU;
+
+	/** The blocks the pit digger digs: natural ground, stone, ores, plants. */
+	public static final TagKey<Block> PIT_DIGGABLE = TagKey.create(Registries.BLOCK, id("pit_diggable"));
+	public static Supplier<Block> PIT_STAKE;
+	public static Supplier<Item> PIT_STAKE_ITEM;
+	public static Supplier<MenuType<StationMenu>> PIT_STAKE_MENU;
 
 	/** Items the kiln does not fire although a furnace smelts them. */
 	public static final TagKey<Item> KILN_EXCLUDED = TagKey.create(Registries.ITEM, id("kiln_excluded"));
@@ -155,6 +164,7 @@ public final class WorkingVillagers {
 		registerCarrier(platform);
 		registerFarmer(platform);
 		registerSmith(platform);
+		registerPitDigger(platform);
 		registerKilnOperator(platform);
 		registerShopAssistant(platform);
 		registerVillageChest(platform);
@@ -293,6 +303,29 @@ public final class WorkingVillagers {
 	private static void registerSmith(Platform platform) {
 		BLAST_FURNACE_STATION_MENU = platform.registerMenu("blast_furnace_station", (containerId, inventory) -> new StationMenu(StationType.BLAST_FURNACE, containerId, inventory));
 		registerProfession(platform, "smith", PoiTypes.ARMORER, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_ARMORER);
+	}
+
+	/**
+	 * The pit digger works at the pit stake: it digs out the pit the player marked with a
+	 * ring of string and brings everything it digs to its chests.
+	 */
+	private static void registerPitDigger(Platform platform) {
+		PIT_STAKE = platform.register(Registries.BLOCK, "pit_stake", () -> new PitStakeBlock(
+			BlockBehaviour.Properties.of()
+				.setId(ResourceKey.create(Registries.BLOCK, id("pit_stake")))
+				.mapColor(MapColor.WOOD)
+				.strength(1.5F)
+				.sound(SoundType.WOOD)
+				.ignitedByLava()
+				.noOcclusion()
+		));
+		PIT_STAKE_ITEM = platform.register(Registries.ITEM, "pit_stake", () -> new BlockItem(
+			PIT_STAKE.get(),
+			itemProperties("pit_stake").useBlockDescriptionPrefix()
+		));
+		PIT_STAKE_MENU = platform.registerMenu("pit_stake", (containerId, inventory) -> new StationMenu(StationType.PIT_STAKE, containerId, inventory));
+		platform.registerPoi("pit_digger", () -> PIT_STAKE.get(), 1, 1);
+		registerProfession(platform, "pit_digger", PIT_DIGGER_POI, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_TOOLSMITH);
 	}
 
 	/**
