@@ -24,7 +24,7 @@ that already have a job. Hired villagers get no name, just like vanilla villager
 name tag to tell them apart. (The config option `randomNames` gives them a random name
 like Anton or Berta.)
 
-Hired villagers **never take a vanilla job** (lectern, smithing table, ...). They do take
+Hired villagers **never take a vanilla job** (lectern, cartography table, ...). They do take
 part in normal village life: they sleep in beds, meet at the village bell and flee from
 zombies and raids.
 
@@ -32,12 +32,12 @@ zombies and raids.
 
 A hired villager without a job looks for a **free workstation of this mod** within
 **48 blocks** that it can walk to: a chopping block, woodcutter, stonecutter, carpenter's
-bench, composter, blast furnace, pit stake, kiln, trading counter or mining bench. It walks there and takes the job (green particles),
+bench, composter, blast furnace, smithing table, pit stake, kiln, trading counter or mining bench. It walks there and takes the job (green particles),
 just like vanilla villagers claim their job sites.
 
-At a stonecutter, composter or blast furnace a hired villager becomes the stone sawyer,
-farmer or smith of this mod. Unhired villagers still become vanilla masons, farmers and
-armorers there, but not at one you have set up (linked chests or set an order): that one
+At a stonecutter, composter, blast furnace or smithing table a hired villager becomes the
+stone sawyer, farmer or smith of this mod. Unhired villagers still become vanilla masons,
+farmers, armorers and toolsmiths there, but not at one you have set up (linked chests or set an order): that one
 is kept for a hired worker. **Assign** at a station where an ordinary villager already
 works gives it to your worker, as long as that villager has never traded; one that has
 traded keeps its job.
@@ -45,7 +45,7 @@ traded keeps its job.
 ## Assigning and removing
 
 To pick a specific worker yourself, open the workstation menu (at the woodcutter,
-stonecutter, carpenter's bench, blast furnace and kiln: the **i** button at the top right of
+stonecutter, carpenter's bench, blast furnace, smithing table and kiln: the **i** button at the top right of
 its screen; at the composter: right-click it with an empty hand) and click **Assign**. The menu closes; right-click a hired villager. It becomes the
 worker of this station. A villager that already works somewhere else moves to the new
 station.
@@ -162,8 +162,9 @@ back ("Giving back a worn tool"):
 2. otherwise into an **output chest** of its workstation,
 3. otherwise it keeps the tool and tries again a minute later.
 
-Then it works on with its spare tool, or waits for a new one ("needs an axe"). Repair the
-worn tools at an anvil, or combine two in a crafting table, and put them back. Workers
+Then it works on with its spare tool, or waits for a new one ("needs an axe"). A
+[smith at a smithing table](smith.md#repairing-tools) repairs the worn tools in the
+village chests; or repair them yourself at an anvil and put them back. Workers
 never take a worn tool, and you cannot give them one.
 
 **Wooden and stone tools** are cheap: they are used until they break, unless they are

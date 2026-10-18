@@ -1,6 +1,6 @@
 # Werkzeugrückgabe
 
-[← Wiki-Start](../README.md) · Phase: **umgesetzt**, ohne Reparieren durch den Schmied (siehe [Stand der Umsetzung](#stand-der-umsetzung)) · Wunsch vom 15.10.2026 · baut auf [Dorftruhen](dorftruhen.md) auf
+[← Wiki-Start](../README.md) · Phase: **umgesetzt**, mit Reparieren durch den Schmied (siehe [Stand der Umsetzung](#stand-der-umsetzung)) · Wunsch vom 15.10.2026 · baut auf [Dorftruhen](dorftruhen.md) auf
 
 Ohne Werkzeugrückgabe nutzt ein Arbeiter sein Werkzeug, bis es zerbricht. Dann ist es weg. Mit der Werkzeugrückgabe tauscht er es **kurz vorher** aus und legt das abgenutzte Werkzeug in eine [Dorftruhe](dorftruhen.md). Von dort kann der Spieler es reparieren, oder später der [Schmied](../berufe/schmied.md).
 
@@ -15,7 +15,8 @@ Umgesetzt für Holzfäller, Bauer, Grubenarbeiter und Minenarbeiter, mit diesen 
 - **Holz und Stein:** erkannt an der `repairable`-Komponente (repariert mit Brettern oder Bruchstein), so zählen auch Werkzeuge anderer Mods. Verzaubert oder umbenannt kommen sie immer zurück.
 - **Geben:** Ein abgenutztes Werkzeug nimmt ein Arbeiter auch vom Spieler nicht an.
 - **Anzeige:** Statt des gelben Rahmens nur die Tooltip-Zeile. Das Dorftruhen-Panel zeigt „N abgenutzte Werkzeuge zum Reparieren“.
-- **Nicht umgesetzt:** das Reparieren durch den Schmied, die Meldung „Hat die ‚Glücksschaufel‘ in … gelegt“.
+- **Reparieren durch den Schmied:** umgesetzt, siehe [Schmied, Stand der Umsetzung](../berufe/schmied.md#stand-der-umsetzung). Abweichend repariert er auch alles Beschädigte aus den Eingangskisten seines Schmiedetischs. Das Dorftruhen-Panel zeigt nicht an, ob ein Schmied repariert.
+- **Nicht umgesetzt:** die Meldung „Hat die ‚Glücksschaufel‘ in … gelegt“.
 - **Tests:** Ein Holzfäller mit abgenutzter Axt und Ersatz fällt mit dem Ersatz und legt die alte in die Dorftruhe; ohne Ersatz tauscht er sie in einem Gang gegen eine neue; ohne Dorftruhe landet sie in der Zielkiste und er wartet, statt sie aufzubrauchen; eine Steinaxt wird aufgebraucht.
 
 ## Warum
@@ -57,7 +58,7 @@ Das ändert die Werkzeugwahl der [Dorftruhen](dorftruhen.md#was-sich-ein-arbeite
 
 **Ohne Schmied** repariert der Spieler selbst: am Amboss mit Material oder durch Kombinieren zweier Werkzeuge in der Werkbank. Die Dorftruhe ist dafür nur der Sammelplatz.
 
-**Mit Schmied** (Modus „Reparieren“ am Schmiedetisch, siehe [Schmied](../berufe/schmied.md#modi-konzept)):
+**Mit Schmied** (Modus „Reparieren“ am Schmiedetisch, siehe [Schmied](../berufe/schmied.md#modi)):
 
 - Er sucht in den Dorftruhen in Reichweite **seines Schmiedetischs** nach Werkzeugen unter der Grenze.
 - Er holt bis zu 4 auf einmal, repariert sie am Schmiedetisch und legt sie in die Dorftruhe zurück, aus der er sie genommen hat (ist sie voll: die nächste Dorftruhe).

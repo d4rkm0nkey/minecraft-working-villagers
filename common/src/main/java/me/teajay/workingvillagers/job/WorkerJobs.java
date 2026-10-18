@@ -34,22 +34,23 @@ import org.jspecify.annotations.Nullable;
  * away again there. Hired villagers do not take any vanilla job.
  *
  * <p>Vanilla job acquisition only looks at job sites in the {@code acquirable_job_site} tag,
- * which the blocks of this mod are not part of. The stonecutter,
- * the composter and the blast furnace are in the tag, ordinary villagers still become masons,
- * farmers and armorers there.
+ * which the blocks of this mod are not part of. The stonecutter, the composter, the blast
+ * furnace and the smithing table are in the tag, ordinary villagers still become masons,
+ * farmers, armorers and toolsmiths there.
  */
 public final class WorkerJobs {
-	private static final Map<ResourceKey<PoiType>, ResourceKey<VillagerProfession>> JOBS = Map.of(
-		WorkingVillagers.LUMBERJACK_POI, WorkingVillagers.LUMBERJACK_PROFESSION,
-		WorkingVillagers.WOODCUTTER_POI, WorkingVillagers.WOODCUTTER_PROFESSION,
-		WorkingVillagers.CARPENTER_POI, WorkingVillagers.CARPENTER_PROFESSION,
-		PoiTypes.MASON, WorkingVillagers.STONECUTTER_PROFESSION,
-		PoiTypes.FARMER, WorkingVillagers.FARMER_PROFESSION,
-		PoiTypes.ARMORER, WorkingVillagers.SMITH_PROFESSION,
-		WorkingVillagers.PIT_DIGGER_POI, WorkingVillagers.PIT_DIGGER_PROFESSION,
-		WorkingVillagers.KILN_OPERATOR_POI, WorkingVillagers.KILN_OPERATOR_PROFESSION,
-		WorkingVillagers.SHOP_ASSISTANT_POI, WorkingVillagers.SHOP_ASSISTANT_PROFESSION,
-		WorkingVillagers.MINER_POI, WorkingVillagers.MINER_PROFESSION
+	private static final Map<ResourceKey<PoiType>, ResourceKey<VillagerProfession>> JOBS = Map.ofEntries(
+		Map.entry(WorkingVillagers.LUMBERJACK_POI, WorkingVillagers.LUMBERJACK_PROFESSION),
+		Map.entry(WorkingVillagers.WOODCUTTER_POI, WorkingVillagers.WOODCUTTER_PROFESSION),
+		Map.entry(WorkingVillagers.CARPENTER_POI, WorkingVillagers.CARPENTER_PROFESSION),
+		Map.entry(PoiTypes.MASON, WorkingVillagers.STONECUTTER_PROFESSION),
+		Map.entry(PoiTypes.FARMER, WorkingVillagers.FARMER_PROFESSION),
+		Map.entry(PoiTypes.ARMORER, WorkingVillagers.SMITH_PROFESSION),
+		Map.entry(PoiTypes.TOOLSMITH, WorkingVillagers.SMITH_PROFESSION),
+		Map.entry(WorkingVillagers.PIT_DIGGER_POI, WorkingVillagers.PIT_DIGGER_PROFESSION),
+		Map.entry(WorkingVillagers.KILN_OPERATOR_POI, WorkingVillagers.KILN_OPERATOR_PROFESSION),
+		Map.entry(WorkingVillagers.SHOP_ASSISTANT_POI, WorkingVillagers.SHOP_ASSISTANT_PROFESSION),
+		Map.entry(WorkingVillagers.MINER_POI, WorkingVillagers.MINER_PROFESSION)
 	);
 	private static final int CHECK_INTERVAL = 20;
 	/** How far from a station a villager that holds it is looked for before its ticket is given back. */

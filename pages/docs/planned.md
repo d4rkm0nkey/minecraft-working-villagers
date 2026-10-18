@@ -37,8 +37,6 @@ profession.
   working instead of trading, and get faster or carry more on the way.
 - :mc-wicker_basket: **Filters for carriers**, so a carrier only moves the items you
   choose instead of everything in a chest.
-- :mc-smithing_table: **Repairs by the smith.** At a smithing table the smith repairs the
-  worn tools of the other workers with ingots.
 
 ## Villages
 

@@ -606,6 +606,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		return switch (this.menu.type()) {
 			case CARPENTER_BENCH -> "gui.workingvillagers.station.back.tooltip.bench";
 			case BLAST_FURNACE -> "gui.workingvillagers.station.back.tooltip.furnace";
+			case SMITHING_TABLE -> "gui.workingvillagers.station.back.tooltip.smithing_table";
 			case KILN -> "gui.workingvillagers.station.back.tooltip.kiln";
 			case MINING_BENCH -> "gui.workingvillagers.station.back.tooltip.mill";
 			default -> "gui.workingvillagers.station.back.tooltip";
@@ -775,6 +776,11 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			return Optional.of(Component.translatable(this.menu.getWorker().isEmpty()
 				? "gui.workingvillagers.chopping_block.hire"
 				: "gui.workingvillagers.blast_furnace.smelts"));
+		}
+		if (this.menu.type() == StationType.SMITHING_TABLE) {
+			return Optional.of(Component.translatable(this.menu.getWorker().isEmpty()
+				? "gui.workingvillagers.chopping_block.hire"
+				: "gui.workingvillagers.smithing_table.repairs"));
 		}
 		if (this.menu.type() == StationType.CHOPPING_BLOCK) {
 			int logs = this.menu.getLogsToday();

@@ -356,5 +356,14 @@
   "message.workingvillagers.tunnel.picked": "Stollen gewählt: Er geht nach %s.",
   "status.workingvillagers.tool_return": "Gibt ein abgenutztes Werkzeug zurück",
   "gui.workingvillagers.supplies.worn": "Gibt %s abgenutzte(s) Werkzeug(e) zurück, statt sie zu zerbrechen",
-  "gui.workingvillagers.village_chest.worn": "%s abgenutzte(s) Werkzeug(e) zum Reparieren"
+  "gui.workingvillagers.village_chest.worn": "%s abgenutzte(s) Werkzeug(e) zum Reparieren",
+  "status.workingvillagers.smith.fetch_tools": "Holt Werkzeug zum Reparieren",
+  "status.workingvillagers.smith.fetch_material": "Holt Material zum Reparieren",
+  "status.workingvillagers.smith.repair": "Repariert Werkzeug",
+  "status.workingvillagers.smith.return_tools": "Bringt repariertes Werkzeug zurück",
+  "status.workingvillagers.smith.no_repairs": "Wartet auf Werkzeug zum Reparieren",
+  "status.workingvillagers.smith.no_material": "Wartet auf %s zum Reparieren",
+  "status.workingvillagers.smith.table_unreachable": "Wartet: kommt nicht an den Schmiedetisch",
+  "gui.workingvillagers.smithing_table.repairs": "Repariert abgenutztes Werkzeug aus den Dorftruhen und alles Beschädigte aus den Eingangskisten",
+  "gui.workingvillagers.station.back.tooltip.smithing_table": "Zurück zum Schmiedetisch"
 }

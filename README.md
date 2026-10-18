@@ -4,7 +4,7 @@ Hire unemployed villagers with a work contract and give them real jobs.
 This demo adds the **lumberjack**, the **woodcutter** block, two processing
 professions: the **sawyer** (woodcutter) and the **stone sawyer** (stonecutter), the
 **carpenter** at the **carpenter's bench**, the **farmer** (composter) and the **smith**
-(blast furnace), the **pit digger** at the **pit stake**, the **kiln operator** at the
+(blast furnace, smithing table), the **pit digger** at the **pit stake**, the **kiln operator** at the
 **kiln**, the **shop assistant** at the **trading counter**, the **miner** at the
 **mining bench**, and the **carrier**, hired
 with a **wicker basket**, which carries items between chests.
@@ -22,7 +22,7 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
    name (like vanilla villagers; a name tag names it), unless `workers.randomNames` is on.
 2. **Place a chopping block** (an axe above a log). A hired villager without a job looks
    for a free workstation of this mod within 48 blocks that it can walk to (chopping
-   block, woodcutter, stonecutter, carpenter's bench, composter, blast furnace), walks
+   block, woodcutter, stonecutter, carpenter's bench, composter, blast furnace, smithing table), walks
    there and takes the job (green particles), like vanilla villagers claim job sites.
    Right-click the block to open its menu: **Assign** (next to the worker line) closes
    the menu; then right-click a hired villager to pick a specific worker. A worker that
@@ -58,9 +58,10 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
   language if it has no name), or "Free". (Earlier versions put a paper note with the
   name on the front of the stations; notes left in a world remove themselves when they are
   loaded.)
-- Hired villagers never take vanilla jobs (lectern etc.). At a stonecutter, composter or
-  blast furnace a hired villager becomes the stone sawyer, farmer or smith of this mod;
-  unhired villagers still become masons, farmers and armorers, except at one that is set
+- Hired villagers never take vanilla jobs (lectern etc.). At a stonecutter, composter,
+  blast furnace or smithing table a hired villager becomes the stone sawyer, farmer or
+  smith of this mod; unhired villagers still become masons, farmers, armorers and
+  toolsmiths, except at one that is set
   up (chests, order or worker): vanilla job acquisition skips it. *Assign* there makes an
   ordinary villager that works there and has never traded (villager XP 0) unemployed;
   one that has traded keeps its job.
@@ -82,7 +83,8 @@ chests. A hired worker that dies drops everything it carries (emeralds, tools, m
   checking every few seconds.
 - **Lumberjack:** needs an axe (carries up to 2), optionally saplings (up to 16 of each
   kind, `lumberjack.keepSaplings`). The axe wears out like a player's (one use per log,
-  Unbreaking counts) and is gone when it breaks; without one it waits ("needs an axe").
+  Unbreaking counts); shortly before it breaks it is given back (see *Worn tools* below);
+  without one it waits ("needs an axe").
   Chopping speed depends on the axe. It only replants with saplings it carries (given,
   or picked up under the trees) and hands in the rest; it never fetches saplings from
   a chest. Without saplings it still fells, but does not replant.
@@ -108,20 +110,28 @@ first route) is within 48 blocks horizontally and 24 up or down
 that has what it wants. Giving directly still works.
 
 - **When:** before its first work of the day it fetches whatever runs low; during the day
-  only what it cannot work without (no wage, its tool broke, no ladders). If no village
+  only what it cannot work without (no wage, its tool is worn, no ladders). If no village
   chest has it, it waits as before.
 - **What:** emeralds for 3 days (`villageChests.wageDays`) once it has less than a day's
   wage; a spare tool once it has none or only one with a tenth of its durability left (the
-  most worn one first, so tools get used up; one about to break only if it has none);
+  most worn one first, so tools get used up; never a worn one, see below);
   saplings, seeds, ladders and torches up to the amount it keeps once it has less than a
   quarter of it (kinds it already has first).
 - **Not:** enchanted or renamed tools (`villageChests.takeEnchanted`). Workers put nothing
-  into a village chest.
+  into a village chest but their worn tools.
 - Two village chests side by side form a double chest, like vanilla chests.
 - The village chest's screen shows the workers it serves, what one of them lacks that no
   village chest has, and for how many days the emeralds pay all their wages. Hoppers and
   carriers can fill it like any chest.
 - With `dailyWage` 0 they work for free; they still need their tools.
+
+**Worn tools:** once a tool has 10 % of its durability left (`tools.returnBelow`, at least
+2 uses), the lumberjack, farmer, pit digger and miner stop using it and, before their next
+piece of work, give it back: into the closest village chest with a free slot (taking a new
+tool on the same walk), else into an output chest of their workstation, else they keep it
+and try again a minute later. So tools never break. Wooden and stone tools are used up
+unless enchanted or renamed (`tools.returnCheap`). Workers never take a worn tool and
+refuse one from a player. A smith at a smithing table repairs them (see *Smith*).
 
 The station overview and the carrier menu show a row of slots: the emeralds the worker
 carries (with count), its tool with the durability bar (lumberjack and farmer) and its
@@ -246,6 +256,14 @@ smelt and up to 8 fuel (anything with the `cooking_fuel` component) from the inp
 loads the blast furnace, takes out what it made and brings that to an output chest. The
 blast furnace smelts at its usual speed; the experience stays in it for the next player who
 takes something out. An empty bucket in the fuel slot is taken out and handed in.
+
+At a vanilla **smithing table** (ordinary villagers still become toolsmiths there) the
+smith **repairs** instead; the **i** button in the smithing screen opens its overview. It
+takes up to 4 items at a time: the worn tools the workers gave back into the village
+chests in reach of the table, and anything damaged in its input chests. It repairs them
+with the material of their `repairable` component from the input chests, a quarter of
+the durability per material like an anvil, without experience costs (enchantments and
+names stay), and puts them back where they came from.
 
 ## Pit digger
 
@@ -409,7 +427,9 @@ the pit digger digs a pit with a ladder down to its bottom without touching the 
 shop assistant sells wheat to a farmer until its trade is sold out, ordinary villagers do
 not take a set-up composter and *Assign* makes room at one, a boxed-in worker is brought
 back, a lumberjack takes its wage, the more worn axe and saplings from a village chest but
-leaves a renamed axe there, the miner digs a 3×3 tunnel with supports and a torch, side
+leaves a renamed axe there, a lumberjack gives back a worn axe into the village chest (or
+the output chest) instead of breaking it while a stone axe is used up, the smith repairs a
+worn axe from a village chest and an enchanted pickaxe from its input chest, the miner digs a 3×3 tunnel with supports and a torch, side
 tunnels and stairs, digs iron ore in the wall and the one behind it, seals lava and stops
 at planks in its way, and the mill turns cobblestone into gravel and gravel into sand and
 flint.
@@ -422,7 +442,8 @@ flint.
 - The structures are empty grass platforms written by `tools/generate_test_structures.py`.
 - The tests run side by side, so they set `villageChests.radius` to 8: the village chest
   of one test does not reach the workers of the test next to it. The miner digs at a
-  player's speed in the tests (`miner.digSlowdown` 1).
+  player's speed in the tests (`miner.digSlowdown` 1). Each test sets these when it
+  starts: on Fabric the mod may load its config file after the tests are registered.
 - In the tests the floor of the platform is at y 0 (the air layer above the grass).
 - A failure message names the worker's status, e.g. "Waiting for wages", which usually
   tells what went wrong.

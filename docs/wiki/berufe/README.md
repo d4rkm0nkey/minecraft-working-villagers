@@ -19,7 +19,7 @@ Alle Berufe folgen dem [Kernloop](../grundlagen/kernloop.md) und den [Lohnstufen
 | [Grubenlogistiker](grubenlogistiker.md) | Förderhaspel | Depots, Trägerkette, Schienen mit Lore, Aufzug zwischen Etagen | Förderhaspel | M4 |
 | [Händler](haendler.md) | Handelskontor | Karawanen zu Nachbardörfern | Handelskontor | M4 |
 | [Farmer](farmer.md) (im Spiel: Bauer) | Komposter | Vorhandene Felder ernten und neu säen | nein | umgesetzt (ohne Pflügen) |
-| [Schmied](schmied.md) | Schmelzofen / Schmiedetisch | Erze schmelzen, Werkzeug reparieren | nein | Schmelzen umgesetzt |
+| [Schmied](schmied.md) | Schmelzofen / Schmiedetisch | Erze schmelzen, Werkzeug reparieren | nein | umgesetzt |
 | [Grubenarbeiter](grubenarbeiter.md) | Grubenpflock | Mit Schnur umrandete Grube ausheben, Leiter als Ausgang | Grubenpflock | umgesetzt |
 | [Brenner](brenner.md) | Brennofen | Glas, Stein, Ziegel, Holzkohle brennen (Ofen ohne Essen) | Brennofen | umgesetzt |
 | [Fischer](fischer.md) | Barrel | Angeln an markiertem Wasser | nein | später |
@@ -33,7 +33,7 @@ Alle Berufe folgen dem [Kernloop](../grundlagen/kernloop.md) und den [Lohnstufen
 | [Bibliothekar](bibliothekar.md) | Lectern | Lagerverwaltung, Inventarliste | nein | später |
 | [Wache](wache.md) | – (Idee) | Schutz von Minen und Karawanen | offen | Idee |
 
-Umgesetzt sind: Holzfäller, Holzsäger, Steinsäger, Tischler, Bauer, Schmied (Schmelzen), Grubenarbeiter, Minenarbeiter, Brenner, Handelsangestellter (Verkauf) und Träger. Damit läuft die Holzkette Holzfäller → Holzsäger → Tischler, verbunden durch Träger (siehe [Logistik](../grundlagen/logistik.md)), und Erz kommt aus der Mine zum Schmied.
+Umgesetzt sind: Holzfäller, Holzsäger, Steinsäger, Tischler, Bauer, Schmied (Schmelzen und Reparieren), Grubenarbeiter, Minenarbeiter, Brenner, Handelsangestellter (Verkauf) und Träger. Damit läuft die Holzkette Holzfäller → Holzsäger → Tischler, verbunden durch Träger (siehe [Logistik](../grundlagen/logistik.md)), und Erz kommt aus der Mine zum Schmied.
 
 Als Nächstes stehen auf der [Roadmap](../planung/roadmap.md): Wirtschaft und Dorf (M2) und der [Crafter-Bediener](crafter-bediener.md) (M4). Mit ihm ist die Kette Erz → Barren → Crafter geschlossen.
 

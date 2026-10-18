@@ -27,7 +27,7 @@ public final class WorkerStatus {
 	private static final Set<String> PROBLEMS = Set.of(
 		"no_wage", "lumberjack.no_axe", "farmer.no_hoe", "farmer.no_seeds",
 		"chests_full", "chest_unreachable", "saw.station_unreachable", "carpenter.bench_unreachable", "smith.furnace_unreachable",
-		"saw.no_material", "carpenter.no_recipe", "carpenter.waiting_for", "carpenter.inventory_full", "smith.no_ore", "smith.no_fuel",
+		"saw.no_material", "carpenter.no_recipe", "carpenter.waiting_for", "carpenter.inventory_full", "smith.no_ore", "smith.no_fuel", "smith.no_material", "smith.table_unreachable",
 		"kiln.no_ore", "kiln.no_fuel", "kiln.furnace_unreachable", "shop.no_goods", "shop.no_buyer",
 		"pit_digger.no_shovel", "pit_digger.no_pickaxe", "pit_digger.no_ladders", "pit_digger.no_pit", "pit_digger.ring_broken",
 		"pit_digger.blocked_liquid", "pit_digger.blocked_tool", "pit_digger.unreachable", "pit_digger.ladder_blocked", "pit_digger.not_loaded",

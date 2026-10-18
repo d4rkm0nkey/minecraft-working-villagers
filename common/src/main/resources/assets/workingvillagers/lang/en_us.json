@@ -356,5 +356,14 @@
   "message.workingvillagers.tunnel.picked": "Tunnel picked: it goes to the %s.",
   "status.workingvillagers.tool_return": "Giving back a worn tool",
   "gui.workingvillagers.supplies.worn": "Gives back %s worn tool(s) instead of breaking them",
-  "gui.workingvillagers.village_chest.worn": "%s worn tool(s) to repair"
+  "gui.workingvillagers.village_chest.worn": "%s worn tool(s) to repair",
+  "status.workingvillagers.smith.fetch_tools": "Fetching tools to repair",
+  "status.workingvillagers.smith.fetch_material": "Fetching material for repairs",
+  "status.workingvillagers.smith.repair": "Repairing tools",
+  "status.workingvillagers.smith.return_tools": "Bringing repaired tools back",
+  "status.workingvillagers.smith.no_repairs": "Waiting for tools to repair",
+  "status.workingvillagers.smith.no_material": "Waiting for %s to repair with",
+  "status.workingvillagers.smith.table_unreachable": "Waiting: cannot reach the smithing table",
+  "gui.workingvillagers.smithing_table.repairs": "Repairs worn tools from the village chests and everything damaged in the input chests",
+  "gui.workingvillagers.station.back.tooltip.smithing_table": "Back to the smithing table"
 }

@@ -106,6 +106,8 @@ public final class WorkerTests {
 		registry.accept("lumberjack_swaps_worn_axe", WorkerTests::lumberjackSwapsWornAxe);
 		registry.accept("worn_axe_goes_to_output_chest", WorkerTests::wornAxeGoesToOutputChest);
 		registry.accept("stone_axe_is_used_up", WorkerTests::stoneAxeIsUsedUp);
+		registry.accept("smith_repairs_worn_axe", WorkerTests::smithRepairsWornAxe);
+		registry.accept("smith_repairs_input_chest", WorkerTests::smithRepairsInputChest);
 		for (StationType type : StationType.values()) {
 			String name = type.name().toLowerCase(Locale.ROOT);
 			registry.accept("worker_finds_" + name, helper -> workerFinds(helper, type));
@@ -363,6 +365,42 @@ public final class WorkerTests {
 			helper.assertTrue(WorkerSupplies.count(worker.getInventory(), stack -> stack.is(Items.STONE_AXE)) == 0
 				&& TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.STONE_AXE)) == 0, "The stone axe was not used up: " + TestWorld.describe(worker));
 			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_LOG), 1, "oak logs in the output chest");
+		});
+	}
+
+	/**
+	 * A worn iron axe in the village chest (20 of 250 uses left): the smith at the smithing
+	 * table repairs it with 4 iron ingots, a quarter each, and puts it back.
+	 */
+	private static void smithRepairsWornAxe(GameTestHelper helper) {
+		helper.setBlock(STATION, Blocks.SMITHING_TABLE);
+		TestWorld.villageChest(helper, VILLAGE_CHEST, wornAxe());
+		Villager worker = processingStation(helper, new ItemStack(Items.IRON_INGOT, 6));
+		helper.succeedWhen(() -> {
+			helper.assertTrue(TestWorld.count(helper, VILLAGE_CHEST, stack -> stack.is(Items.IRON_AXE) && !stack.isDamaged()) == 1,
+				"The axe is not repaired in the village chest: " + TestWorld.describe(worker));
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.IRON_INGOT)) == 2, "The smith did not use 4 iron ingots");
+			TestWorld.removeVillageChest(helper, VILLAGE_CHEST);
+		});
+	}
+
+	/**
+	 * A damaged, enchanted diamond pickaxe in the input chest: the smith repairs it with
+	 * diamonds and puts it back, the enchantment stays. Stone it cannot repair anything with
+	 * stays in the chest.
+	 */
+	private static void smithRepairsInputChest(GameTestHelper helper) {
+		helper.setBlock(STATION, Blocks.SMITHING_TABLE);
+		ItemStack pickaxe = new ItemStack(Items.DIAMOND_PICKAXE);
+		pickaxe.setDamageValue(500);
+		pickaxe.enchant(helper.getLevel().registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
+			.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.EFFICIENCY), 3);
+		Villager worker = processingStation(helper, pickaxe, new ItemStack(Items.DIAMOND, 3), new ItemStack(Items.STONE, 4));
+		helper.succeedWhen(() -> {
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.DIAMOND_PICKAXE) && !stack.isDamaged() && stack.isEnchanted()) == 1,
+				"The pickaxe is not repaired in the input chest: " + TestWorld.describe(worker));
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.DIAMOND)) == 1, "The smith did not use 2 diamonds");
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.STONE)) == 4, "The smith took the stone");
 		});
 	}
 

@@ -195,6 +195,7 @@ public class StationMenu extends AbstractContainerMenu {
 			case CARPENTER_BENCH -> WorkingVillagers.CARPENTER_STATION_MENU;
 			case COMPOSTER -> WorkingVillagers.COMPOSTER_STATION_MENU;
 			case BLAST_FURNACE -> WorkingVillagers.BLAST_FURNACE_STATION_MENU;
+			case SMITHING_TABLE -> WorkingVillagers.SMITHING_TABLE_STATION_MENU;
 			case PIT_STAKE -> WorkingVillagers.PIT_STAKE_MENU;
 			case KILN -> WorkingVillagers.KILN_STATION_MENU;
 			case TRADING_COUNTER -> WorkingVillagers.TRADING_COUNTER_MENU;

@@ -14,6 +14,7 @@ import me.teajay.workingvillagers.job.DigPit;
 import me.teajay.workingvillagers.job.DigTunnel;
 import me.teajay.workingvillagers.job.FarmFields;
 import me.teajay.workingvillagers.job.FindWorkplace;
+import me.teajay.workingvillagers.job.RepairTools;
 import me.teajay.workingvillagers.job.SellGoods;
 import me.teajay.workingvillagers.job.SmeltAtFurnace;
 import me.teajay.workingvillagers.job.WorkerJobs;
@@ -50,6 +51,16 @@ public abstract class VillagerGoalPackagesMixin {
 		CallbackInfoReturnable<ImmutableList<Pair<Integer, ? extends BehaviorControl<? super Villager>>>> cir
 	) {
 		BehaviorControl<? super Villager> work = null;
+		if (profession.is(WorkingVillagers.SMITH_PROFESSION)) {
+			// Smelting at a blast furnace or repairing at a smithing table, by the job site
+			cir.setReturnValue(ImmutableList.of(
+				Pair.of(5, new SmeltAtFurnace(SmeltAtFurnace.Kind.SMITH)),
+				Pair.of(5, new RepairTools()),
+				Pair.of(3, new GiveGiftToHero(100)),
+				Pair.of(99, UpdateActivityFromSchedule.create())
+			));
+			return;
+		}
 		if (profession.is(WorkingVillagers.LUMBERJACK_PROFESSION)) {
 			work = new ChopTrees();
 		} else if (profession.is(WorkingVillagers.WOODCUTTER_PROFESSION)) {
@@ -62,8 +73,6 @@ public abstract class VillagerGoalPackagesMixin {
 			work = new CarryItems();
 		} else if (profession.is(WorkingVillagers.FARMER_PROFESSION)) {
 			work = new FarmFields();
-		} else if (profession.is(WorkingVillagers.SMITH_PROFESSION)) {
-			work = new SmeltAtFurnace(SmeltAtFurnace.Kind.SMITH);
 		} else if (profession.is(WorkingVillagers.KILN_OPERATOR_PROFESSION)) {
 			work = new SmeltAtFurnace(SmeltAtFurnace.Kind.KILN);
 		} else if (profession.is(WorkingVillagers.PIT_DIGGER_PROFESSION)) {

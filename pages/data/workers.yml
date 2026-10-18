@@ -84,10 +84,10 @@ smith:
   page: workers/smith.md
   head: smith
   workstation: blast_furnace
-  summary: Smelts ore from its input chests in the blast furnace.
+  summary: Smelts ore in the blast furnace, or repairs tools at a smithing table.
   facts:
     Hired with: ":mc-work_contract: Work contract"
-    Workstation: ":mc-blast_furnace: Blast furnace"
+    Workstation: ":mc-blast_furnace: Blast furnace or :mc-smithing_table: smithing table"
     Takes: ":mc-raw_iron: Ore and :mc-coal: fuel"
     Makes: ":mc-iron_ingot: Ingots"
     Batch: 16 items, 8 fuel

@@ -16,7 +16,7 @@ the status does not help, go through this list.
 | *Waiting for wages (give them an emerald)* | Right-click the worker with an emerald (one per work day). |
 | *Cannot work (chest or order missing)* | Link the chests (lumberjack and farmer: one chest; others: an input and an output) and, at a cutter or the bench, set an order. A lumberjack also shows this when the game rule `mob_griefing` is off. |
 | *Waiting: cannot reach the chest* | Clear the front of the chest, or move it to where the worker can walk. |
-| *Waiting: cannot reach the saw* / *the bench* / *the blast furnace* / *the kiln* | Clear the front of the workstation. |
+| *Waiting: cannot reach the saw* / *the bench* / *the blast furnace* / *the smithing table* / *the kiln* | Clear the front of the workstation. |
 | *Waiting: chests are full* | Empty the output chests or link another one. |
 | *Waiting: needs an axe (give them one)* | Right-click the lumberjack with an axe. |
 | *Waiting: no tree found* | No natural tree within 16 blocks of the chopping block, or none it can reach. |
@@ -31,6 +31,8 @@ the status does not help, go through this list.
 | *Waiting: needs a hoe (give them one)* | Right-click the farmer with a hoe. |
 | *Waiting for something to smelt* | The smith's input chests have nothing the blast furnace can smelt. |
 | *Waiting for fuel* | Put coal, charcoal or other fuel into the smith's input chests. |
+| *Waiting for tools to repair* | The smith at the smithing table finds no worn tool in the village chests near it and nothing damaged in its input chests. Nothing to do. |
+| *Waiting for Iron Ingot to repair with* | Put the material into the input chests of the smithing table (iron ingots, diamonds, planks, ...). |
 | *Waiting for something to fire* | The kiln operator's input chests have nothing the kiln can fire, or nothing for the picked product. |
 | *Stock is full (16/16)* at a kiln | The output chests hold as many of the product as set. Take some out or raise the stock. |
 | *Waiting: no pit picked* | Lay a closed ring of string and click **Pick pit** at the pit stake. |
@@ -96,6 +98,7 @@ the status does not help, go through this list.
 
 - [ ] An input and an output chest linked (the **i** button in the blast furnace screen).
 - [ ] Something to smelt **and** fuel in the input chests.
+- [ ] At a smithing table: an input chest linked, with the repair material in it.
 
 ### Pit digger
 

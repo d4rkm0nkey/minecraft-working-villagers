@@ -29,7 +29,12 @@ public enum StationType {
 	/** The shop assistant sells the goods of the input chests, the emeralds go to the output chests. */
 	TRADING_COUNTER(true),
 	/** The miner only delivers what it digs; the bench itself is a mill for players. */
-	MINING_BENCH(false);
+	MINING_BENCH(false),
+	/**
+	 * The smith repairs tools: worn ones from the village chests nearby and damaged ones from
+	 * the input chests, with the material from the input chests.
+	 */
+	SMITHING_TABLE(true);
 
 	private final boolean processing;
 
@@ -47,7 +52,8 @@ public enum StationType {
 
 	/** Whether the block has a screen of its own, which the overview leads back to. */
 	public boolean hasOwnScreen() {
-		return this == WOODCUTTER || this == STONECUTTER || this == CARPENTER_BENCH || this == BLAST_FURNACE || this == KILN || this == MINING_BENCH;
+		return this == WOODCUTTER || this == STONECUTTER || this == CARPENTER_BENCH || this == BLAST_FURNACE || this == KILN || this == MINING_BENCH
+			|| this == SMITHING_TABLE;
 	}
 
 	/** Whether the worker needs an order, set in the order column of the overview. */
@@ -60,7 +66,7 @@ public enum StationType {
 	 * profession. It only counts as a workstation of this mod once it has been set up.
 	 */
 	public boolean isVanilla() {
-		return this == STONECUTTER || this == COMPOSTER || this == BLAST_FURNACE;
+		return this == STONECUTTER || this == COMPOSTER || this == BLAST_FURNACE || this == SMITHING_TABLE;
 	}
 
 	/**
@@ -92,6 +98,7 @@ public enum StationType {
 			case KILN -> WorkingVillagers.KILN.get().getName();
 			case TRADING_COUNTER -> WorkingVillagers.TRADING_COUNTER.get().getName();
 			case MINING_BENCH -> WorkingVillagers.MINING_BENCH.get().getName();
+			case SMITHING_TABLE -> Blocks.SMITHING_TABLE.getName();
 		};
 	}
 
@@ -107,6 +114,7 @@ public enum StationType {
 			case KILN -> WorkingVillagers.KILN.get();
 			case TRADING_COUNTER -> WorkingVillagers.TRADING_COUNTER.get();
 			case MINING_BENCH -> WorkingVillagers.MINING_BENCH.get();
+			case SMITHING_TABLE -> Blocks.SMITHING_TABLE;
 		};
 	}
 
@@ -131,6 +139,8 @@ public enum StationType {
 			return TRADING_COUNTER;
 		} else if (state.is(WorkingVillagers.MINING_BENCH.get())) {
 			return MINING_BENCH;
+		} else if (state.is(Blocks.SMITHING_TABLE)) {
+			return SMITHING_TABLE;
 		}
 		return null;
 	}

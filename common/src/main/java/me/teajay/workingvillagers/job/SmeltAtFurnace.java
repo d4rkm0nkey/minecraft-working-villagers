@@ -9,6 +9,7 @@ import java.util.function.Predicate;
 import me.teajay.workingvillagers.Config;
 import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.crafting.KilnRecipes;
+import me.teajay.workingvillagers.station.StationType;
 import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
@@ -69,15 +70,18 @@ public class SmeltAtFurnace extends Behavior<Villager> {
 
 	/** The smith at a blast furnace or the kiln operator at a kiln. */
 	public enum Kind {
-		SMITH(WorkingVillagers.SMITH_PROFESSION, "smith"),
-		KILN(WorkingVillagers.KILN_OPERATOR_PROFESSION, "kiln");
+		SMITH(WorkingVillagers.SMITH_PROFESSION, StationType.BLAST_FURNACE, "smith"),
+		KILN(WorkingVillagers.KILN_OPERATOR_PROFESSION, StationType.KILN, "kiln");
 
 		private final ResourceKey<VillagerProfession> profession;
+		/** The furnace; the smith repairs at the smithing table instead (see {@link RepairTools}). */
+		private final StationType station;
 		/** The first part of the status keys, e.g. {@code smith.fetch}. */
 		private final String status;
 
-		Kind(ResourceKey<VillagerProfession> profession, String status) {
+		Kind(ResourceKey<VillagerProfession> profession, StationType station, String status) {
 			this.profession = profession;
+			this.station = station;
 			this.status = status;
 		}
 
@@ -134,7 +138,7 @@ public class SmeltAtFurnace extends Behavior<Villager> {
 			return false;
 		}
 		Workstations.Station station = this.getWorkplace(level, villager);
-		return station != null && !station.validInputs(level).isEmpty() && !station.validOutputs(level).isEmpty();
+		return station != null && station.type() == this.kind.station && !station.validInputs(level).isEmpty() && !station.validOutputs(level).isEmpty();
 	}
 
 	private Workstations.@Nullable Station getWorkplace(ServerLevel level, Villager villager) {

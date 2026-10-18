@@ -18,7 +18,7 @@ Working Villagers turns unemployed villagers into paid employees. Hand one a wor
 | **Carpenter** | Carpenter's bench | Crafts chests, barrels, ladders, tools, boats and other wooden goods |
 | **Carrier** | Wicker basket | Carries items between chests along up to three routes |
 | **Farmer** | Composter | Harvests and replants the fields around its composter |
-| **Smith** | Blast furnace | Smelts ore from its input chests in the blast furnace |
+| **Smith** | Blast furnace, smithing table | Smelts ore in the blast furnace, repairs the workers' worn tools at the smithing table |
 | **Pit digger** | Pit stake | Digs out a pit you mark with string, layer by layer, with a ladder as the way out |
 | **Kiln operator** | Kiln | Fires glass, stone, bricks, terracotta and charcoal in a brick kiln |
 | **Shop assistant** | Trading counter | Sells goods from its chests to the villagers around and brings in emeralds |
@@ -60,6 +60,7 @@ Hired villagers never take vanilla jobs and never quit by themselves. A worker t
 
 - A hired villager at a vanilla **composter** becomes a farmer: it harvests the ripe crops around it, replants them and brings the harvest to a chest. It needs a hoe you give it, never tills, never tramples the fields and touches nothing but crops.
 - A hired villager at a vanilla **blast furnace** becomes a smith: it loads the furnace with ore and fuel from its input chests and brings the ingots to its output chests.
+- At a vanilla **smithing table** the smith repairs instead: the worn tools the workers give back into the village chests, and anything damaged in its input chests, with ingots, diamonds or planks like at an anvil, but without experience costs.
 - Right-click the composter with an empty hand, or click the **i** button in the blast furnace screen, to set them up. Ordinary villagers still become vanilla farmers and armorers there, but not at one you have set up.
 
 ## ⛏️ Pit digger and kiln operator

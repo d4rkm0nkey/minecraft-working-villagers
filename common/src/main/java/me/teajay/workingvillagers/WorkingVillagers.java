@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableSet;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import me.teajay.workingvillagers.block.CarpenterBenchBlock;
 import me.teajay.workingvillagers.block.ChoppingBlock;
@@ -29,6 +30,7 @@ import me.teajay.workingvillagers.network.RenameContainerPayload;
 import me.teajay.workingvillagers.network.RenameRoutePayload;
 import me.teajay.workingvillagers.station.StationType;
 import me.teajay.workingvillagers.platform.Platform;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvent;
@@ -72,7 +74,7 @@ public final class WorkingVillagers {
 	public static final ResourceKey<VillagerProfession> STONECUTTER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("stonecutter"));
 	/** Works at the vanilla composter, the job site of the vanilla farmer. */
 	public static final ResourceKey<VillagerProfession> FARMER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("farmer"));
-	/** Works at the vanilla blast furnace, the job site of the armorer. */
+	/** Works at the vanilla blast furnace (the job site of the armorer) or the smithing table (the toolsmith's). */
 	public static final ResourceKey<VillagerProfession> SMITH_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("smith"));
 	public static final ResourceKey<PoiType> PIT_DIGGER_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("pit_digger"));
 	public static final ResourceKey<VillagerProfession> PIT_DIGGER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("pit_digger"));
@@ -105,6 +107,7 @@ public final class WorkingVillagers {
 	public static Supplier<MenuType<CarrierMenu>> CARRIER_MENU;
 	public static Supplier<MenuType<StationMenu>> COMPOSTER_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> BLAST_FURNACE_STATION_MENU;
+	public static Supplier<MenuType<StationMenu>> SMITHING_TABLE_STATION_MENU;
 	public static Supplier<MenuType<CutterMenu>> WOODCUTTER_MENU;
 	public static Supplier<RecipeType<WoodcuttingRecipe>> WOODCUTTING;
 	public static Supplier<RecipeSerializer<WoodcuttingRecipe>> WOODCUTTING_SERIALIZER;
@@ -241,9 +244,15 @@ public final class WorkingVillagers {
 	private static void registerProfession(
 		Platform platform, String name, ResourceKey<PoiType> jobSite, ImmutableSet<Item> requestedItems, @Nullable SoundEvent workSound
 	) {
+		registerProfession(platform, name, poi -> poi.is(jobSite), requestedItems, workSound);
+	}
+
+	private static void registerProfession(
+		Platform platform, String name, Predicate<Holder<PoiType>> jobSite, ImmutableSet<Item> requestedItems, @Nullable SoundEvent workSound
+	) {
 		platform.register(Registries.VILLAGER_PROFESSION, name, () -> new VillagerProfession(
 			Component.translatable("entity." + MOD_ID + ".villager." + name),
-			poi -> poi.is(jobSite),
+			jobSite,
 			poi -> false,
 			requestedItems,
 			ImmutableSet.of(),
@@ -319,12 +328,14 @@ public final class WorkingVillagers {
 	}
 
 	/**
-	 * The smith works at the vanilla blast furnace; ordinary villagers still become armorers
-	 * there. The overview opens with the "i" button in the blast furnace screen.
+	 * The smith smelts at the vanilla blast furnace and repairs tools at the vanilla smithing
+	 * table; ordinary villagers still become armorers and toolsmiths there. The overviews open
+	 * with the "i" button in the screens of the blast furnace and the smithing table.
 	 */
 	private static void registerSmith(Platform platform) {
 		BLAST_FURNACE_STATION_MENU = platform.registerMenu("blast_furnace_station", (containerId, inventory) -> new StationMenu(StationType.BLAST_FURNACE, containerId, inventory));
-		registerProfession(platform, "smith", PoiTypes.ARMORER, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_ARMORER);
+		SMITHING_TABLE_STATION_MENU = platform.registerMenu("smithing_table_station", (containerId, inventory) -> new StationMenu(StationType.SMITHING_TABLE, containerId, inventory));
+		registerProfession(platform, "smith", poi -> poi.is(PoiTypes.ARMORER) || poi.is(PoiTypes.TOOLSMITH), ImmutableSet.of(), SoundEvents.VILLAGER_WORK_ARMORER);
 	}
 
 	/**

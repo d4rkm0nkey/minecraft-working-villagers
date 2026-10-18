@@ -12,6 +12,7 @@
     "DisplayMixin",
     "FarmlandBlockMixin",
     "ServerPlayerGameModeMixin",
+    "SmithingMenuMixin",
     "StonecutterBlockMixin",
     "VillagerGoalPackagesMixin",
     "VillagerMixin"
@@ -20,6 +21,7 @@
     "client.BlastFurnaceScreenMixin",
     "client.ContainerScreenMixin",
     "client.ScreenAccessor",
+    "client.SmithingScreenMixin",
     "client.VillagerRendererMixin"
   ],
   "injectors": {

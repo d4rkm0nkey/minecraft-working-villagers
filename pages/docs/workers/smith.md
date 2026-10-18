@@ -5,13 +5,15 @@ workers: [smith]
 
 # Smith
 
-Hired with a work contract, the smith works at a vanilla **blast furnace**. It loads the
-blast furnace with ore and fuel from its input chests and brings what comes out to its
-output chests.
+Hired with a work contract, the smith works at a vanilla **blast furnace** or at a
+vanilla **smithing table**. At the blast furnace it loads the furnace with ore and fuel
+from its input chests and brings what comes out to its output chests. At the smithing
+table it [repairs tools](#repairing-tools). Which of the two it does depends on where it
+works; for both, hire two smiths.
 
 !!! note
-    Ordinary (not hired) villagers still become armorers at blast furnaces. Only hired
-    villagers become smiths. A station you have set up (linked chests) is
+    Ordinary (not hired) villagers still become armorers at blast furnaces and toolsmiths
+    at smithing tables. Only hired villagers become smiths. A station you have set up (linked chests) is
     kept for hired workers, and **Assign** makes room there.
 
 ## Setting it up
@@ -51,3 +53,29 @@ furnace). You can watch and use it at any time.
   a stack you put in by hand is finished first.
 - Glass, stone, bricks and charcoal are not smelted in the blast furnace; that is the job
   of the [kiln operator](kiln-operator.md).
+
+## Repairing tools
+
+At a **smithing table** the smith repairs the tools of the other workers, and yours.
+
+1. Place a smithing table and click the **i** button at the top right of its screen to
+   open its overview.
+2. Link at least one **input chest** and put the repair material in: iron ingots for iron
+   tools, diamonds for diamond tools, planks for wooden ones, the same as at an anvil.
+3. Assign a hired villager (or let one find the table) and give it its wage.
+
+It repairs:
+
+- the **worn tools** the workers gave back into the
+  [village chests](basics.md#worn-tools) within 48 blocks of the smithing table, and
+- **everything damaged** you put into its input chests: tools, weapons and armor.
+
+It takes up to **4** of them at a time, only those whose material is in an input chest,
+repairs them at the smithing table and puts them back into the chest they came from. One
+material repairs a quarter of the durability, like at an anvil, but it costs no
+experience and never gets "too expensive". Enchantments and names stay. Repaired tools in
+a village chest are taken by the workers again.
+
+Without material it waits ("Waiting for Iron Ingot to repair with"). An output chest is
+not needed; if the chest a tool came from is full, it puts it into another village chest
+or one of its own chests.

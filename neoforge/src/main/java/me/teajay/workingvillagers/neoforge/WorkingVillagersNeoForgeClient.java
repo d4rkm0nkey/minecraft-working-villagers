@@ -28,6 +28,7 @@ public class WorkingVillagersNeoForgeClient {
 			event.register(WorkingVillagers.CARPENTER_STATION_MENU.get(), StationScreen::new);
 			event.register(WorkingVillagers.COMPOSTER_STATION_MENU.get(), StationScreen::new);
 			event.register(WorkingVillagers.BLAST_FURNACE_STATION_MENU.get(), StationScreen::new);
+			event.register(WorkingVillagers.SMITHING_TABLE_STATION_MENU.get(), StationScreen::new);
 			event.register(WorkingVillagers.PIT_STAKE_MENU.get(), StationScreen::new);
 			event.register(WorkingVillagers.KILN_STATION_MENU.get(), StationScreen::new);
 			event.register(WorkingVillagers.KILN_MENU.get(), KilnScreen::new);

@@ -4,7 +4,7 @@ Working Villagers macht Dorfbewohner zu bezahlten Angestellten, die Rohstoffe wi
 
 Dieses Wiki ist das Konzept des Mods, aufgeteilt in verlinkte Seiten. Alle Zahlen sind Startwerte für Playtests. Was davon schon im Spiel ist, steht auf den Seiten jeweils unter **„Stand der Umsetzung“**; einen Überblick gibt die [Roadmap](planung/roadmap.md).
 
-Umgesetzt sind bisher: [Holzfäller](berufe/holzfaeller.md), [Holzsäger](berufe/holzsaeger.md), [Steinsäger](berufe/steinsaeger.md), [Tischler](berufe/tischler.md), [Bauer](berufe/farmer.md), [Schmied](berufe/schmied.md) (Schmelzen), [Grubenarbeiter](berufe/grubenarbeiter.md), [Brenner](berufe/brenner.md), [Handelsangestellter](berufe/handelsangestellter.md), [Minenarbeiter](berufe/minenarbeiter.md) und [Träger](berufe/traeger.md), dazu Arbeitsvertrag, Tageslohn und [Dorftruhen](dorf/dorftruhen.md).
+Umgesetzt sind bisher: [Holzfäller](berufe/holzfaeller.md), [Holzsäger](berufe/holzsaeger.md), [Steinsäger](berufe/steinsaeger.md), [Tischler](berufe/tischler.md), [Bauer](berufe/farmer.md), [Schmied](berufe/schmied.md) (Schmelzen und Reparieren), [Grubenarbeiter](berufe/grubenarbeiter.md), [Brenner](berufe/brenner.md), [Handelsangestellter](berufe/handelsangestellter.md), [Minenarbeiter](berufe/minenarbeiter.md) und [Träger](berufe/traeger.md), dazu Arbeitsvertrag, Tageslohn und [Dorftruhen](dorf/dorftruhen.md).
 
 ## Grundlagen
 
