@@ -342,6 +342,39 @@ def shepherd():
     return image
 
 
+def butcher():
+    """Villager profession overlay: a blue and white striped apron (on the robe and the front
+    of the body) over a dark red shirt, a brown leather belt, dark trousers and a white
+    butcher's cap."""
+    image = blank(64)
+    p = image.load()
+    shirt_, shirt_dark = (130, 40, 40, 255), (100, 30, 30, 255)
+    white, blue = (235, 235, 230, 255), (70, 100, 160, 255)
+    leather, trousers, cap_shade = (100, 65, 35, 255), (55, 50, 60, 255), (205, 205, 200, 255)
+
+    def fill(x0, y0, x1, y1, color):
+        for y in range(y0, y1):
+            for x in range(x0, x1):
+                p[x, y] = color(x, y)
+
+    shirt = lambda x, y: shirt_dark if y % 4 == 3 else shirt_
+    stripes = lambda x, y: blue if x % 3 == 0 else white
+    fill(16, 20, 44, 38, shirt)  # body
+    fill(44, 22, 60, 34, shirt)  # crossed arms
+    fill(40, 38, 64, 46, shirt)  # crossed arms, middle part
+    fill(22, 28, 30, 38, stripes)  # apron bib on the front of the body
+    for y in range(20, 28):
+        p[22, y] = p[29, y] = white  # apron strings around the neck
+    fill(6, 38, 14, 44, shirt)  # robe top
+    fill(0, 44, 28, 58, lambda x, y: stripes(x, y) if x < 14 else shirt(x, y))  # robe: apron at the front, shirt behind
+    fill(0, 58, 28, 64, lambda x, y: trousers)  # robe, lower part
+    fill(0, 46, 28, 47, lambda x, y: leather)  # belt
+    fill(0, 22, 16, 38, lambda x, y: trousers)  # legs
+    fill(40, 0, 48, 8, lambda x, y: white)  # cap top
+    fill(32, 8, 64, 11, lambda x, y: cap_shade if (x + y) % 5 == 0 else white)  # cap sides
+    return image
+
+
 def kiln_operator():
     """Villager profession overlay: a brick red head scarf knotted at the back; a terracotta shirt with the sleeves rolled up, a grey leather waist
     apron with clay and ash stains, soot on the forearms, dark trousers and boots."""
@@ -809,6 +842,8 @@ def main():
         "entity/villager/profession/shop_assistant.png": shop_assistant(),
         "entity/villager/profession/shepherd.png": shepherd(),
         "entity/zombie_villager/profession/shepherd.png": shepherd(),
+        "entity/villager/profession/butcher.png": butcher(),
+        "entity/zombie_villager/profession/butcher.png": butcher(),
         "entity/zombie_villager/profession/shop_assistant.png": shop_assistant(),
     }
     for part, image in woodcutter(jar).items():

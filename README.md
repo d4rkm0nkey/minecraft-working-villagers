@@ -1,6 +1,6 @@
 # Working Villagers
 
-Hire unemployed villagers with a work contract and give them real jobs.
+Hire villagers with a work contract and give them real jobs.
 This demo adds the **lumberjack**, the **woodcutter** block, two processing
 professions: the **sawyer** (woodcutter) and the **stone sawyer** (stonecutter), the
 **carpenter** at the **carpenter's bench**, the **farmer** (composter) and the **smith**
@@ -18,11 +18,15 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
 ## Lumberjack
 
 1. **Craft a work contract** (paper + ink sac + 3 emeralds) and right-click an
-   unemployed adult villager with it. The villager is now under contract. It gets no
+   adult villager with it. The villager is now under contract. One that already has a
+   vanilla job stays at its block and becomes the worker of this mod there (a farmer at
+   its composter, a mason as stone sawyer at its stonecutter, a shepherd at its loom, a
+   butcher at its smoker, an armorer or toolsmith as smith), unless it has traded already
+   (it would lose its trades) or its job has no work in this mod (librarian, ...). It gets no
    name (like vanilla villagers; a name tag names it), unless `workers.randomNames` is on.
 2. **Place a chopping block** (an axe above a log). A hired villager without a job looks
    for a free workstation of this mod within 48 blocks that it can walk to (chopping
-   block, woodcutter, stonecutter, carpenter's bench, composter, blast furnace, smithing table), walks
+   block, woodcutter, stonecutter, carpenter's bench, composter, loom, smoker, blast furnace, smithing table, ...), walks
    there and takes the job (green particles), like vanilla villagers claim job sites.
    Right-click the block to open its menu: **Assign** (next to the worker line) closes
    the menu; then right-click a hired villager to pick a specific worker. A worker that
@@ -65,9 +69,9 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
   name on the front of the stations; notes left in a world remove themselves when they are
   loaded.)
 - Hired villagers never take vanilla jobs (lectern etc.). At a stonecutter, composter,
-  loom, blast furnace or smithing table a hired villager becomes the stone sawyer, farmer,
-  shepherd or smith of this mod; unhired villagers still become masons, farmers, shepherds,
-  armorers and toolsmiths, except at one that is set
+  loom, smoker, blast furnace or smithing table a hired villager becomes the stone sawyer,
+  farmer, shepherd, butcher or smith of this mod; unhired villagers still become masons,
+  farmers, shepherds, butchers, armorers and toolsmiths, except at one that is set
   up (chests, order or worker): vanilla job acquisition skips it. *Assign* there makes an
   ordinary villager that works there and has never traded (villager XP 0) unemployed;
   one that has traded keeps its job.
@@ -112,6 +116,9 @@ stays in the wage box.
   to 16 each, `miner.keepFences`, `miner.keepPlanks`) and torches (up to 16,
   `miner.keepTorches`). It keeps up to 16 cobblestone of what it digs
   (`miner.keepSealBlocks`) for sealing water and lava and closing holes.
+- **Butcher:** needs a sword or an axe (carries up to 2), one use per animal. Feed (up to
+  16 of each kind, `butcher.keepFeed`) only for breeding, coal or charcoal (up to 16,
+  `butcher.keepFuel`) only for smoking.
 - **Shepherd:** needs shears (carries up to 2), one use per sheep; shears are used until
   they break. Wheat (up to 16, `shepherd.keepWheat`) only for breeding.
 - **Sawyer, stone sawyer, carpenter, smith, kiln operator, shop assistant, carrier:** only
@@ -279,6 +286,23 @@ reaches 3.5 blocks, also over a fence, so a pen needs no gate. While there are f
 it only starts a new pair while the lambs to come still fit. It brings the wool to the
 nearest chest once there is nothing left to do. The menu shows the wool sheared today and
 the sheep around the loom.
+
+## Butcher
+
+A hired villager at a vanilla **smoker** becomes a **butcher** (ordinary villagers still
+become vanilla butchers there). The tabs above the smoker screen open the overview: assign
+the worker and link chests. **Without an output chest the butcher does not work**; input
+chests are optional and hold feed and coal for it.
+
+During work hours it looks after the cows, mooshrooms, pigs, chickens and rabbits within 12
+blocks of the smoker (`butcher.pastureRadius`, 4 up or down); sheep are the shepherd's. For
+each kind on its own it keeps the **herd size** set at the smoker (tab *Settings*, 0 to 32,
+default 8): with fewer it feeds two grown animals the food of their kind (wheat, carrots,
+seeds, ...) so they get a young one; with more it slaughters grown animals, never below two
+of a kind and never named, leashed or animals in love. It reaches 3.5 blocks, over a fence
+too, 1.5 seconds per animal. What the animals drop it picks up. If it has coal or charcoal
+it smokes the meat in the smoker and takes the smoked meat out; without, the raw meat goes
+to the chest with the leather and feathers. The menu shows the animals slaughtered today.
 
 ## Smith
 
@@ -455,7 +479,10 @@ emeralds, a station put where another kind stood starts fresh, the lumberjack fe
 (also on grass and mud), replants it and spares builds, nobody works without wage, the
 sawyer only cuts allowed wood, the stone sawyer cuts bricks, the carpenter stops at its
 stock, the carrier empties its source, the farmer harvests and replants (also a raised
-bed), the shepherd shears sheep over the fence of a pen and breeds a lamb with wheat, hired villagers do not trample farmland, the smith smelts raw iron, the kiln operator
+bed), the shepherd shears sheep over the fence of a pen and breeds a lamb with wheat, the
+butcher slaughters cows down to the herd size, breeds a piglet and smokes chicken, a
+vanilla farmer is hired and stays at its composter (but not one that has traded, nor a
+librarian), hired villagers do not trample farmland, the smith smelts raw iron, the kiln operator
 fires glass but leaves meat and raw iron alone and fires cobblestone twice for smooth stone,
 the pit digger digs a pit with a ladder down to its bottom without touching the ring, the
 shop assistant sells wheat to a farmer until its trade is sold out, ordinary villagers do

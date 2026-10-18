@@ -11,12 +11,14 @@ import me.teajay.workingvillagers.carrier.Carriers;
 import me.teajay.workingvillagers.carrier.Route;
 import me.teajay.workingvillagers.item.WorkContractItem;
 import me.teajay.workingvillagers.job.HiredVillager;
+import me.teajay.workingvillagers.job.TendAnimals;
+import me.teajay.workingvillagers.job.TendSheep;
 import me.teajay.workingvillagers.job.WorkerStatus;
 import me.teajay.workingvillagers.job.WorkerSupplies;
 import me.teajay.workingvillagers.station.Pit;
 import me.teajay.workingvillagers.station.StationType;
-import me.teajay.workingvillagers.station.Workstations;
 import me.teajay.workingvillagers.station.Workstations.ChestRole;
+import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
@@ -26,10 +28,12 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.animal.sheep.Sheep;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.npc.villager.VillagerProfession;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.trading.ItemCost;
@@ -42,9 +46,6 @@ import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.FarmlandBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.entity.animal.sheep.Sheep;
-import me.teajay.workingvillagers.job.TendSheep;
 
 /**
  * The game tests: hiring, and one test per profession that sets up a station like a player
@@ -118,6 +119,10 @@ public final class WorkerTests {
 		registry.accept("smith_repairs_input_chest", WorkerTests::smithRepairsInputChest);
 		registry.accept("shepherd_shears_over_fence", WorkerTests::shepherdShearsOverFence);
 		registry.accept("shepherd_breeds_sheep", WorkerTests::shepherdBreedsSheep);
+		registry.accept("contract_hires_at_job_site", WorkerTests::contractHiresAtJobSite);
+		registry.accept("butcher_slaughters_surplus", WorkerTests::butcherSlaughtersSurplus);
+		registry.accept("butcher_breeds_pigs", WorkerTests::butcherBreedsPigs);
+		registry.accept("butcher_smokes_meat", WorkerTests::butcherSmokesMeat);
 		for (StationType type : StationType.values()) {
 			String name = type.name().toLowerCase(Locale.ROOT);
 			registry.accept("worker_finds_" + name, helper -> workerFinds(helper, type));
@@ -170,20 +175,117 @@ public final class WorkerTests {
 		helper.succeed();
 	}
 
+	/**
+	 * Not hired: a farmer without a job site, a baby, a farmer that has traded (it would lose
+	 * its trades) and a librarian (no job of this mod at a lectern).
+	 */
 	private static void contractRejectsEmployed(GameTestHelper helper) {
 		Villager farmer = helper.spawn(EntityTypes.VILLAGER, WORKER);
 		farmer.setVillagerData(farmer.getVillagerData().withProfession(helper.getLevel().registryAccess(), VillagerProfession.FARMER));
 		Villager baby = helper.spawn(EntityTypes.VILLAGER, WORKER.east(2));
 		baby.setAge(-24000);
+		Villager trader = vanillaWorker(helper, new BlockPos(4, 0, 4), Blocks.COMPOSTER, VillagerProfession.FARMER);
+		trader.setVillagerXp(1);
+		Villager librarian = vanillaWorker(helper, new BlockPos(9, 0, 2), Blocks.LECTERN, VillagerProfession.LIBRARIAN);
 		Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-		for (Villager villager : new Villager[] {farmer, baby}) {
+		for (Villager villager : new Villager[] {farmer, baby, trader, librarian}) {
 			ItemStack contract = new ItemStack(WorkingVillagers.WORK_CONTRACT.get());
 			WorkContractItem.hire(villager, player, contract, InteractionHand.MAIN_HAND);
-			helper.assertFalse(((HiredVillager) villager).workingvillagers$isHired(), "A farmer or a baby must not be hired");
+			helper.assertFalse(((HiredVillager) villager).workingvillagers$isHired(), "Hired although it must not be: " + villager.getVillagerData().profession().getRegisteredName());
 			helper.assertFalse(contract.isEmpty(), "The contract was used up although nobody was hired");
 		}
+		helper.assertTrue(trader.getVillagerData().profession().is(VillagerProfession.FARMER), "The trader lost its job");
 		helper.succeed();
 	}
+
+	/** A vanilla villager with the profession, working at the block next to it. */
+	private static Villager vanillaWorker(GameTestHelper helper, BlockPos block, net.minecraft.world.level.block.Block type,
+		net.minecraft.resources.ResourceKey<VillagerProfession> profession) {
+		helper.setBlock(block, type);
+		Villager villager = helper.spawn(EntityTypes.VILLAGER, block.offset(0, 1, 2));
+		BlockPos absolute = helper.absolutePos(block);
+		helper.getLevel().getPoiManager().take(poi -> true, (poi, pos) -> pos.equals(absolute), absolute, 1);
+		villager.getBrain().setMemory(MemoryModuleType.JOB_SITE, net.minecraft.core.GlobalPos.of(helper.getLevel().dimension(), absolute));
+		villager.setVillagerData(villager.getVillagerData().withProfession(helper.getLevel().registryAccess(), profession));
+		return villager;
+	}
+
+	/** A vanilla farmer that has never traded is hired and stays at its composter, as the farmer of this mod. */
+	private static void contractHiresAtJobSite(GameTestHelper helper) {
+		BlockPos composter = STATION.below();
+		Villager farmer = vanillaWorker(helper, composter, Blocks.COMPOSTER, VillagerProfession.FARMER);
+		ItemStack contract = new ItemStack(WorkingVillagers.WORK_CONTRACT.get());
+		WorkContractItem.hire(farmer, helper.makeMockPlayer(GameType.SURVIVAL), contract, InteractionHand.MAIN_HAND);
+		helper.assertTrue(((HiredVillager) farmer).workingvillagers$isHired(), "The farmer was not hired");
+		helper.assertTrue(contract.isEmpty(), "The contract was not used up");
+		helper.assertTrue(farmer.getVillagerData().profession().is(WorkingVillagers.FARMER_PROFESSION), "Not the farmer of this mod: "
+			+ farmer.getVillagerData().profession().getRegisteredName());
+		helper.assertTrue(farmer.getBrain().getMemory(MemoryModuleType.JOB_SITE).map(site -> site.pos().equals(helper.absolutePos(composter))).orElse(false),
+			"The farmer left its composter");
+		helper.assertTrue(TestWorld.station(helper, composter).worker() != null, "The composter does not know its worker");
+		helper.succeed();
+	}
+
+	/** A pen of fences without a gate (3 × 3 inside, around {@link #PEN}) with animals of one kind, a smoker and an output chest. */
+	private static List<net.minecraft.world.entity.animal.Animal> animalPen(GameTestHelper helper, net.minecraft.world.entity.EntityType<? extends net.minecraft.world.entity.animal.Animal> kind,
+		int count, int herd) {
+		BlockPos smoker = STATION.below();
+		helper.setBlock(smoker, Blocks.SMOKER);
+		for (int x = -2; x <= 2; x++) {
+			for (int z = -2; z <= 2; z++) {
+				if (Math.abs(x) == 2 || Math.abs(z) == 2) {
+					helper.setBlock(PEN.offset(x, 0, z), Blocks.OAK_FENCE);
+				}
+			}
+		}
+		List<net.minecraft.world.entity.animal.Animal> animals = new java.util.ArrayList<>();
+		for (int i = 0; i < count; i++) {
+			animals.add(helper.spawn(kind, PEN.offset(i % 3 - 1, 0, i / 3 - 1)));
+		}
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, smoker, OUTPUT, ChestRole.OUTPUT);
+		TestWorld.station(helper, smoker).setHerd(herd);
+		return animals;
+	}
+
+	/** Four cows, herd size 2: the butcher slaughters two over the fence and brings beef and leather to the chest. */
+	private static void butcherSlaughtersSurplus(GameTestHelper helper) {
+		animalPen(helper, EntityTypes.COW, 4, 2);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, STATION.below());
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_SWORD));
+		helper.succeedWhen(() -> {
+			int cows = TendAnimals.herd(helper.getLevel(), helper.absolutePos(STATION.below())).size();
+			helper.assertTrue(cows == 2, "Cows left: " + cows);
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.BEEF), 2, "raw beef in the output chest");
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.IRON_SWORD)) == 0, "The butcher delivered its sword");
+		});
+	}
+
+	/** Two pigs, fewer than the herd size: the butcher feeds them carrots and they get a piglet. */
+	private static void butcherBreedsPigs(GameTestHelper helper) {
+		animalPen(helper, EntityTypes.PIG, 2, Workstations.DEFAULT_HERD);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, STATION.below());
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_SWORD), new ItemStack(Items.CARROT, 4));
+		helper.succeedWhen(() -> {
+			List<net.minecraft.world.entity.animal.Animal> herd = TendAnimals.herd(helper.getLevel(), helper.absolutePos(STATION.below()));
+			helper.assertTrue(herd.stream().anyMatch(net.minecraft.world.entity.animal.Animal::isBaby), "No piglet yet, " + herd.size() + " pigs");
+			helper.assertTrue(herd.size() >= 3, "A pig was slaughtered");
+		});
+	}
+
+	/** Three chickens, herd size 2, and coal: the butcher slaughters one and smokes the chicken in the smoker. */
+	private static void butcherSmokesMeat(GameTestHelper helper) {
+		animalPen(helper, EntityTypes.CHICKEN, 3, 2);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, STATION.below());
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_SWORD), new ItemStack(Items.COAL, 2));
+		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.COOKED_CHICKEN), 1, "cooked chicken in the output chest"));
+	}
+
+	/**
+	 * A hired villager without a job walks to a free stonecutter
 
 	/** A station put where another kind of station was must not take over its settings. */
 	private static void replacedStationStartsFresh(GameTestHelper helper) {

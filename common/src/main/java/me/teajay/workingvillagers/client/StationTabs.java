@@ -39,7 +39,7 @@ public final class StationTabs {
 	/** Whether the station has a tab for its order or its settings. */
 	public static boolean hasOrderTab(StationType type) {
 		return type.hasOrder() || type == StationType.CHOPPING_BLOCK || type == StationType.PIT_STAKE || type == StationType.MINING_BENCH
-			|| type == StationType.LOOM;
+			|| type == StationType.LOOM || type == StationType.SMOKER;
 	}
 
 	/** The tabs of the station; {@code overview}: all of them, for the overview itself. */
@@ -109,6 +109,7 @@ public final class StationTabs {
 				case PIT_STAKE -> Items.STRING;
 				case MINING_BENCH -> Items.IRON_PICKAXE;
 				case LOOM -> Items.WOOL.white();
+				case SMOKER -> Items.PORKCHOP;
 				default -> Items.PAPER;
 			};
 			case WORK -> Items.AIR;

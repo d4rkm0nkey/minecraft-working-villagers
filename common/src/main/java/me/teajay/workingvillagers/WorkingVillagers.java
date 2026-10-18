@@ -76,6 +76,8 @@ public final class WorkingVillagers {
 	public static final ResourceKey<VillagerProfession> FARMER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("farmer"));
 	/** Works at the vanilla loom, the job site of the vanilla shepherd. */
 	public static final ResourceKey<VillagerProfession> SHEPHERD_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("shepherd"));
+	/** Works at the vanilla smoker, the job site of the vanilla butcher. */
+	public static final ResourceKey<VillagerProfession> BUTCHER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("butcher"));
 	/** Works at the vanilla blast furnace (the job site of the armorer) or the smithing table (the toolsmith's). */
 	public static final ResourceKey<VillagerProfession> SMITH_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("smith"));
 	public static final ResourceKey<PoiType> PIT_DIGGER_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("pit_digger"));
@@ -111,6 +113,7 @@ public final class WorkingVillagers {
 	public static Supplier<MenuType<StationMenu>> BLAST_FURNACE_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> SMITHING_TABLE_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> LOOM_STATION_MENU;
+	public static Supplier<MenuType<StationMenu>> SMOKER_STATION_MENU;
 	public static Supplier<MenuType<CutterMenu>> WOODCUTTER_MENU;
 	public static Supplier<RecipeType<WoodcuttingRecipe>> WOODCUTTING;
 	public static Supplier<RecipeSerializer<WoodcuttingRecipe>> WOODCUTTING_SERIALIZER;
@@ -192,6 +195,7 @@ public final class WorkingVillagers {
 		registerFarmer(platform);
 		registerSmith(platform);
 		registerShepherd(platform);
+		registerButcher(platform);
 		registerPitDigger(platform);
 		registerKilnOperator(platform);
 		registerShopAssistant(platform);
@@ -339,6 +343,15 @@ public final class WorkingVillagers {
 	private static void registerShepherd(Platform platform) {
 		LOOM_STATION_MENU = platform.registerMenu("loom_station", (containerId, inventory) -> new StationMenu(StationType.LOOM, containerId, inventory));
 		registerProfession(platform, "shepherd", PoiTypes.SHEPHERD, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_SHEPHERD);
+	}
+
+	/**
+	 * The butcher works at the vanilla smoker: it breeds and slaughters the animals around it
+	 * and smokes the meat. Ordinary villagers still become (vanilla) butchers there.
+	 */
+	private static void registerButcher(Platform platform) {
+		SMOKER_STATION_MENU = platform.registerMenu("smoker_station", (containerId, inventory) -> new StationMenu(StationType.SMOKER, containerId, inventory));
+		registerProfession(platform, "butcher", PoiTypes.BUTCHER, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_BUTCHER);
 	}
 
 	/**

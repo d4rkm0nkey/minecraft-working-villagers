@@ -29,6 +29,10 @@ the status does not help, go through this list.
 | *Waiting for the crops to grow* | No ripe crops and no empty farmland within 8 blocks of the composter. |
 | *Waiting: no seeds for the empty farmland (give them some)* | Right-click the farmer with seeds (or carrots, potatoes). |
 | *Waiting: needs a hoe (give them one)* | Right-click the farmer with a hoe. |
+| *Waiting for the herd to grow* | The butcher's herds are as big as set, or the young ones still have to grow up. |
+| *Waiting: no animals near the smoker* | No cows, pigs, chickens or rabbits within 12 blocks of the smoker. |
+| *Waiting: no feed to breed the animals (give them some)* | A kind has fewer animals than the herd size. Give the butcher their food (wheat, carrots, seeds, ...) or put it into an input chest. |
+| *Waiting: needs a sword or an axe (give them one)* | Right-click the butcher with a sword or an axe. |
 | *Waiting for the wool to grow back* | Every sheep around the loom is sheared, and the herd is as big as set. Sheep need grass to grow their wool back. |
 | *Waiting: no sheep near the loom* | No sheep within 12 blocks of the loom. Bring two and the shepherd breeds more. |
 | *Waiting: no wheat to breed the sheep (give them some)* | There are fewer sheep than the herd size. Right-click the shepherd with wheat, or set the herd size lower. |
@@ -97,6 +101,13 @@ the status does not help, go through this list.
 - [ ] It carries an emerald and a hoe.
 - [ ] Farmland with crops within 8 blocks of the composter. The farmer does not till.
 - [ ] Seeds for empty farmland (right-click it with some).
+
+### Butcher
+
+- [ ] An output chest linked (the **Chests** tab above the smoker screen).
+- [ ] It carries an emerald and a sword or an axe.
+- [ ] Animals within 12 blocks of the smoker, close enough to the fence to reach them (3 blocks).
+- [ ] Feed, if it should breed them; coal or charcoal, if it should smoke the meat.
 
 ### Shepherd
 

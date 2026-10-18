@@ -79,6 +79,19 @@ farmer:
     Makes: ":mc-wheat: Wheat, :mc-carrot: carrots, :mc-potato: potatoes, :mc-beetroot: beetroots"
     Range: 8 blocks
 
+butcher:
+  name: Butcher
+  page: workers/butcher.md
+  head: butcher
+  workstation: smoker
+  summary: Breeds and slaughters the animals around its smoker and smokes the meat.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-smoker: Smoker"
+    Needs: ":mc-iron_sword: A sword or an axe, :mc-carrot: feed, :mc-charcoal: coal for smoking"
+    Makes: ":mc-cooked_porkchop: Smoked meat, :mc-leather: leather, :mc-feather: feathers"
+    Range: 12 blocks
+
 shepherd:
   name: Shepherd
   page: workers/shepherd.md

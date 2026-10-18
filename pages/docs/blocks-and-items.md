@@ -6,8 +6,8 @@ icon: wv/book
 
 ## Work contract
 
-:mc-work_contract: Hires an unemployed adult
-villager. Right-click the villager with it; the contract is used up.
+:mc-work_contract: Hires an adult villager; one with a job stays at its block (see
+[Hiring](workers/basics.md#hiring)). Right-click the villager with it; the contract is used up.
 
 [[craft shapeless: paper ink_sac emerald emerald emerald -> work_contract]]
 
@@ -97,6 +97,11 @@ has the order box and the [tabs](workers/basics.md#the-overview) of the station 
 :mc-loom: Workstation of the [shepherd](workers/shepherd.md). The [tabs](workers/basics.md#the-overview)
 above its screen lead to the overview; the loom itself works as usual.
 
+## Smoker (vanilla)
+
+:mc-smoker: Workstation of the [butcher](workers/butcher.md). The [tabs](workers/basics.md#the-overview)
+above its screen lead to the overview; you can still use the smoker yourself.
+
 ## Composter (vanilla)
 
 :mc-composter: Workstation of the [farmer](workers/farmer.md). Right-click it with an empty hand to open
@@ -119,6 +124,7 @@ composts as usual.
 | :mc-head_carrier: Carrier | (wicker basket) | :mc-wicker_basket: Wicker basket |
 | :mc-head_farmer: Farmer | :mc-composter: Composter | :mc-work_contract: Work contract |
 | :mc-head_shepherd: Shepherd | :mc-loom: Loom | :mc-work_contract: Work contract |
+| :mc-head_butcher: Butcher | :mc-smoker: Smoker | :mc-work_contract: Work contract |
 | :mc-head_smith: Smith | :mc-blast_furnace: Blast furnace | :mc-work_contract: Work contract |
 | :mc-head_pit_digger: Pit digger | :mc-pit_stake: Pit stake | :mc-work_contract: Work contract |
 | :mc-head_kiln_operator: Kiln operator | :mc-kiln: Kiln | :mc-work_contract: Work contract |

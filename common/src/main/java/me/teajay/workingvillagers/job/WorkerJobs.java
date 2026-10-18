@@ -29,14 +29,14 @@ import org.jspecify.annotations.Nullable;
  * The jobs of hired villagers at their workstations (chopping block: lumberjack, woodcutter:
  * sawyer, stonecutter: stone sawyer, carpenter's bench: carpenter, composter: farmer, blast
  * furnace: smith, pit stake: pit digger, kiln: kiln operator, trading counter: shop assistant,
- * mining bench: miner, loom: shepherd). A hired villager without a job looks for a free one itself (see
+ * mining bench: miner, loom: shepherd, smoker: butcher). A hired villager without a job looks for a free one itself (see
  * {@link FindWorkplace}); the player can also give it one in the station menu, and take it
  * away again there. Hired villagers do not take any vanilla job.
  *
  * <p>Vanilla job acquisition only looks at job sites in the {@code acquirable_job_site} tag,
  * which the blocks of this mod are not part of. The stonecutter, the composter, the blast
- * furnace, the smithing table and the loom are in the tag, ordinary villagers still become
- * masons, farmers, armorers, toolsmiths and shepherds there.
+ * furnace, the smithing table, the loom and the smoker are in the tag, ordinary villagers
+ * still become masons, farmers, armorers, toolsmiths, shepherds and butchers there.
  */
 public final class WorkerJobs {
 	private static final Map<ResourceKey<PoiType>, ResourceKey<VillagerProfession>> JOBS = Map.ofEntries(
@@ -48,6 +48,7 @@ public final class WorkerJobs {
 		Map.entry(PoiTypes.ARMORER, WorkingVillagers.SMITH_PROFESSION),
 		Map.entry(PoiTypes.TOOLSMITH, WorkingVillagers.SMITH_PROFESSION),
 		Map.entry(PoiTypes.SHEPHERD, WorkingVillagers.SHEPHERD_PROFESSION),
+		Map.entry(PoiTypes.BUTCHER, WorkingVillagers.BUTCHER_PROFESSION),
 		Map.entry(WorkingVillagers.PIT_DIGGER_POI, WorkingVillagers.PIT_DIGGER_PROFESSION),
 		Map.entry(WorkingVillagers.KILN_OPERATOR_POI, WorkingVillagers.KILN_OPERATOR_PROFESSION),
 		Map.entry(WorkingVillagers.SHOP_ASSISTANT_POI, WorkingVillagers.SHOP_ASSISTANT_PROFESSION),
@@ -161,6 +162,36 @@ public final class WorkerJobs {
 		}
 		takeJob(level, villager, station);
 		return null;
+	}
+
+	/**
+	 * Why a villager with a vanilla job cannot be hired and keep working at its job site:
+	 * a nitwit, no job site, no job of this mod there (a librarian), or it has traded already
+	 * and would lose its trades. Null if it can (see {@link #keepJobSite}).
+	 */
+	public static @Nullable Component checkKeepJobSite(ServerLevel level, Villager villager) {
+		Holder<VillagerProfession> profession = villager.getVillagerData().profession();
+		if (profession.is(VillagerProfession.NITWIT)) {
+			return Component.translatable("message.workingvillagers.contract.nitwit");
+		}
+		Optional<GlobalPos> site = villager.getBrain().getMemory(MemoryModuleType.JOB_SITE).filter(pos -> pos.dimension() == level.dimension());
+		boolean job = site.flatMap(pos -> level.getPoiManager().getType(pos.pos())).flatMap(Holder::unwrapKey).filter(JOBS::containsKey).isPresent();
+		if (!job) {
+			return Component.translatable("message.workingvillagers.contract.no_job", profession.value().name());
+		}
+		if (villager.getVillagerXp() > 0) {
+			return Component.translatable("message.workingvillagers.contract.traded", villager.getName());
+		}
+		return null;
+	}
+
+	/**
+	 * A villager with a vanilla job that was just hired (see {@link #checkKeepJobSite}) stays
+	 * at its job site, as the worker of this mod there: the farmer at its composter, the
+	 * mason as stone sawyer at its stonecutter, ...
+	 */
+	public static void keepJobSite(ServerLevel level, Villager villager) {
+		villager.getBrain().getMemory(MemoryModuleType.JOB_SITE).ifPresent(site -> takeJob(level, villager, site.pos()));
 	}
 
 	/**

@@ -6,7 +6,7 @@ Ohne Werkzeugrückgabe nutzt ein Arbeiter sein Werkzeug, bis es zerbricht. Dann 
 
 ## Stand der Umsetzung
 
-Umgesetzt für Holzfäller, Bauer, Hirte, Grubenarbeiter und Minenarbeiter, mit diesen Abweichungen:
+Umgesetzt für Holzfäller, Bauer, Hirte, Metzger, Grubenarbeiter und Minenarbeiter, mit diesen Abweichungen:
 
 - **Zeitpunkt:** Er gibt das Werkzeug vor seinem nächsten Arbeitsschritt zurück (nächster Baum, nächster Block), auch wenn er ein Ersatzwerkzeug dabeihat; nicht erst in der Pause. Die Grubenarbeit unterbricht er dafür wie für Lohn und Werkzeug: erst aus der Grube heraus.
 - **Wohin:** in die nächste Dorftruhe in Reichweite mit einem **freien Platz**, sonst in die nächste Zielkiste der Station mit freiem Platz. Geht er zu einer Dorftruhe, nimmt er im selben Gang mit, was ihm fehlt. Findet er keinen Platz (oder kommt nicht hin), behält er es und versucht es nach einer Minute wieder.

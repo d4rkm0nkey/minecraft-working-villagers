@@ -15,6 +15,7 @@ import me.teajay.workingvillagers.crafting.StoneFamilies;
 import me.teajay.workingvillagers.crafting.WoodTypes;
 import me.teajay.workingvillagers.job.ChopTrees;
 import me.teajay.workingvillagers.job.HiredVillager;
+import me.teajay.workingvillagers.job.TendAnimals;
 import me.teajay.workingvillagers.job.TendSheep;
 import me.teajay.workingvillagers.job.WorkerJobs;
 import me.teajay.workingvillagers.job.WorkerStatus;
@@ -272,6 +273,7 @@ public class StationMenu extends AbstractContainerMenu {
 			case BLAST_FURNACE -> WorkingVillagers.BLAST_FURNACE_STATION_MENU;
 			case SMITHING_TABLE -> WorkingVillagers.SMITHING_TABLE_STATION_MENU;
 			case LOOM -> WorkingVillagers.LOOM_STATION_MENU;
+			case SMOKER -> WorkingVillagers.SMOKER_STATION_MENU;
 			case PIT_STAKE -> WorkingVillagers.PIT_STAKE_MENU;
 			case KILN -> WorkingVillagers.KILN_STATION_MENU;
 			case TRADING_COUNTER -> WorkingVillagers.TRADING_COUNTER_MENU;
@@ -317,7 +319,8 @@ public class StationMenu extends AbstractContainerMenu {
 					tag.store(TAG_STATUS, ComponentSerialization.CODEC, WorkerStatus.describe(villager));
 					SuppliesInfo.write(serverLevel, villager, tag);
 					if (this.type == StationType.CHOPPING_BLOCK || this.type == StationType.COMPOSTER || this.type == StationType.PIT_STAKE
-						|| this.type == StationType.TRADING_COUNTER || this.type == StationType.MINING_BENCH || this.type == StationType.LOOM) {
+						|| this.type == StationType.TRADING_COUNTER || this.type == StationType.MINING_BENCH || this.type == StationType.LOOM
+						|| this.type == StationType.SMOKER) {
 						tag.putInt(TAG_LOGS, ((HiredVillager) villager).workingvillagers$getWorkDone(ChopTrees.today(serverLevel)));
 					}
 				}
@@ -346,9 +349,9 @@ public class StationMenu extends AbstractContainerMenu {
 				tag.putBoolean(TAG_STRIP, station.strip());
 			}
 			tag.putInt(TAG_TAB_FLAGS, StationTabFlags.compute(serverLevel, pos, this.type));
-			if (this.type == StationType.LOOM) {
+			if (this.type == StationType.LOOM || this.type == StationType.SMOKER) {
 				tag.putInt(TAG_HERD, station.herd());
-				tag.putInt(TAG_SHEEP, TendSheep.herd(serverLevel, pos).size());
+				tag.putInt(TAG_SHEEP, this.type == StationType.LOOM ? TendSheep.herd(serverLevel, pos).size() : TendAnimals.herd(serverLevel, pos).size());
 			}
 			if (this.type == StationType.PIT_STAKE) {
 				tag.putInt(TAG_DEPTH, station.depth());
@@ -622,12 +625,12 @@ public class StationMenu extends AbstractContainerMenu {
 		return this.info.info().getIntOr(TAG_TAB_FLAGS, 0);
 	}
 
-	/** Loom: up to how many sheep the shepherd breeds, 0 for none. */
+	/** Loom and smoker: up to how many sheep (of each kind of animal) the worker breeds, 0 for none. */
 	public int getHerd() {
 		return this.info.info().getIntOr(TAG_HERD, Workstations.DEFAULT_HERD);
 	}
 
-	/** Loom: how many sheep there are around it. */
+	/** Loom: how many sheep there are around it; smoker: how many animals the butcher keeps. */
 	public int getSheep() {
 		return this.info.info().getIntOr(TAG_SHEEP, 0);
 	}
@@ -745,7 +748,7 @@ public class StationMenu extends AbstractContainerMenu {
 			station.setStrip(!station.strip());
 			return true;
 		}
-		if (this.type == StationType.LOOM && (buttonId == HERD_LESS_BUTTON || buttonId == HERD_MORE_BUTTON)) {
+		if ((this.type == StationType.LOOM || this.type == StationType.SMOKER) && (buttonId == HERD_LESS_BUTTON || buttonId == HERD_MORE_BUTTON)) {
 			station.setHerd(station.herd() + (buttonId == HERD_MORE_BUTTON ? 1 : -1));
 			return true;
 		}

@@ -57,6 +57,9 @@ final class SuppliesRow {
 			case "torches" -> Items.TORCH;
 			case "shears" -> Items.SHEARS;
 			case "wheat" -> Items.WHEAT;
+			case "weapon" -> Items.IRON_SWORD;
+			case "feed" -> Items.CARROT;
+			case "fuel" -> Items.CHARCOAL;
 			case "fences" -> Items.OAK_FENCE;
 			case "planks" -> Items.OAK_PLANKS;
 			case "seal" -> Items.COBBLESTONE;

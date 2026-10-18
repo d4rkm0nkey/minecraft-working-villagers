@@ -45,6 +45,7 @@ VANILLA_ITEMS = [
     "iron_pickaxe", "iron_shovel", "minecart", "spyglass", "leather", "arrow", "iron_sword",
     "experience_bottle", "cod", "brewing_stand", "fishing_rod", "shears", "string", "rail:block",
     "brick", "clay_ball", "green_dye", "flint", "wooden_pickaxe", "stone_pickaxe", "diamond_pickaxe",
+    "porkchop", "cooked_porkchop", "beef", "feather",
 ]
 MOD_ITEMS = ["work_contract", "wicker_basket"]
 
@@ -101,7 +102,7 @@ BLOCKS = {
     "terracotta": "minecraft:block/terracotta",
 }
 
-PROFESSIONS = ["lumberjack", "woodcutter", "stonecutter", "carpenter", "carrier", "farmer", "smith", "pit_digger", "kiln_operator", "shop_assistant", "miner", "shepherd"]
+PROFESSIONS = ["lumberjack", "woodcutter", "stonecutter", "carpenter", "carrier", "farmer", "smith", "pit_digger", "kiln_operator", "shop_assistant", "miner", "shepherd", "butcher"]
 
 # Navigation icons (pixel SVGs) made from item textures.
 NAV_ICONS = ["spyglass", "emerald", "work_contract", "book", "writable_book", "map", "filled_map", "clock", "barrier", "oak_sapling"]

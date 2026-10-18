@@ -85,6 +85,15 @@ public final class Config {
 	public static final IntOption KEEP_WHEAT = intOption("shepherd", "keepWheat", 16, 2, 64,
 		"How much wheat the shepherd keeps for breeding its sheep.");
 
+	public static final IntOption BUTCHER_RADIUS = intOption("butcher", "pastureRadius", 12, 4, 24,
+		"How far from the smoker (in blocks, sideways) the butcher looks after cows, pigs, chickens and rabbits.");
+	public static final DoubleOption SECONDS_PER_ANIMAL = doubleOption("butcher", "secondsPerAnimal", 1.5, 0.1, 20.0,
+		"How long the butcher needs to feed or slaughter one animal.");
+	public static final IntOption KEEP_FEED = intOption("butcher", "keepFeed", 16, 2, 64,
+		"How much feed of each kind (wheat, carrots, seeds, ...) the butcher keeps for breeding.");
+	public static final IntOption KEEP_FUEL = intOption("butcher", "keepFuel", 16, 1, 64,
+		"How much coal or charcoal the butcher keeps for the smoker.");
+
 	public static final IntOption SMELT_BATCH = intOption("smith", "batchSize", 16, 1, 64,
 		"How many items to smelt the smith fetches from an input chest at once.");
 	public static final IntOption FUEL_BATCH = intOption("smith", "fuelPerTrip", 8, 1, 64,

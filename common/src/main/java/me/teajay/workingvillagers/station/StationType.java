@@ -38,7 +38,12 @@ public enum StationType {
 	 */
 	SMITHING_TABLE(true),
 	/** The shepherd shears and breeds the sheep around the loom; it only delivers the wool. */
-	LOOM(false);
+	LOOM(false),
+	/**
+	 * The butcher breeds and slaughters the animals around the smoker and smokes the meat;
+	 * feed and coal can come from input chests.
+	 */
+	SMOKER(true);
 
 	private final boolean processing;
 
@@ -57,7 +62,7 @@ public enum StationType {
 	/** Whether the block has a screen of its own, which the overview leads back to. */
 	public boolean hasOwnScreen() {
 		return this == WOODCUTTER || this == STONECUTTER || this == CARPENTER_BENCH || this == BLAST_FURNACE || this == KILN || this == MINING_BENCH
-			|| this == SMITHING_TABLE || this == LOOM;
+			|| this == SMITHING_TABLE || this == LOOM || this == SMOKER;
 	}
 
 	/** Whether the worker needs an order, set in the order column of the overview. */
@@ -70,7 +75,7 @@ public enum StationType {
 	 * profession. It only counts as a workstation of this mod once it has been set up.
 	 */
 	public boolean isVanilla() {
-		return this == STONECUTTER || this == COMPOSTER || this == BLAST_FURNACE || this == SMITHING_TABLE || this == LOOM;
+		return this == STONECUTTER || this == COMPOSTER || this == BLAST_FURNACE || this == SMITHING_TABLE || this == LOOM || this == SMOKER;
 	}
 
 	/**
@@ -104,6 +109,7 @@ public enum StationType {
 			case TRADING_COUNTER -> WorkingVillagers.SHOP_ASSISTANT_PROFESSION;
 			case MINING_BENCH -> WorkingVillagers.MINER_PROFESSION;
 			case LOOM -> WorkingVillagers.SHEPHERD_PROFESSION;
+			case SMOKER -> WorkingVillagers.BUTCHER_PROFESSION;
 		};
 	}
 
@@ -121,6 +127,7 @@ public enum StationType {
 			case MINING_BENCH -> WorkingVillagers.MINING_BENCH.get().getName();
 			case SMITHING_TABLE -> Blocks.SMITHING_TABLE.getName();
 			case LOOM -> Blocks.LOOM.getName();
+			case SMOKER -> Blocks.SMOKER.getName();
 		};
 	}
 
@@ -138,6 +145,7 @@ public enum StationType {
 			case MINING_BENCH -> WorkingVillagers.MINING_BENCH.get();
 			case SMITHING_TABLE -> Blocks.SMITHING_TABLE;
 			case LOOM -> Blocks.LOOM;
+			case SMOKER -> Blocks.SMOKER;
 		};
 	}
 
@@ -166,6 +174,8 @@ public enum StationType {
 			return SMITHING_TABLE;
 		} else if (state.is(Blocks.LOOM)) {
 			return LOOM;
+		} else if (state.is(Blocks.SMOKER)) {
+			return SMOKER;
 		}
 		return null;
 	}

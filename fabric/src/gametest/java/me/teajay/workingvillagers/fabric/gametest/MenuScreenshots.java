@@ -236,7 +236,8 @@ public class MenuScreenshots implements FabricClientGameTest {
 			worn.setDamageValue(100);
 			give(player, villager, worn, new ItemStack(Items.IRON_HOE), new ItemStack(Items.IRON_SHOVEL), new ItemStack(Items.IRON_PICKAXE),
 				new ItemStack(Items.OAK_SAPLING, 5), new ItemStack(Items.WHEAT_SEEDS, 12), new ItemStack(Items.LADDER, 30), new ItemStack(Items.TORCH, 3),
-				new ItemStack(Items.SHEARS), new ItemStack(Items.WHEAT, 10));
+				new ItemStack(Items.SHEARS), new ItemStack(Items.WHEAT, 10), new ItemStack(Items.IRON_SWORD), new ItemStack(Items.CARROT, 8),
+				new ItemStack(Items.COAL, 5));
 		}
 		level.setBlockAndUpdate(stationPos(STATIONS.size() + 1), Blocks.STONECUTTER.defaultBlockState());
 		// A chopping block nobody works at, without chests

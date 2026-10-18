@@ -12,15 +12,27 @@ These rules apply to every worker.
 
 ## Hiring
 
-- **Lumberjack, sawyer, stone sawyer, carpenter, farmer, shepherd, smith, pit digger, kiln operator, shop assistant:** right-click an unemployed adult
-  villager with a [work contract](../blocks-and-items.md#work-contract). Then it looks for
-  a free workstation by itself.
+- **Lumberjack, sawyer, stone sawyer, carpenter, farmer, shepherd, butcher, smith, pit digger, kiln operator, shop assistant:** right-click an adult
+  villager with a [work contract](../blocks-and-items.md#work-contract). An unemployed one
+  then looks for a free workstation by itself.
 - **Carrier:** right-click an unemployed adult villager with a
   [wicker basket](../blocks-and-items.md#wicker-basket). The basket is contract and
   workstation at once, no work contract needed.
 
-Only villagers without a profession can be hired: no nitwits, no babies, no villagers
-that already have a job. Hired villagers get no name, just like vanilla villagers. Use a
+A villager that **already has a job** stays at its block and becomes the worker of this
+mod there:
+
+| Vanilla job | Block | Becomes |
+| --- | --- | --- |
+| Farmer | :mc-composter: Composter | [Farmer](farmer.md) |
+| Mason | :mc-stonecutter: Stonecutter | [Stone sawyer](sawyer.md) |
+| Shepherd | :mc-loom: Loom | [Shepherd](shepherd.md) |
+| Butcher | :mc-smoker: Smoker | [Butcher](butcher.md) |
+| Armorer, toolsmith | :mc-blast_furnace: Blast furnace, :mc-smithing_table: smithing table | [Smith](smith.md) |
+
+Not hired are nitwits, babies, villagers whose job has no work in this mod yet (librarian,
+cartographer, ...) and villagers you or someone else **traded with**: they would lose their
+trades. Hired villagers get no name, just like vanilla villagers. Use a
 name tag to tell them apart. (The config option `randomNames` gives them a random name
 like Anton or Berta.)
 
@@ -32,12 +44,12 @@ zombies and raids.
 
 A hired villager without a job looks for a **free workstation of this mod** within
 **48 blocks** that it can walk to: a chopping block, woodcutter, stonecutter, carpenter's
-bench, composter, loom, blast furnace, smithing table, pit stake, kiln, trading counter or mining bench. It walks there and takes the job (green particles),
+bench, composter, loom, smoker, blast furnace, smithing table, pit stake, kiln, trading counter or mining bench. It walks there and takes the job (green particles),
 just like vanilla villagers claim their job sites.
 
-At a stonecutter, composter, loom, blast furnace or smithing table a hired villager becomes the
-stone sawyer, farmer, shepherd or smith of this mod. Unhired villagers still become vanilla masons,
-farmers, shepherds, armorers and toolsmiths there, but not at one you have set up (linked chests or set an order): that one
+At a stonecutter, composter, loom, smoker, blast furnace or smithing table a hired villager becomes the
+stone sawyer, farmer, shepherd, butcher or smith of this mod. Unhired villagers still become vanilla masons,
+farmers, shepherds, butchers, armorers and toolsmiths there, but not at one you have set up (linked chests or set an order): that one
 is kept for a hired worker. **Assign** at a station where an ordinary villager already
 works gives it to your worker, as long as that villager has never traded; one that has
 traded keeps its job.
@@ -45,7 +57,7 @@ traded keeps its job.
 ## Assigning and removing
 
 To pick a specific worker yourself, open the workstation's overview (at the woodcutter,
-stonecutter, carpenter's bench, loom, blast furnace, smithing table and kiln: the worker tab
+stonecutter, carpenter's bench, loom, smoker, blast furnace, smithing table and kiln: the worker tab
 above its screen; at the composter: right-click it with an empty hand) and click **Assign**. The menu closes; right-click a hired villager. It becomes the
 worker of this station. A villager that already works somewhere else moves to the new
 station.
@@ -67,12 +79,12 @@ to get to that part of the overview, and the block's tab to get back.
 - :mc-emerald: **Wage**: the station's [wage box](#the-wage-box) and your inventory.
 - :mc-chest: **Chests**: the linked chests with **+ Input** / **+ Output** (or **+ Chest**).
 - :mc-paper: **Order** (woodcutter, stonecutter, carpenter's bench, kiln) or **Settings**
-  (chopping block, pit stake, mining bench, loom).
+  (chopping block, pit stake, mining bench, loom, smoker).
 
 A red dot on a tab means something is missing there: no worker, no wage or tool, no
 chest, no order.
 
-A vanilla block nobody has set up yet (stonecutter, loom, blast furnace,
+A vanilla block nobody has set up yet (stonecutter, loom, smoker, blast furnace,
 smithing table) shows only its own tab and the worker tab, so players who do not use the
 mod there see little of it. Once a worker or a chest is added, all tabs appear.
 
@@ -136,6 +148,7 @@ vanilla mobs picking up items); right-clicking always works.
 | lumberjack | :mc-any_axe: an axe, optionally :mc-oak_sapling: saplings | 2 axes, 16 saplings of each kind |
 | farmer | :mc-any_hoe: a hoe, :mc-wheat_seeds: seeds to start with | 2 hoes, 16 seeds of each kind |
 | shepherd | :mc-shears: shears, optionally :mc-wheat: wheat for breeding | 2 shears, 16 wheat |
+| butcher | :mc-iron_sword: a sword or an axe, optionally :mc-carrot: feed and :mc-charcoal: coal | 2 weapons, 16 feed of each kind, 16 coal |
 | pit digger | :mc-iron_shovel: a shovel, :mc-iron_pickaxe: a pickaxe, :mc-ladder: ladders, optionally :mc-torch: torches | 2 of each tool, 64 ladders, 16 torches |
 
 - **Wage:** before work each day the worker takes **1 emerald** from the wage box (then
@@ -143,7 +156,7 @@ vanilla mobs picking up items); right-clicking always works.
   64 emeralds pay for 64 work days. Without an emerald it does not work. It waits next
   to its workstation ("Waiting for wages") and checks again every few seconds, so you
   can pay it late.
-- **Tools:** the lumberjack needs an axe, the farmer a hoe, the shepherd shears, the pit digger a shovel, a
+- **Tools:** the lumberjack needs an axe, the farmer a hoe, the shepherd shears, the butcher a sword or an axe, the pit digger a shovel, a
   pickaxe and ladders. The sawyer, stone sawyer, carpenter, smith, kiln operator, shop
   assistant and carrier only need emeralds.
 - Workers never hand in their emeralds or their tool to the output chests.

@@ -21,7 +21,7 @@ Das größte Risiko ist nicht die Idee, sondern die Villager-KI: Pathfinding, St
 ## Offene Fragen
 
 - [ ] Wie hoch ist der Lohn wirklich? 100 Emeralds/Woche vs. 16–64 gestaffelt. (Derzeit 1 Emerald pro Arbeitstag, per Config.)
-- [ ] Werden Villager mit Trades anheuerbar (und verlieren sie ihre Trades)? (Derzeit nur arbeitslose Dorfbewohner.)
+- [x] Werden Villager mit Trades anheuerbar (und verlieren sie ihre Trades)? Entschieden: Dorfbewohner mit Beruf lassen sich anheuern und bleiben an ihrem Block, aber nur, solange noch niemand mit ihnen gehandelt hat.
 - [ ] Eigene Grubenwerkbank oder Vanilla-Block als Minen-Station?
 - [ ] Wie viele Arbeiter pro Spieler (Limit)?
 - [x] Was passiert beim Tod eines Arbeiters? Er lässt alles fallen, was er trägt (Emeralds, Werkzeug, Material); ein Träger zusätzlich seinen Korb samt Inhalt.

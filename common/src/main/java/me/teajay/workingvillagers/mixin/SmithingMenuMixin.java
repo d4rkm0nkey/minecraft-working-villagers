@@ -22,9 +22,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Makes the vanilla smithing table the smith's second workstation: the button with the
- * smith's face in its screen (see {@code SmithingScreenMixin}) opens the overview of the
- * station, and the menu tells the screen whether a smith works there.
+ * Makes the vanilla smithing table the smith's workstation: the tabs above its screen (see
+ * {@code SmithingScreenMixin}) open the overview of the station, and the menu tells the screen what
+ * they show (see {@link StationTabFlags}).
  */
 @Mixin(SmithingMenu.class)
 public abstract class SmithingMenuMixin extends ItemCombinerMenu implements StationWorker {

@@ -29,10 +29,11 @@ hide:
 <span class="wv-villager" style="--delay: .6s"><img src="assets/mc/heads/shop_assistant.png" alt=""><img src="assets/mc/blocks/trading_counter.png" alt=""></span>
 <span class="wv-villager" style="--delay: 1s"><img src="assets/mc/heads/miner.png" alt=""><img src="assets/mc/blocks/mining_bench.png" alt=""></span>
 <span class="wv-villager" style="--delay: .45s"><img src="assets/mc/heads/shepherd.png" alt=""><img src="assets/mc/blocks/loom.png" alt=""></span>
+<span class="wv-villager" style="--delay: .85s"><img src="assets/mc/heads/butcher.png" alt=""><img src="assets/mc/blocks/smoker.png" alt=""></span>
 </div>
 </div>
 
-Working Villagers turns unemployed villagers into paid employees. You hand them a work
+Working Villagers turns villagers into paid employees. You hand them a work
 contract, give them a workstation and a few chests, and they start working: felling
 trees, sawing planks, crafting chests, farming fields, smelting ore, digging pits and tunnels, firing
 glass and bricks, selling goods to the villagers and carrying items from one place to
@@ -54,7 +55,7 @@ one emerald each day. No wage, no work.
 ## How it works in short
 
 <ol class="wv-steps">
-<li><span class="mc-slot">:mc-work_contract:</span><strong>Hire</strong> Craft a work contract and right-click an unemployed villager with it.</li>
+<li><span class="mc-slot">:mc-work_contract:</span><strong>Hire</strong> Craft a work contract and right-click a villager with it.</li>
 <li><span class="mc-slot">:mc-chopping_block:</span><strong>Workstation</strong> Place a workstation. The villager walks there and takes the job.</li>
 <li><span class="mc-slot">:mc-chest:</span><strong>Chests</strong> Link chests: where the material comes from and where the products go.</li>
 <li><span class="mc-slot">:mc-emerald:</span><strong>Wage</strong> Right-click the worker with emeralds (and its tool, if it needs one).</li>

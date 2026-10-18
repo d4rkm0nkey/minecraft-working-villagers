@@ -10,7 +10,7 @@ Konzept (Stand der Umsetzung siehe [unten](#stand-der-umsetzung)):
 
 - Nur Dorfbewohner eines [gekauften Dorfes](../dorf/dorf-und-kauf.md).
 - Arbeitslose Dorfbewohner können angeheuert werden. Idee: Nitwits nur als [Träger](../berufe/traeger.md) (einfachste Arbeit, halber Lohn) – endlich ein Nutzen für sie. Noch nicht umgesetzt, Nitwits lassen sich bisher gar nicht anheuern.
-- Berufstätige Villager mit Handelsangeboten können nicht angeheuert werden, damit Handel nicht kaputtgeht. Alternative: Anheuern löscht die Trades (Config).
+- Berufstätige Villager, mit denen schon gehandelt wurde, können nicht angeheuert werden, damit Handel nicht kaputtgeht (umgesetzt; ohne Handel bleiben sie an ihrem Block). Alternative: Anheuern löscht die Trades (Config).
 - Das Level eines angeheuerten Villagers steigt durch Arbeit statt durch Handel (Novice → Master).
 
 ## Lohnstufen
@@ -34,7 +34,7 @@ Die ursprünglich genannten 100 Emeralds pro Woche sind für Early Game sehr vie
 
 ### Stand der Umsetzung
 
-**Anheuern:** Den Arbeitsvertrag craftet man formlos aus Papier, Tintenbeutel und 3 Emeralds. Rechtsklick damit auf einen arbeitslosen, erwachsenen Dorfbewohner stellt ihn ein, in jedem Dorf und auch außerhalb; einen Dorfkauf gibt es noch nicht. Berufstätige Dorfbewohner und Nitwits lassen sich nicht anheuern. Eine Anheuergebühr gibt es nicht, der Vertrag ist der Preis. Den [Träger](../berufe/traeger.md) stellt man statt mit Vertrag mit dem Weidenkorb ein. Geplant: [ein Vertrag je Beruf](arbeitsvertraege.md), nur in Truhen von Strukturen zu finden statt craftbar.
+**Anheuern:** Den Arbeitsvertrag craftet man formlos aus Papier, Tintenbeutel und 3 Emeralds. Rechtsklick damit auf einen erwachsenen Dorfbewohner stellt ihn ein, in jedem Dorf und auch außerhalb; einen Dorfkauf gibt es noch nicht. Ein arbeitsloser sucht sich danach selbst eine Station. Einer **mit Beruf bleibt an seinem Block** und wird dort Arbeiter dieser Mod: der Bauer am Komposter, der Steinmetz als Steinsäger an der Steinsäge, der Schäfer als Hirte am Webstuhl, Panzermacher und Werkzeugschmied als Schmied, der Fleischer als Metzger am Räucherofen. Nicht angeheuert werden Nitwits, Babys, Dorfbewohner mit einem Beruf ohne Arbeit in dieser Mod (Bibliothekar, Kartograf, …) und solche, die schon gehandelt haben: Sie würden ihre Angebote verlieren, wie beim „Zuweisen“. Eine Anheuergebühr gibt es nicht, der Vertrag ist der Preis. Den [Träger](../berufe/traeger.md) stellt man statt mit Vertrag mit dem Weidenkorb ein. Geplant: [ein Vertrag je Beruf](arbeitsvertraege.md), nur in Truhen von Strukturen zu finden statt craftbar.
 
 **Arbeitszeit:** die normale Vanilla-Arbeitszeit der Dorfbewohner; nachts schlafen sie.
 

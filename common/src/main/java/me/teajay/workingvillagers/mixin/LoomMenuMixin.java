@@ -23,9 +23,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Makes the vanilla loom the shepherd's workstation: the button with the shepherd's face in
- * its screen (see {@code LoomScreenMixin}) opens the overview of the station, and the menu
- * tells the screen whether a shepherd works there.
+ * Makes the vanilla loom the shepherd's workstation: the tabs above its screen (see
+ * {@code LoomScreenMixin}) open the overview of the station, and the menu tells the screen what
+ * they show (see {@link StationTabFlags}).
  */
 @Mixin(LoomMenu.class)
 public abstract class LoomMenuMixin extends AbstractContainerMenu implements StationWorker {
