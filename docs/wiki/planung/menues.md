@@ -10,14 +10,14 @@ Aufgenommen mit `./gradlew :fabric:runClientGameTest` (siehe [Screenshots](#scre
 
 | # | Problem | Wo | Ursache |
 | --- | --- | --- | --- |
-| 1 | **Menü höher als der Bildschirm:** oben fehlt der Titel, unten der Knopf „+ Kiste“ | Übersicht von Hackklotz, Komposter, Grubenpflock, Grubenwerkbank, Handelstresen, Schmiedetisch: **auch bei 1920×1080** | Platz für 8 Kisten ist immer reserviert: 272 bis 303 px hoch, verfügbar 240 bzw. 270 |
+| 1 | **Menü höher als der Bildschirm:** oben fehlt der Titel, unten der Knopf „+ Kiste“ · *behoben*: Übersicht mit Reitern, 176×166 | Übersicht von Hackklotz, Komposter, Grubenpflock, Grubenwerkbank, Handelstresen, Schmiedetisch: **auch bei 1920×1080** | Platz für 8 Kisten ist immer reserviert: 272 bis 303 px hoch, verfügbar 240 bzw. 270 |
 | 2 | Menü höher als der Bildschirm | Träger | Wege, Versorgung, Korb und Inventar untereinander |
 | 3 | **Text außerhalb des Menüs:** das Seitenfeld ragt über den rechten Rand, „Wages paid…“ ist angeschnitten | Dorftruhe | Feld (132 px) hängt rechts an der zentrierten Truhe |
 | 4 | **Texte überlagern sich:** Titel und „Worker: …“ in einer Zeile · *behoben*: die Titelzeile zeigt den Arbeiter nicht mehr | Holzsäge, Steinsäge, Mühle, Hobelbank | Arbeitername in der Titelzeile |
 | 5 | Titel „Carrier Carrier“ läuft in den Knopf „Employer only“ | Träger | Name und Knopf in einer Zeile |
 | 6 | **Knopf „i“ ist nicht zu verstehen**; zurück geht es mit „Back“ oben rechts · *teilweise behoben*: statt „i“ ein Knopf mit dem Gesicht des Berufs (siehe [Steuerung](../grundlagen/steuerung.md#stationsübersicht)) | Holzsäge, Steinsäge, Hobelbank, Schmelzofen, Brennofen, Mühle, Schmiedetisch | zwei getrennte Menüs, verbunden über ein Symbol ohne Text |
-| 7 | Abgeschnittene Zeilen und Lauftext: „Doing: Cannot work (chest or or…“, „aid for 2 more days“ hinter den Slots, „No tunnel picked ye“ | fast alle Übersichten | 162 px Breite für lange Sätze |
-| 8 | Viel leere Fläche, dafür alles andere gedrängt | einspaltige Übersichten | siehe 1 |
+| 7 | Abgeschnittene Zeilen und Lauftext: „Doing: Cannot work (chest or or…“, „aid for 2 more days“ hinter den Slots, „No tunnel picked ye“ · *in der Übersicht behoben*: Status und Versorgung werden umgebrochen | fast alle Übersichten | 162 px Breite für lange Sätze |
+| 8 | Viel leere Fläche, dafür alles andere gedrängt · *behoben* | einspaltige Übersichten | siehe 1 |
 | 9 | Alle unbenannten Kisten heißen „Chest“ und sind nicht zu unterscheiden | Übersichten, Träger | Hinweis zum Benennen nur im Tooltip |
 | 10 | Beruf doppelt („Lumberjack / Lumberjack“), wenn der Arbeiter keinen Namen hat | Dorftruhe | Name fällt auf den Beruf zurück |
 | 11 | Viele Textfarben (blau, rot, grün, grau) und Textknöpfe; wirkt nicht wie Vanilla | Übersichten | eigene Gestaltung |
@@ -123,6 +123,16 @@ Bleibt wie heute (✎ oben rechts). Unbenannte Kisten erscheinen in Stationen un
 2. **Reiter „Auftrag“** für die Stationen mit Auftrag oder Einstellungen. Die breite 344-px-Übersicht entfällt.
 3. **Träger und Dorftruhe** auf Reiter umstellen (Probleme 2, 3, 5, 10).
 4. **Feinschliff:** Figur des Arbeiters, Geisterbilder, Ausrufezeichen an Reitern, Farben (Problem 11), Spieler-Wiki und Bilder darin.
+
+### Stand der Umsetzung
+
+- **Stationsübersicht mit Reitern** (Schritte 1 und 2): Fenster 176×166, Reiter wie im Kreativinventar (Vanilla-Grafiken), Knöpfe 16 bis 20 px hoch. Abweichungen:
+  - Vier Reiter statt drei: **Block** · **Arbeiter** · **Kisten** · **Auftrag**/**Einstellungen**. Die Kisten bekommen einen eigenen Reiter, damit der Arbeiter-Reiter Platz für umgebrochenen Status, Tagespensum, Versorgung und einen Hinweis zum Geben hat. Sechs Kisten sind sichtbar, mehr per Mausrad.
+  - Der Reiter **Block** ersetzt „Back“. Über den Block-Menüs gibt es keine Reiter; dort führt der Knopf mit dem Gesicht in die Übersicht.
+  - Statt eines Ausrufezeichens ein roter Punkt am Reiter.
+  - Keine Figur des Arbeiters; das Gesicht steht im Reiter. Der Status bleibt blau.
+  - Grubenpflock und Grubenwerkbank: der Zustand (gewählte Grube, gewählter Stollen) als eigene Zeile, darunter der Wahl-Knopf über die ganze Breite und eine Erklärung.
+- **Offen:** Träger und Dorftruhe (Schritt 3), Feinschliff (Schritt 4).
 
 Nach jedem Schritt laufen die Screenshots erneut; alle Menüs in 854×480 vollständig sichtbar ist die Abnahme.
 

@@ -8,8 +8,8 @@ import java.util.Set;
 import me.teajay.workingvillagers.crafting.StoneFamilies;
 import me.teajay.workingvillagers.crafting.WoodTypes;
 import me.teajay.workingvillagers.menu.StationMenu;
+import me.teajay.workingvillagers.menu.SuppliesInfo;
 import me.teajay.workingvillagers.station.StationType;
-import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -29,56 +29,67 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The overview of a workstation: the worker and the linked chests (role, how full, unlink).
- * At the woodcutter and the carpenter's bench a second column on the left sets the order:
- * the product (or its shape) and the wood types to use; at the bench also how many
- * products to keep in stock. At the stonecutter that column shows the stone families
- * first and, once one is opened, its products; at the kiln it shows everything the kiln
- * makes and how many to keep in stock. The composter and the blast furnace have no order:
- * the farmer works the fields around it, the smith smelts what it finds. The pit stake
- * picks the pit and its ladder and sets the depth.
+ * The overview of a workstation, the size of a vanilla chest screen with tabs above it like
+ * the creative inventory:
+ *
+ * <ul>
+ * <li><b>Block</b> (stations with a screen of their own): back to that screen.</li>
+ * <li><b>Worker</b>: who works here (assign, take away), what it is doing, what it did
+ *     today and what it carries for its work.</li>
+ * <li><b>Chests</b>: the linked chests (role, how full, unlink) and the buttons to link more.</li>
+ * <li><b>Order</b> (woodcutter, stonecutter, carpenter's bench, kiln): the product, the wood
+ *     types, the stock. <b>Settings</b> instead at the chopping block (strip logs), the pit
+ *     stake (pit, ladder, depth) and the mining bench (tunnel).</li>
+ * </ul>
+ *
+ * A tab with something missing (no wage or tool, no chest, no order) shows a red mark.
  */
 public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	private static final Identifier SLOT_SPRITE = Identifier.withDefaultNamespace("container/slot");
+	private static final Identifier[] TAB_SELECTED = tabSprites("selected");
+	private static final Identifier[] TAB_UNSELECTED = tabSprites("unselected");
+	private static final int WIDTH = 176;
+	private static final int HEIGHT = 166;
+	/** How far the tabs stick out above the window. */
+	private static final int TAB_HEIGHT = 28;
+	private static final int TAB_WIDTH = 26;
+	private static final int TAB_STEP = 27;
+	private static final int COLUMN_X = 7;
 	private static final int COLUMN_WIDTH = 162;
-	private static final int ROW_HEIGHT = 19;
-	private static final int BUTTON_SIZE = 12;
-	private static final int SMALL_BUTTON_HEIGHT = 11;
+	/** Where the content of a tab starts, below the title. */
+	private static final int CONTENT_Y = 18;
+	/** Buttons for the main actions, as high as the vanilla buttons. */
+	private static final int BIG = 20;
+	/** Buttons in rows: −, +, ×, the role of a chest. */
+	private static final int SMALL = 16;
+	private static final int ROW_HEIGHT = 20;
+	private static final int VISIBLE_CHESTS = 6;
 	private static final int BAR_WIDTH = 16;
-	private static final int ROLE_WIDTH = 42;
+	private static final int ROLE_WIDTH = 50;
 	private static final int GRID_COLUMNS = 9;
-	/** Woodcutter and carpenter's bench: where the order column starts. */
-	private static final int SHAPES_Y = 77;
-	private static final int STATUS_Y = 29;
-	private static final int SECOND_LINE_Y = 40;
-	/** The slots with the worker's emeralds, tool and seeds or saplings. */
-	private static final int SUPPLIES_Y = 49;
-	/** Stonecutter: the grid of families or products, as many rows as fit next to the chests. */
+	/** Order tab: where the grid of products starts, below its label. */
+	private static final int SHAPES_Y = 30;
+	/** Stonecutter: the grid of families or products. */
 	private static final int STONE_CELLS = GRID_COLUMNS * 6;
-	/** Chopping block: the row with the strip switch. */
-	private static final int STRIP_Y = 71;
-	/** Pit stake: the row with the pit and the one with its depth. */
-	private static final int PIT_Y = 71;
-	private static final int DEPTH_Y = 86;
-	/** Mining bench: the rows of the tunnel (picked tunnel, length and kind, side tunnels). */
-	private static final int TUNNEL_Y = 71;
-	private static final int LENGTH_Y = 86;
-	private static final int BRANCHES_Y = 101;
 	/** Kiln: rows of products on one page. */
 	private static final int KILN_ROWS = 5;
 	private static final int KILN_CELLS = GRID_COLUMNS * KILN_ROWS;
+	/** Settings tab: the rows (one below the other, a big button high each). */
+	private static final int SETTING_STEP = 26;
+	private static final int LINE = 10;
 
-	private final boolean orderColumn;
+	private enum Tab { BLOCK, WORK, CHESTS, ORDER }
+
+	private final List<Tab> tabs = new ArrayList<>();
+	private Tab tab = Tab.WORK;
 	/** Where the wood types start, below the products. */
 	private final int woodsLabelY;
 	private final int woodsY;
-	/** Carpenter's bench: the row with the stock. */
+	/** Carpenter's bench and kiln: the row with the stock. */
 	private final int stockY;
-	/** Left edge of the chest column. */
-	private final int chestsX;
-	/** Top of the chest list. */
-	private final int chestsY;
 	private final List<Hotspot> hotspots = new ArrayList<>();
+	/** Chests tab: the first chest shown. */
+	private int chestScroll;
 	/** Stonecutter: the index of the family whose products are shown, -1 for the families. */
 	private int openFamily = -1;
 	private int familyPage;
@@ -90,49 +101,65 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	private boolean kilnPageShown;
 
 	public StationScreen(StationMenu menu, Inventory inventory, Component title) {
-		super(menu, inventory, title, hasOrderColumn(menu) ? 344 : 176, chestsY(menu) + Workstations.MAX_CHESTS * ROW_HEIGHT + 25);
-		this.orderColumn = hasOrderColumn(menu);
-		this.chestsX = this.orderColumn ? 175 : 7;
-		this.chestsY = chestsY(menu);
-		int productRows = menu.type() == StationType.CARPENTER_BENCH ? 3 : 2;
+		super(menu, inventory, title, WIDTH, HEIGHT);
+		StationType type = menu.type();
+		if (type.hasOwnScreen()) {
+			this.tabs.add(Tab.BLOCK);
+		}
+		this.tabs.add(Tab.WORK);
+		this.tabs.add(Tab.CHESTS);
+		if (hasOrderTab(type)) {
+			this.tabs.add(Tab.ORDER);
+		}
+		int productRows = type == StationType.CARPENTER_BENCH ? 3 : 2;
 		this.woodsLabelY = SHAPES_Y + productRows * 18 + 5;
 		this.woodsY = this.woodsLabelY + 11;
-		this.stockY = menu.type() == StationType.KILN ? SHAPES_Y + KILN_ROWS * 18 + 5 : this.woodsY + 2 * 18 + 5;
+		this.stockY = type == StationType.KILN ? SHAPES_Y + KILN_ROWS * 18 + 8 : this.woodsY + 2 * 18 + 6;
 	}
 
-	private static boolean hasOrderColumn(StationMenu menu) {
-		return menu.type().hasOrder();
+	private static Identifier[] tabSprites(String state) {
+		Identifier[] sprites = new Identifier[7];
+		for (int i = 0; i < sprites.length; i++) {
+			sprites[i] = Identifier.withDefaultNamespace("container/creative_inventory/tab_top_" + state + "_" + (i + 1));
+		}
+		return sprites;
+	}
+
+	/** Whether the station has a third tab: its order, or its settings. */
+	private static boolean hasOrderTab(StationType type) {
+		return type.hasOrder() || type == StationType.CHOPPING_BLOCK || type == StationType.PIT_STAKE || type == StationType.MINING_BENCH;
+	}
+
+	@Override
+	protected void init() {
+		super.init();
+		// Centered with the tabs, which stick out above the window
+		this.topPos = (this.height - HEIGHT - TAB_HEIGHT) / 2 + TAB_HEIGHT;
+	}
+
+	/** Shows a tab (also for the screenshots of the menus). */
+	public void showTab(String name) {
+		for (Tab candidate : this.tabs) {
+			if (candidate.name().equalsIgnoreCase(name)) {
+				this.tab = candidate;
+			}
+		}
+	}
+
+	private StationType type() {
+		return this.menu.type();
 	}
 
 	private boolean isStonecutter() {
-		return this.menu.type() == StationType.STONECUTTER;
+		return this.type() == StationType.STONECUTTER;
 	}
 
 	private boolean isBench() {
-		return this.menu.type() == StationType.CARPENTER_BENCH;
+		return this.type() == StationType.CARPENTER_BENCH;
 	}
 
 	private boolean isKiln() {
-		return this.menu.type() == StationType.KILN;
-	}
-
-	private boolean isPitStake() {
-		return this.menu.type() == StationType.PIT_STAKE;
-	}
-
-	private boolean isMiningBench() {
-		return this.menu.type() == StationType.MINING_BENCH;
-	}
-
-	private static int chestsY(StationMenu menu) {
-		if (hasOrderColumn(menu)) {
-			return 29;
-		}
-		return switch (menu.type()) {
-			case PIT_STAKE -> 111;
-			case MINING_BENCH -> 126;
-			default -> 95;
-		};
+		return this.type() == StationType.KILN;
 	}
 
 	/**
@@ -153,55 +180,330 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
 		super.extractBackground(graphics, mouseX, mouseY, a);
 		this.hotspots.clear();
-		int left = this.leftPos;
-		int top = this.topPos;
-		GuiPanels.panel(graphics, left, top, this.imageWidth, this.imageHeight);
-
-		if (this.menu.type().hasOwnScreen()) {
-			String back = Component.translatable("gui.workingvillagers.station.back").getString();
-			int width = this.font.width(back) + 10;
-			this.button(graphics, mouseX, mouseY, left + this.imageWidth - 7 - width, top + 3, width, BUTTON_SIZE, back, StationMenu.BACK_BUTTON,
-				List.of(Component.translatable(this.backTooltip())));
+		// The other tabs behind the window, the open one in front of it
+		for (int i = 0; i < this.tabs.size(); i++) {
+			if (this.tabs.get(i) != this.tab) {
+				this.extractTab(graphics, i, false);
+			}
 		}
-		if (this.orderColumn) {
-			this.extractOrder(graphics, mouseX, mouseY);
+		GuiPanels.panel(graphics, this.leftPos, this.topPos, this.imageWidth, this.imageHeight);
+		this.extractTab(graphics, this.tabs.indexOf(this.tab), true);
+		switch (this.tab) {
+			case WORK -> this.extractWork(graphics, mouseX, mouseY);
+			case CHESTS -> this.extractChests(graphics, mouseX, mouseY);
+			case ORDER -> this.extractOrderTab(graphics, mouseX, mouseY);
+			case BLOCK -> { }
 		}
-		if (this.menu.type() == StationType.CHOPPING_BLOCK) {
-			this.extractStrip(graphics, mouseX, mouseY);
-		}
-		if (this.isPitStake()) {
-			this.extractPit(graphics, mouseX, mouseY);
-		}
-		if (this.isMiningBench()) {
-			this.extractTunnel(graphics, mouseX, mouseY);
-		}
-		this.extractChests(graphics, mouseX, mouseY);
-		this.extractWorkerButton(graphics, mouseX, mouseY);
-		this.extractSupplies(graphics);
 		for (Hotspot hotspot : this.hotspots) {
-			if (hotspot.contains(mouseX, mouseY)) {
+			if (hotspot.contains(mouseX, mouseY) && (hotspot.button() >= 0 || hotspot.action() != null)) {
 				graphics.requestCursor(CursorTypes.POINTING_HAND);
 			}
 		}
 	}
 
-	private void extractOrder(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-		if (this.isStonecutter()) {
-			this.extractStoneOrder(graphics, mouseX, mouseY);
-			return;
+	// --- Tabs ---
+
+	private void extractTab(GuiGraphicsExtractor graphics, int index, boolean selected) {
+		Tab shown = this.tabs.get(index);
+		int x = this.leftPos + index * TAB_STEP;
+		int y = this.topPos - TAB_HEIGHT;
+		Identifier[] sprites = selected ? TAB_SELECTED : TAB_UNSELECTED;
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprites[Math.min(index, sprites.length - 1)], x, y, TAB_WIDTH, 32);
+		int iconX = x + 5;
+		int iconY = y + 9 + (selected ? 0 : 1);
+		if (shown == Tab.WORK) {
+			WorkerButton.face(graphics, iconX, iconY, this.type().profession(), this.menu.getWorker().isPresent());
+		} else {
+			graphics.item(this.tabIcon(shown), iconX, iconY);
 		}
-		if (this.isKiln()) {
-			this.extractKilnOrder(graphics, mouseX, mouseY);
-			this.extractStock(graphics, mouseX, mouseY);
-			return;
+		if (this.tabProblem(shown)) {
+			// A red mark at the top right, like a notification
+			graphics.fill(x + TAB_WIDTH - 8, y + 3, x + TAB_WIDTH - 3, y + 8, 0xFF000000);
+			graphics.fill(x + TAB_WIDTH - 7, y + 4, x + TAB_WIDTH - 4, y + 7, 0xFFE03030);
 		}
+		if (!selected) {
+			this.hotspots.add(new Hotspot(x, y, TAB_WIDTH, TAB_HEIGHT, shown == Tab.BLOCK ? StationMenu.BACK_BUTTON : -1, this.tabTooltip(shown),
+				shown == Tab.BLOCK ? null : () -> this.tab = shown));
+		} else {
+			this.hotspots.add(new Hotspot(x, y, TAB_WIDTH, TAB_HEIGHT, -1, this.tabTooltip(shown)));
+		}
+	}
+
+	private ItemStack tabIcon(Tab shown) {
+		return switch (shown) {
+			case BLOCK -> new ItemStack(this.type().block());
+			case CHESTS -> new ItemStack(Items.CHEST);
+			case ORDER -> {
+				ItemStack order = this.menu.getOrder();
+				if (!order.isEmpty()) {
+					yield order;
+				}
+				yield new ItemStack(switch (this.type()) {
+					case CHOPPING_BLOCK -> Items.STRIPPED_OAK_LOG;
+					case PIT_STAKE -> Items.STRING;
+					case MINING_BENCH -> Items.IRON_PICKAXE;
+					default -> Items.PAPER;
+				});
+			}
+			case WORK -> ItemStack.EMPTY;
+		};
+	}
+
+	private List<Component> tabTooltip(Tab shown) {
+		return switch (shown) {
+			case BLOCK -> List.of(Component.translatable(this.backTooltip()));
+			case WORK -> List.of(Component.translatable("gui.workingvillagers.tab.work"),
+				WorkerButton.workerLine(this.menu.getWorker()).copy().withStyle(ChatFormatting.GRAY));
+			case CHESTS -> List.of(Component.translatable("gui.workingvillagers.tab.chests"),
+				Component.translatable("gui.workingvillagers.station.chests", this.menu.getChests().size(), this.menu.getMaxChests()).withStyle(ChatFormatting.GRAY));
+			case ORDER -> List.of(Component.translatable(this.type().hasOrder() ? "gui.workingvillagers.tab.order" : "gui.workingvillagers.tab.settings"));
+		};
+	}
+
+	/** Whether the worker cannot work because of something on that tab. */
+	private boolean tabProblem(Tab shown) {
+		return switch (shown) {
+			case WORK -> this.menu.getWorker().isEmpty() || this.menu.getSupplies().map(SuppliesInfo::hasProblem).orElse(false);
+			case CHESTS -> this.menu.getChests().isEmpty();
+			case ORDER -> switch (this.type()) {
+				case PIT_STAKE -> this.menu.getPit().isEmpty();
+				case MINING_BENCH -> this.menu.getTunnel().isEmpty();
+				case CHOPPING_BLOCK, KILN -> false;
+				default -> this.type().hasOrder() && (this.menu.getOrder().isEmpty()
+					|| this.type().hasWoods() && this.menu.getShape() != null && this.menu.getWoods().isEmpty());
+			};
+			case BLOCK -> false;
+		};
+	}
+
+	// --- Worker tab ---
+
+	/** The button next to the worker: assign one if the station is free, take it away otherwise. */
+	private void extractWork(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+		boolean free = this.menu.getWorker().isEmpty();
+		if (free || this.menu.hasHiredWorker()) {
+			int width = this.workerButtonWidth();
+			this.button(graphics, mouseX, mouseY, this.leftPos + COLUMN_X + COLUMN_WIDTH - width, this.topPos + CONTENT_Y, width, BIG,
+				Component.translatable(free ? "gui.workingvillagers.station.assign" : "gui.workingvillagers.station.unassign").getString(),
+				free ? StationMenu.ASSIGN_BUTTON : StationMenu.UNASSIGN_BUTTON,
+				List.of(Component.translatable(free ? "gui.workingvillagers.station.assign.tooltip" : "gui.workingvillagers.station.unassign.tooltip")));
+		}
+		this.menu.getSupplies().ifPresent(info -> {
+			int y = this.topPos + this.suppliesY();
+			SuppliesRow.extractSlots(graphics, this.font, info, this.leftPos + COLUMN_X, y);
+			this.hotspots.add(new Hotspot(this.leftPos + COLUMN_X, y, COLUMN_WIDTH, SuppliesRow.SLOT, -1, SuppliesRow.tooltip(info)));
+		});
+	}
+
+	private int workerButtonWidth() {
+		boolean free = this.menu.getWorker().isEmpty();
+		if (!free && !this.menu.hasHiredWorker()) {
+			return 0;
+		}
+		return Math.max(60, this.font.width(Component.translatable(free ? "gui.workingvillagers.station.assign" : "gui.workingvillagers.station.unassign")) + 16);
+	}
+
+	/** The status, wrapped to at most three lines. */
+	private List<FormattedCharSequence> statusLines() {
+		return this.menu.getStatus()
+			.map(status -> this.limit(this.font.split(status, COLUMN_WIDTH), 3))
+			.orElse(List.of());
+	}
+
+	/** The line about today or the order, wrapped to at most two lines. */
+	private List<FormattedCharSequence> secondLines() {
+		return this.secondLine().map(line -> this.limit(this.font.split(line, COLUMN_WIDTH), 2)).orElse(List.of());
+	}
+
+	private List<FormattedCharSequence> limit(List<FormattedCharSequence> lines, int max) {
+		return lines.size() <= max ? lines : lines.subList(0, max);
+	}
+
+	/** Where the slots of the supplies are: below the status and the second line. */
+	private int suppliesY() {
+		return CONTENT_Y + BIG + 6 + (this.statusLines().size() + this.secondLines().size()) * LINE + 4;
+	}
+
+	private void extractWorkLabels(GuiGraphicsExtractor graphics) {
+		Component worker = this.menu.getWorker().orElse(Component.translatable("gui.workingvillagers.worker.none"));
+		GuiPanels.scrollingText(graphics, this.font, worker.getString(), 8, CONTENT_Y + 6, COLUMN_WIDTH - this.workerButtonWidth() - 4,
+			this.menu.getWorker().isPresent() ? GuiPanels.TEXT_COLOR : GuiPanels.MUTED_COLOR);
+		int y = CONTENT_Y + BIG + 6;
+		for (FormattedCharSequence line : this.statusLines()) {
+			graphics.text(this.font, line, 8, y, GuiPanels.STATUS_COLOR, false);
+			y += LINE;
+		}
+		Optional<Component> second = this.secondLine();
+		int secondColor = second.map(line -> line.getStyle().getColor() != null ? 0xFF000000 | line.getStyle().getColor().getValue() : GuiPanels.MUTED_COLOR)
+			.orElse(GuiPanels.MUTED_COLOR);
+		for (FormattedCharSequence line : this.secondLines()) {
+			graphics.text(this.font, line, 8, y, secondColor, false);
+			y += LINE;
+		}
+		this.menu.getSupplies().ifPresent(info -> {
+			int x = COLUMN_X + SuppliesRow.slotsWidth(info) + 4;
+			int top = this.suppliesY();
+			List<FormattedCharSequence> lines = this.limit(this.font.split(SuppliesRow.line(info), COLUMN_X + COLUMN_WIDTH - x), 2);
+			int lineY = top + (SuppliesRow.SLOT - lines.size() * LINE) / 2 + 1;
+			for (FormattedCharSequence line : lines) {
+				graphics.text(this.font, line, x, lineY, SuppliesRow.color(info), false);
+				lineY += LINE;
+			}
+			// How to give the worker its things, at the bottom
+			List<FormattedCharSequence> hint = this.limit(this.font.split(Component.translatable("gui.workingvillagers.supplies.give"), COLUMN_WIDTH), 2);
+			int hintY = HEIGHT - 7 - hint.size() * LINE;
+			for (FormattedCharSequence line : hint) {
+				graphics.text(this.font, line, 8, hintY, GuiPanels.MUTED_COLOR, false);
+				hintY += LINE;
+			}
+		});
+	}
+
+	// --- Chests tab ---
+
+	private void extractChests(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+		int left = this.leftPos + COLUMN_X;
+		int top = this.topPos + CONTENT_Y;
+		boolean processing = this.type().isProcessing();
+		List<StationMenu.Chest> chests = this.menu.getChests();
+		this.chestScroll = Mth.clamp(this.chestScroll, 0, Math.max(0, chests.size() - VISIBLE_CHESTS));
+		boolean scrolls = chests.size() > VISIBLE_CHESTS;
+		int rowWidth = scrolls ? COLUMN_WIDTH - 8 : COLUMN_WIDTH;
+		for (int row = 0; row < Math.min(VISIBLE_CHESTS, chests.size()); row++) {
+			int i = row + this.chestScroll;
+			StationMenu.Chest chest = chests.get(i);
+			int y = top + row * ROW_HEIGHT;
+			GuiPanels.inset(graphics, left, y, rowWidth, ROW_HEIGHT - 1, 0xFFB4B4B4);
+			BlockState state = this.minecraft.level.getBlockState(chest.pos());
+			if (!state.isAir()) {
+				graphics.item(new ItemStack(state.getBlock()), left + 2, y + 1);
+			}
+			int buttonX = left + rowWidth - SMALL - 2;
+			int barX = buttonX - 4 - BAR_WIDTH;
+			int roleX = barX - 4 - ROLE_WIDTH;
+			int textWidth = (processing ? roleX : barX) - (left + 20) - 3;
+			GuiPanels.scrollingText(graphics, this.font, chest.name().getString(), left + 20, y + 6, textWidth,
+				chest.named() ? GuiPanels.TEXT_COLOR : GuiPanels.MUTED_COLOR);
+
+			List<Component> rowTooltip = this.chestTooltip(chest, state);
+			this.hotspots.add(new Hotspot(left, y, (processing ? roleX : barX) - left, ROW_HEIGHT - 1, -1, rowTooltip));
+			if (processing) {
+				String role = Component.translatable(chest.input() ? "gui.workingvillagers.station.input" : "gui.workingvillagers.station.output").getString();
+				this.button(graphics, mouseX, mouseY, roleX, y + 1, ROLE_WIDTH, SMALL + 1, role, StationMenu.ROLE_BUTTON + i, List.of(
+					Component.translatable(chest.input() ? "gui.workingvillagers.station.input.tooltip" : "gui.workingvillagers.station.output.tooltip"),
+					Component.translatable("gui.workingvillagers.station.click_toggle").withStyle(ChatFormatting.DARK_GRAY)
+				));
+			}
+
+			// How full the chest is
+			int barY = y + 8;
+			float fill = chest.size() == 0 ? 0.0F : (float) chest.used() / chest.size();
+			graphics.fill(barX - 1, barY - 1, barX + BAR_WIDTH + 1, barY + 4, 0xFF373737);
+			graphics.fill(barX, barY, barX + BAR_WIDTH, barY + 3, 0xFF8B8B8B);
+			graphics.fill(barX, barY, barX + Math.round(BAR_WIDTH * fill), barY + 3, fill >= 1.0F ? 0xFFC03030 : 0xFF50A040);
+			this.hotspots.add(new Hotspot(barX - 1, y, BAR_WIDTH + 2, ROW_HEIGHT - 1, -1, rowTooltip));
+
+			this.button(graphics, mouseX, mouseY, buttonX, y + 1, SMALL, SMALL + 1, "×", StationMenu.UNLINK_BUTTON + i,
+				List.of(Component.translatable("gui.workingvillagers.station.unlink")));
+		}
+		if (scrolls) {
+			int trackX = left + COLUMN_WIDTH - 6;
+			int trackHeight = VISIBLE_CHESTS * ROW_HEIGHT - 1;
+			GuiPanels.inset(graphics, trackX, top, 6, trackHeight, 0xFF8B8B8B);
+			int thumbHeight = trackHeight * VISIBLE_CHESTS / chests.size();
+			int thumbY = top + (trackHeight - thumbHeight) * this.chestScroll / (chests.size() - VISIBLE_CHESTS);
+			graphics.fill(trackX + 1, thumbY + 1, trackX + 5, thumbY + thumbHeight - 1, 0xFFE0E0E0);
+			this.hotspots.add(new Hotspot(trackX, top, 6, trackHeight, -1, List.of(), () -> this.chestScroll = this.chestScroll == 0 ? chests.size() : 0));
+		}
+
+		// Buttons to link more chests by clicking them in the world
+		int y = this.topPos + HEIGHT - 7 - BIG;
+		List<Component> tooltip = List.of(Component.translatable("gui.workingvillagers.station.add_chests.tooltip"));
+		boolean full = chests.size() >= this.menu.getMaxChests();
+		if (processing) {
+			int width = (COLUMN_WIDTH - 2) / 2;
+			this.button(graphics, mouseX, mouseY, left, y, width, BIG, Component.translatable("gui.workingvillagers.station.add_inputs").getString(),
+				StationMenu.ADD_INPUTS_BUTTON, tooltip);
+			this.button(graphics, mouseX, mouseY, left + width + 2, y, width, BIG, Component.translatable("gui.workingvillagers.station.add_outputs").getString(),
+				StationMenu.ADD_OUTPUTS_BUTTON, tooltip);
+		} else {
+			this.button(graphics, mouseX, mouseY, left, y, COLUMN_WIDTH, BIG, Component.translatable("gui.workingvillagers.station.add_chests").getString(),
+				StationMenu.ADD_OUTPUTS_BUTTON, tooltip);
+		}
+		if (full) {
+			// Picking still unlinks chests; the server refuses more than the maximum
+			graphics.fill(left, y, left + COLUMN_WIDTH, y + BIG, 0x40000000);
+		}
+	}
+
+	private void extractChestLabels(GuiGraphicsExtractor graphics) {
+		Component count = Component.translatable("gui.workingvillagers.station.chests", this.menu.getChests().size(), this.menu.getMaxChests());
+		graphics.text(this.font, count, WIDTH - 8 - this.font.width(count), this.titleLabelY, GuiPanels.MUTED_COLOR, false);
+		if (this.menu.getChests().isEmpty()) {
+			int y = CONTENT_Y + 4;
+			for (FormattedCharSequence line : this.font.split(this.noChestsWarning(), COLUMN_WIDTH - 4)) {
+				graphics.text(this.font, line, 9, y, GuiPanels.WARNING_COLOR, false);
+				y += LINE;
+			}
+		}
+	}
+
+	private Component noChestsWarning() {
+		return Component.translatable(switch (this.type()) {
+			case CHOPPING_BLOCK -> "gui.workingvillagers.chopping_block.no_chests";
+			case COMPOSTER -> "gui.workingvillagers.composter.no_chests";
+			case PIT_STAKE -> "gui.workingvillagers.pit_stake.no_chests";
+			case MINING_BENCH -> "gui.workingvillagers.mining_bench.no_chests";
+			default -> "gui.workingvillagers.station.no_chests";
+		});
+	}
+
+	private List<Component> chestTooltip(StationMenu.Chest chest, BlockState state) {
+		List<Component> lines = new ArrayList<>();
+		lines.add(chest.name());
+		if (chest.named() && !state.isAir()) {
+			lines.add(state.getBlock().getName().copy().withStyle(ChatFormatting.GRAY));
+		}
+		lines.add(Component.translatable("gui.workingvillagers.chopping_block.used", chest.used(), chest.size()).withStyle(ChatFormatting.GRAY));
+		this.menu.getStationPos().ifPresent(station -> lines.add(
+			Component.translatable("gui.workingvillagers.distance", Math.round(Math.sqrt(station.distSqr(chest.pos())))).withStyle(ChatFormatting.GRAY)
+		));
+		if (!chest.named()) {
+			lines.add(Component.translatable("gui.workingvillagers.container.unnamed").withStyle(ChatFormatting.DARK_GRAY));
+		}
+		return lines;
+	}
+
+	// --- Order and settings tab ---
+
+	private void extractOrderTab(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+		switch (this.type()) {
+			case STONECUTTER -> this.extractStoneOrder(graphics, mouseX, mouseY);
+			case KILN -> {
+				this.extractKilnOrder(graphics, mouseX, mouseY);
+				this.extractStock(graphics, mouseX, mouseY);
+			}
+			case CARPENTER_BENCH -> {
+				this.extractProducts(graphics, this.leftPos + 8, this.menu.getShape());
+				this.extractStock(graphics, mouseX, mouseY);
+				this.extractWoods(graphics, mouseX, mouseY);
+			}
+			case WOODCUTTER -> {
+				this.extractShapes(graphics);
+				this.extractWoods(graphics, mouseX, mouseY);
+			}
+			case CHOPPING_BLOCK -> this.extractStrip(graphics, mouseX, mouseY);
+			case PIT_STAKE -> this.extractPit(graphics, mouseX, mouseY);
+			case MINING_BENCH -> this.extractTunnel(graphics, mouseX, mouseY);
+			default -> { }
+		}
+	}
+
+	/** Woodcutter: the shapes (planks, slabs, ...). */
+	private void extractShapes(GuiGraphicsExtractor graphics) {
 		int left = this.leftPos + 8;
 		String shape = this.menu.getShape();
-		if (this.isBench()) {
-			this.extractProducts(graphics, left, shape);
-			this.extractStock(graphics, mouseX, mouseY);
-		}
-		for (int i = 0; !this.isBench() && i < WoodTypes.SHAPES.size(); i++) {
+		for (int i = 0; i < WoodTypes.SHAPES.size(); i++) {
 			String option = WoodTypes.SHAPES.get(i);
 			int x = left + i % GRID_COLUMNS * 18;
 			int y = this.topPos + SHAPES_Y + i / GRID_COLUMNS * 18;
@@ -213,17 +515,22 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 					.withStyle(ChatFormatting.GRAY)
 			)));
 		}
+	}
 
+	/** Woodcutter and carpenter's bench: the wood types the order may be made of. */
+	private void extractWoods(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+		int left = this.leftPos + 8;
+		String shape = this.menu.getShape();
 		Set<String> woods = this.menu.getWoods();
 		Set<String> available = this.menu.getAvailableWoods();
 		String all = Component.translatable("gui.workingvillagers.station.woods.all").getString();
 		String none = Component.translatable("gui.workingvillagers.station.woods.none").getString();
-		int noneWidth = this.font.width(none) + 8;
-		int allWidth = this.font.width(all) + 8;
-		int right = this.leftPos + 7 + COLUMN_WIDTH;
-		int buttonY = this.topPos + this.woodsLabelY - 2;
-		this.button(graphics, mouseX, mouseY, right - noneWidth, buttonY, noneWidth, SMALL_BUTTON_HEIGHT, none, StationMenu.NO_WOODS_BUTTON, List.of());
-		this.button(graphics, mouseX, mouseY, right - noneWidth - 2 - allWidth, buttonY, allWidth, SMALL_BUTTON_HEIGHT, all, StationMenu.ALL_WOODS_BUTTON, List.of());
+		int noneWidth = this.font.width(none) + 10;
+		int allWidth = this.font.width(all) + 10;
+		int right = this.leftPos + COLUMN_X + COLUMN_WIDTH;
+		int buttonY = this.topPos + this.woodsLabelY - 4;
+		this.button(graphics, mouseX, mouseY, right - noneWidth, buttonY, noneWidth, 14, none, StationMenu.NO_WOODS_BUTTON, List.of());
+		this.button(graphics, mouseX, mouseY, right - noneWidth - 2 - allWidth, buttonY, allWidth, 14, all, StationMenu.ALL_WOODS_BUTTON, List.of());
 
 		for (int i = 0; i < WoodTypes.ALL.size(); i++) {
 			WoodTypes.WoodType wood = WoodTypes.ALL.get(i);
@@ -264,12 +571,12 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		}
 		int left = this.leftPos + 8;
 		int top = this.topPos + SHAPES_Y;
-		int right = this.leftPos + 7 + COLUMN_WIDTH;
-		int buttonY = top - 12;
+		int right = this.leftPos + COLUMN_X + COLUMN_WIDTH;
+		int buttonY = top - 14;
 
 		if (this.openFamily >= 0) {
 			String back = Component.translatable("gui.workingvillagers.station.stone.back").getString();
-			int width = this.font.width(back) + 8;
+			int width = this.font.width(back) + 10;
 			this.localButton(graphics, mouseX, mouseY, right - width, buttonY, width, back, () -> this.openFamily = -1);
 			int first = families.stream().limit(this.openFamily).mapToInt(family -> family.products().size()).sum();
 			List<Item> products = families.get(this.openFamily).products();
@@ -294,9 +601,9 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		int pages = this.familyPages(families);
 		this.familyPage = Mth.clamp(this.familyPage, 0, pages - 1);
 		if (pages > 1) {
-			this.localButton(graphics, mouseX, mouseY, right - BUTTON_SIZE, buttonY, BUTTON_SIZE, ">",
+			this.localButton(graphics, mouseX, mouseY, right - SMALL, buttonY, SMALL, ">",
 				() -> this.familyPage = Math.min(this.familyPage + 1, pages - 1));
-			this.localButton(graphics, mouseX, mouseY, right - 2 * BUTTON_SIZE - 2, buttonY, BUTTON_SIZE, "<",
+			this.localButton(graphics, mouseX, mouseY, right - 2 * SMALL - 2, buttonY, SMALL, "<",
 				() -> this.familyPage = Math.max(this.familyPage - 1, 0));
 		}
 		int start = this.familyPage * STONE_CELLS;
@@ -328,7 +635,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	}
 
 	/** Carpenter's bench: the products; one cell per shape for those made of one wood type. */
-	private void extractProducts(GuiGraphicsExtractor graphics, int left, String shape) {
+	private void extractProducts(GuiGraphicsExtractor graphics, int left, @Nullable String shape) {
 		List<ItemStack> products = this.menu.getProducts();
 		ItemStack order = this.menu.getOrder();
 		for (int i = 0; i < products.size(); i++) {
@@ -365,11 +672,11 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		this.kilnPage = Mth.clamp(this.kilnPage, 0, pages - 1);
 		int left = this.leftPos + 8;
 		int top = this.topPos + SHAPES_Y;
-		int right = this.leftPos + 7 + COLUMN_WIDTH;
+		int right = this.leftPos + COLUMN_X + COLUMN_WIDTH;
 		if (pages > 1) {
-			this.localButton(graphics, mouseX, mouseY, right - BUTTON_SIZE, top - 12, BUTTON_SIZE, ">",
+			this.localButton(graphics, mouseX, mouseY, right - SMALL, top - 14, SMALL, ">",
 				() -> this.kilnPage = Math.min(this.kilnPage + 1, pages - 1));
-			this.localButton(graphics, mouseX, mouseY, right - 2 * BUTTON_SIZE - 2, top - 12, BUTTON_SIZE, "<",
+			this.localButton(graphics, mouseX, mouseY, right - 2 * SMALL - 2, top - 14, SMALL, "<",
 				() -> this.kilnPage = Math.max(this.kilnPage - 1, 0));
 		}
 		int start = this.kilnPage * KILN_CELLS;
@@ -390,65 +697,82 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		}
 	}
 
+	/** Carpenter's bench and kiln: how many products to keep in the output chests, with buttons to change it. */
+	private void extractStock(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+		int y = this.topPos + this.stockY - 4;
+		List<Component> tooltip = List.of(
+			Component.translatable(this.isKiln() ? "gui.workingvillagers.kiln.stock.tooltip" : "gui.workingvillagers.station.stock.tooltip"),
+			Component.translatable("gui.workingvillagers.station.stock.tooltip2").withStyle(ChatFormatting.GRAY)
+		);
+		this.plusMinus(graphics, mouseX, mouseY, y, SMALL, StationMenu.STOCK_LESS_BUTTON, StationMenu.STOCK_MORE_BUTTON, tooltip);
+		this.hotspots.add(new Hotspot(this.leftPos + COLUMN_X, y, COLUMN_WIDTH - 2 * SMALL - 4, SMALL, -1, tooltip));
+	}
+
+	/** Chopping block: the switch whether the lumberjack strips the logs. */
+	private void extractStrip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+		int width = this.toggleWidth("gui.workingvillagers.chopping_block.strip.on", "gui.workingvillagers.chopping_block.strip.off");
+		int y = this.topPos + CONTENT_Y;
+		List<Component> tooltip = List.of(
+			Component.translatable("gui.workingvillagers.chopping_block.strip.tooltip"),
+			Component.translatable("gui.workingvillagers.station.click_toggle").withStyle(ChatFormatting.DARK_GRAY)
+		);
+		this.button(graphics, mouseX, mouseY, this.leftPos + COLUMN_X + COLUMN_WIDTH - width, y, width, BIG, this.stripLabel().getString(),
+			StationMenu.STRIP_BUTTON, tooltip);
+		this.hotspots.add(new Hotspot(this.leftPos + COLUMN_X, y, COLUMN_WIDTH - width - 4, BIG, -1, tooltip));
+	}
+
+	private Component stripLabel() {
+		return Component.translatable(this.menu.getStrip() ? "gui.workingvillagers.chopping_block.strip.on" : "gui.workingvillagers.chopping_block.strip.off");
+	}
+
 	/** Pit stake: the pit (pick it, the ladder) and how deep to dig. */
 	private void extractPit(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-		int right = this.leftPos + 7 + COLUMN_WIDTH;
-		String pick = Component.translatable("gui.workingvillagers.pit.pick").getString();
-		int pickWidth = this.font.width(pick) + 10;
-		this.button(graphics, mouseX, mouseY, right - pickWidth, this.topPos + PIT_Y - 2, pickWidth, BUTTON_SIZE, pick, StationMenu.PICK_PIT_BUTTON, List.of(
-			Component.translatable("gui.workingvillagers.pit.pick.tooltip"),
-			Component.translatable("gui.workingvillagers.pit.pick.tooltip2").withStyle(ChatFormatting.GRAY)
-		));
-		int y = this.topPos + DEPTH_Y - 2;
+		int left = this.leftPos + COLUMN_X;
+		this.button(graphics, mouseX, mouseY, left, this.settingY(0), COLUMN_WIDTH, BIG,
+			Component.translatable("gui.workingvillagers.pit.pick").getString(), StationMenu.PICK_PIT_BUTTON, List.of(
+				Component.translatable("gui.workingvillagers.pit.pick.tooltip"),
+				Component.translatable("gui.workingvillagers.pit.pick.tooltip2").withStyle(ChatFormatting.GRAY)
+			));
 		List<Component> depthTooltip = List.of(
 			Component.translatable("gui.workingvillagers.pit.depth.tooltip"),
 			Component.translatable("gui.workingvillagers.pit.depth.tooltip2", this.menu.getMaxDepth()).withStyle(ChatFormatting.GRAY)
 		);
-		this.button(graphics, mouseX, mouseY, right - BUTTON_SIZE, y, BUTTON_SIZE, BUTTON_SIZE, "+", StationMenu.DEPTH_MORE_BUTTON, depthTooltip);
-		this.button(graphics, mouseX, mouseY, right - 2 * BUTTON_SIZE - 2, y, BUTTON_SIZE, BUTTON_SIZE, "-", StationMenu.DEPTH_LESS_BUTTON, depthTooltip);
+		this.plusMinus(graphics, mouseX, mouseY, this.settingY(1), BIG, StationMenu.DEPTH_LESS_BUTTON, StationMenu.DEPTH_MORE_BUTTON, depthTooltip);
 		if (this.menu.getPit().isPresent()) {
-			String ladder = Component.translatable("gui.workingvillagers.pit.ladder").getString();
-			int ladderWidth = this.font.width(ladder) + 10;
-			this.button(graphics, mouseX, mouseY, right - 2 * BUTTON_SIZE - 6 - ladderWidth, y, ladderWidth, BUTTON_SIZE, ladder, StationMenu.PICK_LADDER_BUTTON,
+			this.button(graphics, mouseX, mouseY, left, this.settingY(2), COLUMN_WIDTH, BIG,
+				Component.translatable("gui.workingvillagers.pit.ladder").getString(), StationMenu.PICK_LADDER_BUTTON,
 				List.of(Component.translatable("gui.workingvillagers.pit.ladder.tooltip")));
 		}
 	}
 
 	/** Mining bench: picking the tunnel, its length and kind, and the side tunnels. */
 	private void extractTunnel(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-		int right = this.leftPos + 7 + COLUMN_WIDTH;
-		String pick = Component.translatable("gui.workingvillagers.tunnel.pick").getString();
-		int pickWidth = this.font.width(pick) + 10;
-		this.button(graphics, mouseX, mouseY, right - pickWidth, this.topPos + TUNNEL_Y - 2, pickWidth, BUTTON_SIZE, pick, StationMenu.PICK_TUNNEL_BUTTON, List.of(
-			Component.translatable("gui.workingvillagers.tunnel.pick.tooltip"),
-			Component.translatable("gui.workingvillagers.tunnel.pick.tooltip2").withStyle(ChatFormatting.GRAY)
-		));
+		int right = this.leftPos + COLUMN_X + COLUMN_WIDTH;
+		this.button(graphics, mouseX, mouseY, this.leftPos + COLUMN_X, this.settingY(0), COLUMN_WIDTH, BIG,
+			Component.translatable("gui.workingvillagers.tunnel.pick").getString(), StationMenu.PICK_TUNNEL_BUTTON, List.of(
+				Component.translatable("gui.workingvillagers.tunnel.pick.tooltip"),
+				Component.translatable("gui.workingvillagers.tunnel.pick.tooltip2").withStyle(ChatFormatting.GRAY)
+			));
 		Optional<StationMenu.TunnelInfo> tunnel = this.menu.getTunnel();
 		if (tunnel.isEmpty()) {
 			return;
 		}
-		List<Component> lengthTooltip = List.of(
+		this.plusMinus(graphics, mouseX, mouseY, this.settingY(1), BIG, StationMenu.LENGTH_LESS_BUTTON, StationMenu.LENGTH_MORE_BUTTON, List.of(
 			Component.translatable("gui.workingvillagers.tunnel.length.tooltip"),
 			Component.translatable("gui.workingvillagers.tunnel.length.tooltip2", this.menu.getMaxTunnelLength()).withStyle(ChatFormatting.GRAY)
-		);
-		int y = this.topPos + LENGTH_Y - 2;
-		this.button(graphics, mouseX, mouseY, right - BUTTON_SIZE, y, BUTTON_SIZE, BUTTON_SIZE, "+", StationMenu.LENGTH_MORE_BUTTON, lengthTooltip);
-		this.button(graphics, mouseX, mouseY, right - 2 * BUTTON_SIZE - 2, y, BUTTON_SIZE, BUTTON_SIZE, "-", StationMenu.LENGTH_LESS_BUTTON, lengthTooltip);
-		String kind = this.stairsLabel(tunnel.get().stairs()).getString();
-		int kindWidth = this.stairsButtonWidth();
-		this.button(graphics, mouseX, mouseY, right - 2 * BUTTON_SIZE - 6 - kindWidth, y, kindWidth, BUTTON_SIZE, kind, StationMenu.STAIRS_BUTTON, List.of(
-			Component.translatable("gui.workingvillagers.tunnel.kind.tooltip"),
-			Component.translatable("gui.workingvillagers.tunnel.kind.tooltip2").withStyle(ChatFormatting.GRAY),
-			Component.translatable("gui.workingvillagers.station.click_toggle").withStyle(ChatFormatting.DARK_GRAY)
 		));
+		int kindWidth = this.toggleWidth("gui.workingvillagers.tunnel.kind.stairs", "gui.workingvillagers.tunnel.kind.tunnel");
+		this.button(graphics, mouseX, mouseY, right - kindWidth, this.settingY(2), kindWidth, BIG, this.stairsLabel(tunnel.get().stairs()).getString(),
+			StationMenu.STAIRS_BUTTON, List.of(
+				Component.translatable("gui.workingvillagers.tunnel.kind.tooltip"),
+				Component.translatable("gui.workingvillagers.tunnel.kind.tooltip2").withStyle(ChatFormatting.GRAY),
+				Component.translatable("gui.workingvillagers.station.click_toggle").withStyle(ChatFormatting.DARK_GRAY)
+			));
 		if (!tunnel.get().stairs() && this.menu.getMaxBranches() > 0) {
-			List<Component> branchTooltip = List.of(
+			this.plusMinus(graphics, mouseX, mouseY, this.settingY(3), BIG, StationMenu.BRANCHES_LESS_BUTTON, StationMenu.BRANCHES_MORE_BUTTON, List.of(
 				Component.translatable("gui.workingvillagers.tunnel.branches.tooltip"),
 				Component.translatable("gui.workingvillagers.tunnel.branches.tooltip2", this.menu.getMaxBranches()).withStyle(ChatFormatting.GRAY)
-			);
-			y = this.topPos + BRANCHES_Y - 2;
-			this.button(graphics, mouseX, mouseY, right - BUTTON_SIZE, y, BUTTON_SIZE, BUTTON_SIZE, "+", StationMenu.BRANCHES_MORE_BUTTON, branchTooltip);
-			this.button(graphics, mouseX, mouseY, right - 2 * BUTTON_SIZE - 2, y, BUTTON_SIZE, BUTTON_SIZE, "-", StationMenu.BRANCHES_LESS_BUTTON, branchTooltip);
+			));
 		}
 	}
 
@@ -456,44 +780,104 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		return Component.translatable(stairs ? "gui.workingvillagers.tunnel.kind.stairs" : "gui.workingvillagers.tunnel.kind.tunnel");
 	}
 
-	private int stairsButtonWidth() {
-		return Math.max(this.font.width(this.stairsLabel(true)), this.font.width(this.stairsLabel(false))) + 10;
+	/** The top of a row of the settings tab (absolute). */
+	private int settingY(int row) {
+		return this.topPos + this.settingRowY(row);
 	}
 
-	/** Carpenter's bench and kiln: how many products to keep in the output chests, with buttons to change it. */
-	private void extractStock(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-		int right = this.leftPos + 7 + COLUMN_WIDTH;
-		int y = this.topPos + this.stockY - 2;
-		List<Component> tooltip = List.of(
-			Component.translatable(this.isKiln() ? "gui.workingvillagers.kiln.stock.tooltip" : "gui.workingvillagers.station.stock.tooltip"),
-			Component.translatable("gui.workingvillagers.station.stock.tooltip2").withStyle(ChatFormatting.GRAY)
-		);
-		this.button(graphics, mouseX, mouseY, right - BUTTON_SIZE, y, BUTTON_SIZE, BUTTON_SIZE, "+", StationMenu.STOCK_MORE_BUTTON, tooltip);
-		this.button(graphics, mouseX, mouseY, right - 2 * BUTTON_SIZE - 2, y, BUTTON_SIZE, BUTTON_SIZE, "-", StationMenu.STOCK_LESS_BUTTON, tooltip);
-		this.hotspots.add(new Hotspot(this.leftPos + 7, y, COLUMN_WIDTH - 2 * BUTTON_SIZE - 4, BUTTON_SIZE, -1, tooltip));
+	/**
+	 * The top of a row of the settings tab (relative): at the pit stake and the mining bench
+	 * below the line that tells which pit or tunnel is picked.
+	 */
+	private int settingRowY(int row) {
+		int summary = this.type() == StationType.PIT_STAKE || this.type() == StationType.MINING_BENCH ? LINE + 4 : 0;
+		return CONTENT_Y + summary + row * SETTING_STEP;
 	}
 
-	/** Chopping block: the switch whether the lumberjack strips the logs. */
-	private void extractStrip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-		int width = this.stripButtonWidth();
-		int y = this.topPos + STRIP_Y - 2;
-		List<Component> tooltip = List.of(
-			Component.translatable("gui.workingvillagers.chopping_block.strip.tooltip"),
-			Component.translatable("gui.workingvillagers.chopping_block.strip.tooltip2").withStyle(ChatFormatting.GRAY),
-			Component.translatable("gui.workingvillagers.station.click_toggle").withStyle(ChatFormatting.DARK_GRAY)
-		);
-		this.button(graphics, mouseX, mouseY, this.leftPos + 7 + COLUMN_WIDTH - width, y, width, BUTTON_SIZE, this.stripLabel().getString(),
-			StationMenu.STRIP_BUTTON, tooltip);
-		this.hotspots.add(new Hotspot(this.leftPos + 7, y, COLUMN_WIDTH - width - 4, BUTTON_SIZE, -1, tooltip));
+	/** A − and a + button at the right edge. */
+	private void plusMinus(GuiGraphicsExtractor graphics, int mouseX, int mouseY, int y, int size, int less, int more, List<Component> tooltip) {
+		int right = this.leftPos + COLUMN_X + COLUMN_WIDTH;
+		this.button(graphics, mouseX, mouseY, right - size, y, size, size, "+", more, tooltip);
+		this.button(graphics, mouseX, mouseY, right - 2 * size - 2, y, size, size, "-", less, tooltip);
 	}
 
-	private Component stripLabel() {
-		return Component.translatable(this.menu.getStrip() ? "gui.workingvillagers.chopping_block.strip.on" : "gui.workingvillagers.chopping_block.strip.off");
+	private int toggleWidth(String first, String second) {
+		return Math.max(this.font.width(Component.translatable(first)), this.font.width(Component.translatable(second))) + 16;
 	}
 
-	private int stripButtonWidth() {
-		return Math.max(this.font.width(Component.translatable("gui.workingvillagers.chopping_block.strip.on")),
-			this.font.width(Component.translatable("gui.workingvillagers.chopping_block.strip.off"))) + 10;
+	/** The labels of the order or settings tab. */
+	private void extractOrderLabels(GuiGraphicsExtractor graphics) {
+		int textY = (BIG - 8) / 2 + 1;
+		switch (this.type()) {
+			case STONECUTTER -> GuiPanels.scrollingText(graphics, this.font, this.stoneLabel().getString(), 8, SHAPES_Y - 11, COLUMN_WIDTH - 40, GuiPanels.TEXT_COLOR);
+			case KILN -> graphics.text(this.font, Component.translatable("gui.workingvillagers.station.shape"), 8, SHAPES_Y - 11, GuiPanels.TEXT_COLOR, false);
+			case WOODCUTTER, CARPENTER_BENCH -> {
+				graphics.text(this.font, Component.translatable("gui.workingvillagers.station.shape"), 8, SHAPES_Y - 11, GuiPanels.TEXT_COLOR, false);
+				graphics.text(this.font, Component.translatable(this.isBench() ? "gui.workingvillagers.station.woods.bench" : "gui.workingvillagers.station.woods"),
+					8, this.woodsLabelY, GuiPanels.TEXT_COLOR, false);
+			}
+			case CHOPPING_BLOCK -> {
+				int width = this.toggleWidth("gui.workingvillagers.chopping_block.strip.on", "gui.workingvillagers.chopping_block.strip.off");
+				GuiPanels.scrollingText(graphics, this.font, Component.translatable("gui.workingvillagers.chopping_block.strip").getString(), 8,
+					CONTENT_Y + textY, COLUMN_WIDTH - width - 4, GuiPanels.TEXT_COLOR);
+				this.hint(graphics, Component.translatable("gui.workingvillagers.chopping_block.strip.tooltip2"), CONTENT_Y + BIG + 8);
+			}
+			case PIT_STAKE -> {
+				Component pit = this.menu.getPit()
+					.map(size -> (Component) Component.translatable("gui.workingvillagers.pit.size", size[0], size[1], size[2]))
+					.orElse(Component.translatable("gui.workingvillagers.pit.none"));
+				GuiPanels.scrollingText(graphics, this.font, pit.getString(), 8, CONTENT_Y + 1, COLUMN_WIDTH,
+					this.menu.getPit().isPresent() ? GuiPanels.TEXT_COLOR : GuiPanels.WARNING_COLOR);
+				GuiPanels.scrollingText(graphics, this.font, Component.translatable("gui.workingvillagers.pit.depth", this.menu.getDepth()).getString(), 8,
+					this.settingRowY(1) + textY, COLUMN_WIDTH - 2 * BIG - 6, GuiPanels.TEXT_COLOR);
+				this.hint(graphics, Component.translatable("gui.workingvillagers.pit.pick.tooltip2"),
+					this.settingRowY(this.menu.getPit().isPresent() ? 3 : 2) + 2);
+			}
+			case MINING_BENCH -> {
+				Optional<StationMenu.TunnelInfo> tunnel = this.menu.getTunnel();
+				Component summary = tunnel
+					.map(info -> (Component) Component.translatable("gui.workingvillagers.tunnel.direction",
+						Component.translatable("gui.workingvillagers.direction." + info.facing())))
+					.orElse(Component.translatable("gui.workingvillagers.tunnel.none"));
+				GuiPanels.scrollingText(graphics, this.font, summary.getString(), 8, CONTENT_Y + 1, COLUMN_WIDTH,
+					tunnel.isPresent() ? GuiPanels.TEXT_COLOR : GuiPanels.WARNING_COLOR);
+				if (tunnel.isEmpty()) {
+					this.hint(graphics, Component.translatable("gui.workingvillagers.tunnel.pick.tooltip2"), this.settingRowY(1) + 2);
+					return;
+				}
+				StationMenu.TunnelInfo info = tunnel.get();
+				GuiPanels.scrollingText(graphics, this.font,
+					Component.translatable(info.stairs() ? "gui.workingvillagers.tunnel.steps" : "gui.workingvillagers.tunnel.length", info.length()).getString(),
+					8, this.settingRowY(1) + textY, COLUMN_WIDTH - 2 * BIG - 6, GuiPanels.TEXT_COLOR);
+				GuiPanels.scrollingText(graphics, this.font, Component.translatable("gui.workingvillagers.tunnel.kind").getString(), 8,
+					this.settingRowY(2) + textY, COLUMN_WIDTH - this.toggleWidth("gui.workingvillagers.tunnel.kind.stairs", "gui.workingvillagers.tunnel.kind.tunnel") - 4,
+					GuiPanels.TEXT_COLOR);
+				if (!info.stairs() && this.menu.getMaxBranches() > 0) {
+					GuiPanels.scrollingText(graphics, this.font, (info.branches() == 0
+						? Component.translatable("gui.workingvillagers.tunnel.branches.none")
+						: Component.translatable("gui.workingvillagers.tunnel.branches", info.branches())).getString(),
+						8, this.settingRowY(3) + textY, COLUMN_WIDTH - 2 * BIG - 6, GuiPanels.TEXT_COLOR);
+				}
+			}
+			default -> { }
+		}
+		if (this.isBench() || this.isKiln()) {
+			int stock = this.menu.getStock();
+			Component text = this.isKiln() && this.menu.getOrder().isEmpty()
+				? Component.translatable("gui.workingvillagers.kiln.stock.no_order")
+				: stock == 0
+				? Component.translatable("gui.workingvillagers.station.stock.none")
+				: Component.translatable("gui.workingvillagers.station.stock", stock);
+			GuiPanels.scrollingText(graphics, this.font, text.getString(), 8, this.stockY, COLUMN_WIDTH - 2 * SMALL - 6, GuiPanels.TEXT_COLOR);
+		}
+	}
+
+	/** An explanation in the free space of the settings tab. */
+	private void hint(GuiGraphicsExtractor graphics, Component text, int y) {
+		for (FormattedCharSequence line : this.limit(this.font.split(text, COLUMN_WIDTH), (HEIGHT - 7 - y) / LINE)) {
+			graphics.text(this.font, line, 8, y, GuiPanels.MUTED_COLOR, false);
+			y += LINE;
+		}
 	}
 
 	/** A slot-like cell with an item; selected cells get a green frame, faded ones a veil. */
@@ -508,102 +892,8 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		}
 	}
 
-	private void extractChests(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-		int left = this.leftPos + this.chestsX;
-		int top = this.topPos + this.chestsY;
-		boolean processing = this.menu.type().isProcessing();
-		List<StationMenu.Chest> chests = this.menu.getChests();
-		if (chests.isEmpty()) {
-			int y = top + 4;
-			for (FormattedCharSequence line : this.font.split(this.noChestsWarning(), COLUMN_WIDTH - 4)) {
-				graphics.text(this.font, line, left + 2, y, GuiPanels.WARNING_COLOR, false);
-				y += 10;
-			}
-		}
-		for (int i = 0; i < chests.size(); i++) {
-			StationMenu.Chest chest = chests.get(i);
-			int y = top + i * ROW_HEIGHT;
-			GuiPanels.inset(graphics, left, y, COLUMN_WIDTH, ROW_HEIGHT - 1, 0xFFB4B4B4);
-			BlockState state = this.minecraft.level.getBlockState(chest.pos());
-			if (!state.isAir()) {
-				graphics.item(new ItemStack(state.getBlock()), left + 2, y + 1);
-			}
-			int buttonX = left + COLUMN_WIDTH - BUTTON_SIZE - 3;
-			int barX = buttonX - 4 - BAR_WIDTH;
-			int roleX = barX - 4 - ROLE_WIDTH;
-			int textWidth = (processing ? roleX : barX) - (left + 20) - 3;
-			GuiPanels.scrollingText(graphics, this.font, chest.name().getString(), left + 20, y + 5, textWidth,
-				chest.named() ? GuiPanels.TEXT_COLOR : GuiPanels.MUTED_COLOR);
-
-			List<Component> rowTooltip = this.chestTooltip(chest, state);
-			this.hotspots.add(new Hotspot(left, y, roleX - left, ROW_HEIGHT - 1, -1, rowTooltip));
-			if (processing) {
-				String role = Component.translatable(chest.input() ? "gui.workingvillagers.station.input" : "gui.workingvillagers.station.output").getString();
-				this.button(graphics, mouseX, mouseY, roleX, y + 3, ROLE_WIDTH, BUTTON_SIZE, role, StationMenu.ROLE_BUTTON + i, List.of(
-					Component.translatable(chest.input() ? "gui.workingvillagers.station.input.tooltip" : "gui.workingvillagers.station.output.tooltip"),
-					Component.translatable("gui.workingvillagers.station.click_toggle").withStyle(ChatFormatting.DARK_GRAY)
-				));
-			}
-
-			// How full the chest is
-			int barY = y + 7;
-			float fill = chest.size() == 0 ? 0.0F : (float) chest.used() / chest.size();
-			graphics.fill(barX - 1, barY - 1, barX + BAR_WIDTH + 1, barY + 4, 0xFF373737);
-			graphics.fill(barX, barY, barX + BAR_WIDTH, barY + 3, 0xFF8B8B8B);
-			graphics.fill(barX, barY, barX + Math.round(BAR_WIDTH * fill), barY + 3, fill >= 1.0F ? 0xFFC03030 : 0xFF50A040);
-			this.hotspots.add(new Hotspot(barX - 1, y, BAR_WIDTH + 2, ROW_HEIGHT - 1, -1, rowTooltip));
-
-			this.button(graphics, mouseX, mouseY, buttonX, y + 3, BUTTON_SIZE, BUTTON_SIZE, "×", StationMenu.UNLINK_BUTTON + i,
-				List.of(Component.translatable("gui.workingvillagers.station.unlink")));
-		}
-
-		// Buttons to link more chests by clicking them in the world
-		int y = top + Workstations.MAX_CHESTS * ROW_HEIGHT + 4;
-		List<Component> tooltip = List.of(Component.translatable("gui.workingvillagers.station.add_chests.tooltip"));
-		if (processing) {
-			int width = (COLUMN_WIDTH - 2) / 2;
-			this.button(graphics, mouseX, mouseY, left, y, width, 14, Component.translatable("gui.workingvillagers.station.add_inputs").getString(),
-				StationMenu.ADD_INPUTS_BUTTON, tooltip);
-			this.button(graphics, mouseX, mouseY, left + width + 2, y, width, 14, Component.translatable("gui.workingvillagers.station.add_outputs").getString(),
-				StationMenu.ADD_OUTPUTS_BUTTON, tooltip);
-		} else {
-			this.button(graphics, mouseX, mouseY, left, y, COLUMN_WIDTH, 14, Component.translatable("gui.workingvillagers.station.add_chests").getString(),
-				StationMenu.ADD_OUTPUTS_BUTTON, tooltip);
-		}
-	}
-
-	/** The button next to the worker: assign one if the station is free, take it away otherwise. */
-	private void extractWorkerButton(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-		boolean free = this.menu.getWorker().isEmpty();
-		if (!free && !this.menu.hasHiredWorker()) {
-			return;
-		}
-		String label = Component.translatable(free ? "gui.workingvillagers.station.assign" : "gui.workingvillagers.station.unassign").getString();
-		int width = this.workerButtonWidth();
-		this.button(graphics, mouseX, mouseY, this.leftPos + 7 + COLUMN_WIDTH - width, this.topPos + 16, width, 12, label,
-			free ? StationMenu.ASSIGN_BUTTON : StationMenu.UNASSIGN_BUTTON,
-			List.of(Component.translatable(free ? "gui.workingvillagers.station.assign.tooltip" : "gui.workingvillagers.station.unassign.tooltip")));
-	}
-
-	/** What the worker carries for its work: emeralds, tool, seeds or saplings. */
-	private void extractSupplies(GuiGraphicsExtractor graphics) {
-		this.menu.getSupplies().ifPresent(info -> {
-			int y = this.topPos + SUPPLIES_Y;
-			SuppliesRow.extractSlots(graphics, this.font, info, this.leftPos + 7, y);
-			this.hotspots.add(new Hotspot(this.leftPos + 7, y, COLUMN_WIDTH, SuppliesRow.SLOT, -1, SuppliesRow.tooltip(info)));
-		});
-	}
-
-	private int workerButtonWidth() {
-		boolean free = this.menu.getWorker().isEmpty();
-		if (!free && !this.menu.hasHiredWorker()) {
-			return 0;
-		}
-		return this.font.width(Component.translatable(free ? "gui.workingvillagers.station.assign" : "gui.workingvillagers.station.unassign")) + 10;
-	}
-
 	private String backTooltip() {
-		return switch (this.menu.type()) {
+		return switch (this.type()) {
 			case CARPENTER_BENCH -> "gui.workingvillagers.station.back.tooltip.bench";
 			case BLAST_FURNACE -> "gui.workingvillagers.station.back.tooltip.furnace";
 			case SMITHING_TABLE -> "gui.workingvillagers.station.back.tooltip.smithing_table";
@@ -613,36 +903,10 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		};
 	}
 
-	private Component noChestsWarning() {
-		return Component.translatable(switch (this.menu.type()) {
-			case CHOPPING_BLOCK -> "gui.workingvillagers.chopping_block.no_chests";
-			case COMPOSTER -> "gui.workingvillagers.composter.no_chests";
-			case PIT_STAKE -> "gui.workingvillagers.pit_stake.no_chests";
-			case MINING_BENCH -> "gui.workingvillagers.mining_bench.no_chests";
-			default -> "gui.workingvillagers.station.no_chests";
-		});
-	}
-
-	private List<Component> chestTooltip(StationMenu.Chest chest, BlockState state) {
-		List<Component> lines = new ArrayList<>();
-		lines.add(chest.name());
-		if (chest.named() && !state.isAir()) {
-			lines.add(state.getBlock().getName().copy().withStyle(ChatFormatting.GRAY));
-		}
-		lines.add(Component.translatable("gui.workingvillagers.chopping_block.used", chest.used(), chest.size()).withStyle(ChatFormatting.GRAY));
-		this.menu.getStationPos().ifPresent(station -> lines.add(
-			Component.translatable("gui.workingvillagers.distance", Math.round(Math.sqrt(station.distSqr(chest.pos())))).withStyle(ChatFormatting.GRAY)
-		));
-		if (!chest.named()) {
-			lines.add(Component.translatable("gui.workingvillagers.container.unnamed").withStyle(ChatFormatting.DARK_GRAY));
-		}
-		return lines;
-	}
-
-	/** Stonecutter: a small button that changes what the screen shows, without the server. */
+	/** A button that changes what the screen shows, without the server. */
 	private void localButton(GuiGraphicsExtractor graphics, int mouseX, int mouseY, int x, int y, int width, String label, Runnable action) {
-		GuiPanels.button(graphics, this.font, x, y, width, SMALL_BUTTON_HEIGHT, label, GuiPanels.isOver(mouseX, mouseY, x, y, width, SMALL_BUTTON_HEIGHT));
-		this.hotspots.add(new Hotspot(x, y, width, SMALL_BUTTON_HEIGHT, -1, List.of(), action));
+		GuiPanels.button(graphics, this.font, x, y, width, 14, label, GuiPanels.isOver(mouseX, mouseY, x, y, width, 14));
+		this.hotspots.add(new Hotspot(x, y, width, 14, -1, List.of(), action));
 	}
 
 	/** Draws a button and remembers it for clicks and its tooltip. */
@@ -659,76 +923,12 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	@Override
 	protected void extractLabels(GuiGraphicsExtractor graphics, int xm, int ym) {
 		graphics.text(this.font, this.title, this.titleLabelX, this.titleLabelY, GuiPanels.TEXT_COLOR, false);
-		Component worker = this.menu.getWorker()
-			.map(name -> (Component) Component.translatable("gui.workingvillagers.worker", name))
-			.orElse(Component.translatable("gui.workingvillagers.worker.none"));
-		GuiPanels.scrollingText(graphics, this.font, worker.getString(), 8, 18, COLUMN_WIDTH - this.workerButtonWidth() - 4, GuiPanels.TEXT_COLOR);
-		this.menu.getStatus().ifPresent(status -> GuiPanels.scrollingText(graphics, this.font,
-			Component.translatable("gui.workingvillagers.status", status).getString(), 8, STATUS_Y, COLUMN_WIDTH, GuiPanels.STATUS_COLOR));
-		this.secondLine().ifPresent(line -> GuiPanels.scrollingText(graphics, this.font, line.getString(), 8, SECOND_LINE_Y, COLUMN_WIDTH,
-			line.getStyle().getColor() != null ? 0xFF000000 | line.getStyle().getColor().getValue() : GuiPanels.MUTED_COLOR));
-
-		this.menu.getSupplies().ifPresent(info -> {
-			int x = 7 + SuppliesRow.slotsWidth(info) + 4;
-			GuiPanels.scrollingText(graphics, this.font, SuppliesRow.line(info).getString(), x, SUPPLIES_Y + 5, COLUMN_WIDTH - x + 7, SuppliesRow.color(info));
-		});
-
-		if (this.isStonecutter()) {
-			GuiPanels.scrollingText(graphics, this.font, this.stoneLabel().getString(), 8, SHAPES_Y - 10, COLUMN_WIDTH - 40, GuiPanels.TEXT_COLOR);
-		} else if (this.isKiln()) {
-			graphics.text(this.font, Component.translatable("gui.workingvillagers.station.shape"), 8, SHAPES_Y - 10, GuiPanels.TEXT_COLOR, false);
-		} else if (this.orderColumn) {
-			graphics.text(this.font, Component.translatable("gui.workingvillagers.station.shape"), 8, SHAPES_Y - 10, GuiPanels.TEXT_COLOR, false);
-			graphics.text(this.font, Component.translatable(this.isBench() ? "gui.workingvillagers.station.woods.bench" : "gui.workingvillagers.station.woods"),
-				8, this.woodsLabelY, GuiPanels.TEXT_COLOR, false);
+		switch (this.tab) {
+			case WORK -> this.extractWorkLabels(graphics);
+			case CHESTS -> this.extractChestLabels(graphics);
+			case ORDER -> this.extractOrderLabels(graphics);
+			case BLOCK -> { }
 		}
-		if (this.menu.type() == StationType.CHOPPING_BLOCK) {
-			GuiPanels.scrollingText(graphics, this.font, Component.translatable("gui.workingvillagers.chopping_block.strip").getString(), 8, STRIP_Y,
-				COLUMN_WIDTH - this.stripButtonWidth() - 4, GuiPanels.TEXT_COLOR);
-		}
-		if (this.isPitStake()) {
-			Component pit = this.menu.getPit()
-				.map(size -> (Component) Component.translatable("gui.workingvillagers.pit.size", size[0], size[1], size[2]))
-				.orElse(Component.translatable("gui.workingvillagers.pit.none"));
-			int pickWidth = this.font.width(Component.translatable("gui.workingvillagers.pit.pick")) + 10;
-			GuiPanels.scrollingText(graphics, this.font, pit.getString(), 8, PIT_Y, COLUMN_WIDTH - pickWidth - 4,
-				this.menu.getPit().isPresent() ? GuiPanels.TEXT_COLOR : GuiPanels.WARNING_COLOR);
-			int ladderWidth = this.menu.getPit().isPresent() ? this.font.width(Component.translatable("gui.workingvillagers.pit.ladder")) + 14 : 0;
-			GuiPanels.scrollingText(graphics, this.font, Component.translatable("gui.workingvillagers.pit.depth", this.menu.getDepth()).getString(), 8, DEPTH_Y,
-				COLUMN_WIDTH - 2 * BUTTON_SIZE - ladderWidth - 6, GuiPanels.TEXT_COLOR);
-		}
-		if (this.isMiningBench()) {
-			Optional<StationMenu.TunnelInfo> tunnel = this.menu.getTunnel();
-			int pickWidth = this.font.width(Component.translatable("gui.workingvillagers.tunnel.pick")) + 10;
-			Component summary = tunnel
-				.map(info -> (Component) Component.translatable("gui.workingvillagers.tunnel.direction",
-					Component.translatable("gui.workingvillagers.direction." + info.facing())))
-				.orElse(Component.translatable("gui.workingvillagers.tunnel.none"));
-			GuiPanels.scrollingText(graphics, this.font, summary.getString(), 8, TUNNEL_Y, COLUMN_WIDTH - pickWidth - 4,
-				tunnel.isPresent() ? GuiPanels.TEXT_COLOR : GuiPanels.WARNING_COLOR);
-			tunnel.ifPresent(info -> {
-				GuiPanels.scrollingText(graphics, this.font,
-					Component.translatable(info.stairs() ? "gui.workingvillagers.tunnel.steps" : "gui.workingvillagers.tunnel.length", info.length()).getString(),
-					8, LENGTH_Y, COLUMN_WIDTH - 2 * BUTTON_SIZE - this.stairsButtonWidth() - 10, GuiPanels.TEXT_COLOR);
-				if (!info.stairs() && this.menu.getMaxBranches() > 0) {
-					GuiPanels.scrollingText(graphics, this.font, (info.branches() == 0
-						? Component.translatable("gui.workingvillagers.tunnel.branches.none")
-						: Component.translatable("gui.workingvillagers.tunnel.branches", info.branches())).getString(),
-						8, BRANCHES_Y, COLUMN_WIDTH - 2 * BUTTON_SIZE - 6, GuiPanels.TEXT_COLOR);
-				}
-			});
-		}
-		if (this.isBench() || this.isKiln()) {
-			int stock = this.menu.getStock();
-			Component text = this.isKiln() && this.menu.getOrder().isEmpty()
-				? Component.translatable("gui.workingvillagers.kiln.stock.no_order")
-				: stock == 0
-				? Component.translatable("gui.workingvillagers.station.stock.none")
-				: Component.translatable("gui.workingvillagers.station.stock", stock);
-			GuiPanels.scrollingText(graphics, this.font, text.getString(), 8, this.stockY, COLUMN_WIDTH - 2 * BUTTON_SIZE - 6, GuiPanels.TEXT_COLOR);
-		}
-		Component chests = Component.translatable("gui.workingvillagers.station.chests", this.menu.getChests().size(), this.menu.getMaxChests());
-		graphics.text(this.font, chests, this.chestsX + 1, this.chestsY - 11, GuiPanels.TEXT_COLOR, false);
 	}
 
 	/** Stonecutter: above the grid, the open family or which page of the families. */
@@ -743,23 +943,23 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			: Component.translatable("gui.workingvillagers.station.stone.families");
 	}
 
-	/** Below the worker: the logs or crops of today, or the order. */
+	/** Below the status: the logs or crops of today, or the order. */
 	private Optional<Component> secondLine() {
-		if (this.menu.type() == StationType.COMPOSTER) {
+		if (this.type() == StationType.COMPOSTER) {
 			int crops = this.menu.getLogsToday();
 			if (this.menu.getWorker().isEmpty()) {
 				return Optional.of(Component.translatable("gui.workingvillagers.chopping_block.hire"));
 			}
 			return crops < 0 ? Optional.empty() : Optional.of(Component.translatable("gui.workingvillagers.composter.crops", crops));
 		}
-		if (this.isPitStake() || this.isMiningBench()) {
+		if (this.type() == StationType.PIT_STAKE || this.type() == StationType.MINING_BENCH) {
 			int blocks = this.menu.getLogsToday();
 			if (this.menu.getWorker().isEmpty()) {
 				return Optional.of(Component.translatable("gui.workingvillagers.chopping_block.hire"));
 			}
 			return blocks < 0 ? Optional.empty() : Optional.of(Component.translatable("gui.workingvillagers.pit.today", blocks, this.menu.getDailyLogs()));
 		}
-		if (this.menu.type() == StationType.TRADING_COUNTER) {
+		if (this.type() == StationType.TRADING_COUNTER) {
 			int earned = this.menu.getLogsToday();
 			if (this.menu.getWorker().isEmpty()) {
 				return Optional.of(Component.translatable("gui.workingvillagers.chopping_block.hire"));
@@ -772,17 +972,17 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 				? Component.translatable("gui.workingvillagers.kiln.everything")
 				: Component.translatable("gui.workingvillagers.order", order.getHoverName()));
 		}
-		if (this.menu.type() == StationType.BLAST_FURNACE) {
+		if (this.type() == StationType.BLAST_FURNACE) {
 			return Optional.of(Component.translatable(this.menu.getWorker().isEmpty()
 				? "gui.workingvillagers.chopping_block.hire"
 				: "gui.workingvillagers.blast_furnace.smelts"));
 		}
-		if (this.menu.type() == StationType.SMITHING_TABLE) {
+		if (this.type() == StationType.SMITHING_TABLE) {
 			return Optional.of(Component.translatable(this.menu.getWorker().isEmpty()
 				? "gui.workingvillagers.chopping_block.hire"
 				: "gui.workingvillagers.smithing_table.repairs"));
 		}
-		if (this.menu.type() == StationType.CHOPPING_BLOCK) {
+		if (this.type() == StationType.CHOPPING_BLOCK) {
 			int logs = this.menu.getLogsToday();
 			if (this.menu.getWorker().isEmpty()) {
 				return Optional.of(Component.translatable("gui.workingvillagers.chopping_block.hire"));
@@ -803,7 +1003,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		if (this.isBench() && this.menu.getShape() == null && this.menu.getWoods().isEmpty()) {
 			return Optional.of(Component.translatable("gui.workingvillagers.station.no_woods").withStyle(ChatFormatting.DARK_RED));
 		}
-		if (!this.orderColumn || this.menu.getShape() == null) {
+		if (!this.type().hasWoods() || this.menu.getShape() == null) {
 			return Optional.of(Component.translatable("gui.workingvillagers.order", order.getHoverName()));
 		}
 		if (WoodTypes.STICK.equals(this.menu.getShape()) || order.is(Items.STICK)) {
@@ -843,5 +1043,21 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			}
 		}
 		return super.mouseClicked(event, doubleClick);
+	}
+
+	@Override
+	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+		if (this.tab == Tab.CHESTS && this.menu.getChests().size() > VISIBLE_CHESTS) {
+			this.chestScroll = Mth.clamp(this.chestScroll - (int) Math.signum(scrollY), 0, this.menu.getChests().size() - VISIBLE_CHESTS);
+			return true;
+		}
+		return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+	}
+
+	@Override
+	protected boolean hasClickedOutside(double mouseX, double mouseY, int left, int top) {
+		// Clicks on the tabs are no clicks outside the screen
+		return super.hasClickedOutside(mouseX, mouseY, left, top)
+			&& !GuiPanels.isOver(mouseX, mouseY, left, top - TAB_HEIGHT, this.tabs.size() * TAB_STEP, TAB_HEIGHT);
 	}
 }

@@ -54,7 +54,7 @@ no detour over planks: one log gives 8 slabs or 4 stairs directly.
 
 ## Worker and chests
 
-In the overview (**i**, back with **Back**):
+In the overview (the button with the worker's face; the tabs **Worker**, **Chests** and **Order**):
 
 - **Assign** / **Remove** the worker
 - **+ Input**: chests the material is taken from

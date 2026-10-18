@@ -365,5 +365,10 @@
   "status.workingvillagers.smith.no_material": "Wartet auf %s zum Reparieren",
   "status.workingvillagers.smith.table_unreachable": "Wartet: kommt nicht an den Schmiedetisch",
   "gui.workingvillagers.smithing_table.repairs": "Repariert abgenutztes Werkzeug aus den Dorftruhen und alles Beschädigte aus den Eingangskisten",
-  "gui.workingvillagers.station.back.tooltip.smithing_table": "Zurück zum Schmiedetisch"
+  "gui.workingvillagers.station.back.tooltip.smithing_table": "Zurück zum Schmiedetisch",
+  "gui.workingvillagers.tab.work": "Arbeiter",
+  "gui.workingvillagers.tab.chests": "Kisten",
+  "gui.workingvillagers.tab.order": "Auftrag",
+  "gui.workingvillagers.tab.settings": "Einstellungen",
+  "gui.workingvillagers.tunnel.kind": "Art"
 }

@@ -20,7 +20,7 @@ Im Menü einer Kiste oder eines Fasses steht oben rechts **✎**: Ein Klick mach
 
 ### Stand der Umsetzung
 
-Jede Station hat eine einzige Übersicht ohne Reiter. Man öffnet sie so:
+Jede Station hat eine Übersicht in Vanilla-Größe (176×166, wie eine Kiste) mit Reitern darüber, wie im Kreativinventar. Man öffnet sie so:
 
 | Station | Öffnen |
 | --- | --- |
@@ -31,18 +31,20 @@ Jede Station hat eine einzige Übersicht ohne Reiter. Man öffnet sie so:
 
 Der Knopf sitzt oben rechts im Menü des Blocks (Holzsäge, Steinsäge, Mühle, Hobelbank, Schmelzofen, Brennofen, Schmiedetisch), so groß wie der Rezeptbuch-Knopf. Er zeigt das Gesicht des Berufs, der dort arbeitet, gezeichnet aus der Villager-Textur und der Kleidung des Berufs; ohne angeheuerten Arbeiter ist es abgedunkelt. Der Tooltip nennt den Arbeiter. Die Titelzeile der Block-Menüs zeigt den Arbeiter nicht mehr.
 
-Inhalt der Übersicht:
+Die Reiter (ein roter Punkt am Reiter zeigt, dass dort etwas fehlt):
 
-- **Arbeiter** mit Name und Status („Macht gerade: …“). Ist die Station frei, holt **„Zuweisen“** einen angeheuerten Dorfbewohner; **„Abziehen“** nimmt ihn wieder weg, er bleibt eingestellt.
-- **Kisten** (höchstens 8) mit ihrem Namen; Art, Füllstand und Entfernung im Tooltip. Koordinaten zeigt kein Menü. An Stationen mit Eingang schaltet ein Klick die Rolle zwischen **Eingang** und **Ausgang** um; „Kiste entfernen“ löst die Verknüpfung.
-- **Auftrag** (nur Holzsäge, Steinsäge, Hobelbank): Erzeugnis und Holzsorten, bei der Steinsäge Material und Erzeugnis, an der Hobelbank zusätzlich der Vorrat. Am Hackklotz steht hier der Schalter „Stämme entrinden“.
-- Zeile **„Lohn und Werkzeug“**: was der Arbeiter bei sich trägt (Emeralds, Axt oder Hacke, Setzlinge oder Saatgut) und wie lange der Lohn reicht. Geben geht nur direkt am Arbeiter (Rechtsklick oder zuwerfen).
+- **Block** (nur Stationen mit eigenem Menü): zurück zum Menü des Blocks; ersetzt den früheren Knopf „Zurück“.
+- **Arbeiter** (Symbol: Gesicht des Berufs, abgedunkelt ohne Arbeiter): Name, **„Zuweisen“** bzw. **„Abziehen“** als großer Knopf, der Status auf bis zu drei Zeilen umgebrochen, darunter das Tagespensum oder der Auftrag, die Versorgung als Slots („Lohn und Werkzeug“, Details im Tooltip) und unten, wie man dem Arbeiter etwas gibt. Roter Punkt: kein Arbeiter, oder ihm fehlt Lohn oder Werkzeug.
+- **Kisten**: höchstens 8, sechs sichtbar, dann scrollen (Mausrad). Pro Zeile Name, die Rolle als Knopf (**Eingang**/**Ausgang**, Klick schaltet um), Füllstand und ×; Art, Füllstand und Entfernung im Tooltip. Unten **„+ Eingang“** und **„+ Ausgang“** (an Stationen nur mit Ausgang **„+ Kiste“**). Roter Punkt: keine Kiste.
+- **Auftrag** (Holzsäge, Steinsäge, Hobelbank, Brennofen): Erzeugnis, Holzsorten, Vorrat. **Einstellungen** an Hackklotz („Stämme entrinden“), Grubenpflock (Grube, Tiefe, Leiter) und Grubenwerkbank (Stollen, Länge, Art, Abzweige), jeweils mit Erklärung darunter. Roter Punkt: kein Auftrag, keine Grube, kein Stollen.
+
+Komposter, Schmelzofen, Handelstresen und Schmiedetisch haben keinen dritten Reiter. Alle Knöpfe sind 16 bis 20 px hoch, wie Vanilla-Knöpfe.
 
 Zuweisen ist meist gar nicht nötig: Ein angeheuerter Dorfbewohner ohne Arbeit sucht sich selbst die nächste freie Station dieses Mods, die er im Umkreis von 48 Blöcken erreichen kann, wie Vanilla-Dorfbewohner ihren Arbeitsplatz.
 
 ### Konzept (noch nicht umgesetzt)
 
-- **[Menüs überarbeiten](../planung/menues.md):** Reiter Block · Arbeit · Auftrag statt des Knopfs mit dem Gesicht und „Zurück“, jedes Menü in Vanilla-Breite und passend für 854×480.
+- **[Menüs überarbeiten](../planung/menues.md):** Die Stationsübersicht hat ihre Reiter schon; offen sind Träger und Dorftruhe, Reiter auch über den Block-Menüs und die Figur des Arbeiters.
 
 - Reiter „Auftrag“ für den Modus, z. B. Abbaumodus der Mine.
 - Reiter „Bereich“: Größe, Position und Visualisierung an/aus. Arbeitsbereiche gibt es noch nicht; Holzfäller und Bauer arbeiten im festen Umkreis ihrer Station.

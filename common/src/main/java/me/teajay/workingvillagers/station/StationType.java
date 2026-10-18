@@ -4,6 +4,8 @@ import java.util.List;
 import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.crafting.WoodTypes;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.npc.villager.VillagerProfession;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -84,6 +86,22 @@ public enum StationType {
 	/** Whether the order is set in the station's overview, with wood types. */
 	public boolean hasWoods() {
 		return !this.shapes().isEmpty();
+	}
+
+	/** The profession of this mod that works here. */
+	public ResourceKey<VillagerProfession> profession() {
+		return switch (this) {
+			case CHOPPING_BLOCK -> WorkingVillagers.LUMBERJACK_PROFESSION;
+			case WOODCUTTER -> WorkingVillagers.WOODCUTTER_PROFESSION;
+			case STONECUTTER -> WorkingVillagers.STONECUTTER_PROFESSION;
+			case CARPENTER_BENCH -> WorkingVillagers.CARPENTER_PROFESSION;
+			case COMPOSTER -> WorkingVillagers.FARMER_PROFESSION;
+			case BLAST_FURNACE, SMITHING_TABLE -> WorkingVillagers.SMITH_PROFESSION;
+			case PIT_STAKE -> WorkingVillagers.PIT_DIGGER_PROFESSION;
+			case KILN -> WorkingVillagers.KILN_OPERATOR_PROFESSION;
+			case TRADING_COUNTER -> WorkingVillagers.SHOP_ASSISTANT_PROFESSION;
+			case MINING_BENCH -> WorkingVillagers.MINER_PROFESSION;
+		};
 	}
 
 	public Component displayName() {

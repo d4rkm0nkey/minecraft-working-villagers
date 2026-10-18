@@ -20,7 +20,7 @@ works; for both, hire two smiths.
 
 1. Place a blast furnace.
 2. Open it and click the button with the worker's face at the top right of the furnace screen to open its
-   overview. (**Back** in the overview leads to the furnace again.)
+   overview. (The first tab of the overview leads to the furnace again.)
 3. Link chests with **+ Input** and **+ Output**. A hired villager without a job finds
    the blast furnace by itself; **Assign** picks a specific one.
 4. Right-click the smith with emeralds for its wage.

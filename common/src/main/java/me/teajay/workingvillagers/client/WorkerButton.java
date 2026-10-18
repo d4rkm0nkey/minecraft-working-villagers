@@ -42,23 +42,29 @@ public final class WorkerButton {
 	public static void extract(GuiGraphicsExtractor graphics, int left, int top, int mouseX, int mouseY, ResourceKey<VillagerProfession> profession, boolean worker) {
 		boolean over = isOver(mouseX, mouseY, left, top);
 		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, over ? BUTTON_HIGHLIGHTED : BUTTON, left + X, top + Y, WIDTH, HEIGHT);
-		Identifier overlay = Identifier.fromNamespaceAndPath(profession.identifier().getNamespace(),
-			"textures/entity/villager/profession/" + profession.identifier().getPath() + ".png");
-		int color = worker ? BRIGHT : DIMMED;
-		int x = left + X + 2;
-		int y = top + Y + 1;
-		// The front of the head without its top row (8×8 of the 8×10), twice as large; the
-		// profession's clothes and its hat layer over it, then the nose
-		face(graphics, VILLAGER, x, y, 8, 9, color);
-		face(graphics, overlay, x, y, 8, 9, color);
-		face(graphics, overlay, x, y, 40, 9, color);
-		graphics.blit(RenderPipelines.GUI_TEXTURED, VILLAGER, x + 6, y + 8, 26.0F, 2.0F, 4, 8, 2, 4, TEXTURE_SIZE, TEXTURE_SIZE, color);
+		face(graphics, left + X + 2, top + Y + 1, profession, worker);
 		if (over) {
 			graphics.requestCursor(CursorTypes.POINTING_HAND);
 		}
 	}
 
-	private static void face(GuiGraphicsExtractor graphics, Identifier texture, int x, int y, int u, int v, int color) {
+	/**
+	 * The 16×16 face of the profession at x, y (also the icon of the worker tab of the
+	 * overview); dimmed if {@code bright} is false.
+	 */
+	public static void face(GuiGraphicsExtractor graphics, int x, int y, ResourceKey<VillagerProfession> profession, boolean bright) {
+		Identifier overlay = Identifier.fromNamespaceAndPath(profession.identifier().getNamespace(),
+			"textures/entity/villager/profession/" + profession.identifier().getPath() + ".png");
+		int color = bright ? BRIGHT : DIMMED;
+		// The front of the head without its top row (8×8 of the 8×10), twice as large; the
+		// profession's clothes and its hat layer over it, then the nose
+		facePart(graphics, VILLAGER, x, y, 8, 9, color);
+		facePart(graphics, overlay, x, y, 8, 9, color);
+		facePart(graphics, overlay, x, y, 40, 9, color);
+		graphics.blit(RenderPipelines.GUI_TEXTURED, VILLAGER, x + 6, y + 8, 26.0F, 2.0F, 4, 8, 2, 4, TEXTURE_SIZE, TEXTURE_SIZE, color);
+	}
+
+	private static void facePart(GuiGraphicsExtractor graphics, Identifier texture, int x, int y, int u, int v, int color) {
 		graphics.blit(RenderPipelines.GUI_TEXTURED, texture, x, y, u, v, 16, 16, 8, 8, TEXTURE_SIZE, TEXTURE_SIZE, color);
 	}
 

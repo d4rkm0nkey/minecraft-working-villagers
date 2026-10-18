@@ -29,7 +29,7 @@ Anything else put into the kiln just stays in its input slot.
 
 1. Place a kiln.
 2. Open it and click the button with the worker's face at the top right of its screen to open its
-   overview. (**Back** in the overview leads to the kiln again.)
+   overview. (The first tab of the overview leads to the kiln again.)
 3. Link chests with **+ Input** and **+ Output**. A hired villager without a job finds
    the kiln by itself; **Assign** picks a specific one.
 4. Right-click the kiln operator with emeralds for its wage.

@@ -6,6 +6,7 @@ import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.carrier.Carriers;
 import me.teajay.workingvillagers.carrier.Route;
 import me.teajay.workingvillagers.carrier.RouteHolder;
+import me.teajay.workingvillagers.client.StationScreen;
 import me.teajay.workingvillagers.item.WorkContractItem;
 import me.teajay.workingvillagers.job.WorkerJobs;
 import me.teajay.workingvillagers.job.WorkerSupplies;
@@ -59,7 +60,7 @@ public class MenuScreenshots implements FabricClientGameTest {
 					StationType type = STATIONS.get(i);
 					BlockPos pos = stationPos(i);
 					String name = type.name().toLowerCase(java.util.Locale.ROOT);
-					shot(context, world, name + "_overview" + suffix, pos, (server, player) ->
+					tabs(context, world, name + "_overview", suffix, pos, type, (server, player) ->
 						player.openMenu(StationMenu.provider(type, player.level(), pos)));
 					if (type.hasOwnScreen()) {
 						shot(context, world, name + "_block" + suffix, pos, (server, player) -> {
@@ -68,6 +69,9 @@ public class MenuScreenshots implements FabricClientGameTest {
 						});
 					}
 				}
+				BlockPos empty = stationPos(STATIONS.size());
+				tabs(context, world, "chopping_block_empty", suffix, empty, StationType.CHOPPING_BLOCK, (server, player) ->
+					player.openMenu(StationMenu.provider(StationType.CHOPPING_BLOCK, player.level(), empty)));
 				shot(context, world, "village_chest" + suffix, villageChestPos(), (server, player) -> {
 					BlockPos pos = villageChestPos();
 					player.openMenu(player.level().getBlockState(pos).getMenuProvider(player.level(), pos));
@@ -87,9 +91,33 @@ public class MenuScreenshots implements FabricClientGameTest {
 		}
 	}
 
+	/** Opens the overview and takes a screenshot of each of its tabs. */
+	private static void tabs(ClientGameTestContext context, TestSingleplayerContext world, String name, String suffix, BlockPos near, StationType type,
+		BiConsumer<MinecraftServer, ServerPlayer> open) {
+		List<String> tabs = new java.util.ArrayList<>(List.of("work", "chests"));
+		if (type.hasOrder() || type == StationType.CHOPPING_BLOCK || type == StationType.PIT_STAKE || type == StationType.MINING_BENCH) {
+			tabs.add("order");
+		}
+		open(context, world, near, open);
+		for (String tab : tabs) {
+			context.runOnClient(minecraft -> ((StationScreen) minecraft.gui.screen()).showTab(tab));
+			context.waitTicks(3);
+			context.takeScreenshot(name + "_" + tab + suffix);
+		}
+		context.setScreen(() -> null);
+		context.waitTicks(2);
+	}
+
 	/** Opens a menu next to {@code near} (menus close when the player is far off) and takes the screenshot. */
 	private static void shot(ClientGameTestContext context, TestSingleplayerContext world, String name, BlockPos near,
 		BiConsumer<MinecraftServer, ServerPlayer> open) {
+		open(context, world, near, open);
+		context.takeScreenshot(name);
+		context.setScreen(() -> null);
+		context.waitTicks(2);
+	}
+
+	private static void open(ClientGameTestContext context, TestSingleplayerContext world, BlockPos near, BiConsumer<MinecraftServer, ServerPlayer> open) {
 		world.getServer().runOnServer(server -> server.getPlayerList().getPlayers().getFirst()
 			.teleportTo(near.getX() + 0.5, near.getY(), near.getZ() - 1.5));
 		context.waitTicks(3);
@@ -105,9 +133,6 @@ public class MenuScreenshots implements FabricClientGameTest {
 		});
 		context.waitTicks(10);
 		context.getInput().setCursorPos(0, 0);
-		context.waitTicks(2);
-		context.takeScreenshot(name);
-		context.setScreen(() -> null);
 		context.waitTicks(2);
 	}
 
@@ -158,6 +183,8 @@ public class MenuScreenshots implements FabricClientGameTest {
 			give(player, villager, worn, new ItemStack(Items.IRON_HOE), new ItemStack(Items.IRON_SHOVEL), new ItemStack(Items.IRON_PICKAXE),
 				new ItemStack(Items.OAK_SAPLING, 5), new ItemStack(Items.WHEAT_SEEDS, 12), new ItemStack(Items.LADDER, 30), new ItemStack(Items.TORCH, 3));
 		}
+		// A chopping block nobody works at, without chests
+		level.setBlockAndUpdate(stationPos(STATIONS.size()), StationType.CHOPPING_BLOCK.block().defaultBlockState());
 		// A village chest with a worker in reach that lacks something
 		level.setBlockAndUpdate(villageChestPos(), WorkingVillagers.VILLAGE_CHEST.get().defaultBlockState());
 		Container village = (Container) level.getBlockEntity(villageChestPos());

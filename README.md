@@ -184,7 +184,8 @@ the same way:
    included). A click opens a family and shows its products; a click on a product orders
    it, another click clears the order. The family of the current order is marked green.
    Any material that has a recipe for the ordered item is used.
-2. **Worker and chests** are set up in the overview (the button with the worker's face, back with *Back*),
+2. **Worker and chests** are set up in the overview (the button with the worker's face; tabs for the
+   block, the worker, the chests and the order),
    like at the chopping block: **Assign** / **Remove** for the worker, **+ Input** and
    **+ Output** to link chests by right-clicking them (*input*: material is taken from
    here, *output*: products go here). The list shows how full each chest is; a chest's

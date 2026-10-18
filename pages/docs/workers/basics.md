@@ -55,6 +55,20 @@ go back to that same station by itself for one day, but it may take another free
 
 The menu of every workstation shows its worker, or *Free* if nobody works there.
 
+### The overview
+
+The overview of a workstation has tabs at the top, like the creative inventory:
+
+- The block itself, if it has a screen of its own (woodcutter, furnace, ...): back there.
+- The worker's face: who works here, **Assign** / **Remove**, what it is doing, what it
+  did today and what it carries.
+- :mc-chest: **Chests**: the linked chests with **+ Input** / **+ Output** (or **+ Chest**).
+- :mc-paper: **Order** (woodcutter, stonecutter, carpenter's bench, kiln) or **Settings**
+  (chopping block, pit stake, mining bench).
+
+A red dot on a tab means something is missing there: no worker, no wage or tool, no
+chest, no order.
+
 ## Linking chests
 
 Workers take their material from chests and put their products into chests. Chests and

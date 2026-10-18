@@ -365,5 +365,10 @@
   "status.workingvillagers.smith.no_material": "Waiting for %s to repair with",
   "status.workingvillagers.smith.table_unreachable": "Waiting: cannot reach the smithing table",
   "gui.workingvillagers.smithing_table.repairs": "Repairs worn tools from the village chests and everything damaged in the input chests",
-  "gui.workingvillagers.station.back.tooltip.smithing_table": "Back to the smithing table"
+  "gui.workingvillagers.station.back.tooltip.smithing_table": "Back to the smithing table",
+  "gui.workingvillagers.tab.work": "Worker",
+  "gui.workingvillagers.tab.chests": "Chests",
+  "gui.workingvillagers.tab.order": "Order",
+  "gui.workingvillagers.tab.settings": "Settings",
+  "gui.workingvillagers.tunnel.kind": "Kind"
 }
