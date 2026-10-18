@@ -28,6 +28,6 @@ Das größte Risiko ist nicht die Idee, sondern die Villager-KI: Pathfinding, St
 - [x] Fabric oder NeoForge? Beide parallel über das Multiloader-Setup, Spiellogik in `common`.
 - [ ] Kaufformel für Dörfer: reichen Betten, Workstations und Villager, oder zählt auch das Biom?
 - [ ] Handelsangestellter und Bibliothekar: beide am Lectern, oder eigener Handelstresen?
-- [ ] Wache: Golem, kämpfender Villager oder nur Abschreckung?
+- [ ] Wache: Golem, kämpfender Villager oder nur Abschreckung? Konzept: kämpfender Dorfbewohner mit Bogen in der Nachtschicht, siehe [Wache](../berufe/wache.md).
 - [ ] Grubenlogistiker: eigener Block Förderhaspel oder zweiter Arbeiter an der Grubenwerkbank?
 - [ ] Etagenmine: Etagenabstand, Unterhalt großer Minen, Förderkorb als Entity oder abstrakt (siehe [Die Mine](../grundlagen/mine.md#offene-fragen)).
