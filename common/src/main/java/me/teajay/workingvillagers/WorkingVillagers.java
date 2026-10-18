@@ -9,6 +9,7 @@ import me.teajay.workingvillagers.block.CarpenterBenchBlock;
 import me.teajay.workingvillagers.block.ChoppingBlock;
 import me.teajay.workingvillagers.block.KilnBlock;
 import me.teajay.workingvillagers.block.KilnBlockEntity;
+import me.teajay.workingvillagers.block.TradingCounterBlock;
 import me.teajay.workingvillagers.block.VillageChestBlock;
 import me.teajay.workingvillagers.block.VillageChestBlockEntity;
 import me.teajay.workingvillagers.block.WoodcutterBlock;
@@ -72,6 +73,8 @@ public final class WorkingVillagers {
 	public static final ResourceKey<VillagerProfession> SMITH_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("smith"));
 	public static final ResourceKey<PoiType> KILN_OPERATOR_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("kiln_operator"));
 	public static final ResourceKey<VillagerProfession> KILN_OPERATOR_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("kiln_operator"));
+	public static final ResourceKey<PoiType> SHOP_ASSISTANT_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("shop_assistant"));
+	public static final ResourceKey<VillagerProfession> SHOP_ASSISTANT_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("shop_assistant"));
 
 	public static Supplier<Block> CHOPPING_BLOCK;
 	public static Supplier<Item> CHOPPING_BLOCK_ITEM;
@@ -112,6 +115,9 @@ public final class WorkingVillagers {
 	public static Supplier<MenuType<KilnMenu>> KILN_MENU;
 	public static Supplier<MenuType<StationMenu>> KILN_STATION_MENU;
 
+	public static Supplier<Block> TRADING_COUNTER;
+	public static Supplier<Item> TRADING_COUNTER_ITEM;
+	public static Supplier<MenuType<StationMenu>> TRADING_COUNTER_MENU;
 	/** Every worker nearby takes its supplies from these, see VillageChests. */
 	public static final ResourceKey<PoiType> VILLAGE_CHEST_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("village_chest"));
 	public static Supplier<Block> VILLAGE_CHEST;
@@ -150,6 +156,7 @@ public final class WorkingVillagers {
 		registerFarmer(platform);
 		registerSmith(platform);
 		registerKilnOperator(platform);
+		registerShopAssistant(platform);
 		registerVillageChest(platform);
 		platform.registerServerbound(RenameRoutePayload.TYPE, RenameRoutePayload.CODEC, RenameRoutePayload::handle);
 		platform.registerServerbound(RenameContainerPayload.TYPE, RenameContainerPayload.CODEC, RenameContainerPayload::handle);
@@ -312,6 +319,30 @@ public final class WorkingVillagers {
 		KILN_STATION_MENU = platform.registerMenu("kiln_station", (containerId, inventory) -> new StationMenu(StationType.KILN, containerId, inventory));
 		platform.registerPoi("kiln_operator", () -> KILN.get(), 1, 1);
 		registerProfession(platform, "kiln_operator", KILN_OPERATOR_POI, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_ARMORER);
+	}
+
+	/**
+	 * The shop assistant works at the trading counter: it sells the goods from its input
+	 * chests to the villagers around, through their own trades, and brings the emeralds to
+	 * its output chests.
+	 */
+	private static void registerShopAssistant(Platform platform) {
+		TRADING_COUNTER = platform.register(Registries.BLOCK, "trading_counter", () -> new TradingCounterBlock(
+			BlockBehaviour.Properties.of()
+				.setId(ResourceKey.create(Registries.BLOCK, id("trading_counter")))
+				.mapColor(MapColor.WOOD)
+				.strength(2.5F)
+				.sound(SoundType.WOOD)
+				.ignitedByLava()
+				.noOcclusion()
+		));
+		TRADING_COUNTER_ITEM = platform.register(Registries.ITEM, "trading_counter", () -> new BlockItem(
+			TRADING_COUNTER.get(),
+			itemProperties("trading_counter").useBlockDescriptionPrefix()
+		));
+		TRADING_COUNTER_MENU = platform.registerMenu("trading_counter", (containerId, inventory) -> new StationMenu(StationType.TRADING_COUNTER, containerId, inventory));
+		platform.registerPoi("shop_assistant", () -> TRADING_COUNTER.get(), 1, 1);
+		registerProfession(platform, "shop_assistant", SHOP_ASSISTANT_POI, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_LIBRARIAN);
 	}
 
 	/**

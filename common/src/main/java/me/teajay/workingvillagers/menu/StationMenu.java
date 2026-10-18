@@ -162,6 +162,7 @@ public class StationMenu extends AbstractContainerMenu {
 			case COMPOSTER -> WorkingVillagers.COMPOSTER_STATION_MENU;
 			case BLAST_FURNACE -> WorkingVillagers.BLAST_FURNACE_STATION_MENU;
 			case KILN -> WorkingVillagers.KILN_STATION_MENU;
+			case TRADING_COUNTER -> WorkingVillagers.TRADING_COUNTER_MENU;
 		};
 	}
 
@@ -197,7 +198,8 @@ public class StationMenu extends AbstractContainerMenu {
 					tag.putBoolean(TAG_HIRED_WORKER, true);
 					tag.store(TAG_STATUS, ComponentSerialization.CODEC, WorkerStatus.describe(villager));
 					SuppliesInfo.write(serverLevel, villager, tag);
-					if (this.type == StationType.CHOPPING_BLOCK || this.type == StationType.COMPOSTER) {
+					if (this.type == StationType.CHOPPING_BLOCK || this.type == StationType.COMPOSTER
+						|| this.type == StationType.TRADING_COUNTER) {
 						tag.putInt(TAG_LOGS, ((HiredVillager) villager).workingvillagers$getWorkDone(ChopTrees.today(serverLevel)));
 					}
 				}
@@ -353,8 +355,8 @@ public class StationMenu extends AbstractContainerMenu {
 	}
 
 	/**
-	 * Logs felled today at a chopping block, crops harvested today at a composter, -1 if
-	 * unknown (no worker or not loaded).
+	 * Logs felled today at a chopping block, crops harvested today at a composter, emeralds
+	 * earned today at a trading counter, -1 if unknown (no worker or not loaded).
 	 */
 	public int getLogsToday() {
 		return this.info.info().getIntOr(TAG_LOGS, -1);

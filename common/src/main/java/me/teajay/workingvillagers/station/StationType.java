@@ -23,7 +23,9 @@ public enum StationType {
 	/** The smith smelts whatever it finds in the input chests, there is no order. */
 	BLAST_FURNACE(true),
 	/** The kiln operator fires everything, or only what makes the order. */
-	KILN(true);
+	KILN(true),
+	/** The shop assistant sells the goods of the input chests, the emeralds go to the output chests. */
+	TRADING_COUNTER(true);
 
 	private final boolean processing;
 
@@ -83,6 +85,7 @@ public enum StationType {
 			case COMPOSTER -> Blocks.COMPOSTER.getName();
 			case BLAST_FURNACE -> Blocks.BLAST_FURNACE.getName();
 			case KILN -> WorkingVillagers.KILN.get().getName();
+			case TRADING_COUNTER -> WorkingVillagers.TRADING_COUNTER.get().getName();
 		};
 	}
 
@@ -95,6 +98,7 @@ public enum StationType {
 			case COMPOSTER -> Blocks.COMPOSTER;
 			case BLAST_FURNACE -> Blocks.BLAST_FURNACE;
 			case KILN -> WorkingVillagers.KILN.get();
+			case TRADING_COUNTER -> WorkingVillagers.TRADING_COUNTER.get();
 		};
 	}
 
@@ -113,6 +117,8 @@ public enum StationType {
 			return BLAST_FURNACE;
 		} else if (state.is(WorkingVillagers.KILN.get())) {
 			return KILN;
+		} else if (state.is(WorkingVillagers.TRADING_COUNTER.get())) {
+			return TRADING_COUNTER;
 		}
 		return null;
 	}

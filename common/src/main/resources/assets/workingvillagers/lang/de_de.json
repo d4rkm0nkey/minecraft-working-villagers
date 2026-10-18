@@ -241,5 +241,15 @@
   "gui.workingvillagers.kiln.stock.tooltip": "Wie viele vom Produkt der Brenner in den Ausgabekisten vorrätig hält: Bei so vielen hört er auf, und er macht weiter, sobald etwas entnommen wird.",
   "gui.workingvillagers.kiln.stock.no_order": "Vorrat: nur mit einem Produkt",
   "gui.workingvillagers.station.back.tooltip.kiln": "Zurück zum Brennofen",
-  "block.workingvillagers.village_chest": "Dorftruhe"
+  "block.workingvillagers.trading_counter": "Handelstresen",
+  "block.workingvillagers.village_chest": "Dorftruhe",
+  "entity.workingvillagers.villager.shop_assistant": "Handelsangestellter",
+  "status.workingvillagers.shop.fetch": "Holt Ware",
+  "status.workingvillagers.shop.walk": "Geht zu %s",
+  "status.workingvillagers.shop.trade": "Handelt mit %s",
+  "status.workingvillagers.shop.return": "Bringt unverkaufte Ware zurück",
+  "status.workingvillagers.shop.no_goods": "Wartet auf Ware zum Verkaufen",
+  "status.workingvillagers.shop.no_buyer": "Wartet: niemand in der Nähe kauft diese Ware",
+  "status.workingvillagers.shop.sold_out": "Wartet: die Käufer sind ausverkauft, bis sie nachfüllen",
+  "gui.workingvillagers.trading_counter.today": "Heute verdient: %s Smaragde"
 }

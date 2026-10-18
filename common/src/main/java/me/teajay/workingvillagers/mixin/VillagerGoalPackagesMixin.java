@@ -10,6 +10,7 @@ import me.teajay.workingvillagers.job.CraftAtBench;
 import me.teajay.workingvillagers.job.CutAtStation;
 import me.teajay.workingvillagers.job.FarmFields;
 import me.teajay.workingvillagers.job.FindWorkplace;
+import me.teajay.workingvillagers.job.SellGoods;
 import me.teajay.workingvillagers.job.SmeltAtFurnace;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.core.Holder;
@@ -55,6 +56,8 @@ public abstract class VillagerGoalPackagesMixin {
 			work = new SmeltAtFurnace(SmeltAtFurnace.Kind.SMITH);
 		} else if (profession.is(WorkingVillagers.KILN_OPERATOR_PROFESSION)) {
 			work = new SmeltAtFurnace(SmeltAtFurnace.Kind.KILN);
+		} else if (profession.is(WorkingVillagers.SHOP_ASSISTANT_PROFESSION)) {
+			work = new SellGoods();
 		}
 		if (work != null) {
 			cir.setReturnValue(ImmutableList.of(

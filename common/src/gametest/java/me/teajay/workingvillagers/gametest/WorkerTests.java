@@ -29,6 +29,9 @@ import net.minecraft.world.entity.npc.villager.VillagerProfession;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.trading.ItemCost;
+import net.minecraft.world.item.trading.MerchantOffer;
+import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -77,6 +80,7 @@ public final class WorkerTests {
 		registry.accept("replaced_station_starts_fresh", WorkerTests::replacedStationStartsFresh);
 		registry.accept("kiln_operator_fires_glass", WorkerTests::kilnOperatorFiresGlass);
 		registry.accept("kiln_operator_fires_smooth_stone", WorkerTests::kilnOperatorFiresSmoothStone);
+		registry.accept("shop_assistant_sells_wheat", WorkerTests::shopAssistantSellsWheat);
 		registry.accept("old_station_notes_are_removed", WorkerTests::oldStationNotesAreRemoved);
 		registry.accept("village_chest_supplies_lumberjack", WorkerTests::villageChestSuppliesLumberjack);
 		registry.accept("village_chest_keeps_named_tools", WorkerTests::villageChestKeepsNamedTools);
@@ -397,6 +401,30 @@ public final class WorkerTests {
 			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.SMOOTH_STONE), 2, "smooth stone in the output chest");
 			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.STONE)) == 0, "The kiln operator delivered stone");
 			TestWorld.assertHolds(helper, worker, INPUT, stack -> stack.is(Items.SAND), 2, "sand left in the input chest");
+		});
+	}
+
+	/**
+	 * A vanilla farmer nearby buys 20 wheat for an emerald, up to 3 times: the shop assistant
+	 * sells it the wheat from the input chest and brings the emeralds to the output chest.
+	 * The stone it cannot sell stays in the input chest.
+	 */
+	private static void shopAssistantSellsWheat(GameTestHelper helper) {
+		helper.setBlock(STATION, WorkingVillagers.TRADING_COUNTER.get());
+		Villager farmer = helper.spawn(EntityTypes.VILLAGER, new BlockPos(14, 1, 12));
+		farmer.setVillagerData(farmer.getVillagerData().withProfession(helper.getLevel().registryAccess(), VillagerProfession.FARMER));
+		// Has traded before, so it keeps its job without a composter
+		farmer.setVillagerXp(1);
+		MerchantOffers offers = new MerchantOffers();
+		offers.add(new MerchantOffer(new ItemCost(Items.WHEAT, 20), new ItemStack(Items.EMERALD), 3, 2, 0.05F));
+		farmer.setOffers(offers);
+		Villager worker = processingStation(helper, new ItemStack(Items.WHEAT, 64), new ItemStack(Items.STONE, 10));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.EMERALD), 3, "emeralds in the output chest");
+			helper.assertTrue(offers.getFirst().isOutOfStock(), "The farmer's trade was not used up");
+			TestWorld.assertHolds(helper, worker, INPUT, stack -> stack.is(Items.WHEAT), 4, "unsold wheat back in the input chest");
+			TestWorld.assertHolds(helper, worker, INPUT, stack -> stack.is(Items.STONE), 10, "stone left in the input chest");
+			helper.assertTrue(farmer.getVillagerXp() > 1, "The farmer earned no experience");
 		});
 	}
 

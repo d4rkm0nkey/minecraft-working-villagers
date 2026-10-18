@@ -52,6 +52,7 @@ public class WorkingVillagersNeoForge {
 				event.accept(WorkingVillagers.WOODCUTTER_ITEM.get());
 				event.accept(WorkingVillagers.CARPENTER_BENCH_ITEM.get());
 				event.accept(WorkingVillagers.KILN_ITEM.get());
+				event.accept(WorkingVillagers.TRADING_COUNTER_ITEM.get());
 				event.accept(WorkingVillagers.VILLAGE_CHEST_ITEM.get());
 			} else if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
 				event.accept(WorkingVillagers.WORK_CONTRACT.get());

@@ -352,6 +352,66 @@ def kiln_operator():
     return image
 
 
+def shop_assistant():
+    """Villager profession overlay: a green clerk's eyeshade (the visor is the front of the
+    hat rim of the villager model); a white shirt with sleeve garters, a purple waistcoat
+    with gold buttons, a black bow tie, slate trousers and black shoes."""
+    image = blank(64)
+    p = image.load()
+    white, white_dark = (232, 230, 222, 255), (200, 198, 192, 255)
+    vest, vest_dark, vest_light = (112, 55, 135, 255), (80, 36, 98, 255), (140, 80, 160, 255)
+    gold, tie, garter = (230, 190, 70, 255), (30, 28, 35, 255), (40, 36, 44, 255)
+    trousers, trousers_dark, shoes = (60, 62, 78, 255), (46, 48, 62, 255), (28, 24, 24, 255)
+    shade, shade_light, shade_dark = (50, 125, 80, 255), (80, 160, 105, 255), (30, 85, 55, 255)
+
+    def fill(x0, y0, x1, y1, color):
+        for y in range(y0, y1):
+            for x in range(x0, x1):
+                p[x, y] = color(x, y)
+
+    shirt = lambda x, y: white_dark if y % 4 == 3 else white
+    waistcoat = lambda x, y: vest_light if (x * 5 + y * 3) % 11 == 0 else vest
+
+    def front(x0, y0):
+        """Front of the waistcoat (8x12 from the neck down): V neck with the shirt and bow
+        tie in it, a row of buttons and a darker hem."""
+        fill(x0, y0, x0 + 8, y0 + 12, waistcoat)
+        for row in range(3):
+            fill(x0 + 1 + row, y0 + row, x0 + 7 - row, y0 + row + 1, lambda x, y: white)
+        p[x0 + 3, y0] = p[x0 + 4, y0] = tie  # bow tie knot
+        p[x0 + 2, y0] = p[x0 + 5, y0] = tie
+        p[x0 + 2, y0 + 1] = p[x0 + 5, y0 + 1] = tie
+        for row in (4, 7, 10):
+            p[x0 + 4, y0 + row] = gold  # buttons
+        fill(x0, y0 + 11, x0 + 8, y0 + 12, lambda x, y: vest_dark)  # hem
+        p[x0 + 4, y0 + 11] = p[x0 + 3, y0 + 11] = vest_dark
+
+    fill(16, 20, 44, 38, waistcoat)  # body
+    fill(22, 20, 30, 26, shirt)  # body top: shirt collar between the waistcoat shoulders
+    fill(22, 20, 23, 26, lambda x, y: vest)
+    fill(29, 20, 30, 26, lambda x, y: vest)
+    front(22, 26)
+    fill(36, 26, 44, 38, lambda x, y: vest_dark if x in (36, 43) else vest)  # back of the waistcoat
+    fill(6, 38, 14, 44, shirt)  # jacket top
+    fill(6, 38, 7, 44, lambda x, y: vest)
+    fill(13, 38, 14, 44, lambda x, y: vest)
+    fill(0, 44, 28, 56, waistcoat)  # jacket, upper part
+    fill(20, 44, 28, 56, lambda x, y: vest_dark if x in (20, 27) else vest)  # back of the waistcoat
+    fill(0, 55, 28, 56, lambda x, y: vest_dark)  # hem
+    front(6, 44)
+    fill(0, 56, 28, 64, lambda x, y: trousers_dark if x % 7 == 3 else trousers)  # jacket, lower part
+    fill(44, 22, 60, 34, shirt)  # arms: shirt sleeves
+    fill(44, 28, 60, 29, lambda x, y: garter)  # sleeve garters
+    fill(40, 38, 64, 46, shirt)  # crossed arms, middle part
+    fill(0, 22, 16, 34, lambda x, y: trousers)  # legs
+    fill(0, 34, 16, 38, lambda x, y: shoes)
+    fill(32, 10, 64, 11, lambda x, y: tie)  # eyeshade band
+    for x0 in (35, 52):  # eyeshade visor on the front of the hat rim, seen from above and below
+        fill(x0, 60, x0 + 8, 62, lambda x, y: shade if (x + y) % 3 else shade_light)
+        fill(x0 + 1, 62, x0 + 7, 63, lambda x, y: shade_dark)
+    return image
+
+
 def kiln(jar):
     """The furnace textures with bricks instead of cobblestone: grey (stone) pixels take the
     bricks pixel at the same position, keeping the brightness of the stone pixel so the
@@ -630,6 +690,8 @@ def main():
         "entity/zombie_villager/profession/smith.png": smith(),
         "entity/villager/profession/kiln_operator.png": kiln_operator(),
         "entity/zombie_villager/profession/kiln_operator.png": kiln_operator(),
+        "entity/villager/profession/shop_assistant.png": shop_assistant(),
+        "entity/zombie_villager/profession/shop_assistant.png": shop_assistant(),
     }
     for part, image in woodcutter(jar).items():
         outputs[f"block/woodcutter_{part}.png"] = image

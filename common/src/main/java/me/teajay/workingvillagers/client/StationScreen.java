@@ -617,6 +617,13 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			}
 			return crops < 0 ? Optional.empty() : Optional.of(Component.translatable("gui.workingvillagers.composter.crops", crops));
 		}
+		if (this.menu.type() == StationType.TRADING_COUNTER) {
+			int earned = this.menu.getLogsToday();
+			if (this.menu.getWorker().isEmpty()) {
+				return Optional.of(Component.translatable("gui.workingvillagers.chopping_block.hire"));
+			}
+			return earned < 0 ? Optional.empty() : Optional.of(Component.translatable("gui.workingvillagers.trading_counter.today", earned));
+		}
 		if (this.isKiln()) {
 			ItemStack order = this.menu.getOrder();
 			return Optional.of(order.isEmpty()

@@ -241,5 +241,15 @@
   "gui.workingvillagers.kiln.stock.tooltip": "How many of the product the kiln operator keeps in the output chests: it stops at that many and goes on when some are taken out.",
   "gui.workingvillagers.kiln.stock.no_order": "Stock: only with a product",
   "gui.workingvillagers.station.back.tooltip.kiln": "Back to the kiln",
-  "block.workingvillagers.village_chest": "Village Chest"
+  "block.workingvillagers.trading_counter": "Trading Counter",
+  "block.workingvillagers.village_chest": "Village Chest",
+  "entity.workingvillagers.villager.shop_assistant": "Shop Assistant",
+  "status.workingvillagers.shop.fetch": "Fetching goods",
+  "status.workingvillagers.shop.walk": "Going to %s",
+  "status.workingvillagers.shop.trade": "Trading with %s",
+  "status.workingvillagers.shop.return": "Bringing unsold goods back",
+  "status.workingvillagers.shop.no_goods": "Waiting for goods to sell",
+  "status.workingvillagers.shop.no_buyer": "Waiting: nobody nearby buys these goods",
+  "status.workingvillagers.shop.sold_out": "Waiting: the buyers are sold out until they restock",
+  "gui.workingvillagers.trading_counter.today": "Earned today: %s emeralds"
 }

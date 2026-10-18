@@ -88,6 +88,11 @@ public final class Config {
 	public static final IntOption KILN_FUEL_BATCH = intOption("kilnOperator", "fuelPerTrip", 8, 1, 64,
 		"How much fuel the kiln operator fetches at once.");
 
+	public static final IntOption TRADE_RADIUS = intOption("shopAssistant", "tradeRadius", 24, 4, 48,
+		"How far from the trading counter (in blocks) the shop assistant looks for villagers to sell to.");
+	public static final DoubleOption SECONDS_PER_TRADE = doubleOption("shopAssistant", "secondsPerTrade", 2.0, 0.25, 20.0,
+		"How long one trade with a villager takes.");
+
 	public static final IntOption ROUTE_LENGTH = intOption("carrier", "maxRouteLength", 32, 4, 64,
 		"How far (in blocks) source and target of a route may be apart.");
 	public static final IntOption ROUTE_SOURCE_SPREAD = intOption("carrier", "maxSourceSpread", 40, 4, 96,

@@ -27,6 +27,7 @@ public class WorkingVillagersFabricClient implements ClientModInitializer {
 		MenuScreens.register(WorkingVillagers.BLAST_FURNACE_STATION_MENU.get(), StationScreen::new);
 		MenuScreens.register(WorkingVillagers.KILN_STATION_MENU.get(), StationScreen::new);
 		MenuScreens.register(WorkingVillagers.KILN_MENU.get(), KilnScreen::new);
+		MenuScreens.register(WorkingVillagers.TRADING_COUNTER_MENU.get(), StationScreen::new);
 		MenuScreens.register(WorkingVillagers.VILLAGE_CHEST_MENU.get(), VillageChestScreen::new);
 		MenuScreens.register(WorkingVillagers.VILLAGE_CHEST_DOUBLE_MENU.get(), VillageChestScreen::new);
 		BlockEntityRendererRegistry.register(WorkingVillagers.VILLAGE_CHEST_BLOCK_ENTITY.get(), VillageChestRenderer::new);
