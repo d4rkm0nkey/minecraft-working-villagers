@@ -35,8 +35,9 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
    the lumberjack, what it is doing, the logs felled today, and the chests with how full
    they are; the × next to a chest unlinks it.
    **Without a chest the lumberjack does not work.**
-4. **Wage and tools:** right-click the lumberjack with emeralds, an axe and optionally
-   saplings (see below).
+4. **Wage and tools:** put emeralds into the chopping block's wage box (or right-click the
+   block or the lumberjack with them), and right-click the lumberjack with an axe and
+   optionally saplings (see below).
 5. During work hours (like other professions) the lumberjack looks for natural trees
    within 16 blocks of the chopping block, walks up to the trunk and hacks at it, fells it, replants a sapling and brings the wood to the
    nearest chest. A tree takes eight times as long as for a player with the same axe (for now
@@ -68,17 +69,25 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
 
 ## Wage and tools
 
-Workers carry their wage and tools in their own inventory. The player gives them
+Every workstation has a **wage box** for up to 64 emeralds (the **Wage** tab of its
+overview, with a slot and the player's inventory). The worker takes its wage of the day
+from there. Right-clicking the workstation with emeralds puts them in too, and so does
+giving them to the worker. The emeralds belong to the station: nothing is lost when the
+worker dies, becomes a zombie villager or changes its job; a broken or blown-up station
+drops them like a chest. A carrier, without a workstation, carries its emeralds itself.
+
+Workers carry their tools in their own inventory. The player gives them
 directly, like food to a villager: **right-click the worker** holding emeralds, its tool
 or what it plants, or **throw** the items next to it (it walks over and picks them up).
 Throwing needs the `mob_griefing` game rule (like vanilla mobs picking up items);
 right-clicking always works. The limits below count for both: a worker only takes what it
 still wants and leaves the rest on the ground. Giving shows happy villager particles; a
 worker that already has enough shakes its head and takes nothing. Workers never hand in their emeralds or their tool to the output
-chests. A hired worker that dies drops everything it carries (emeralds, tools, material).
+chests. A hired worker that dies drops everything it carries (tools, material); its wage
+stays in the wage box.
 
-- **Wage:** a worker carries up to 64 emeralds (64 work days at the default wage).
-  Before work each day it takes `dailyWage` (default 1) emerald from them. Without an
+- **Wage:** before work each day the worker takes `dailyWage` (default 1) emerald from the
+  wage box, then from its pockets (emeralds carried from older versions). Without an
   emerald it does not work and waits next to its workstation ("Waiting for wages"),
   checking every few seconds.
 - **Lumberjack:** needs an axe (carries up to 2), optionally saplings (up to 16 of each
@@ -112,8 +121,8 @@ that has what it wants. Giving directly still works.
 - **When:** before its first work of the day it fetches whatever runs low; during the day
   only what it cannot work without (no wage, its tool is worn, no ladders). If no village
   chest has it, it waits as before.
-- **What:** emeralds for 3 days (`villageChests.wageDays`) once it has less than a day's
-  wage; a spare tool once it has none or only one with a tenth of its durability left (the
+- **What:** emeralds for 3 days (`villageChests.wageDays`, into the wage box of its
+  workstation) once it has less than a day's wage; a spare tool once it has none or only one with a tenth of its durability left (the
   most worn one first, so tools get used up; never a worn one, see below);
   saplings, seeds, ladders and torches up to the amount it keeps once it has less than a
   quarter of it (kinds it already has first).

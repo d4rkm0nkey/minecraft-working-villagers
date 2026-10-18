@@ -10,6 +10,7 @@ import me.teajay.workingvillagers.crafting.WoodTypes;
 import me.teajay.workingvillagers.menu.StationMenu;
 import me.teajay.workingvillagers.menu.SuppliesInfo;
 import me.teajay.workingvillagers.station.StationType;
+import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -36,6 +37,8 @@ import org.jspecify.annotations.Nullable;
  * <li><b>Block</b> (stations with a screen of their own): back to that screen.</li>
  * <li><b>Worker</b>: who works here (assign, take away), what it is doing, what it did
  *     today and what it carries for its work.</li>
+ * <li><b>Wage</b>: the wage box of the station (see {@link Workstations.Station#wage}) and the
+ *     player's inventory, to put emeralds in and take them out.</li>
  * <li><b>Chests</b>: the linked chests (role, how full, unlink) and the buttons to link more.</li>
  * <li><b>Order</b> (woodcutter, stonecutter, carpenter's bench, kiln): the product, the wood
  *     types, the stock. <b>Settings</b> instead at the chopping block (strip logs), the pit
@@ -78,7 +81,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	private static final int SETTING_STEP = 26;
 	private static final int LINE = 10;
 
-	private enum Tab { BLOCK, WORK, CHESTS, ORDER }
+	private enum Tab { BLOCK, WORK, WAGE, CHESTS, ORDER }
 
 	private final List<Tab> tabs = new ArrayList<>();
 	private Tab tab = Tab.WORK;
@@ -107,6 +110,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			this.tabs.add(Tab.BLOCK);
 		}
 		this.tabs.add(Tab.WORK);
+		this.tabs.add(Tab.WAGE);
 		this.tabs.add(Tab.CHESTS);
 		if (hasOrderTab(type)) {
 			this.tabs.add(Tab.ORDER);
@@ -178,6 +182,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 
 	@Override
 	public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+		this.menu.showSlots(this.tab == Tab.WAGE);
 		super.extractBackground(graphics, mouseX, mouseY, a);
 		this.hotspots.clear();
 		// The other tabs behind the window, the open one in front of it
@@ -190,6 +195,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		this.extractTab(graphics, this.tabs.indexOf(this.tab), true);
 		switch (this.tab) {
 			case WORK -> this.extractWork(graphics, mouseX, mouseY);
+			case WAGE -> this.extractWage(graphics);
 			case CHESTS -> this.extractChests(graphics, mouseX, mouseY);
 			case ORDER -> this.extractOrderTab(graphics, mouseX, mouseY);
 			case BLOCK -> { }
@@ -232,6 +238,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	private ItemStack tabIcon(Tab shown) {
 		return switch (shown) {
 			case BLOCK -> new ItemStack(this.type().block());
+			case WAGE -> new ItemStack(Items.EMERALD);
 			case CHESTS -> new ItemStack(Items.CHEST);
 			case ORDER -> {
 				ItemStack order = this.menu.getOrder();
@@ -254,6 +261,9 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			case BLOCK -> List.of(Component.translatable(this.backTooltip()));
 			case WORK -> List.of(Component.translatable("gui.workingvillagers.tab.work"),
 				WorkerButton.workerLine(this.menu.getWorker()).copy().withStyle(ChatFormatting.GRAY));
+			case WAGE -> List.of(Component.translatable("gui.workingvillagers.tab.wage"),
+				Component.translatable("gui.workingvillagers.wage.box", this.menu.getWageBox(), Workstations.MAX_WAGE).withStyle(ChatFormatting.GRAY),
+				Component.translatable("gui.workingvillagers.wage.kept").withStyle(ChatFormatting.DARK_GRAY));
 			case CHESTS -> List.of(Component.translatable("gui.workingvillagers.tab.chests"),
 				Component.translatable("gui.workingvillagers.station.chests", this.menu.getChests().size(), this.menu.getMaxChests()).withStyle(ChatFormatting.GRAY));
 			case ORDER -> List.of(Component.translatable(this.type().hasOrder() ? "gui.workingvillagers.tab.order" : "gui.workingvillagers.tab.settings"));
@@ -263,7 +273,8 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	/** Whether the worker cannot work because of something on that tab. */
 	private boolean tabProblem(Tab shown) {
 		return switch (shown) {
-			case WORK -> this.menu.getWorker().isEmpty() || this.menu.getSupplies().map(SuppliesInfo::hasProblem).orElse(false);
+			case WORK -> this.menu.getWorker().isEmpty() || this.menu.getSupplies().flatMap(SuppliesInfo::firstMissing).isPresent();
+			case WAGE -> this.menu.getSupplies().map(info -> !info.paid() && info.emeralds() < info.wage()).orElse(false);
 			case CHESTS -> this.menu.getChests().isEmpty();
 			case ORDER -> switch (this.type()) {
 				case PIT_STAKE -> this.menu.getPit().isEmpty();
@@ -357,6 +368,42 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 				hintY += LINE;
 			}
 		});
+	}
+
+	// --- Wage tab ---
+
+	/** The slot of the wage box and the player's inventory, like a container screen. */
+	private void extractWage(GuiGraphicsExtractor graphics) {
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SLOT_SPRITE, this.leftPos + StationMenu.WAGE_X - 1, this.topPos + StationMenu.WAGE_Y - 1, 18, 18);
+		for (int row = 0; row < 4; row++) {
+			int y = this.topPos + StationMenu.INVENTORY_Y - 1 + (row == 3 ? 58 : row * 18);
+			for (int column = 0; column < 9; column++) {
+				graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SLOT_SPRITE, this.leftPos + 7 + column * 18, y, 18, 18);
+			}
+		}
+	}
+
+	private void extractWageLabels(GuiGraphicsExtractor graphics) {
+		graphics.text(this.font, Component.translatable("gui.workingvillagers.wage.box", this.menu.getWageBox(), Workstations.MAX_WAGE), 8, CONTENT_Y + 2,
+			GuiPanels.TEXT_COLOR, false);
+		int daily = this.menu.getDailyWage();
+		int box = this.menu.getWageBox();
+		int x = StationMenu.WAGE_X + 22;
+		int width = COLUMN_X + COLUMN_WIDTH - x;
+		Component days = daily <= 0 ? Component.translatable("gui.workingvillagers.wage.free")
+			: box < daily ? Component.translatable(this.menu.getWorker().isPresent() ? "gui.workingvillagers.wage.empty" : "gui.workingvillagers.wage.empty_free")
+			: Component.translatable("gui.workingvillagers.wage.days", box / daily);
+		GuiPanels.scrollingText(graphics, this.font, days.getString(), x, StationMenu.WAGE_Y, width, box < daily && daily > 0 ? GuiPanels.WARNING_COLOR : GuiPanels.TEXT_COLOR);
+		if (daily > 0) {
+			GuiPanels.scrollingText(graphics, this.font, Component.translatable("gui.workingvillagers.wage.per_day", daily).getString(), x, StationMenu.WAGE_Y + LINE,
+				width, GuiPanels.MUTED_COLOR);
+		}
+		int y = StationMenu.WAGE_Y + 22;
+		for (FormattedCharSequence line : this.limit(this.font.split(Component.translatable("gui.workingvillagers.wage.hint"), COLUMN_WIDTH), 2)) {
+			graphics.text(this.font, line, 8, y, GuiPanels.MUTED_COLOR, false);
+			y += LINE - 1;
+		}
+		graphics.text(this.font, this.playerInventoryTitle, 8, StationMenu.INVENTORY_Y - 10, GuiPanels.TEXT_COLOR, false);
 	}
 
 	// --- Chests tab ---
@@ -925,6 +972,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		graphics.text(this.font, this.title, this.titleLabelX, this.titleLabelY, GuiPanels.TEXT_COLOR, false);
 		switch (this.tab) {
 			case WORK -> this.extractWorkLabels(graphics);
+			case WAGE -> this.extractWageLabels(graphics);
 			case CHESTS -> this.extractChestLabels(graphics);
 			case ORDER -> this.extractOrderLabels(graphics);
 			case BLOCK -> { }

@@ -38,6 +38,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.player.Inventory;
@@ -45,8 +46,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 
@@ -135,6 +138,7 @@ public class StationMenu extends AbstractContainerMenu {
 	/** Whether the worker is a hired villager (not a mason), so it can be taken away. */
 	private static final String TAG_HIRED_WORKER = "HiredWorker";
 	private static final String TAG_CHESTS = "Chests";
+	private static final String TAG_DAILY_WAGE = "DailyWage";
 	private static final String TAG_NAME = "Name";
 	private static final String TAG_NAMED = "Named";
 	private static final String TAG_POS = "Pos";
@@ -161,9 +165,19 @@ public class StationMenu extends AbstractContainerMenu {
 	private static final String TAG_DEPTH = "Depth";
 	private static final String TAG_MAX_DEPTH = "MaxDepth";
 
+	/** Wage tab: the slot of the wage box, and the top left of the player's inventory. */
+	public static final int WAGE_X = 8;
+	public static final int WAGE_Y = 32;
+	public static final int INVENTORY_Y = 84;
+	private static final int WAGE_SLOT = 1;
+	private static final int INVENTORY_START = 2;
+	private static final int INVENTORY_END = INVENTORY_START + 36;
+
 	private final StationType type;
 	private final ContainerLevelAccess access;
 	private final InfoSlot info = new InfoSlot();
+	/** Client: whether the wage tab is open, the only one that shows the wage box and the inventory. */
+	private boolean slotsShown;
 	/** Server only: the chests as last sent, the buttons refer to them by index. */
 	private List<BlockPos> shownChests = List.of();
 	/** Server only, carpenter's bench: the products as last sent. */
@@ -184,7 +198,61 @@ public class StationMenu extends AbstractContainerMenu {
 		this.type = type;
 		this.access = access;
 		this.addSlot(this.info);
+		boolean client = access == ContainerLevelAccess.NULL;
+		Container box = access.evaluate((level, pos) -> level instanceof ServerLevel serverLevel
+				? Workstations.find(serverLevel, pos).map(station -> (Container) new WageBox(station)).orElse(null)
+				: null)
+			.orElseGet(() -> new SimpleContainer(1));
+		this.addSlot(new TabSlot(box, 0, WAGE_X, WAGE_Y, client) {
+			@Override
+			public boolean mayPlace(ItemStack stack) {
+				return stack.is(Items.EMERALD);
+			}
+
+			@Override
+			public int getMaxStackSize() {
+				return Workstations.MAX_WAGE;
+			}
+		});
+		for (int row = 0; row < 3; row++) {
+			for (int column = 0; column < 9; column++) {
+				this.addSlot(new TabSlot(inventory, column + row * 9 + 9, 8 + column * 18, INVENTORY_Y + row * 18, client));
+			}
+		}
+		for (int column = 0; column < 9; column++) {
+			this.addSlot(new TabSlot(inventory, column, 8 + column * 18, INVENTORY_Y + 58, client));
+		}
 		this.updateInfo();
+	}
+
+	/** A slot of the wage tab: on the client only there while that tab is open. */
+	private class TabSlot extends Slot {
+		private final boolean client;
+
+		TabSlot(Container container, int index, int x, int y, boolean client) {
+			super(container, index, x, y);
+			this.client = client;
+		}
+
+		@Override
+		public boolean isActive() {
+			return !this.client || StationMenu.this.slotsShown;
+		}
+	}
+
+	/** Client: the emeralds a worker takes per work day (0: workers work for free). */
+	public int getDailyWage() {
+		return this.info.info().getIntOr(TAG_DAILY_WAGE, 1);
+	}
+
+	/** Client: the emeralds in the wage box. */
+	public int getWageBox() {
+		return this.slots.get(WAGE_SLOT).getItem().getCount();
+	}
+
+	/** Client: shows or hides the wage box and the inventory (the wage tab is open or not). */
+	public void showSlots(boolean shown) {
+		this.slotsShown = shown;
 	}
 
 	private static Supplier<MenuType<StationMenu>> menuType(StationType type) {
@@ -233,6 +301,7 @@ public class StationMenu extends AbstractContainerMenu {
 				default -> Config.DAILY_LOGS.get();
 			});
 			tag.putInt(TAG_MAX_CHESTS, Config.MAX_CHESTS.get());
+			tag.putInt(TAG_DAILY_WAGE, Config.DAILY_WAGE.get());
 			station.occupant(serverLevel).ifPresent(name -> {
 				tag.store(TAG_WORKER, ComponentSerialization.CODEC, name);
 				if (station.worker() != null && serverLevel.getEntity(station.worker()) instanceof Villager villager) {
@@ -739,9 +808,31 @@ public class StationMenu extends AbstractContainerMenu {
 		return lower;
 	}
 
+	/** Shift-click: emeralds between the wage box and the inventory. */
 	@Override
 	public ItemStack quickMoveStack(Player player, int slotIndex) {
-		return ItemStack.EMPTY;
+		if (slotIndex < WAGE_SLOT || slotIndex >= INVENTORY_END) {
+			return ItemStack.EMPTY;
+		}
+		Slot slot = this.slots.get(slotIndex);
+		if (!slot.hasItem()) {
+			return ItemStack.EMPTY;
+		}
+		ItemStack stack = slot.getItem();
+		ItemStack clicked = stack.copy();
+		if (slotIndex == WAGE_SLOT) {
+			if (!this.moveItemStackTo(stack, INVENTORY_START, INVENTORY_END, true)) {
+				return ItemStack.EMPTY;
+			}
+		} else if (!stack.is(Items.EMERALD) || !this.moveItemStackTo(stack, WAGE_SLOT, WAGE_SLOT + 1, false)) {
+			return ItemStack.EMPTY;
+		}
+		if (stack.isEmpty()) {
+			slot.setByPlayer(ItemStack.EMPTY);
+		} else {
+			slot.setChanged();
+		}
+		return clicked;
 	}
 
 	@Override

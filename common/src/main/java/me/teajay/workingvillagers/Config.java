@@ -34,8 +34,8 @@ public final class Config {
 	private static final List<Option> OPTIONS = new ArrayList<>();
 
 	public static final IntOption DAILY_WAGE = intOption("workers", "dailyWage", 1, 0, 64,
-		"Emeralds a worker takes from what it carries before work each day (give them by right-clicking",
-		"the worker). 0: they work for free.");
+		"Emeralds a worker takes from the wage box of its workstation before work each day (put them in there,",
+		"or right-click the station or the worker with them). 0: they work for free.");
 	public static final BoolOption RANDOM_NAMES = boolOption("workers", "randomNames", false,
 		"Give hired villagers a random name (like Anton or Berta). Otherwise only a name tag names them.");
 	public static final IntOption MAX_CHESTS = intOption("workers", "maxChests", 8, 1, 8,

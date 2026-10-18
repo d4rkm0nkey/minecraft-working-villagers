@@ -2,6 +2,7 @@ package me.teajay.workingvillagers.mixin;
 
 import me.teajay.workingvillagers.carrier.RouteSelection;
 import me.teajay.workingvillagers.station.StationPicks;
+import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerPlayerGameMode;
 import net.minecraft.world.InteractionHand;
@@ -16,7 +17,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * While a player picks the containers of a new route or the chests of a workstation,
- * right-clicking a container selects it instead of opening it.
+ * right-clicking a container selects it instead of opening it. Right-clicking a workstation
+ * with emeralds puts them into its wage box instead of opening it.
  */
 @Mixin(ServerPlayerGameMode.class)
 public class ServerPlayerGameModeMixin {
@@ -25,7 +27,8 @@ public class ServerPlayerGameModeMixin {
 		ServerPlayer player, Level level, ItemStack stack, InteractionHand hand, BlockHitResult hit, CallbackInfoReturnable<InteractionResult> cir
 	) {
 		if (hand == InteractionHand.MAIN_HAND
-			&& (RouteSelection.onUseBlock(player, hit.getBlockPos()) || StationPicks.onUseBlock(player, hit.getBlockPos(), hit.getDirection()))) {
+			&& (RouteSelection.onUseBlock(player, hit.getBlockPos()) || StationPicks.onUseBlock(player, hit.getBlockPos(), hit.getDirection())
+				|| Workstations.depositWage(player, hit.getBlockPos(), stack))) {
 			cir.setReturnValue(InteractionResult.SUCCESS_SERVER);
 		}
 	}

@@ -370,5 +370,17 @@
   "gui.workingvillagers.tab.chests": "Kisten",
   "gui.workingvillagers.tab.order": "Auftrag",
   "gui.workingvillagers.tab.settings": "Einstellungen",
-  "gui.workingvillagers.tunnel.kind": "Art"
+  "gui.workingvillagers.tunnel.kind": "Art",
+  "gui.workingvillagers.tab.wage": "Lohn",
+  "gui.workingvillagers.wage.box": "Lohnkasse: %s / %s Smaragde",
+  "gui.workingvillagers.wage.days": "Reicht für %s Arbeitstage",
+  "gui.workingvillagers.wage.empty": "Leer: der Arbeiter wartet",
+  "gui.workingvillagers.wage.free": "Hier arbeitet man umsonst",
+  "gui.workingvillagers.wage.per_day": "%s Smaragd(e) pro Arbeitstag",
+  "gui.workingvillagers.wage.hint": "Oder Station oder Arbeiter mit Smaragden rechtsklicken.",
+  "message.workingvillagers.wage.deposited": "Lohnkasse: %s Smaragde, reicht für %s Arbeitstage",
+  "message.workingvillagers.wage.deposited_free": "Lohnkasse: %s Smaragde",
+  "message.workingvillagers.wage.full": "Die Lohnkasse ist voll (%s Smaragde).",
+  "gui.workingvillagers.wage.empty_free": "Leer",
+  "gui.workingvillagers.wage.kept": "Die Smaragde bleiben hier, auch wenn der Arbeiter stirbt oder geht."
 }

@@ -35,6 +35,7 @@ Die Reiter (ein roter Punkt am Reiter zeigt, dass dort etwas fehlt):
 
 - **Block** (nur Stationen mit eigenem Menü): zurück zum Menü des Blocks; ersetzt den früheren Knopf „Zurück“.
 - **Arbeiter** (Symbol: Gesicht des Berufs, abgedunkelt ohne Arbeiter): Name, **„Zuweisen“** bzw. **„Abziehen“** als großer Knopf, der Status auf bis zu drei Zeilen umgebrochen, darunter das Tagespensum oder der Auftrag, die Versorgung als Slots („Lohn und Werkzeug“, Details im Tooltip) und unten, wie man dem Arbeiter etwas gibt. Roter Punkt: kein Arbeiter, oder ihm fehlt Lohn oder Werkzeug.
+- **Lohn** (Smaragd): die [Lohnkasse](../wirtschaft/anheuern-und-lohn.md#stand-der-umsetzung) der Station mit einem Slot und darunter das Spielerinventar, wie ein Container; Shift-Klick schiebt Emeralds hin und her. Roter Punkt: der Arbeiter hat heute keinen Lohn.
 - **Kisten**: höchstens 8, sechs sichtbar, dann scrollen (Mausrad). Pro Zeile Name, die Rolle als Knopf (**Eingang**/**Ausgang**, Klick schaltet um), Füllstand und ×; Art, Füllstand und Entfernung im Tooltip. Unten **„+ Eingang“** und **„+ Ausgang“** (an Stationen nur mit Ausgang **„+ Kiste“**). Roter Punkt: keine Kiste.
 - **Auftrag** (Holzsäge, Steinsäge, Hobelbank, Brennofen): Erzeugnis, Holzsorten, Vorrat. **Einstellungen** an Hackklotz („Stämme entrinden“), Grubenpflock (Grube, Tiefe, Leiter) und Grubenwerkbank (Stollen, Länge, Art, Abzweige), jeweils mit Erklärung darunter. Roter Punkt: kein Auftrag, keine Grube, kein Stollen.
 

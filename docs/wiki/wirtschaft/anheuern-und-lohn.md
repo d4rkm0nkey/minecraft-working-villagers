@@ -38,9 +38,11 @@ Die ursprünglich genannten 100 Emeralds pro Woche sind für Early Game sehr vie
 
 **Arbeitszeit:** die normale Vanilla-Arbeitszeit der Dorfbewohner; nachts schlafen sie.
 
-**Lohn:** Eine Dorfkasse gibt es noch nicht, auch keine persönliche Kiste mehr. Der Spieler gibt Lohn und Werkzeug direkt, wie Futter: Rechtsklick auf den Arbeiter mit Emeralds, Werkzeug oder Saatgut, oder die Items vor ihm fallen lassen. Der Arbeiter trägt sie selbst bei sich:
+**Lohn:** Eine Dorfkasse gibt es noch nicht. Jede Station hat eine **Lohnkasse** für bis zu 64 Emeralds (Wunsch vom 18.10.2026): Reiter **Lohn** der Stationsübersicht mit einem Slot und dem Spielerinventar wie ein Container; außerdem legt ein Rechtsklick mit Emeralds auf die Station sie hinein, und Emeralds, die man dem Arbeiter gibt oder zuwirft, legt er ebenfalls hinein. Aus Dorftruhen geholter Lohn (für 3 Tage) landet auch dort. Vor der Arbeit nimmt sich der Arbeiter den Tageslohn (Standard 1 Emerald) aus der Kasse, danach aus der Tasche (Emeralds aus älteren Versionen). Ohne Emerald wartet er an seiner Station.
 
-- bis zu 64 Emeralds; vor der Arbeit nimmt er sich den Tageslohn (Standard 1 Emerald). Ohne Emerald wartet er an seiner Station.
+- Die Emeralds gehören der Station, nicht dem Arbeiter: Stirbt er, wird er zum Zombie oder wechselt er die Station, geht nichts verloren; der nächste Arbeiter dort wird aus derselben Kasse bezahlt. Wird die Station abgebaut, gesprengt oder ersetzt, fallen die Emeralds heraus wie aus einer Truhe (über die POI-Aktualisierung von Vanilla, `ServerLevelMixin`). Gespeichert in den Stationsdaten (`wage`), nicht im Block.
+- Der Träger hat keine Station und trägt seine Emeralds weiter selbst (bis zu 64).
+- Werkzeug und Saatgut trägt der Arbeiter weiter selbst, der Spieler gibt sie direkt, wie Futter: Rechtsklick auf den Arbeiter oder die Items vor ihm fallen lassen.
 - Holzfäller: bis zu 2 Äxte und 16 Setzlinge je Sorte. Farmer: bis zu 2 Hacken und 16 Saatgut je Sorte zum Start, danach pflanzt er aus der Ernte nach.
 - Hat er genug, schüttelt er den Kopf. Zugeworfene Items nimmt er nur bis zu denselben Höchstmengen auf. Stirbt er, lässt er alles fallen.
 - Der Lohn ist für alle gleich (Config `workers.dailyWage`, 0 = umsonst). Lohnstufen, Level, Moral und Kündigung gibt es noch nicht; alle Arbeiter sind Novizen.

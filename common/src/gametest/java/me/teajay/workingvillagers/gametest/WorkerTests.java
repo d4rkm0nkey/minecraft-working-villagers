@@ -107,6 +107,9 @@ public final class WorkerTests {
 		registry.accept("worn_axe_goes_to_output_chest", WorkerTests::wornAxeGoesToOutputChest);
 		registry.accept("stone_axe_is_used_up", WorkerTests::stoneAxeIsUsedUp);
 		registry.accept("smith_repairs_worn_axe", WorkerTests::smithRepairsWornAxe);
+		registry.accept("wage_box_outlives_worker", WorkerTests::wageBoxOutlivesWorker);
+		registry.accept("broken_station_drops_wage", WorkerTests::brokenStationDropsWage);
+		registry.accept("right_click_fills_wage_box", WorkerTests::rightClickFillsWageBox);
 		registry.accept("smith_repairs_input_chest", WorkerTests::smithRepairsInputChest);
 		for (StationType type : StationType.values()) {
 			String name = type.name().toLowerCase(Locale.ROOT);
@@ -221,7 +224,8 @@ public final class WorkerTests {
 		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_AXE), new ItemStack(Items.OAK_SAPLING));
 		helper.succeedWhen(() -> {
 			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_LOG), 5, "oak logs in the output chest");
-			helper.assertTrue(WorkerSupplies.count(worker.getInventory(), WorkerSupplies::isWage) == 1, "The wage was not taken");
+			helper.assertTrue(TestWorld.station(helper, STATION).wage() == 1 && WorkerSupplies.count(worker.getInventory(), WorkerSupplies::isWage) == 0,
+				"The wage was not taken from the wage box: " + TestWorld.station(helper, STATION).wage());
 			helper.assertTrue(TestWorld.count(helper, OUTPUT, WorkerSupplies::isWage) == 0, "The lumberjack delivered its emeralds");
 			helper.assertBlockPresent(Blocks.OAK_SAPLING, tree);
 		});
@@ -276,7 +280,7 @@ public final class WorkerTests {
 		helper.runAfterDelay(600, () -> {
 			helper.assertTrue(TestWorld.count(helper, VILLAGE_CHEST, stack -> stack.is(Items.DIAMOND_AXE)) == 1,
 				"The lumberjack took the named axe");
-			helper.assertTrue(WorkerSupplies.count(worker.getInventory(), WorkerSupplies::isWage) > 0, "The lumberjack took no wage: " + TestWorld.describe(worker));
+			helper.assertTrue(WorkerSupplies.emeralds(helper.getLevel(), worker) > 0, "The lumberjack took no wage: " + TestWorld.describe(worker));
 			helper.assertTrue(((HiredVillager) worker).workingvillagers$hasProblem(), "The lumberjack without axe does not complain: " + TestWorld.describe(worker));
 			TestWorld.removeVillageChest(helper, VILLAGE_CHEST);
 			helper.succeed();
@@ -402,6 +406,55 @@ public final class WorkerTests {
 			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.DIAMOND)) == 1, "The smith did not use 2 diamonds");
 			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.STONE)) == 4, "The smith took the stone");
 		});
+	}
+
+	/**
+	 * Emeralds given to the lumberjack go into the wage box of its chopping block; it takes its
+	 * wage from there. When it dies, they stay there; the worker drops none.
+	 */
+	private static void wageBoxOutlivesWorker(GameTestHelper helper) {
+		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 5));
+		helper.assertTrue(WorkerSupplies.count(worker.getInventory(), WorkerSupplies::isWage) == 0, "The emeralds went into the worker's pockets");
+		helper.assertTrue(TestWorld.station(helper, STATION).wage() == 5, "The emeralds are not in the wage box: " + TestWorld.station(helper, STATION).wage());
+		helper.runAfterDelay(40, () -> {
+			worker.kill(helper.getLevel());
+			helper.runAfterDelay(5, () -> {
+				int wage = TestWorld.station(helper, STATION).wage();
+				helper.assertTrue(wage == 4, "The wage box lost its emeralds or the wage was not paid: " + wage);
+				helper.assertItemEntityNotPresent(Items.EMERALD);
+				helper.succeed();
+			});
+		});
+	}
+
+	/** A broken workstation drops the emeralds of its wage box. */
+	private static void brokenStationDropsWage(GameTestHelper helper) {
+		helper.setBlock(STATION, WorkingVillagers.CHOPPING_BLOCK.get());
+		TestWorld.station(helper, STATION).setWage(10);
+		helper.destroyBlock(STATION);
+		helper.succeedWhen(() -> {
+			int dropped = helper.getEntities(EntityTypes.ITEM, STATION, 2.0).stream()
+				.filter(item -> item.getItem().is(Items.EMERALD))
+				.mapToInt(item -> item.getItem().getCount())
+				.sum();
+			helper.assertTrue(dropped == 10, "Expected 10 dropped emeralds, found " + dropped);
+		});
+	}
+
+	/** Right-clicking a workstation with emeralds puts them into its wage box, up to 64. */
+	private static void rightClickFillsWageBox(GameTestHelper helper) {
+		helper.setBlock(STATION, Blocks.BLAST_FURNACE);
+		net.minecraft.server.level.ServerPlayer player = helper.makeMockServerPlayerInLevel();
+		// In survival, so the emeralds leave the hand
+		player.setGameMode(GameType.SURVIVAL);
+		ItemStack emeralds = new ItemStack(Items.EMERALD, 50);
+		helper.assertTrue(Workstations.depositWage(player, helper.absolutePos(STATION), emeralds), "The blast furnace did not take the emeralds");
+		ItemStack more = new ItemStack(Items.EMERALD, 30);
+		Workstations.depositWage(player, helper.absolutePos(STATION), more);
+		helper.assertTrue(TestWorld.station(helper, STATION).wage() == 64 && emeralds.isEmpty() && more.getCount() == 16,
+			"The wage box holds " + TestWorld.station(helper, STATION).wage() + ", 16 should be left in the hand: " + more.getCount());
+		helper.assertFalse(Workstations.depositWage(player, helper.absolutePos(STATION), new ItemStack(Items.DIAMOND)), "A diamond went into the wage box");
+		helper.succeed();
 	}
 
 	private static void noWageNoWork(GameTestHelper helper) {

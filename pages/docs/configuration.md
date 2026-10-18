@@ -21,7 +21,7 @@ default and its allowed range, so you can edit it with any text editor.
 
 | Option | Default | Range | What it does |
 | --- | --- | --- | --- |
-| `dailyWage` | 1 | 0–64 | Emeralds a worker takes each work day from the emeralds it carries. **0**: workers work for free; they still need their tools. |
+| `dailyWage` | 1 | 0–64 | Emeralds a worker takes each work day from the wage box of its workstation. **0**: workers work for free; they still need their tools. |
 | `maxChests` | 8 | 1–8 | Chests that can be linked to one workstation. |
 | `chestDistance` | 16 | 4–32 | How far a linked chest may be from its workstation. |
 | `randomNames` | false | | Give hired villagers a random name (like Anton or Berta). Otherwise only a name tag names them. |

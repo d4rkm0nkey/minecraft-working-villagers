@@ -62,6 +62,7 @@ The overview of a workstation has tabs at the top, like the creative inventory:
 - The block itself, if it has a screen of its own (woodcutter, furnace, ...): back there.
 - The worker's face: who works here, **Assign** / **Remove**, what it is doing, what it
   did today and what it carries.
+- :mc-emerald: **Wage**: the station's [wage box](#the-wage-box) and your inventory.
 - :mc-chest: **Chests**: the linked chests with **+ Input** / **+ Output** (or **+ Chest**).
 - :mc-paper: **Order** (woodcutter, stonecutter, carpenter's bench, kiln) or **Settings**
   (chopping block, pit stake, mining bench).
@@ -93,9 +94,27 @@ top right, type the name (up to 24 characters) and press Enter. The name is the 
 given with an anvil: it also shows as the chest's title. A chest without a name is listed
 by its kind (*Chest*, *Barrel*) in gray.
 
+## The wage box
+
+Every workstation has a **wage box** for up to **64 emeralds**. The worker takes its wage
+from there before work each day. Fill it in three ways:
+
+- open the workstation, tab :mc-emerald: **Wage**, and put emeralds into its slot (or
+  shift-click them in), like into a chest,
+- **right-click the workstation** with emeralds in your hand,
+- give them to the worker (right-click it with emeralds, or throw them to it): it puts
+  them into the box.
+
+The emeralds belong to the station, not to the worker. **Nothing is lost** when the worker
+dies, turns into a zombie villager or moves to another station; the next worker there
+is paid from the same box. When the workstation is broken (or blown up), the emeralds
+drop like the contents of a chest. Take them out again in the **Wage** tab.
+
+A [carrier](carrier.md) has no workstation: it carries its emeralds itself.
+
 ## Wage and tools
 
-Give a worker its wage and tools directly, like you give a villager food:
+Give a worker its tools directly, like you give a villager food:
 **right-click the worker** with emeralds, its tool or what it plants, or **throw** the
 items next to it. It walks over, picks them up and keeps them in its own inventory.
 Happy villager particles show that it took them. If it already has enough, it shakes
@@ -107,12 +126,13 @@ vanilla mobs picking up items); right-clicking always works.
 
 | Worker | Needs | Carries up to |
 | --- | --- | --- |
-| every worker | :mc-emerald: emeralds | 64 |
+| every worker | :mc-emerald: emeralds | 64, in the wage box of its workstation |
 | lumberjack | :mc-any_axe: an axe, optionally :mc-oak_sapling: saplings | 2 axes, 16 saplings of each kind |
 | farmer | :mc-any_hoe: a hoe, :mc-wheat_seeds: seeds to start with | 2 hoes, 16 seeds of each kind |
 | pit digger | :mc-iron_shovel: a shovel, :mc-iron_pickaxe: a pickaxe, :mc-ladder: ladders, optionally :mc-torch: torches | 2 of each tool, 64 ladders, 16 torches |
 
-- **Wage:** before work each day the worker takes **1 emerald** from what it carries.
+- **Wage:** before work each day the worker takes **1 emerald** from the wage box (then
+  from its pockets, if it still carries emeralds from an older version of the mod).
   64 emeralds pay for 64 work days. Without an emerald it does not work. It waits next
   to its workstation ("Waiting for wages") and checks again every few seconds, so you
   can pay it late.
@@ -120,8 +140,8 @@ vanilla mobs picking up items); right-clicking always works.
   pickaxe and ladders. The sawyer, stone sawyer, carpenter, smith, kiln operator, shop
   assistant and carrier only need emeralds.
 - Workers never hand in their emeralds or their tool to the output chests.
-- **A hired worker that dies drops everything it carries:** emeralds, tools and
-  material.
+- **A hired worker that dies drops everything it carries:** tools and material. Its
+  wage stays in the wage box.
 
 !!! note
     With `dailyWage` set to 0 in the [configuration](../configuration.md) workers work
@@ -146,9 +166,8 @@ what it wants ("Fetching supplies from a village chest").
 
 - **Before its first work of the day** it fetches whatever runs low. **During the day**
   it only goes when it cannot go on otherwise: no wage, its tool is worn, no ladders left.
-- **Emeralds:** once it has less than a day's wage, it takes the wage for **3 days**.
-  Your emeralds stay safe in the chest instead of in the pockets of a worker that might
-  die.
+- **Emeralds:** once its wage box holds less than a day's wage, it takes the wage for
+  **3 days** and puts it into the wage box.
 - **Tools:** once it has none, or only one that is about to break, it takes one. It takes
   the **most worn** one first, so half used tools get used up and the new ones wait. It
   never takes one that is [worn](#worn-tools).

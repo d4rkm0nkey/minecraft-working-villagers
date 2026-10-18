@@ -370,5 +370,17 @@
   "gui.workingvillagers.tab.chests": "Chests",
   "gui.workingvillagers.tab.order": "Order",
   "gui.workingvillagers.tab.settings": "Settings",
-  "gui.workingvillagers.tunnel.kind": "Kind"
+  "gui.workingvillagers.tunnel.kind": "Kind",
+  "gui.workingvillagers.tab.wage": "Wage",
+  "gui.workingvillagers.wage.box": "Wage box: %s / %s emeralds",
+  "gui.workingvillagers.wage.days": "Pays %s work days",
+  "gui.workingvillagers.wage.empty": "Empty: the worker waits",
+  "gui.workingvillagers.wage.free": "Workers work for free here",
+  "gui.workingvillagers.wage.per_day": "%s emerald(s) per work day",
+  "gui.workingvillagers.wage.hint": "Or right-click the station or the worker with emeralds.",
+  "message.workingvillagers.wage.deposited": "Wage box: %s emeralds, pays %s work days",
+  "message.workingvillagers.wage.deposited_free": "Wage box: %s emeralds",
+  "message.workingvillagers.wage.full": "The wage box is full (%s emeralds).",
+  "gui.workingvillagers.wage.empty_free": "Empty",
+  "gui.workingvillagers.wage.kept": "The emeralds stay here when the worker dies or leaves."
 }

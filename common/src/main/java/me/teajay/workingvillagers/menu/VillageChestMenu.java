@@ -126,7 +126,7 @@ public class VillageChestMenu extends ChestMenu {
 			VillageChests.missing(level, worker).ifPresent(key -> entry.putString(TAG_MISSING, key));
 			list.add(entry);
 			chests.addAll(VillageChests.inReach(level, VillageChests.workplace(level, worker)));
-			carried += WorkerSupplies.count(worker.getInventory(), WorkerSupplies::isWage);
+			carried += WorkerSupplies.emeralds(level, worker);
 		}
 		tag.put(TAG_WORKERS, list);
 		tag.putInt(TAG_WORN_TOOLS, WorkerSupplies.count(this.getContainer(), WorkerSupplies::isWorn));

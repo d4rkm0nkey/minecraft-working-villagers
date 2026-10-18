@@ -22,7 +22,7 @@ import net.minecraft.world.item.Items;
  * its emeralds, whether today's wage was taken and the tools of its job and what it uses up
  * (saplings, seeds, ladders, ...).
  *
- * @param emeralds the emeralds the worker carries
+ * @param emeralds the emeralds the worker has for its wage: in the wage box of its workstation and its pockets
  * @param wage the emeralds a worker takes per work day ({@link Config#DAILY_WAGE} of the server)
  * @param tools the tools the worker needs, each with the one it carries (empty if none)
  * @param stocks what the worker uses up, each as one stack with the total count (empty if
@@ -69,7 +69,7 @@ public record SuppliesInfo(int emeralds, int wage, boolean paid, List<Slot> tool
 	static void write(ServerLevel level, Villager worker, CompoundTag info) {
 		CompoundTag tag = new CompoundTag();
 		SimpleContainer inventory = worker.getInventory();
-		tag.putInt(TAG_EMERALDS, WorkerSupplies.count(inventory, WorkerSupplies::isWage));
+		tag.putInt(TAG_EMERALDS, WorkerSupplies.emeralds(level, worker));
 		tag.putInt(TAG_WAGE, Config.DAILY_WAGE.get());
 		tag.putBoolean(TAG_PAID, WorkerSupplies.isPaid(level, worker));
 		ListTag tools = new ListTag();

@@ -85,7 +85,7 @@ public final class VillageChests {
 		SimpleContainer inventory = worker.getInventory();
 		List<Map.Entry<String, Predicate<ItemStack>>> lacking = new ArrayList<>();
 		int wage = Config.DAILY_WAGE.get();
-		if (wage > 0 && !WorkerSupplies.isPaid(level, worker) && WorkerSupplies.count(inventory, WorkerSupplies::isWage) < wage) {
+		if (wage > 0 && !WorkerSupplies.isPaid(level, worker) && WorkerSupplies.emeralds(level, worker) < wage) {
 			lacking.add(Map.entry("wage", WorkerSupplies::isWage));
 		}
 		for (WorkerSupplies.Tool tool : WorkerSupplies.toolsOf(worker)) {
@@ -140,12 +140,12 @@ public final class VillageChests {
 
 	/** Moves what the worker wants out of the container into its inventory. Returns how many items it took. */
 	static int take(Villager villager, Container container) {
-		SimpleContainer inventory = villager.getInventory();
 		int taken = 0;
 		for (Take take : plan(villager, container)) {
 			ItemStack stack = container.getItem(take.slot());
 			ItemStack moved = stack.split(take.count());
-			ItemStack rest = inventory.addItem(moved);
+			// The wage goes into the wage box of the workstation, the rest into the pockets
+			ItemStack rest = WorkerSupplies.store(villager, moved.copy());
 			stack.grow(rest.getCount());
 			taken += moved.getCount() - rest.getCount();
 		}
@@ -218,14 +218,22 @@ public final class VillageChests {
 		return takes;
 	}
 
-	/** The emeralds it takes: the wage for a few days, once it has less than a day's wage. */
+	/**
+	 * The emeralds it takes: the wage for a few days, once it has less than a day's wage in
+	 * the wage box of its workstation and its pockets. They go into the wage box.
+	 */
 	private static int wageWanted(Villager villager) {
 		int wage = Config.DAILY_WAGE.get();
-		int carried = WorkerSupplies.count(villager.getInventory(), WorkerSupplies::isWage);
-		if (wage <= 0 || carried >= wage) {
+		if (wage <= 0 || !(villager.level() instanceof ServerLevel level)) {
 			return 0;
 		}
-		return Math.max(0, Math.min(wage * Config.VILLAGE_CHEST_WAGE_DAYS.get(), WorkerSupplies.MAX_EMERALDS) - carried);
+		int has = WorkerSupplies.emeralds(level, villager);
+		if (has >= wage) {
+			return 0;
+		}
+		Workstations.Station box = WorkerSupplies.wageBox(level, villager);
+		int room = box == null ? WorkerSupplies.MAX_EMERALDS : Workstations.MAX_WAGE;
+		return Math.max(0, Math.min(wage * Config.VILLAGE_CHEST_WAGE_DAYS.get(), room) - has);
 	}
 
 	/** No tool of the kind it can work with, or only one that is almost used up. */

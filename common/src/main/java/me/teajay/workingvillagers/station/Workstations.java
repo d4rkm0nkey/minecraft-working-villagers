@@ -21,22 +21,29 @@ import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.Container;
+import net.minecraft.world.Containers;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.village.poi.PoiManager;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
 import org.jspecify.annotations.Nullable;
 
 /**
  * The settings of all workstations of a dimension: linked chests, the order and the
- * worker of the mod that works there, the pit of a pit stake.
+ * worker of the mod that works there, the pit of a pit stake, and the emeralds in the
+ * station's wage box (see {@link Station#wage}).
  *
  * <p>They are kept here instead of in block entities because the vanilla stonecutter is a
  * workstation as well. Entries of stations that are gone are dropped when looked up.
@@ -91,7 +98,7 @@ public class Workstations extends SavedData {
 		if (station == null) {
 			station = new Station(
 				pos.immutable(), Optional.empty(), List.of(), List.of(), Optional.empty(), Optional.empty(), Optional.empty(), List.of(), 0, false,
-				Optional.empty(), Pit.DEFAULT_DEPTH, Optional.empty()
+				Optional.empty(), Pit.DEFAULT_DEPTH, Optional.empty(), 0
 			);
 			workstations.stations.put(station.pos, station);
 		}
@@ -112,6 +119,57 @@ public class Workstations extends SavedData {
 		return station == null || station.isEmpty() ? Optional.empty() : find(level, pos).filter(found -> !found.isEmpty());
 	}
 
+	/**
+	 * Called whenever a block changes (see {@code ServerLevelMixin}): if a workstation is gone
+	 * or became another kind, the emeralds of its wage box drop where it stood.
+	 */
+	public static void onBlockChanged(ServerLevel level, BlockPos pos, BlockState before, BlockState after) {
+		StationType old = StationType.of(before);
+		if (old == null || old == StationType.of(after)) {
+			return;
+		}
+		Workstations workstations = level.getDataStorage().computeIfAbsent(TYPE);
+		Station station = workstations.stations.get(pos);
+		if (station == null || station.wage == 0) {
+			return;
+		}
+		int wage = station.wage;
+		station.wage = 0;
+		workstations.setDirty();
+		Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(Items.EMERALD, wage));
+	}
+
+	/**
+	 * A right-click on a workstation with emeralds in the hand puts them into its wage box.
+	 * Returns false if the block is no workstation or the hand holds no emeralds, so the
+	 * click does what it does otherwise.
+	 */
+	public static boolean depositWage(ServerPlayer player, BlockPos pos, ItemStack stack) {
+		ServerLevel level = player.level();
+		if (!stack.is(Items.EMERALD) || StationType.of(level.getBlockState(pos)) == null) {
+			return false;
+		}
+		Optional<Station> found = find(level, pos);
+		if (found.isEmpty()) {
+			return false;
+		}
+		Station station = found.get();
+		int added = station.addWage(stack.getCount());
+		if (added == 0) {
+			player.sendOverlayMessage(Component.translatable("message.workingvillagers.wage.full", MAX_WAGE));
+			return true;
+		}
+		if (!player.hasInfiniteMaterials()) {
+			stack.shrink(added);
+		}
+		level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.4F, 1.4F);
+		int daily = Config.DAILY_WAGE.get();
+		player.sendOverlayMessage(daily > 0
+			? Component.translatable("message.workingvillagers.wage.deposited", station.wage(), station.wage() / daily)
+			: Component.translatable("message.workingvillagers.wage.deposited_free", station.wage()));
+		return true;
+	}
+
 	public static @Nullable Container getContainer(Level level, BlockPos pos) {
 		return level.isLoaded(pos) ? HopperBlockEntity.getContainerAt(level, pos) : null;
 	}
@@ -122,6 +180,9 @@ public class Workstations extends SavedData {
 		/** The worker delivers its products here. */
 		OUTPUT
 	}
+
+	/** The most emeralds the wage box of a station holds: one stack. */
+	public static final int MAX_WAGE = 64;
 
 	public static final class Station {
 		private static final Codec<Station> CODEC = RecordCodecBuilder.create(i -> i.group(
@@ -137,7 +198,8 @@ public class Workstations extends SavedData {
 			Codec.BOOL.optionalFieldOf("strip", false).forGetter(station -> station.strip),
 			Pit.CODEC.optionalFieldOf("pit").forGetter(station -> Optional.ofNullable(station.pit)),
 			Codec.INT.optionalFieldOf("depth", Pit.DEFAULT_DEPTH).forGetter(station -> station.depth),
-			Tunnel.CODEC.optionalFieldOf("tunnel").forGetter(station -> Optional.ofNullable(station.tunnel))
+			Tunnel.CODEC.optionalFieldOf("tunnel").forGetter(station -> Optional.ofNullable(station.tunnel)),
+			Codec.intRange(0, MAX_WAGE).optionalFieldOf("wage", 0).forGetter(station -> station.wage)
 		).apply(i, Station::new));
 
 		private final BlockPos pos;
@@ -161,14 +223,17 @@ public class Workstations extends SavedData {
 		private int depth;
 		/** Mining bench: the tunnel to dig, null until one is picked. */
 		private @Nullable Tunnel tunnel;
+		/** The emeralds in the wage box, see {@link #wage}. */
+		private int wage;
 		private @Nullable Workstations owner;
 		/** The kind of station the settings belong to, unknown for entries saved before it was stored. */
 		private @Nullable StationType type;
 
 		private Station(
 			BlockPos pos, Optional<String> type, List<BlockPos> inputs, List<BlockPos> outputs, Optional<Item> order, Optional<UUID> worker, Optional<String> workerName,
-			List<String> woods, int stock, boolean strip, Optional<Pit> pit, int depth, Optional<Tunnel> tunnel
+			List<String> woods, int stock, boolean strip, Optional<Pit> pit, int depth, Optional<Tunnel> tunnel, int wage
 		) {
+			this.wage = wage;
 			this.pit = pit.orElse(null);
 			this.tunnel = tunnel.orElse(null);
 			this.depth = depth;
@@ -460,7 +525,32 @@ public class Workstations extends SavedData {
 
 		private boolean isEmpty() {
 			return this.inputs.isEmpty() && this.outputs.isEmpty() && this.order == null && this.worker == null && this.woods.isEmpty() && this.stock == 0
-				&& !this.strip && this.pit == null && this.depth == Pit.DEFAULT_DEPTH && this.tunnel == null;
+				&& !this.strip && this.pit == null && this.depth == Pit.DEFAULT_DEPTH && this.tunnel == null && this.wage == 0;
+		}
+
+		/**
+		 * The emeralds in the station's wage box: the worker takes its wage from here, and
+		 * emeralds given to it go in here. They belong to the station, not to the worker, so
+		 * nothing is lost when the worker dies, becomes a zombie or changes its job. When the
+		 * station is broken they drop like the contents of a chest.
+		 */
+		public int wage() {
+			return this.wage;
+		}
+
+		public void setWage(int wage) {
+			int clamped = Math.clamp(wage, 0, MAX_WAGE);
+			if (this.wage != clamped) {
+				this.wage = clamped;
+				this.setDirty();
+			}
+		}
+
+		/** Puts up to {@code count} emeralds into the wage box. Returns how many fit. */
+		public int addWage(int count) {
+			int added = Math.clamp(count, 0, MAX_WAGE - this.wage);
+			this.setWage(this.wage + added);
+			return added;
 		}
 
 		private void setDirty() {

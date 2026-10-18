@@ -127,7 +127,7 @@ Bleibt wie heute (✎ oben rechts). Unbenannte Kisten erscheinen in Stationen un
 ### Stand der Umsetzung
 
 - **Stationsübersicht mit Reitern** (Schritte 1 und 2): Fenster 176×166, Reiter wie im Kreativinventar (Vanilla-Grafiken), Knöpfe 16 bis 20 px hoch. Abweichungen:
-  - Vier Reiter statt drei: **Block** · **Arbeiter** · **Kisten** · **Auftrag**/**Einstellungen**. Die Kisten bekommen einen eigenen Reiter, damit der Arbeiter-Reiter Platz für umgebrochenen Status, Tagespensum, Versorgung und einen Hinweis zum Geben hat. Sechs Kisten sind sichtbar, mehr per Mausrad.
+  - Bis zu fünf Reiter statt drei: **Block** · **Arbeiter** · **Lohn** · **Kisten** · **Auftrag**/**Einstellungen**. Der Reiter **Lohn** (Lohnkasse der Station mit Spielerinventar) kam mit der Lohnkasse dazu. Die Kisten bekommen einen eigenen Reiter, damit der Arbeiter-Reiter Platz für umgebrochenen Status, Tagespensum, Versorgung und einen Hinweis zum Geben hat. Sechs Kisten sind sichtbar, mehr per Mausrad.
   - Der Reiter **Block** ersetzt „Back“. Über den Block-Menüs gibt es keine Reiter; dort führt der Knopf mit dem Gesicht in die Übersicht.
   - Statt eines Ausrufezeichens ein roter Punkt am Reiter.
   - Keine Figur des Arbeiters; das Gesicht steht im Reiter. Der Status bleibt blau.

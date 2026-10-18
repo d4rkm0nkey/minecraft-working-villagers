@@ -94,7 +94,7 @@ public class MenuScreenshots implements FabricClientGameTest {
 	/** Opens the overview and takes a screenshot of each of its tabs. */
 	private static void tabs(ClientGameTestContext context, TestSingleplayerContext world, String name, String suffix, BlockPos near, StationType type,
 		BiConsumer<MinecraftServer, ServerPlayer> open) {
-		List<String> tabs = new java.util.ArrayList<>(List.of("work", "chests"));
+		List<String> tabs = new java.util.ArrayList<>(List.of("work", "wage", "chests"));
 		if (type.hasOrder() || type == StationType.CHOPPING_BLOCK || type == StationType.PIT_STAKE || type == StationType.MINING_BENCH) {
 			tabs.add("order");
 		}

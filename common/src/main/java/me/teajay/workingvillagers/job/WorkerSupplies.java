@@ -50,6 +50,12 @@ import org.jspecify.annotations.Nullable;
  * the day, or without its tool, a worker does not work; it waits at its workstation and
  * shakes its head.
  *
+ * <p>The wage is kept in the {@link Workstations.Station#wage wage box} of the worker's
+ * workstation: emeralds given to the worker, thrown to it or fetched from a village chest go
+ * in there, and the worker takes the wage of the day from there, then from its pockets
+ * (emeralds it carried before there were wage boxes). A carrier, which has no workstation,
+ * carries its emeralds itself.
+ *
  * <p>A tool that is about to break ({@link #isWorn}) counts as no tool: the worker stops
  * using it and, before its next piece of work, gives it back instead of breaking it, into a
  * village chest or else an output chest of its workstation. Going to a village chest it
@@ -149,14 +155,19 @@ public final class WorkerSupplies {
 		}
 		int wage = Config.DAILY_WAGE.get();
 		SimpleContainer inventory = villager.getInventory();
+		Workstations.Station box = wageBox(level, villager);
 		if (wage > 0 && !isPaid(level, villager)) {
-			if (count(inventory, WorkerSupplies::isWage) < wage) {
+			if (emeralds(level, villager) < wage) {
 				if (!this.fetch(level, villager, WorkerSupplies::isWage)) {
 					this.waitFor(level, villager, "no_wage");
 				}
 				return true;
 			}
-			inventory.removeItemType(WAGE, wage);
+			int fromBox = box == null ? 0 : Math.min(box.wage(), wage);
+			if (box != null) {
+				box.setWage(box.wage() - fromBox);
+			}
+			inventory.removeItemType(WAGE, wage - fromBox);
 			((HiredVillager) villager).workingvillagers$setPaidDay(ChopTrees.today(level));
 			level.sendParticles(ParticleTypes.HAPPY_VILLAGER, villager.getX(), villager.getY() + 1.8, villager.getZ(), 5, 0.3, 0.2, 0.3, 0.0);
 		}
@@ -349,6 +360,28 @@ public final class WorkerSupplies {
 	}
 
 	/**
+	 * The workstation whose wage box the worker uses; null for a carrier, an ordinary
+	 * villager or a worker without a workstation.
+	 */
+	public static Workstations.@Nullable Station wageBox(ServerLevel level, Villager villager) {
+		if (!((HiredVillager) villager).workingvillagers$isHired()) {
+			return null;
+		}
+		Optional<GlobalPos> site = villager.getBrain().getMemory(MemoryModuleType.JOB_SITE);
+		if (site.isEmpty() || site.get().dimension() != level.dimension()) {
+			return null;
+		}
+		return Workstations.find(level, site.get().pos()).orElse(null);
+	}
+
+	/** The emeralds the worker has for its wage: in the wage box of its workstation and in its pockets. */
+	public static int emeralds(ServerLevel level, Villager villager) {
+		Workstations.Station box = wageBox(level, villager);
+		return count(villager.getInventory(), WorkerSupplies::isWage) + (box == null ? 0 : box.wage());
+	}
+
+
+	/**
 	 * A tool about to break that is given back instead of used up: {@link Config#TOOL_RETURN_BELOW}
 	 * percent of its durability left or less, at least 2 uses. Wooden and stone tools are used up
 	 * unless {@link Config#TOOL_RETURN_CHEAP}, or they are enchanted or renamed.
@@ -443,7 +476,11 @@ public final class WorkerSupplies {
 		int wanted;
 		Optional<Tool> tool = toolsOf(villager).stream().filter(candidate -> candidate.item().test(stack)).findFirst();
 		Optional<Stock> stock = stocksOf(villager).stream().filter(candidate -> candidate.item().test(stack)).findFirst();
-		if (isWage(stack)) {
+		Workstations.Station box = villager.level() instanceof ServerLevel level ? wageBox(level, villager) : null;
+		if (isWage(stack) && box != null) {
+			// Straight into the wage box, never into the pockets
+			return Math.min(stack.getCount(), Workstations.MAX_WAGE - box.wage());
+		} else if (isWage(stack)) {
 			wanted = MAX_EMERALDS - count(inventory, WorkerSupplies::isWage);
 		} else if (tool.isPresent()) {
 			wanted = isWorn(stack) ? 0 : MAX_TOOLS - count(inventory, tool.get().ready());
@@ -481,7 +518,7 @@ public final class WorkerSupplies {
 			return true;
 		}
 		villager.onItemPickup(entity);
-		ItemStack rest = villager.getInventory().addItem(stack.split(amount));
+		ItemStack rest = store(villager, stack.split(amount));
 		villager.take(entity, amount - rest.getCount());
 		stack.grow(rest.getCount());
 		if (stack.isEmpty()) {
@@ -515,7 +552,7 @@ public final class WorkerSupplies {
 		if (!player.hasInfiniteMaterials()) {
 			stack.shrink(amount);
 		}
-		ItemStack rest = villager.getInventory().addItem(given);
+		ItemStack rest = store(villager, given);
 		if (!rest.isEmpty() && !player.getInventory().add(rest)) {
 			villager.spawnAtLocation(level, rest);
 		}
@@ -523,6 +560,16 @@ public final class WorkerSupplies {
 		level.playSound(null, villager.getX(), villager.getY(), villager.getZ(), SoundEvents.ITEM_PICKUP, SoundSource.NEUTRAL, 0.3F, 1.2F);
 		level.sendParticles(ParticleTypes.HAPPY_VILLAGER, villager.getX(), villager.getY() + 1.8, villager.getZ(), 5, 0.3, 0.2, 0.3, 0.0);
 		return InteractionResult.SUCCESS_SERVER;
+	}
+
+	/** Gives the worker the stack: emeralds into the wage box of its workstation, anything else into its inventory. Returns what is left. */
+	static ItemStack store(Villager villager, ItemStack stack) {
+		Workstations.Station box = isWage(stack) && villager.level() instanceof ServerLevel level ? wageBox(level, villager) : null;
+		if (box == null) {
+			return villager.getInventory().addItem(stack);
+		}
+		stack.shrink(box.addWage(stack.getCount()));
+		return stack;
 	}
 
 	public static int count(Container inventory, Predicate<ItemStack> filter) {

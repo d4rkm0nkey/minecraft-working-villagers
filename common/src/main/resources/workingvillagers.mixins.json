@@ -11,6 +11,7 @@
     "ComposterBlockMixin",
     "DisplayMixin",
     "FarmlandBlockMixin",
+    "ServerLevelMixin",
     "ServerPlayerGameModeMixin",
     "SmithingMenuMixin",
     "StonecutterBlockMixin",
