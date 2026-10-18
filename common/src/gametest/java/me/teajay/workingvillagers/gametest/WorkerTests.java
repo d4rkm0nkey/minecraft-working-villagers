@@ -29,6 +29,8 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.FarmlandBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -297,8 +299,10 @@ public final class WorkerTests {
 	private static void workersDoNotTrampleFarmland(GameTestHelper helper) {
 		BlockPos worked = new BlockPos(3, 0, 3);
 		BlockPos trampled = new BlockPos(9, 0, 3);
-		helper.setBlock(worked, Blocks.FARMLAND);
-		helper.setBlock(trampled, Blocks.FARMLAND);
+		// Moist, so it does not dry out to dirt by itself meanwhile
+		BlockState farmland = Blocks.FARMLAND.defaultBlockState().setValue(FarmlandBlock.MOISTURE, FarmlandBlock.MAX_MOISTURE);
+		helper.setBlock(worked, farmland);
+		helper.setBlock(trampled, farmland);
 		Villager worker = TestWorld.hireVillager(helper, worked.above(4));
 		Villager villager = helper.spawn(EntityTypes.VILLAGER, trampled.above(4));
 		helper.succeedWhen(() -> {
