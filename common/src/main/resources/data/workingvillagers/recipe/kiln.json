@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "B": "minecraft:brick",
+    "F": "minecraft:furnace"
+  },
+  "pattern": [
+    " B ",
+    "BFB",
+    " B "
+  ],
+  "result": {
+    "id": "workingvillagers:kiln"
+  }
+}

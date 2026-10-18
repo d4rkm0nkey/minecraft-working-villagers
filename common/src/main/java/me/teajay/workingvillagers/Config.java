@@ -83,6 +83,11 @@ public final class Config {
 	public static final IntOption FUEL_BATCH = intOption("smith", "fuelPerTrip", 8, 1, 64,
 		"How much fuel the smith fetches at once.");
 
+	public static final IntOption KILN_BATCH = intOption("kilnOperator", "batchSize", 16, 1, 64,
+		"How many items to fire the kiln operator fetches from an input chest at once.");
+	public static final IntOption KILN_FUEL_BATCH = intOption("kilnOperator", "fuelPerTrip", 8, 1, 64,
+		"How much fuel the kiln operator fetches at once.");
+
 	public static final IntOption ROUTE_LENGTH = intOption("carrier", "maxRouteLength", 32, 4, 64,
 		"How far (in blocks) source and target of a route may be apart.");
 	public static final IntOption ROUTE_SOURCE_SPREAD = intOption("carrier", "maxSourceSpread", 40, 4, 96,

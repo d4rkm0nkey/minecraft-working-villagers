@@ -33,8 +33,9 @@ import org.jspecify.annotations.Nullable;
  * At the woodcutter and the carpenter's bench a second column on the left sets the order:
  * the product (or its shape) and the wood types to use; at the bench also how many
  * products to keep in stock. At the stonecutter that column shows the stone families
- * first and, once one is opened, its products. The composter and the blast furnace have
- * no order: the farmer works the fields around it, the smith smelts what it finds.
+ * first and, once one is opened, its products; at the kiln it shows everything the kiln
+ * makes and how many to keep in stock. The composter and the blast furnace have no order:
+ * the farmer works the fields around it, the smith smelts what it finds.
  */
 public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	private static final Identifier SLOT_SPRITE = Identifier.withDefaultNamespace("container/slot");
@@ -55,6 +56,9 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	private static final int STONE_CELLS = GRID_COLUMNS * 6;
 	/** Chopping block: the row with the strip switch. */
 	private static final int STRIP_Y = 71;
+	/** Kiln: rows of products on one page. */
+	private static final int KILN_ROWS = 5;
+	private static final int KILN_CELLS = GRID_COLUMNS * KILN_ROWS;
 
 	private final boolean orderColumn;
 	/** Where the wood types start, below the products. */
@@ -72,6 +76,10 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	private int familyPage;
 	/** Stonecutter: whether the family of the order was opened when the families arrived. */
 	private boolean familiesShown;
+	/** Kiln: the page of products shown. */
+	private int kilnPage;
+	/** Kiln: whether the page of the order was opened when the products arrived. */
+	private boolean kilnPageShown;
 
 	public StationScreen(StationMenu menu, Inventory inventory, Component title) {
 		super(menu, inventory, title, hasOrderColumn(menu) ? 344 : 176, chestsY(menu) + Workstations.MAX_CHESTS * ROW_HEIGHT + 25);
@@ -81,7 +89,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		int productRows = menu.type() == StationType.CARPENTER_BENCH ? 3 : 2;
 		this.woodsLabelY = SHAPES_Y + productRows * 18 + 5;
 		this.woodsY = this.woodsLabelY + 11;
-		this.stockY = this.woodsY + 2 * 18 + 5;
+		this.stockY = menu.type() == StationType.KILN ? SHAPES_Y + KILN_ROWS * 18 + 5 : this.woodsY + 2 * 18 + 5;
 	}
 
 	private static boolean hasOrderColumn(StationMenu menu) {
@@ -94,6 +102,10 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 
 	private boolean isBench() {
 		return this.menu.type() == StationType.CARPENTER_BENCH;
+	}
+
+	private boolean isKiln() {
+		return this.menu.type() == StationType.KILN;
 	}
 
 	private static int chestsY(StationMenu menu) {
@@ -122,7 +134,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		int top = this.topPos;
 		GuiPanels.panel(graphics, left, top, this.imageWidth, this.imageHeight);
 
-		if (this.menu.type().isProcessing()) {
+		if (this.menu.type().hasOwnScreen()) {
 			String back = Component.translatable("gui.workingvillagers.station.back").getString();
 			int width = this.font.width(back) + 10;
 			this.button(graphics, mouseX, mouseY, left + this.imageWidth - 7 - width, top + 3, width, BUTTON_SIZE, back, StationMenu.BACK_BUTTON,
@@ -147,6 +159,11 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	private void extractOrder(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
 		if (this.isStonecutter()) {
 			this.extractStoneOrder(graphics, mouseX, mouseY);
+			return;
+		}
+		if (this.isKiln()) {
+			this.extractKilnOrder(graphics, mouseX, mouseY);
+			this.extractStock(graphics, mouseX, mouseY);
 			return;
 		}
 		int left = this.leftPos + 8;
@@ -300,12 +317,56 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		}
 	}
 
-	/** Carpenter's bench: how many products to keep in the output chests, with buttons to change it. */
+	/**
+	 * Kiln: everything it makes (a click orders one, another click clears the order, then
+	 * it fires everything), in pages.
+	 */
+	private void extractKilnOrder(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+		List<ItemStack> products = this.menu.getProducts();
+		ItemStack order = this.menu.getOrder();
+		int pages = Math.max(1, (products.size() + KILN_CELLS - 1) / KILN_CELLS);
+		if (!this.kilnPageShown && !products.isEmpty()) {
+			this.kilnPageShown = true;
+			for (int i = 0; i < products.size(); i++) {
+				if (order.is(products.get(i).getItem())) {
+					this.kilnPage = i / KILN_CELLS;
+				}
+			}
+		}
+		this.kilnPage = Mth.clamp(this.kilnPage, 0, pages - 1);
+		int left = this.leftPos + 8;
+		int top = this.topPos + SHAPES_Y;
+		int right = this.leftPos + 7 + COLUMN_WIDTH;
+		if (pages > 1) {
+			this.localButton(graphics, mouseX, mouseY, right - BUTTON_SIZE, top - 12, BUTTON_SIZE, ">",
+				() -> this.kilnPage = Math.min(this.kilnPage + 1, pages - 1));
+			this.localButton(graphics, mouseX, mouseY, right - 2 * BUTTON_SIZE - 2, top - 12, BUTTON_SIZE, "<",
+				() -> this.kilnPage = Math.max(this.kilnPage - 1, 0));
+		}
+		int start = this.kilnPage * KILN_CELLS;
+		for (int i = start; i < Math.min(products.size(), start + KILN_CELLS); i++) {
+			ItemStack product = products.get(i);
+			boolean selected = order.is(product.getItem());
+			int x = left + (i - start) % GRID_COLUMNS * 18;
+			int y = top + (i - start) / GRID_COLUMNS * 18;
+			this.cell(graphics, x, y, product, selected, false);
+			List<Component> tooltip = new ArrayList<>();
+			tooltip.add(product.getHoverName());
+			tooltip.add(Component.translatable(selected ? "gui.workingvillagers.station.shape.selected" : "gui.workingvillagers.kiln.select")
+				.withStyle(ChatFormatting.GRAY));
+			if (selected) {
+				tooltip.add(Component.translatable("gui.workingvillagers.kiln.clear").withStyle(ChatFormatting.DARK_GRAY));
+			}
+			this.hotspots.add(new Hotspot(x, y, 18, 18, StationMenu.KILN_PRODUCT_BUTTON + i, tooltip));
+		}
+	}
+
+	/** Carpenter's bench and kiln: how many products to keep in the output chests, with buttons to change it. */
 	private void extractStock(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
 		int right = this.leftPos + 7 + COLUMN_WIDTH;
 		int y = this.topPos + this.stockY - 2;
 		List<Component> tooltip = List.of(
-			Component.translatable("gui.workingvillagers.station.stock.tooltip"),
+			Component.translatable(this.isKiln() ? "gui.workingvillagers.kiln.stock.tooltip" : "gui.workingvillagers.station.stock.tooltip"),
 			Component.translatable("gui.workingvillagers.station.stock.tooltip2").withStyle(ChatFormatting.GRAY)
 		);
 		this.button(graphics, mouseX, mouseY, right - BUTTON_SIZE, y, BUTTON_SIZE, BUTTON_SIZE, "+", StationMenu.STOCK_MORE_BUTTON, tooltip);
@@ -446,6 +507,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		return switch (this.menu.type()) {
 			case CARPENTER_BENCH -> "gui.workingvillagers.station.back.tooltip.bench";
 			case BLAST_FURNACE -> "gui.workingvillagers.station.back.tooltip.furnace";
+			case KILN -> "gui.workingvillagers.station.back.tooltip.kiln";
 			default -> "gui.workingvillagers.station.back.tooltip";
 		};
 	}
@@ -510,6 +572,8 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 
 		if (this.isStonecutter()) {
 			GuiPanels.scrollingText(graphics, this.font, this.stoneLabel().getString(), 8, SHAPES_Y - 10, COLUMN_WIDTH - 40, GuiPanels.TEXT_COLOR);
+		} else if (this.isKiln()) {
+			graphics.text(this.font, Component.translatable("gui.workingvillagers.station.shape"), 8, SHAPES_Y - 10, GuiPanels.TEXT_COLOR, false);
 		} else if (this.orderColumn) {
 			graphics.text(this.font, Component.translatable("gui.workingvillagers.station.shape"), 8, SHAPES_Y - 10, GuiPanels.TEXT_COLOR, false);
 			graphics.text(this.font, Component.translatable(this.isBench() ? "gui.workingvillagers.station.woods.bench" : "gui.workingvillagers.station.woods"),
@@ -519,9 +583,11 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			GuiPanels.scrollingText(graphics, this.font, Component.translatable("gui.workingvillagers.chopping_block.strip").getString(), 8, STRIP_Y,
 				COLUMN_WIDTH - this.stripButtonWidth() - 4, GuiPanels.TEXT_COLOR);
 		}
-		if (this.isBench()) {
+		if (this.isBench() || this.isKiln()) {
 			int stock = this.menu.getStock();
-			Component text = stock == 0
+			Component text = this.isKiln() && this.menu.getOrder().isEmpty()
+				? Component.translatable("gui.workingvillagers.kiln.stock.no_order")
+				: stock == 0
 				? Component.translatable("gui.workingvillagers.station.stock.none")
 				: Component.translatable("gui.workingvillagers.station.stock", stock);
 			GuiPanels.scrollingText(graphics, this.font, text.getString(), 8, this.stockY, COLUMN_WIDTH - 2 * BUTTON_SIZE - 6, GuiPanels.TEXT_COLOR);
@@ -550,6 +616,12 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 				return Optional.of(Component.translatable("gui.workingvillagers.chopping_block.hire"));
 			}
 			return crops < 0 ? Optional.empty() : Optional.of(Component.translatable("gui.workingvillagers.composter.crops", crops));
+		}
+		if (this.isKiln()) {
+			ItemStack order = this.menu.getOrder();
+			return Optional.of(order.isEmpty()
+				? Component.translatable("gui.workingvillagers.kiln.everything")
+				: Component.translatable("gui.workingvillagers.order", order.getHoverName()));
 		}
 		if (this.menu.type() == StationType.BLAST_FURNACE) {
 			return Optional.of(Component.translatable(this.menu.getWorker().isEmpty()

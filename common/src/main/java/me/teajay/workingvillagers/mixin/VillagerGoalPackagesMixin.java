@@ -52,7 +52,9 @@ public abstract class VillagerGoalPackagesMixin {
 		} else if (profession.is(WorkingVillagers.FARMER_PROFESSION)) {
 			work = new FarmFields();
 		} else if (profession.is(WorkingVillagers.SMITH_PROFESSION)) {
-			work = new SmeltAtFurnace();
+			work = new SmeltAtFurnace(SmeltAtFurnace.Kind.SMITH);
+		} else if (profession.is(WorkingVillagers.KILN_OPERATOR_PROFESSION)) {
+			work = new SmeltAtFurnace(SmeltAtFurnace.Kind.KILN);
 		}
 		if (work != null) {
 			cir.setReturnValue(ImmutableList.of(

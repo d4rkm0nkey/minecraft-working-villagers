@@ -4,8 +4,9 @@
 Usage: python3 tools/generate_textures.py <minecraft client or merged jar>
 
 The woodcutter textures are the vanilla stonecutter textures with the stone replaced by
-oak planks, the village chest texture the chest texture in spruce with iron bands and an
-emerald lock, so they are read from the Minecraft jar. The chopping block uses the vanilla
+oak planks, the kiln textures the furnace textures with bricks instead of cobblestone, the
+village chest the chest texture in spruce with iron bands and an emerald lock, so they are
+read from the Minecraft jar. The chopping block uses the vanilla
 iron axe texture (copied, block models cannot use the item atlas) and its model is built
 from the axe pixels, so it also needs the jar. Everything else is drawn from scratch.
 
@@ -309,6 +310,80 @@ def farmer():
     return image
 
 
+def kiln_operator():
+    """Villager profession overlay: a brick red head scarf knotted at the back; a terracotta shirt with the sleeves rolled up, a grey leather waist
+    apron with clay and ash stains, soot on the forearms, dark trousers and boots."""
+    image = blank(64)
+    p = image.load()
+    shirt_, shirt_dark = (185, 95, 58, 255), (155, 76, 45, 255)
+    scarf, scarf_dark = (140, 50, 38, 255), (110, 38, 28, 255)
+    leather, leather_dark, clay, ash = (95, 88, 82, 255), (70, 64, 60, 255), (190, 130, 90, 255), (190, 186, 180, 255)
+    skin, skin_dark, soot = (190, 136, 108, 255), (170, 118, 92, 255), (70, 62, 58, 255)
+    trousers, boots = (70, 52, 40, 255), (40, 32, 26, 255)
+
+    def fill(x0, y0, x1, y1, color):
+        for y in range(y0, y1):
+            for x in range(x0, x1):
+                p[x, y] = color(x, y)
+
+    shirt = lambda x, y: shirt_dark if y % 4 == 3 else shirt_
+    apron = lambda x, y: clay if (x * 5 + y * 7) % 11 == 0 else ash if (x * 3 + y * 5) % 13 == 0 else leather
+    fill(16, 20, 44, 38, shirt)  # body
+    fill(6, 38, 14, 44, shirt)  # jacket top
+    fill(0, 44, 28, 56, shirt)  # jacket, upper part
+    fill(0, 56, 28, 64, lambda x, y: trousers)  # jacket, lower part
+    fill(0, 50, 28, 51, lambda x, y: leather_dark)  # apron string around the waist
+    fill(5, 51, 15, 63, apron)  # waist apron on the front of the robe
+    fill(5, 62, 15, 63, lambda x, y: leather_dark)  # hem
+    fill(44, 22, 60, 28, shirt)  # arms: sleeves
+    fill(44, 27, 60, 28, lambda x, y: shirt_dark)  # rolled up cuff
+    fill(44, 28, 60, 34, lambda x, y: skin_dark if y == 28 else skin)  # bare forearms
+    fill(52, 22, 56, 26, lambda x, y: skin)  # end of the arm
+    fill(40, 38, 64, 46, lambda x, y: skin_dark if (x + y) % 5 == 0 else skin)  # crossed arms, middle part
+    p[46, 43] = p[49, 44] = p[58, 42] = soot
+    fill(0, 22, 16, 34, lambda x, y: trousers)  # legs
+    fill(0, 34, 16, 38, lambda x, y: boots)
+    scarf_cloth = lambda x, y: scarf_dark if (x + 2 * y) % 5 == 0 and y % 2 == 0 else scarf
+    fill(40, 0, 48, 8, scarf_cloth)  # head scarf top
+    fill(32, 8, 64, 11, scarf_cloth)  # head scarf sides
+    fill(32, 11, 64, 12, lambda x, y: scarf_dark)  # folded edge
+    fill(59, 12, 61, 13, lambda x, y: scarf_dark)  # knot on the back of the head
+    p[59, 13] = p[60, 14] = scarf  # its ends
+    return image
+
+
+def kiln(jar):
+    """The furnace textures with bricks instead of cobblestone: grey (stone) pixels take the
+    bricks pixel at the same position, keeping the brightness of the stone pixel so the
+    shading stays. The dark opening and the fire are kept."""
+    bricks = read_vanilla(jar, "block/bricks")
+    result = {}
+    for part, source in (("front", "furnace_front"), ("front_on", "furnace_front_on"), ("side", "furnace_side"), ("top", "furnace_top")):
+        image = read_vanilla(jar, f"block/{source}")
+        if image.height > image.width:
+            image = image.crop((0, 0, image.width, image.width))  # first frame of an animation
+        stone = [image.getpixel((x, y)) for x in range(16) for y in range(16)]
+        grey = [c for c in stone if c[3] and max(c[:3]) - min(c[:3]) < 24]
+        stone_brightness = sum(sum(c[:3]) for c in grey) / max(len(grey), 1) / 3
+        p = image.load()
+        for y in range(16):
+            for x in range(16):
+                r, g, b, a = p[x, y]
+                if not a or max(r, g, b) - min(r, g, b) >= 24:
+                    continue  # transparent or part of the fire
+                factor = ((r + g + b) / 3) / stone_brightness
+                if part.startswith("front") and factor < 0.55:
+                    continue  # the opening stays dark
+                br, bg, bb, _ = bricks.getpixel((x, y))
+                p[x, y] = tuple(min(255, int(c * factor)) for c in (br, bg, bb)) + (255,)
+        result[part] = image
+    return result
+
+
+# The lock of the chest textures (at 0, 0; 2x4x1, or 1x4x1 for a half of a double chest).
+CHEST_LOCK = (0, 0, 6, 5)
+
+
 def box_faces(u, v, width, height, depth):
     """The faces of an entity model box in its texture, unwrapped like every box, as
     (x, y, width, height)."""
@@ -553,9 +628,13 @@ def main():
         "entity/zombie_villager/profession/farmer.png": farmer(),
         "entity/villager/profession/smith.png": smith(),
         "entity/zombie_villager/profession/smith.png": smith(),
+        "entity/villager/profession/kiln_operator.png": kiln_operator(),
+        "entity/zombie_villager/profession/kiln_operator.png": kiln_operator(),
     }
     for part, image in woodcutter(jar).items():
         outputs[f"block/woodcutter_{part}.png"] = image
+    for part, image in kiln(jar).items():
+        outputs[f"block/kiln_{part}.png"] = image
     for half in ("", "_left", "_right"):
         outputs[f"entity/chest/village{half}.png"] = village_chest(jar, half)
     axe = read_vanilla(jar, "item/iron_axe")

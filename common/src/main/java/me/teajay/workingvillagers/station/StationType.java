@@ -21,7 +21,9 @@ public enum StationType {
 	/** The farmer only delivers its harvest. */
 	COMPOSTER(false),
 	/** The smith smelts whatever it finds in the input chests, there is no order. */
-	BLAST_FURNACE(true);
+	BLAST_FURNACE(true),
+	/** The kiln operator fires everything, or only what makes the order. */
+	KILN(true);
 
 	private final boolean processing;
 
@@ -37,9 +39,14 @@ public enum StationType {
 		return this.processing;
 	}
 
+	/** Whether the block has a screen of its own, which the overview leads back to. */
+	public boolean hasOwnScreen() {
+		return this == WOODCUTTER || this == STONECUTTER || this == CARPENTER_BENCH || this == BLAST_FURNACE || this == KILN;
+	}
+
 	/** Whether the worker needs an order, set in the order column of the overview. */
 	public boolean hasOrder() {
-		return this == WOODCUTTER || this == STONECUTTER || this == CARPENTER_BENCH;
+		return this == WOODCUTTER || this == STONECUTTER || this == CARPENTER_BENCH || this == KILN;
 	}
 
 	/**
@@ -75,6 +82,7 @@ public enum StationType {
 			case CARPENTER_BENCH -> WorkingVillagers.CARPENTER_BENCH.get().getName();
 			case COMPOSTER -> Blocks.COMPOSTER.getName();
 			case BLAST_FURNACE -> Blocks.BLAST_FURNACE.getName();
+			case KILN -> WorkingVillagers.KILN.get().getName();
 		};
 	}
 
@@ -86,6 +94,7 @@ public enum StationType {
 			case CARPENTER_BENCH -> WorkingVillagers.CARPENTER_BENCH.get();
 			case COMPOSTER -> Blocks.COMPOSTER;
 			case BLAST_FURNACE -> Blocks.BLAST_FURNACE;
+			case KILN -> WorkingVillagers.KILN.get();
 		};
 	}
 
@@ -102,6 +111,8 @@ public enum StationType {
 			return COMPOSTER;
 		} else if (state.is(Blocks.BLAST_FURNACE)) {
 			return BLAST_FURNACE;
+		} else if (state.is(WorkingVillagers.KILN.get())) {
+			return KILN;
 		}
 		return null;
 	}

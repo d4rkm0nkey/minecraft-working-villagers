@@ -4,6 +4,7 @@ import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.client.CarpenterScreen;
 import me.teajay.workingvillagers.client.CarrierScreen;
 import me.teajay.workingvillagers.client.CutterScreen;
+import me.teajay.workingvillagers.client.KilnScreen;
 import me.teajay.workingvillagers.client.StationScreen;
 import me.teajay.workingvillagers.client.VillageChestRenderer;
 import me.teajay.workingvillagers.client.VillageChestScreen;
@@ -24,6 +25,8 @@ public class WorkingVillagersFabricClient implements ClientModInitializer {
 		MenuScreens.register(WorkingVillagers.CARPENTER_STATION_MENU.get(), StationScreen::new);
 		MenuScreens.register(WorkingVillagers.COMPOSTER_STATION_MENU.get(), StationScreen::new);
 		MenuScreens.register(WorkingVillagers.BLAST_FURNACE_STATION_MENU.get(), StationScreen::new);
+		MenuScreens.register(WorkingVillagers.KILN_STATION_MENU.get(), StationScreen::new);
+		MenuScreens.register(WorkingVillagers.KILN_MENU.get(), KilnScreen::new);
 		MenuScreens.register(WorkingVillagers.VILLAGE_CHEST_MENU.get(), VillageChestScreen::new);
 		MenuScreens.register(WorkingVillagers.VILLAGE_CHEST_DOUBLE_MENU.get(), VillageChestScreen::new);
 		BlockEntityRendererRegistry.register(WorkingVillagers.VILLAGE_CHEST_BLOCK_ENTITY.get(), VillageChestRenderer::new);

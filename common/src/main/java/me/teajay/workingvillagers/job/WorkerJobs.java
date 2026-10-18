@@ -25,12 +25,12 @@ import org.jspecify.annotations.Nullable;
 /**
  * The jobs of hired villagers at their workstations (chopping block: lumberjack, woodcutter:
  * sawyer, stonecutter: stone sawyer, carpenter's bench: carpenter, composter: farmer, blast
- * furnace: smith). A hired villager without a job looks for a free one itself (see
+ * furnace: smith, kiln: kiln operator). A hired villager without a job looks for a free one itself (see
  * {@link FindWorkplace}); the player can also give it one in the station menu, and take it
  * away again there. Hired villagers do not take any vanilla job.
  *
  * <p>Vanilla job acquisition only looks at job sites in the {@code acquirable_job_site} tag,
- * which the chopping block, the woodcutter and the carpenter's bench are not part of. The stonecutter,
+ * which the blocks of this mod are not part of. The stonecutter,
  * the composter and the blast furnace are in the tag, ordinary villagers still become masons,
  * farmers and armorers there.
  */
@@ -41,7 +41,8 @@ public final class WorkerJobs {
 		WorkingVillagers.CARPENTER_POI, WorkingVillagers.CARPENTER_PROFESSION,
 		PoiTypes.MASON, WorkingVillagers.STONECUTTER_PROFESSION,
 		PoiTypes.FARMER, WorkingVillagers.FARMER_PROFESSION,
-		PoiTypes.ARMORER, WorkingVillagers.SMITH_PROFESSION
+		PoiTypes.ARMORER, WorkingVillagers.SMITH_PROFESSION,
+		WorkingVillagers.KILN_OPERATOR_POI, WorkingVillagers.KILN_OPERATOR_PROFESSION
 	);
 	private static final int CHECK_INTERVAL = 20;
 	/** How long a worker taken away from a station does not take it again by itself. */

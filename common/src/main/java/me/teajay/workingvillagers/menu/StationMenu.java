@@ -10,6 +10,7 @@ import me.teajay.workingvillagers.Config;
 import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.crafting.CarpenterRecipes;
 import me.teajay.workingvillagers.crafting.CuttingRecipes;
+import me.teajay.workingvillagers.crafting.KilnRecipes;
 import me.teajay.workingvillagers.crafting.StoneFamilies;
 import me.teajay.workingvillagers.crafting.WoodTypes;
 import me.teajay.workingvillagers.job.ChopTrees;
@@ -53,10 +54,11 @@ import org.jspecify.annotations.Nullable;
  * today; at the woodcutter it sets the order, the product's shape and the wood types to
  * use; at the carpenter's bench the product, the wood types and how many to keep in stock;
  * at the stonecutter the product, picked from its stone family. At the composter it shows
- * the crops harvested today; the blast furnace has no order.
+ * the crops harvested today; the blast furnace has no order. At the kiln it sets the product
+ * (none: everything) and how many to keep in stock.
  *
- * <p>The cutters and the bench open it with a button in their crafting menu and get back
- * with a button.
+ * <p>The cutters, the bench and the furnaces open it with a button in their own menu and get
+ * back with a button.
  */
 public class StationMenu extends AbstractContainerMenu {
 	/** Plus the chest index: unlinks the chest. */
@@ -91,6 +93,11 @@ public class StationMenu extends AbstractContainerMenu {
 	 * it (or clears the order if it is the order already).
 	 */
 	public static final int STONE_PRODUCT_BUTTON = 1000;
+	/**
+	 * Kiln: plus the index of the product, orders it (or clears the order if it is the order
+	 * already: then the kiln operator fires everything).
+	 */
+	public static final int KILN_PRODUCT_BUTTON = 2000;
 	/** Carpenter's bench: at most this many products are shown (three rows). */
 	public static final int MAX_PRODUCTS = 27;
 	/** The stock levels the buttons step through, 0 means no limit. */
@@ -154,6 +161,7 @@ public class StationMenu extends AbstractContainerMenu {
 			case CARPENTER_BENCH -> WorkingVillagers.CARPENTER_STATION_MENU;
 			case COMPOSTER -> WorkingVillagers.COMPOSTER_STATION_MENU;
 			case BLAST_FURNACE -> WorkingVillagers.BLAST_FURNACE_STATION_MENU;
+			case KILN -> WorkingVillagers.KILN_STATION_MENU;
 		};
 	}
 
@@ -250,6 +258,13 @@ public class StationMenu extends AbstractContainerMenu {
 			}
 			if (this.type == StationType.CARPENTER_BENCH) {
 				this.shownProducts = benchProducts(serverLevel);
+				ListTag products = new ListTag();
+				this.shownProducts.forEach(product -> products.add(StringTag.valueOf(BuiltInRegistries.ITEM.getKey(product).toString())));
+				tag.put(TAG_PRODUCTS, products);
+				tag.putInt(TAG_STOCK, station.stock());
+			}
+			if (this.type == StationType.KILN) {
+				this.shownProducts = KilnRecipes.products(serverLevel);
 				ListTag products = new ListTag();
 				this.shownProducts.forEach(product -> products.add(StringTag.valueOf(BuiltInRegistries.ITEM.getKey(product).toString())));
 				tag.put(TAG_PRODUCTS, products);
@@ -379,7 +394,10 @@ public class StationMenu extends AbstractContainerMenu {
 		return order.isEmpty() ? null : WoodTypes.shapeOf(order.getItem(), this.type.shapes());
 	}
 
-	/** Carpenter's bench: the products to pick from, one per shape for those made of one wood type. */
+	/**
+	 * Carpenter's bench: the products to pick from, one per shape for those made of one wood
+	 * type. Kiln: everything it makes.
+	 */
 	public List<ItemStack> getProducts() {
 		return this.info.info().getListOrEmpty(TAG_PRODUCTS).stream()
 			.flatMap(tag -> tag.asString().stream())
@@ -409,7 +427,7 @@ public class StationMenu extends AbstractContainerMenu {
 		return this.clientFamilies;
 	}
 
-	/** Carpenter's bench: how many products to keep in stock, 0 for no limit. */
+	/** Carpenter's bench and kiln: how many products to keep in stock, 0 for no limit. */
 	public int getStock() {
 		return this.info.info().getIntOr(TAG_STOCK, 0);
 	}
@@ -432,7 +450,7 @@ public class StationMenu extends AbstractContainerMenu {
 	@Override
 	public boolean clickMenuButton(Player player, int buttonId) {
 		if (buttonId == BACK_BUTTON) {
-			if (!this.type.isProcessing()) {
+			if (!this.type.hasOwnScreen()) {
 				return false;
 			}
 			this.access.execute((level, pos) -> player.openMenu(level.getBlockState(pos).getMenuProvider(level, pos)));
@@ -507,6 +525,18 @@ public class StationMenu extends AbstractContainerMenu {
 		if (this.type == StationType.CHOPPING_BLOCK && buttonId == STRIP_BUTTON) {
 			station.setStrip(!station.strip());
 			return true;
+		}
+		if (this.type == StationType.KILN) {
+			if (buttonId >= KILN_PRODUCT_BUTTON && buttonId < KILN_PRODUCT_BUTTON + this.shownProducts.size()) {
+				Item product = this.shownProducts.get(buttonId - KILN_PRODUCT_BUTTON);
+				station.setOrder(station.order() == product ? null : product);
+				return true;
+			}
+			if (buttonId == STOCK_LESS_BUTTON || buttonId == STOCK_MORE_BUTTON) {
+				station.setStock(nextStock(station.stock(), buttonId == STOCK_MORE_BUTTON));
+				return true;
+			}
+			return false;
 		}
 		if (this.type == StationType.STONECUTTER && this.families != null && buttonId >= STONE_PRODUCT_BUTTON) {
 			Item product = this.families.stream()

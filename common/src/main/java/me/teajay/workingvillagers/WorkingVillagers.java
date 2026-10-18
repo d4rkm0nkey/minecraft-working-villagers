@@ -7,6 +7,8 @@ import java.util.Set;
 import java.util.function.Supplier;
 import me.teajay.workingvillagers.block.CarpenterBenchBlock;
 import me.teajay.workingvillagers.block.ChoppingBlock;
+import me.teajay.workingvillagers.block.KilnBlock;
+import me.teajay.workingvillagers.block.KilnBlockEntity;
 import me.teajay.workingvillagers.block.VillageChestBlock;
 import me.teajay.workingvillagers.block.VillageChestBlockEntity;
 import me.teajay.workingvillagers.block.WoodcutterBlock;
@@ -16,6 +18,7 @@ import me.teajay.workingvillagers.item.WorkContractItem;
 import me.teajay.workingvillagers.menu.CarpenterMenu;
 import me.teajay.workingvillagers.menu.CarrierMenu;
 import me.teajay.workingvillagers.menu.CutterMenu;
+import me.teajay.workingvillagers.menu.KilnMenu;
 import me.teajay.workingvillagers.menu.StationMenu;
 import me.teajay.workingvillagers.menu.VillageChestMenu;
 import me.teajay.workingvillagers.network.RenameContainerPayload;
@@ -45,6 +48,7 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import net.minecraft.world.level.material.MapColor;
 import org.jspecify.annotations.Nullable;
@@ -66,6 +70,8 @@ public final class WorkingVillagers {
 	public static final ResourceKey<VillagerProfession> FARMER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("farmer"));
 	/** Works at the vanilla blast furnace, the job site of the armorer. */
 	public static final ResourceKey<VillagerProfession> SMITH_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("smith"));
+	public static final ResourceKey<PoiType> KILN_OPERATOR_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("kiln_operator"));
+	public static final ResourceKey<VillagerProfession> KILN_OPERATOR_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("kiln_operator"));
 
 	public static Supplier<Block> CHOPPING_BLOCK;
 	public static Supplier<Item> CHOPPING_BLOCK_ITEM;
@@ -97,6 +103,14 @@ public final class WorkingVillagers {
 	);
 
 	public static Supplier<MenuType<CutterMenu>> STONECUTTER_MENU;
+
+	/** Items the kiln does not fire although a furnace smelts them. */
+	public static final TagKey<Item> KILN_EXCLUDED = TagKey.create(Registries.ITEM, id("kiln_excluded"));
+	public static Supplier<Block> KILN;
+	public static Supplier<Item> KILN_ITEM;
+	public static Supplier<BlockEntityType<KilnBlockEntity>> KILN_BLOCK_ENTITY;
+	public static Supplier<MenuType<KilnMenu>> KILN_MENU;
+	public static Supplier<MenuType<StationMenu>> KILN_STATION_MENU;
 
 	/** Every worker nearby takes its supplies from these, see VillageChests. */
 	public static final ResourceKey<PoiType> VILLAGE_CHEST_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("village_chest"));
@@ -135,6 +149,7 @@ public final class WorkingVillagers {
 		registerCarrier(platform);
 		registerFarmer(platform);
 		registerSmith(platform);
+		registerKilnOperator(platform);
 		registerVillageChest(platform);
 		platform.registerServerbound(RenameRoutePayload.TYPE, RenameRoutePayload.CODEC, RenameRoutePayload::handle);
 		platform.registerServerbound(RenameContainerPayload.TYPE, RenameContainerPayload.CODEC, RenameContainerPayload::handle);
@@ -271,6 +286,32 @@ public final class WorkingVillagers {
 	private static void registerSmith(Platform platform) {
 		BLAST_FURNACE_STATION_MENU = platform.registerMenu("blast_furnace_station", (containerId, inventory) -> new StationMenu(StationType.BLAST_FURNACE, containerId, inventory));
 		registerProfession(platform, "smith", PoiTypes.ARMORER, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_ARMORER);
+	}
+
+	/**
+	 * The kiln operator works at the kiln, a furnace for building materials: it fetches what
+	 * the kiln fires and fuel from its input chests and brings the results to its output
+	 * chests. The overview opens with the "i" button in the kiln's screen.
+	 */
+	private static void registerKilnOperator(Platform platform) {
+		KILN = platform.register(Registries.BLOCK, "kiln", () -> new KilnBlock(
+			BlockBehaviour.Properties.of()
+				.setId(ResourceKey.create(Registries.BLOCK, id("kiln")))
+				.mapColor(MapColor.COLOR_RED)
+				.instrument(NoteBlockInstrument.BASEDRUM)
+				.requiresCorrectToolForDrops()
+				.strength(3.5F)
+				.lightLevel(state -> state.getValue(BlockStateProperties.LIT) ? 13 : 0)
+		));
+		KILN_ITEM = platform.register(Registries.ITEM, "kiln", () -> new BlockItem(
+			KILN.get(),
+			itemProperties("kiln").useBlockDescriptionPrefix()
+		));
+		KILN_BLOCK_ENTITY = registerBlockEntityType(platform, "kiln", KilnBlockEntity::new, () -> KILN.get());
+		KILN_MENU = platform.registerMenu("kiln", KilnMenu::new);
+		KILN_STATION_MENU = platform.registerMenu("kiln_station", (containerId, inventory) -> new StationMenu(StationType.KILN, containerId, inventory));
+		platform.registerPoi("kiln_operator", () -> KILN.get(), 1, 1);
+		registerProfession(platform, "kiln_operator", KILN_OPERATOR_POI, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_ARMORER);
 	}
 
 	/**

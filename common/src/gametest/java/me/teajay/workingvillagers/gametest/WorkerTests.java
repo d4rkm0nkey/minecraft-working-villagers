@@ -75,6 +75,8 @@ public final class WorkerTests {
 		registry.accept("worker_picks_up_wage", WorkerTests::workerPicksUpWage);
 		registry.accept("smith_smelts_ore", WorkerTests::smithSmeltsOre);
 		registry.accept("replaced_station_starts_fresh", WorkerTests::replacedStationStartsFresh);
+		registry.accept("kiln_operator_fires_glass", WorkerTests::kilnOperatorFiresGlass);
+		registry.accept("kiln_operator_fires_smooth_stone", WorkerTests::kilnOperatorFiresSmoothStone);
 		registry.accept("old_station_notes_are_removed", WorkerTests::oldStationNotesAreRemoved);
 		registry.accept("village_chest_supplies_lumberjack", WorkerTests::villageChestSuppliesLumberjack);
 		registry.accept("village_chest_keeps_named_tools", WorkerTests::villageChestKeepsNamedTools);
@@ -370,6 +372,32 @@ public final class WorkerTests {
 		helper.setBlock(STATION, Blocks.BLAST_FURNACE);
 		Villager worker = processingStation(helper, new ItemStack(Items.RAW_IRON, 4), new ItemStack(Items.COAL, 2));
 		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.IRON_INGOT), 4, "iron ingots in the output chest"));
+	}
+
+	/** Sand becomes glass; meat (the smoker's) and raw iron (the blast furnace's) stay in the chest. */
+	private static void kilnOperatorFiresGlass(GameTestHelper helper) {
+		helper.setBlock(STATION, WorkingVillagers.KILN.get());
+		Villager worker = processingStation(helper, new ItemStack(Items.SAND, 4), new ItemStack(Items.BEEF, 2), new ItemStack(Items.RAW_IRON, 2), new ItemStack(Items.COAL, 2));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.GLASS), 4, "glass in the output chest");
+			TestWorld.assertHolds(helper, worker, INPUT, stack -> stack.is(Items.BEEF), 2, "beef left in the input chest");
+			TestWorld.assertHolds(helper, worker, INPUT, stack -> stack.is(Items.RAW_IRON), 2, "raw iron left in the input chest");
+		});
+	}
+
+	/**
+	 * With the order "smooth stone" cobblestone is fired twice; the stone in between stays
+	 * in the kiln operator's hands. Sand is not fired for that order.
+	 */
+	private static void kilnOperatorFiresSmoothStone(GameTestHelper helper) {
+		helper.setBlock(STATION, WorkingVillagers.KILN.get());
+		TestWorld.station(helper, STATION).setOrder(Items.SMOOTH_STONE);
+		Villager worker = processingStation(helper, new ItemStack(Items.COBBLESTONE, 2), new ItemStack(Items.SAND, 2), new ItemStack(Items.COAL, 2));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.SMOOTH_STONE), 2, "smooth stone in the output chest");
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.STONE)) == 0, "The kiln operator delivered stone");
+			TestWorld.assertHolds(helper, worker, INPUT, stack -> stack.is(Items.SAND), 2, "sand left in the input chest");
+		});
 	}
 
 	/**
