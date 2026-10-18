@@ -45,7 +45,7 @@ Zuweisen ist meist gar nicht nötig: Ein angeheuerter Dorfbewohner ohne Arbeit s
 
 ### Konzept (noch nicht umgesetzt)
 
-- **[Menüs überarbeiten](../planung/menues.md):** Die Stationsübersicht hat ihre Reiter schon; offen sind Träger und Dorftruhe, Reiter auch über den Block-Menüs und die Figur des Arbeiters.
+- **[Menüs überarbeiten](../planung/menues.md):** Stationsübersicht, [Träger](../berufe/traeger.md#träger-menü) und [Dorftruhe](../dorf/dorftruhen.md) haben ihre Reiter; offen sind Reiter auch über den Block-Menüs und die Figur des Arbeiters.
 
 - Reiter „Auftrag“ für den Modus, z. B. Abbaumodus der Mine.
 - Reiter „Bereich“: Größe, Position und Visualisierung an/aus. Arbeitsbereiche gibt es noch nicht; Holzfäller und Bauer arbeiten im festen Umkreis ihrer Station.

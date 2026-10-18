@@ -25,12 +25,14 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * The carrier menu: the routes of a carrier (or of a basket in the hand), each with a button
- * to delete it, the carrier's wage and the contents of the basket.
+ * to delete it, the carrier's wage and the contents of the basket. The screen shows the routes
+ * and the basket on two tabs; the slots of the basket and the inventory are only there on the
+ * basket tab.
  */
 public class CarrierMenu extends AbstractContainerMenu {
 	public static final int BASKET_X = 62;
-	public static final int BASKET_Y = 145;
-	public static final int INVENTORY_Y = 176;
+	public static final int BASKET_Y = 30;
+	public static final int INVENTORY_Y = 84;
 	/** Button that switches between "only the employer" and "everybody" changing routes. */
 	public static final int SHARE_BUTTON = 50;
 	/** Button of a free route slot: closes the menu and lets the player pick the containers. */
@@ -49,6 +51,8 @@ public class CarrierMenu extends AbstractContainerMenu {
 	private final @Nullable RouteHolder holder;
 	private final Player player;
 	private final InfoSlot info = new InfoSlot();
+	/** Client: whether the basket tab is open. */
+	private boolean slotsShown;
 
 	/** Client side. */
 	public CarrierMenu(int containerId, Inventory inventory) {
@@ -61,7 +65,7 @@ public class CarrierMenu extends AbstractContainerMenu {
 		this.player = inventory.player;
 		Container basket = holder != null ? holder.basket() : new SimpleContainer(CarrierData.CAPACITY);
 		for (int i = 0; i < CarrierData.CAPACITY; i++) {
-			this.addSlot(new Slot(basket, i, BASKET_X + i * 18, BASKET_Y) {
+			this.addSlot(new TabSlot(basket, i, BASKET_X + i * 18, BASKET_Y) {
 				@Override
 				public boolean mayPlace(ItemStack stack) {
 					return false;
@@ -73,9 +77,33 @@ public class CarrierMenu extends AbstractContainerMenu {
 				}
 			});
 		}
-		this.addStandardInventorySlots(inventory, 8, INVENTORY_Y);
+		for (int row = 0; row < 3; row++) {
+			for (int column = 0; column < 9; column++) {
+				this.addSlot(new TabSlot(inventory, column + row * 9 + 9, 8 + column * 18, INVENTORY_Y + row * 18));
+			}
+		}
+		for (int column = 0; column < 9; column++) {
+			this.addSlot(new TabSlot(inventory, column, 8 + column * 18, INVENTORY_Y + 58));
+		}
 		this.addSlot(this.info);
 		this.updateInfo();
+	}
+
+	/** A slot of the basket tab: on the client only there while that tab is open. */
+	private class TabSlot extends Slot {
+		TabSlot(Container container, int index, int x, int y) {
+			super(container, index, x, y);
+		}
+
+		@Override
+		public boolean isActive() {
+			return CarrierMenu.this.holder != null || CarrierMenu.this.slotsShown;
+		}
+	}
+
+	/** Client: shows or hides the basket and the inventory (the basket tab is open or not). */
+	public void showSlots(boolean shown) {
+		this.slotsShown = shown;
 	}
 
 	private void updateInfo() {

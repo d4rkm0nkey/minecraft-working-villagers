@@ -25,12 +25,14 @@ it with emeralds. It needs no tool.
 
 ## The carrier menu
 
-Right-click the carrier with an **empty hand**. The menu shows:
+Right-click the carrier with an **empty hand**. The menu has two tabs at the top:
 
-- what the carrier is doing,
-- its routes (up to 3) with name, source and target, by the names of the containers
-  (see [naming chests](basics.md#naming-chests)). Hover for the length. The route it is currently working on is green.
-- the basket contents, which you can take out.
+- :mc-map: **Routes:** its routes (up to 3) with name, source and target, by the names of
+  the containers (see [naming chests](basics.md#naming-chests)). Hover for the length. The
+  route it is currently working on is green. A red dot on the tab: no route yet.
+- :mc-wicker_basket: **Basket:** what the carrier is doing, the basket contents (which you
+  can take out), its emeralds and your inventory. A carrier has no workstation and so no
+  wage box: give it emeralds directly. A red dot on the tab: it has no wage.
 
 ### Adding a route
 
@@ -50,7 +52,8 @@ on the basket. You can set everything up first and then hand the basket over.
 
 ### Who may change the routes?
 
-Only the employer, unless they switch the button at the top right to **Everyone**.
+Only the employer, unless they switch the button at the bottom of the **Routes** tab to
+**Edit routes: Everyone**.
 Operators (and the owner of a singleplayer world) always can.
 
 ## How it works

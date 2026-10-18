@@ -179,10 +179,12 @@ what it wants ("Fetching supplies from a village chest").
   lumberjack's chest.
 - If no village chest has what it needs, it waits as before.
 
-Right-click the village chest to open it. Next to its slots it lists the **workers it
-serves**, marks the ones that lack something no village chest has (*Needs an axe!*), and
-says for **how many days** the emeralds (in their village chests and pockets) pay all their
-wages. If workers gave back worn tools, it says how many lie in the chest.
+Right-click the village chest to open it. It has two tabs on its left: the **chest**
+itself, and the **workers it serves**, each with the face of its job and its name. That tab
+marks the ones that lack something no village chest has (*Needs an axe!*) and says for
+**how many days** the emeralds (in their village chests and wage boxes) pay all their
+wages. If workers gave back worn tools, it says how many lie in the chest. A red dot on
+the tab means some worker lacks something. More workers than fit are shown page by page.
 
 ## Worn tools
 

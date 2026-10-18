@@ -6,7 +6,9 @@ import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.carrier.Carriers;
 import me.teajay.workingvillagers.carrier.Route;
 import me.teajay.workingvillagers.carrier.RouteHolder;
+import me.teajay.workingvillagers.client.CarrierScreen;
 import me.teajay.workingvillagers.client.StationScreen;
+import me.teajay.workingvillagers.client.VillageChestScreen;
 import me.teajay.workingvillagers.item.WorkContractItem;
 import me.teajay.workingvillagers.job.WorkerJobs;
 import me.teajay.workingvillagers.job.WorkerSupplies;
@@ -72,7 +74,7 @@ public class MenuScreenshots implements FabricClientGameTest {
 				BlockPos empty = stationPos(STATIONS.size());
 				tabs(context, world, "chopping_block_empty", suffix, empty, StationType.CHOPPING_BLOCK, (server, player) ->
 					player.openMenu(StationMenu.provider(StationType.CHOPPING_BLOCK, player.level(), empty)));
-				shot(context, world, "village_chest" + suffix, villageChestPos(), (server, player) -> {
+				tabs(context, world, "village_chest", suffix, villageChestPos(), List.of("chest", "workers"), (server, player) -> {
 					BlockPos pos = villageChestPos();
 					player.openMenu(player.level().getBlockState(pos).getMenuProvider(player.level(), pos));
 				});
@@ -80,7 +82,7 @@ public class MenuScreenshots implements FabricClientGameTest {
 					BlockPos pos = chestPos(0, false);
 					player.openMenu(player.level().getBlockState(pos).getMenuProvider(player.level(), pos));
 				});
-				shot(context, world, "carrier" + suffix, origin().offset(4, 0, -4), (server, player) -> {
+				tabs(context, world, "carrier", suffix, origin().offset(4, 0, -4), List.of("routes", "basket"), (server, player) -> {
 					Villager carrier = player.level().getEntitiesOfClass(Villager.class, player.getBoundingBox().inflate(96),
 						villager -> Carriers.isCarrier(villager)).getFirst();
 					// It walks its routes: right next to it
@@ -98,9 +100,22 @@ public class MenuScreenshots implements FabricClientGameTest {
 		if (type.hasOrder() || type == StationType.CHOPPING_BLOCK || type == StationType.PIT_STAKE || type == StationType.MINING_BENCH) {
 			tabs.add("order");
 		}
+		tabs(context, world, name, suffix, near, tabs, open);
+	}
+
+	/** Opens a screen with tabs and takes a screenshot of each of them. */
+	private static void tabs(ClientGameTestContext context, TestSingleplayerContext world, String name, String suffix, BlockPos near, List<String> tabs,
+		BiConsumer<MinecraftServer, ServerPlayer> open) {
 		open(context, world, near, open);
 		for (String tab : tabs) {
-			context.runOnClient(minecraft -> ((StationScreen) minecraft.gui.screen()).showTab(tab));
+			context.runOnClient(minecraft -> {
+				switch (minecraft.gui.screen()) {
+					case StationScreen screen -> screen.showTab(tab);
+					case CarrierScreen screen -> screen.showTab(tab);
+					case VillageChestScreen screen -> screen.showTab(tab);
+					default -> throw new IllegalStateException("No tabs: " + minecraft.gui.screen());
+				}
+			});
 			context.waitTicks(3);
 			context.takeScreenshot(name + "_" + tab + suffix);
 		}

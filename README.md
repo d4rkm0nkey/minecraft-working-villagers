@@ -129,8 +129,9 @@ that has what it wants. Giving directly still works.
 - **Not:** enchanted or renamed tools (`villageChests.takeEnchanted`). Workers put nothing
   into a village chest but their worn tools.
 - Two village chests side by side form a double chest, like vanilla chests.
-- The village chest's screen shows the workers it serves, what one of them lacks that no
-  village chest has, and for how many days the emeralds pay all their wages. Hoppers and
+- The village chest's screen has a second tab (left of the chest) with the workers it
+  serves, what one of them lacks that no village chest has, and for how many days the
+  emeralds pay all their wages. Hoppers and
   carriers can fill it like any chest.
 - With `dailyWage` 0 they work for free; they still need their tools.
 
@@ -369,16 +370,17 @@ A carrier moves items between chests. It has no workstation: its **wicker basket
 1. **Hand over the basket:** right-click an unemployed adult villager with the basket.
    It takes the basket and becomes a carrier (no work contract needed).
 2. **Routes** (up to 3) are managed in the carrier menu: right-click the carrier with an
-   empty hand. Each route shows its name, source and target (hover for the containers
-   and the length); the one it is carrying items for is green.
+   empty hand, tab *Routes*. Each route shows its name, source and target (hover for the
+   containers and the length); the one it is carrying items for is green.
    - **New route:** click *+ New route* in the first free slot. The menu closes; right-click
      the source container, then the target (right-clicking the source again cancels, an
      unfinished pick runs out after two minutes). Source and target
      may be at most 32 blocks apart, and the sources of one carrier at most 40 blocks from
      each other.
    - **✎** renames a route (up to 24 characters, Enter saves, Esc cancels), **×** deletes it.
-   - Below are the basket contents, which can be taken out.
-   - Only the employer can change routes, unless they switch the button at the top right
+   - The tab *Basket* shows what the carrier is doing, the basket contents (which can be
+     taken out) and its emeralds.
+   - Only the employer can change routes, unless they switch the button at the bottom
      to *Everyone*; operators (and the owner of a singleplayer world) always can.
    - Right-clicking the air with a basket opens the same menu for the routes stored on the
      basket, so they can be set up before handing it over.

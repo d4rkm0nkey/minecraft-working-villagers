@@ -84,7 +84,8 @@ public interface RouteHolder {
 
 			@Override
 			public Component name() {
-				return Component.translatable("gui.workingvillagers.carrier.title", carrier.getName());
+				// Without a name the villager is already called "Carrier"
+				return carrier.hasCustomName() ? Component.translatable("gui.workingvillagers.carrier.title", carrier.getName()) : carrier.getName();
 			}
 
 			@Override

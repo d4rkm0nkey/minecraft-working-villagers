@@ -19,6 +19,7 @@ public final class GuiPanels {
 	public static final int STATUS_COLOR = 0xFF2B4F7A;
 	private static final Identifier BUTTON = Identifier.withDefaultNamespace("widget/button");
 	private static final Identifier BUTTON_HIGHLIGHTED = Identifier.withDefaultNamespace("widget/button_highlighted");
+	private static final Identifier BUTTON_DISABLED = Identifier.withDefaultNamespace("widget/button_disabled");
 
 	private GuiPanels() {
 	}
@@ -50,6 +51,12 @@ public final class GuiPanels {
 	public static void button(GuiGraphicsExtractor graphics, Font font, int x, int y, int width, int height, String label, boolean hovered) {
 		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, hovered ? BUTTON_HIGHLIGHTED : BUTTON, x, y, width, height);
 		graphics.centeredText(font, label, x + width / 2 + 1, y + (height - 8) / 2, hovered ? 0xFFFFFFA0 : 0xFFFFFFFF);
+	}
+
+	/** A button that cannot be clicked right now, grayed out like vanilla's. */
+	public static void disabledButton(GuiGraphicsExtractor graphics, Font font, int x, int y, int width, int height, String label) {
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, BUTTON_DISABLED, x, y, width, height);
+		graphics.centeredText(font, label, x + width / 2 + 1, y + (height - 8) / 2, 0xFFA0A0A0);
 	}
 
 	/**

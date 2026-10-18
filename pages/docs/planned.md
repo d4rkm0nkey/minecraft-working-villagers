@@ -35,8 +35,6 @@ profession.
   that profession.
 - :mc-experience_bottle: **Experience levels.** Workers rise from novice to master by
   working instead of trading, and get faster or carry more on the way.
-- :mc-wicker_basket: **Filters for carriers**, so a carrier only moves the items you
-  choose instead of everything in a chest.
 
 ## Villages
 

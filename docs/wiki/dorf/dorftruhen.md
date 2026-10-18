@@ -14,7 +14,7 @@ Umgesetzt wie unten beschrieben, mit diesen Abweichungen:
 - **Lohn in die Lohnkasse:** Den Lohn für 3 Tage legt der Arbeiter in die [Lohnkasse](../wirtschaft/anheuern-und-lohn.md#stand-der-umsetzung) seiner Station, nicht in die Tasche. „Weniger als ein Tageslohn“ zählt Kasse und Tasche zusammen.
 - **Werkzeugwahl:** ein einziges Kriterium, die wenigsten verbleibenden Nutzungen. Das bevorzugt abgenutzte und billige Werkzeuge zugleich. Abgenutztes Werkzeug nimmt er nie (siehe [Werkzeugrückgabe](werkzeugrueckgabe.md#abgenutztes-werkzeug-wird-nicht-wieder-genommen)).
 - **Stationsmenü:** Der Tooltip der Versorgungszeile sagt nur, aus wie vielen Dorftruhen der Arbeiter sich bedient, nicht was darin liegt.
-- **Dorftruhen-Menü:** Liste mit ✔ oder ✘ und dem, was fehlt und in keiner Dorftruhe liegt („Braucht eine Axt!“). Einen gelben Zustand „knapp“ gibt es nicht. Ab 11 Arbeitern „… und N weitere“.
+- **Dorftruhen-Menü:** zwei Reiter links neben der Truhe statt des Seitenfelds (oben wäre bei der Doppeltruhe kein Platz). **Truhe** ist die Vanilla-Truhe mit ✎. **Arbeiter** zeigt pro Arbeiter das Gesicht seines Berufs, den Namen und darunter den Beruf; ohne eigenen Namen nur den Beruf. Fehlt ihm etwas, das in keiner Dorftruhe liegt, steht das rot darunter („Braucht eine Axt!“). Fünf Arbeiter pro Seite (sieben bei der Doppeltruhe), blättern mit ‹ › oder dem Mausrad. Unten die abgenutzten Werkzeuge und „Lohn reicht für ~N Tage“. Roter Punkt am Reiter, wenn einem Arbeiter etwas fehlt oder der Lohn nicht mehr für einen Tag reicht. Einen gelben Zustand „knapp“ gibt es nicht.
 - **Mehrspieler:** ohne Besitzer, wie unten beschrieben.
 - **Nicht umgesetzt:** alles, was den [Dorfkauf](dorf-und-kauf.md) braucht (Zugehörigkeit zum Dorf, Dorfkasse, Dorfbuch).
 - **Tests:** Ein Holzfäller ohne alles holt sich Lohn für 3 Tage, die abgenutztere von zwei Äxten und 16 Setzlinge und fällt den Baum; eine umbenannte Axt bleibt liegen. Weil die Gametests nebeneinander laufen, setzen sie die Reichweite auf 8.
@@ -74,17 +74,20 @@ Die Höchstmengen sind dieselben wie beim direkten Geben (`WorkerSupplies.accept
 
 **Stationsmenü** (Versorgungszeile, `SuppliesRow`): Neben dem, was der Arbeiter trägt, steht ein kleines Truhen-Symbol, wenn eine Dorftruhe in Reichweite ist. Der Tooltip zeigt, was dort für ihn bereitliegt: „Dorftruhe ‚Lager‘, 14 Blöcke: 23 Emeralds, 2 Äxte, 40 Setzlinge“.
 
-**Dorftruhen-Menü:** das normale Truhen-Inventar, dazu rechts ein Seitenpanel (`GuiPanels`) mit den Arbeitern, die sie bedient:
+**Dorftruhen-Menü:** das normale Truhen-Inventar, dazu ein zweiter Reiter mit den Arbeitern, die sie bedient (umgesetzt ohne „knapp“, siehe oben):
 
 ```
-┌────────────────────────────┐ ┌──────────────────────────────┐
-│ Dorftruhe „Lager“          │ │ Versorgt 4 Arbeiter          │
-│ [27 Plätze]                │ │ Holzfäller   ✔               │
-│                            │ │ Bauer        ✘ keine Hacke   │
-│                            │ │ Grubenarb.   ! Leitern knapp │
-│                            │ │ Träger       ✔               │
-│                            │ │ Lohn reicht für ~6 Tage      │
-└────────────────────────────┘ └──────────────────────────────┘
+   ┌────────────────────────────────┐
+[▣]│ Dorftruhe „Lager“            ✎ │
+[☺]│ Versorgt 4 Arbeiter    1/1 ‹ › │
+   │ ☺ Holzfäller                   │
+   │ ☺ Anton                        │
+   │   Bauer                        │
+   │ ☺ Grubenarbeiter               │
+   │   Braucht Leitern!             │
+   │ ☺ Träger                       │
+   │ Lohn reicht für ~6 Tage        │
+   └────────────────────────────────┘
 ```
 
 „Lohn reicht für“ = Emeralds in allen Dorftruhen dieser Arbeiter ÷ (Lohn × Arbeiter). Rot, wenn ein Arbeiter etwas braucht, das in keiner Dorftruhe liegt.

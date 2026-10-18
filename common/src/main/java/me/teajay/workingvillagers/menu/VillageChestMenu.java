@@ -10,14 +10,18 @@ import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.job.VillageChests;
 import me.teajay.workingvillagers.job.WorkerSupplies;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.entity.npc.villager.VillagerProfession;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ChestMenu;
@@ -26,9 +30,10 @@ import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The village chest's screen: its slots like a chest's (three rows, six for a double
- * chest), and next to them the workers it serves and whether each finds what it needs in
- * the village chests (sent along in an {@link InfoSlot}).
+ * The village chest's menu: its slots like a chest's (three rows, six for a double chest),
+ * and the workers it serves and whether each finds what it needs in the village chests
+ * (sent along in an {@link InfoSlot}). The screen shows the slots and the workers on two
+ * tabs; on the client the slots are only there on the chest tab.
  */
 public class VillageChestMenu extends ChestMenu {
 	public static final int SINGLE_ROWS = 3;
@@ -38,6 +43,7 @@ public class VillageChestMenu extends ChestMenu {
 	private static final String TAG_WORKERS = "Workers";
 	private static final String TAG_NAME = "Name";
 	private static final String TAG_JOB = "Job";
+	private static final String TAG_PROFESSION = "Profession";
 	private static final String TAG_MISSING = "Missing";
 	private static final String TAG_WAGE_DAYS = "WageDays";
 	private static final String TAG_WORN_TOOLS = "WornTools";
@@ -49,9 +55,14 @@ public class VillageChestMenu extends ChestMenu {
 	private final @Nullable BlockPos pos;
 	private final Inventory inventory;
 	private int ticks;
+	/** Client: whether the chest tab is open. */
+	private boolean slotsShown = true;
 
-	/** A worker the village chest serves; {@code missing}: the translation key of what it lacks and finds in no village chest. */
-	public record Worker(Component name, Component job, Optional<String> missing) {
+	/**
+	 * A worker the village chest serves; {@code name}: its own name, empty if it has none;
+	 * {@code missing}: the translation key of what it lacks and finds in no village chest.
+	 */
+	public record Worker(Optional<Component> name, Component job, ResourceKey<VillagerProfession> profession, Optional<String> missing) {
 	}
 
 	/** Client side, single chest. */
@@ -69,8 +80,27 @@ public class VillageChestMenu extends ChestMenu {
 			containerId, inventory, chest, rows);
 		this.pos = pos;
 		this.inventory = inventory;
+		if (pos == null) {
+			// The chest's and the inventory's slots, but hidden on the workers tab
+			for (int i = 0; i < this.slots.size(); i++) {
+				Slot slot = this.slots.get(i);
+				Slot hideable = new Slot(slot.container, slot.getContainerSlot(), slot.x, slot.y) {
+					@Override
+					public boolean isActive() {
+						return VillageChestMenu.this.slotsShown;
+					}
+				};
+				hideable.index = i;
+				this.slots.set(i, hideable);
+			}
+		}
 		this.addSlot(this.info);
 		this.updateInfo();
+	}
+
+	/** Client: shows or hides the slots (the chest tab is open or not). */
+	public void showSlots(boolean shown) {
+		this.slotsShown = shown;
 	}
 
 	@Override
@@ -121,8 +151,11 @@ public class VillageChestMenu extends ChestMenu {
 		int carried = 0;
 		for (Villager worker : workers) {
 			CompoundTag entry = new CompoundTag();
-			entry.store(TAG_NAME, ComponentSerialization.CODEC, worker.getName());
+			if (worker.hasCustomName()) {
+				entry.store(TAG_NAME, ComponentSerialization.CODEC, worker.getName());
+			}
 			entry.store(TAG_JOB, ComponentSerialization.CODEC, worker.getVillagerData().profession().value().name());
+			worker.getVillagerData().profession().unwrapKey().ifPresent(key -> entry.putString(TAG_PROFESSION, key.identifier().toString()));
 			VillageChests.missing(level, worker).ifPresent(key -> entry.putString(TAG_MISSING, key));
 			list.add(entry);
 			chests.addAll(VillageChests.inReach(level, VillageChests.workplace(level, worker)));
@@ -148,9 +181,11 @@ public class VillageChestMenu extends ChestMenu {
 	public List<Worker> getWorkers() {
 		List<Worker> workers = new ArrayList<>();
 		for (CompoundTag entry : this.info.info().getListOrEmpty(TAG_WORKERS).compoundStream().toList()) {
+			Identifier profession = entry.getString(TAG_PROFESSION).map(Identifier::tryParse).orElse(null);
 			workers.add(new Worker(
-				entry.read(TAG_NAME, ComponentSerialization.CODEC).orElse(Component.empty()),
+				entry.read(TAG_NAME, ComponentSerialization.CODEC),
 				entry.read(TAG_JOB, ComponentSerialization.CODEC).orElse(Component.empty()),
+				ResourceKey.create(Registries.VILLAGER_PROFESSION, profession != null ? profession : WorkingVillagers.LUMBERJACK_PROFESSION.identifier()),
 				entry.getString(TAG_MISSING)
 			));
 		}

@@ -132,7 +132,14 @@ Bleibt wie heute (✎ oben rechts). Unbenannte Kisten erscheinen in Stationen un
   - Statt eines Ausrufezeichens ein roter Punkt am Reiter.
   - Keine Figur des Arbeiters; das Gesicht steht im Reiter. Der Status bleibt blau.
   - Grubenpflock und Grubenwerkbank: der Zustand (gewählte Grube, gewählter Stollen) als eigene Zeile, darunter der Wahl-Knopf über die ganze Breite und eine Erklärung.
-- **Offen:** Träger und Dorftruhe (Schritt 3), Feinschliff (Schritt 4).
+- **Träger und Dorftruhe mit Reitern** (Schritt 3), behebt die Probleme 2, 3, 5 und 10:
+  - Träger: Reiter **Wege** (beim Öffnen gewählt) und **Korb**. Der Schalter heißt jetzt „Wege ändern: Nur Arbeitgeber / Alle“ und sitzt unten über die ganze Breite. Der Korb-Reiter zeigt Status, Korb, Emeralds des Trägers und das Inventar. Ohne eigenen Namen heißt der Titel nur „Träger“. Einen Filter pro Weg gibt es bewusst nicht; Spieler sortieren lieber mit Redstone.
+  - Dorftruhe: Reiter **links** neben dem Fenster wie bei den Fortschritten, weil die Doppeltruhe (222 px) mit Reitern oben nicht mehr in 240 px passt. Reiter **Truhe** und **Arbeiter**; im Arbeiter-Reiter das Gesicht des Berufs vor jedem Arbeiter, seitenweise mit ‹ › und Mausrad. Grün für „alles da“ entfällt (Leitlinie 5).
+  - Gemeinsamer Baustein für die Reiter ist `GuiTabs` (oben und links).
+
+  <img src="bilder/menues/traeger-wege-854.png" width="280" alt="Träger, Reiter Wege, bei 854×480"> <img src="bilder/menues/traeger-korb-854.png" width="280" alt="Träger, Reiter Korb, bei 854×480"> <img src="bilder/menues/dorftruhe-arbeiter-854.png" width="280" alt="Dorftruhe, Reiter Arbeiter, bei 854×480">
+
+- **Offen:** Feinschliff (Schritt 4), Problem 9 (unbenannte Kisten) und 11 (Farben).
 
 Nach jedem Schritt laufen die Screenshots erneut; alle Menüs in 854×480 vollständig sichtbar ist die Abnahme.
 

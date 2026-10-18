@@ -49,14 +49,8 @@ import org.jspecify.annotations.Nullable;
  */
 public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	private static final Identifier SLOT_SPRITE = Identifier.withDefaultNamespace("container/slot");
-	private static final Identifier[] TAB_SELECTED = tabSprites("selected");
-	private static final Identifier[] TAB_UNSELECTED = tabSprites("unselected");
 	private static final int WIDTH = 176;
 	private static final int HEIGHT = 166;
-	/** How far the tabs stick out above the window. */
-	private static final int TAB_HEIGHT = 28;
-	private static final int TAB_WIDTH = 26;
-	private static final int TAB_STEP = 27;
 	private static final int COLUMN_X = 7;
 	private static final int COLUMN_WIDTH = 162;
 	/** Where the content of a tab starts, below the title. */
@@ -121,14 +115,6 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		this.stockY = type == StationType.KILN ? SHAPES_Y + KILN_ROWS * 18 + 8 : this.woodsY + 2 * 18 + 6;
 	}
 
-	private static Identifier[] tabSprites(String state) {
-		Identifier[] sprites = new Identifier[7];
-		for (int i = 0; i < sprites.length; i++) {
-			sprites[i] = Identifier.withDefaultNamespace("container/creative_inventory/tab_top_" + state + "_" + (i + 1));
-		}
-		return sprites;
-	}
-
 	/** Whether the station has a third tab: its order, or its settings. */
 	private static boolean hasOrderTab(StationType type) {
 		return type.hasOrder() || type == StationType.CHOPPING_BLOCK || type == StationType.PIT_STAKE || type == StationType.MINING_BENCH;
@@ -138,7 +124,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	protected void init() {
 		super.init();
 		// Centered with the tabs, which stick out above the window
-		this.topPos = (this.height - HEIGHT - TAB_HEIGHT) / 2 + TAB_HEIGHT;
+		this.topPos = (this.height - HEIGHT - GuiTabs.TOP_HEIGHT) / 2 + GuiTabs.TOP_HEIGHT;
 	}
 
 	/** Shows a tab (also for the screenshots of the menus). */
@@ -211,27 +197,24 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 
 	private void extractTab(GuiGraphicsExtractor graphics, int index, boolean selected) {
 		Tab shown = this.tabs.get(index);
-		int x = this.leftPos + index * TAB_STEP;
-		int y = this.topPos - TAB_HEIGHT;
-		Identifier[] sprites = selected ? TAB_SELECTED : TAB_UNSELECTED;
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprites[Math.min(index, sprites.length - 1)], x, y, TAB_WIDTH, 32);
+		int x = GuiTabs.topX(this.leftPos, index);
+		int y = this.topPos - GuiTabs.TOP_HEIGHT;
+		GuiTabs.top(graphics, this.leftPos, this.topPos, index, selected);
 		int iconX = x + 5;
-		int iconY = y + 9 + (selected ? 0 : 1);
+		int iconY = GuiTabs.topIconY(this.topPos, selected);
 		if (shown == Tab.WORK) {
 			WorkerButton.face(graphics, iconX, iconY, this.type().profession(), this.menu.getWorker().isPresent());
 		} else {
 			graphics.item(this.tabIcon(shown), iconX, iconY);
 		}
 		if (this.tabProblem(shown)) {
-			// A red mark at the top right, like a notification
-			graphics.fill(x + TAB_WIDTH - 8, y + 3, x + TAB_WIDTH - 3, y + 8, 0xFF000000);
-			graphics.fill(x + TAB_WIDTH - 7, y + 4, x + TAB_WIDTH - 4, y + 7, 0xFFE03030);
+			GuiTabs.problem(graphics, x + GuiTabs.TOP_WIDTH, y);
 		}
 		if (!selected) {
-			this.hotspots.add(new Hotspot(x, y, TAB_WIDTH, TAB_HEIGHT, shown == Tab.BLOCK ? StationMenu.BACK_BUTTON : -1, this.tabTooltip(shown),
+			this.hotspots.add(new Hotspot(x, y, GuiTabs.TOP_WIDTH, GuiTabs.TOP_HEIGHT, shown == Tab.BLOCK ? StationMenu.BACK_BUTTON : -1, this.tabTooltip(shown),
 				shown == Tab.BLOCK ? null : () -> this.tab = shown));
 		} else {
-			this.hotspots.add(new Hotspot(x, y, TAB_WIDTH, TAB_HEIGHT, -1, this.tabTooltip(shown)));
+			this.hotspots.add(new Hotspot(x, y, GuiTabs.TOP_WIDTH, GuiTabs.TOP_HEIGHT, -1, this.tabTooltip(shown)));
 		}
 	}
 
@@ -1106,6 +1089,6 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	protected boolean hasClickedOutside(double mouseX, double mouseY, int left, int top) {
 		// Clicks on the tabs are no clicks outside the screen
 		return super.hasClickedOutside(mouseX, mouseY, left, top)
-			&& !GuiPanels.isOver(mouseX, mouseY, left, top - TAB_HEIGHT, this.tabs.size() * TAB_STEP, TAB_HEIGHT);
+			&& !GuiPanels.isOver(mouseX, mouseY, left, top - GuiTabs.TOP_HEIGHT, this.tabs.size() * GuiTabs.TOP_STEP, GuiTabs.TOP_HEIGHT);
 	}
 }
