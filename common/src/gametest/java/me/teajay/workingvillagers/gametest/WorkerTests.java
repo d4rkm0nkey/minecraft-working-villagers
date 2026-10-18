@@ -1,6 +1,7 @@
 package me.teajay.workingvillagers.gametest;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import me.teajay.workingvillagers.Config;
@@ -13,6 +14,7 @@ import me.teajay.workingvillagers.job.HiredVillager;
 import me.teajay.workingvillagers.job.WorkerStatus;
 import me.teajay.workingvillagers.job.WorkerSupplies;
 import me.teajay.workingvillagers.station.Pit;
+import me.teajay.workingvillagers.station.StationType;
 import me.teajay.workingvillagers.station.Workstations;
 import me.teajay.workingvillagers.station.Workstations.ChestRole;
 import net.minecraft.core.BlockPos;
@@ -88,9 +90,45 @@ public final class WorkerTests {
 		registry.accept("pit_digger_climbs_out_of_half_dug_pit", WorkerTests::pitDiggerClimbsOutOfHalfDugPit);
 		registry.accept("pit_digger_finishes_played_pit", WorkerTests::pitDiggerFinishesPlayedPit);
 		registry.accept("shop_assistant_sells_wheat", WorkerTests::shopAssistantSellsWheat);
+		registry.accept("ordinary_villager_keeps_off_set_up_station", WorkerTests::ordinaryVillagerKeepsOffSetUpStation);
+		registry.accept("assign_displaces_ordinary_villager", WorkerTests::assignDisplacesOrdinaryVillager);
 		registry.accept("old_station_notes_are_removed", WorkerTests::oldStationNotesAreRemoved);
+		registry.accept("worker_takes_lost_station", WorkerTests::workerTakesLostStation);
 		registry.accept("village_chest_supplies_lumberjack", WorkerTests::villageChestSuppliesLumberjack);
 		registry.accept("village_chest_keeps_named_tools", WorkerTests::villageChestKeepsNamedTools);
+		for (StationType type : StationType.values()) {
+			String name = type.name().toLowerCase(Locale.ROOT);
+			registry.accept("worker_finds_" + name, helper -> workerFinds(helper, type));
+		}
+	}
+
+	/**
+	 * A workstation that counts as taken although nobody works there or walks there (a
+	 * ticket lost by earlier versions) is freed and taken by a hired villager.
+	 */
+	private static void workerTakesLostStation(GameTestHelper helper) {
+		BlockPos station = STATION.below();
+		helper.setBlock(station, WorkingVillagers.PIT_STAKE.get());
+		BlockPos absolute = helper.absolutePos(station);
+		helper.getLevel().getPoiManager().take(poi -> true, (poi, pos) -> pos.equals(absolute), absolute, 1);
+		Villager worker = TestWorld.hireVillager(helper, new BlockPos(2, 0, 2));
+		helper.succeedWhen(() -> helper.assertTrue(worker.getVillagerData().profession().is(WorkingVillagers.PIT_DIGGER_PROFESSION),
+			"The lost station was not taken: " + TestWorld.describe(worker)));
+	}
+
+	/**
+	 * A hired villager without a job walks to a workstation standing on the ground, like a
+	 * player places it, and takes the job there.
+	 */
+	private static void workerFinds(GameTestHelper helper, StationType type) {
+		// On the floor, where a player puts it (y 1 of the platform is one block above the grass)
+		BlockPos station = STATION.below();
+		helper.setBlock(station, type.block());
+		Villager worker = TestWorld.hireVillager(helper, new BlockPos(2, 0, 2));
+		helper.succeedWhen(() -> helper.assertTrue(TestWorld.station(helper, station).occupant(helper.getLevel()).isPresent(),
+			"Nobody took the job: " + worker.getVillagerData().profession().getRegisteredName()
+				+ ", potential " + worker.getBrain().getMemory(MemoryModuleType.POTENTIAL_JOB_SITE) + ", job " + worker.getBrain().getMemory(MemoryModuleType.JOB_SITE)
+				+ ", at " + worker.blockPosition() + ", station " + helper.absolutePos(station)));
 	}
 
 	private static void contractHiresUnemployed(GameTestHelper helper) {
@@ -599,6 +637,42 @@ public final class WorkerTests {
 			}
 			helper.assertTrue(worker.getY() > helper.absolutePos(new BlockPos(0, 5, 0)).getY(), "The pit digger is still in the pit: " + TestWorld.describe(worker));
 		});
+	}
+
+	/**
+	 * Two composters on the floor, one set up with a chest: an ordinary unemployed villager
+	 * becomes a farmer at the other one.
+	 */
+	private static void ordinaryVillagerKeepsOffSetUpStation(GameTestHelper helper) {
+		BlockPos setUp = new BlockPos(8, 0, 8);
+		BlockPos plain = new BlockPos(14, 0, 14);
+		helper.setBlock(setUp, Blocks.COMPOSTER);
+		helper.setBlock(plain, Blocks.COMPOSTER);
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, setUp, OUTPUT, ChestRole.OUTPUT);
+		Villager villager = helper.spawn(EntityTypes.VILLAGER, new BlockPos(8, 0, 4));
+		helper.failIfEver(() -> helper.assertFalse(TestWorld.station(helper, setUp).occupant(helper.getLevel()).isPresent(), "The set-up composter was taken"));
+		helper.succeedWhen(() -> helper.assertTrue(villager.getVillagerData().profession().is(VillagerProfession.FARMER)
+			&& TestWorld.station(helper, plain).occupant(helper.getLevel()).isPresent(), "The villager did not become a farmer at the other composter"));
+	}
+
+	/**
+	 * An ordinary farmer that has never traded works at the composter: assigning a hired
+	 * villager makes it unemployed and gives the composter to the hired one.
+	 */
+	private static void assignDisplacesOrdinaryVillager(GameTestHelper helper) {
+		BlockPos composter = STATION.below();
+		helper.setBlock(composter, Blocks.COMPOSTER);
+		Villager farmer = helper.spawn(EntityTypes.VILLAGER, new BlockPos(6, 0, 8));
+		BlockPos absolute = helper.absolutePos(composter);
+		helper.getLevel().getPoiManager().take(poi -> true, (poi, pos) -> pos.equals(absolute), absolute, 1);
+		farmer.getBrain().setMemory(MemoryModuleType.JOB_SITE, net.minecraft.core.GlobalPos.of(helper.getLevel().dimension(), absolute));
+		farmer.setVillagerData(farmer.getVillagerData().withProfession(helper.getLevel().registryAccess(), VillagerProfession.FARMER));
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, composter);
+		helper.assertTrue(worker.getVillagerData().profession().is(WorkingVillagers.FARMER_PROFESSION), "The hired villager is no farmer");
+		helper.assertTrue(farmer.getVillagerData().profession().is(VillagerProfession.NONE), "The ordinary farmer kept its job");
+		helper.succeed();
 	}
 
 	/**

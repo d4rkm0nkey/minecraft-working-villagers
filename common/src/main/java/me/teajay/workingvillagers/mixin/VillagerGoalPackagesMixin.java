@@ -2,6 +2,8 @@ package me.teajay.workingvillagers.mixin;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.job.CarryItems;
 import me.teajay.workingvillagers.carrier.KeepCarrierJob;
@@ -14,6 +16,10 @@ import me.teajay.workingvillagers.job.FarmFields;
 import me.teajay.workingvillagers.job.FindWorkplace;
 import me.teajay.workingvillagers.job.SellGoods;
 import me.teajay.workingvillagers.job.SmeltAtFurnace;
+import me.teajay.workingvillagers.job.WorkerJobs;
+import me.teajay.workingvillagers.station.Workstations;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.core.Holder;
 import net.minecraft.world.entity.ai.behavior.BehaviorControl;
@@ -21,11 +27,13 @@ import net.minecraft.world.entity.ai.behavior.GiveGiftToHero;
 import net.minecraft.world.entity.ai.behavior.ResetProfession;
 import net.minecraft.world.entity.ai.behavior.UpdateActivityFromSchedule;
 import net.minecraft.world.entity.ai.behavior.VillagerGoalPackages;
+import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.npc.villager.VillagerProfession;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -89,6 +97,35 @@ public abstract class VillagerGoalPackagesMixin {
 			.addAll(cir.getReturnValue())
 			.add(Pair.of(9, new FindWorkplace()))
 			.build());
+	}
+
+	/**
+	 * Vanilla forgets the job site an unemployed villager walks to once it is within 16
+	 * blocks, unless it is a vanilla job site, and does not give the workstation back: a
+	 * hired villager walking to a workstation of this mod lost it and left it taken for good.
+	 * The workstations of this mod count as valid here (only hired villagers walk to them).
+	 */
+	@ModifyArg(
+		method = "getCorePackage",
+		at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/ai/behavior/ValidateNearbyPoi;create(Ljava/util/function/Predicate;Lnet/minecraft/world/entity/ai/memory/MemoryModuleType;)Lnet/minecraft/world/entity/ai/behavior/BehaviorControl;", ordinal = 1),
+		index = 0
+	)
+	private static Predicate<Holder<PoiType>> workingvillagers$keepWorkstationOnTheWay(Predicate<Holder<PoiType>> acquirable) {
+		return acquirable.or(WorkerJobs::isJobSite);
+	}
+
+	/**
+	 * Unemployed villagers do not look for a vanilla workstation (stonecutter, composter,
+	 * blast furnace) that is set up as a workstation of this mod (chests, order or worker):
+	 * it is kept for a hired worker.
+	 */
+	@ModifyArg(
+		method = "getCorePackage",
+		at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/ai/behavior/AcquirePoi;create(Ljava/util/function/Predicate;Lnet/minecraft/world/entity/ai/memory/MemoryModuleType;Lnet/minecraft/world/entity/ai/memory/MemoryModuleType;ZLjava/util/Optional;Ljava/util/function/BiPredicate;)Lnet/minecraft/world/entity/ai/behavior/BehaviorControl;", ordinal = 0),
+		index = 5
+	)
+	private static BiPredicate<ServerLevel, BlockPos> workingvillagers$skipSetUpStations(BiPredicate<ServerLevel, BlockPos> valid) {
+		return valid.and((level, pos) -> Workstations.findSetUp(level, pos).isEmpty());
 	}
 
 	/** Carriers have no job site, vanilla would make them unemployed again. */

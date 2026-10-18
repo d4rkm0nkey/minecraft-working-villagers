@@ -70,6 +70,7 @@ public class FindWorkplace extends Behavior<Villager> {
 	}
 
 	private void search(ServerLevel level, Villager villager) {
+		WorkerJobs.freeLostJobSites(level, villager.blockPosition(), SCAN_RANGE);
 		PoiManager poiManager = level.getPoiManager();
 		Set<Pair<Holder<PoiType>, BlockPos>> sites = poiManager.findAllClosestFirstWithType(
 				WorkerJobs::isJobSite, pos -> !WorkerJobs.isLeftBy(level, villager, pos), villager.blockPosition(), SCAN_RANGE, PoiManager.Occupancy.HAS_SPACE

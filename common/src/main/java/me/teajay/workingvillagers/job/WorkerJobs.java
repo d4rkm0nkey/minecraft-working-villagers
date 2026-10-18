@@ -1,6 +1,7 @@
 package me.teajay.workingvillagers.job;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -18,8 +19,10 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.entity.ai.village.poi.PoiTypes;
 import net.minecraft.world.entity.ai.village.poi.PoiManager;
+import net.minecraft.world.entity.ai.village.poi.PoiRecord;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.npc.villager.VillagerProfession;
+import net.minecraft.world.phys.AABB;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -49,6 +52,8 @@ public final class WorkerJobs {
 		WorkingVillagers.MINER_POI, WorkingVillagers.MINER_PROFESSION
 	);
 	private static final int CHECK_INTERVAL = 20;
+	/** How far from a station a villager that holds it is looked for before its ticket is given back. */
+	private static final double LOST_TICKET_RANGE = 64.0;
 	/** How long a worker taken away from a station does not take it again by itself. */
 	private static final long LEFT_TICKS = 24000L;
 	/** The station each worker was last taken away from, and until when it avoids it. Not saved. */
@@ -66,7 +71,13 @@ public final class WorkerJobs {
 
 	public static void tick(ServerLevel level, Villager villager) {
 		HiredVillager hired = (HiredVillager) villager;
-		if (!hired.workingvillagers$isHired() || villager.isBaby()) {
+		if (!hired.workingvillagers$isHired()) {
+			if (villager.tickCount % CHECK_INTERVAL == 0) {
+				keepOffSetUpStation(level, villager);
+			}
+			return;
+		}
+		if (villager.isBaby()) {
 			return;
 		}
 		boolean unemployed = villager.getVillagerData().profession().is(VillagerProfession.NONE);
@@ -75,8 +86,7 @@ public final class WorkerJobs {
 		if (unemployed && villager.getBrain().getMemory(MemoryModuleType.POTENTIAL_JOB_SITE)
 			.filter(site -> site.dimension() != level.dimension() || !isJobSite(level, site.pos()) || isLeftBy(level, villager, site.pos()))
 			.isPresent()) {
-			villager.releasePoi(MemoryModuleType.POTENTIAL_JOB_SITE);
-			villager.getBrain().eraseMemory(MemoryModuleType.POTENTIAL_JOB_SITE);
+			giveUpPotentialJobSite(villager);
 		}
 		boolean worker = isWorker(villager);
 		if (worker) {
@@ -131,12 +141,14 @@ public final class WorkerJobs {
 			return Component.translatable("message.workingvillagers.assign.already_here", villager.getName());
 		}
 		// A job site it is walking to is given up, also if it is this one
-		villager.releasePoi(MemoryModuleType.POTENTIAL_JOB_SITE);
-		villager.getBrain().eraseMemory(MemoryModuleType.POTENTIAL_JOB_SITE);
+		giveUpPotentialJobSite(villager);
 		boolean free = poiManager.getInSquare(WorkerJobs::isJobSite, station, 0, PoiManager.Occupancy.HAS_SPACE)
 			.anyMatch(poi -> poi.getPos().equals(station));
 		if (!free) {
-			return Component.translatable("message.workingvillagers.assign.occupied");
+			Component problem = displaceOrdinaryVillager(level, station);
+			if (problem != null) {
+				return problem;
+			}
 		}
 		if (current.isPresent()) {
 			release(level, villager);
@@ -170,6 +182,94 @@ public final class WorkerJobs {
 		villager.refreshBrain(level);
 		villager.makeSound(SoundEvents.VILLAGER_YES);
 		level.broadcastEntityEvent(villager, (byte) 14);
+	}
+
+	/**
+	 * Gives up the job site the villager is walking to, so the workstation is free again.
+	 * Vanilla's {@code releasePoi} only frees job sites in the {@code acquirable_job_site} tag,
+	 * which the workstations of this mod are not part of: they stayed taken for good.
+	 */
+	public static void giveUpPotentialJobSite(Villager villager) {
+		villager.getBrain().getMemory(MemoryModuleType.POTENTIAL_JOB_SITE).ifPresent(site -> {
+			ServerLevel level = villager.level() instanceof ServerLevel serverLevel ? serverLevel.getServer().getLevel(site.dimension()) : null;
+			if (level != null && level.getPoiManager().getType(site.pos()).isPresent()) {
+				level.getPoiManager().release(site.pos());
+				level.debugSynchronizers().updatePoi(site.pos());
+			}
+		});
+		villager.getBrain().eraseMemory(MemoryModuleType.POTENTIAL_JOB_SITE);
+	}
+
+	/**
+	 * Frees workstations of this mod around the position that count as taken although
+	 * nobody works there or walks there: tickets lost by earlier versions (see
+	 * {@link #giveUpPotentialJobSite}). A station keeps its ticket while it has a worker
+	 * (also one that is not loaded) or a villager nearby has it as its job site or is on its
+	 * way there. Vanilla job sites (stonecutter, composter, blast furnace) are left alone,
+	 * their tickets are given back by vanilla.
+	 */
+	static void freeLostJobSites(ServerLevel level, BlockPos center, int range) {
+		PoiManager poiManager = level.getPoiManager();
+		List<BlockPos> taken = poiManager.getInRange(
+				poi -> poi.unwrapKey().map(key -> JOBS.containsKey(key) && key.identifier().getNamespace().equals(WorkingVillagers.MOD_ID)).orElse(false),
+				center, range, PoiManager.Occupancy.IS_OCCUPIED)
+			.map(PoiRecord::getPos)
+			.toList();
+		for (BlockPos pos : taken) {
+			Optional<Workstations.Station> station = Workstations.find(level, pos);
+			if (station.isEmpty() || station.get().worker() != null) {
+				continue;
+			}
+			GlobalPos site = GlobalPos.of(level.dimension(), pos);
+			boolean claimed = !level.getEntitiesOfClass(Villager.class, new AABB(pos).inflate(LOST_TICKET_RANGE), villager ->
+				villager.getBrain().getMemory(MemoryModuleType.JOB_SITE).filter(site::equals).isPresent()
+					|| villager.getBrain().getMemory(MemoryModuleType.POTENTIAL_JOB_SITE).filter(site::equals).isPresent()
+			).isEmpty();
+			if (!claimed) {
+				poiManager.release(pos);
+				level.debugSynchronizers().updatePoi(pos);
+			}
+		}
+	}
+
+	/**
+	 * An ordinary villager does not take a vanilla workstation (stonecutter, composter, blast
+	 * furnace) that is set up as a workstation of this mod (chests, order or worker): the job
+	 * site it is walking to is given up again.
+	 */
+	private static void keepOffSetUpStation(ServerLevel level, Villager villager) {
+		Optional<GlobalPos> potential = villager.getBrain().getMemory(MemoryModuleType.POTENTIAL_JOB_SITE);
+		if (potential.isPresent() && potential.get().dimension() == level.dimension() && isJobSite(level, potential.get().pos())
+			&& Workstations.findSetUp(level, potential.get().pos()).isPresent()) {
+			giveUpPotentialJobSite(villager);
+		}
+	}
+
+	/**
+	 * Makes room at a vanilla workstation for a hired worker: an ordinary villager that
+	 * works there and has never traded loses its job, like vanilla villagers that lose their
+	 * job site. One that has traded keeps it. Returns why the station stays taken, or null.
+	 */
+	private static @Nullable Component displaceOrdinaryVillager(ServerLevel level, BlockPos station) {
+		GlobalPos site = GlobalPos.of(level.dimension(), station);
+		List<Villager> holders = level.getEntitiesOfClass(Villager.class, new AABB(station).inflate(LOST_TICKET_RANGE), villager ->
+			villager.getBrain().getMemory(MemoryModuleType.JOB_SITE).filter(site::equals).isPresent());
+		if (holders.isEmpty()) {
+			return Component.translatable("message.workingvillagers.assign.occupied");
+		}
+		Villager holder = holders.getFirst();
+		if (((HiredVillager) holder).workingvillagers$isHired()) {
+			return Component.translatable("message.workingvillagers.assign.occupied");
+		}
+		if (holder.getVillagerXp() > 0) {
+			return Component.translatable("message.workingvillagers.assign.occupied_trader", holder.getName());
+		}
+		holder.releasePoi(MemoryModuleType.JOB_SITE);
+		holder.getBrain().eraseMemory(MemoryModuleType.JOB_SITE);
+		holder.setVillagerData(holder.getVillagerData().withProfession(level.registryAccess(), VillagerProfession.NONE));
+		holder.refreshBrain(level);
+		level.broadcastEntityEvent(holder, (byte) 13);
+		return null;
 	}
 
 	private static boolean isJobSite(ServerLevel level, BlockPos pos) {

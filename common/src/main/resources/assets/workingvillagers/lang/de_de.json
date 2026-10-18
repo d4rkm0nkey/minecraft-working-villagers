@@ -304,6 +304,7 @@
   "status.workingvillagers.shop.no_buyer": "Wartet: niemand in der Nähe kauft diese Ware",
   "status.workingvillagers.shop.sold_out": "Wartet: die Käufer sind ausverkauft, bis sie nachfüllen",
   "gui.workingvillagers.trading_counter.today": "Heute verdient: %s Smaragde",
+  "message.workingvillagers.assign.occupied_trader": "%s hat hier schon gehandelt und behält den Arbeitsplatz. Nimm eine andere Werkstation.",
   "block.workingvillagers.mining_bench": "Grubenwerkbank",
   "container.workingvillagers.mill": "Gesteinsmühle",
   "entity.workingvillagers.villager.miner": "Minenarbeiter",

@@ -207,11 +207,14 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 
 	/**
 	 * A carrier drops its basket with everything in it, every worker what it carries: its
-	 * emeralds, tools and what it was working with.
+	 * emeralds, tools and what it was working with. A workstation it was walking to is free
+	 * again.
 	 */
 	@Inject(method = "die", at = @At("HEAD"))
 	private void workingvillagers$dropBasket(DamageSource source, CallbackInfo ci) {
 		Villager villager = (Villager) (Object) this;
+		// Vanilla would keep a workstation of this mod taken that the villager was walking to
+		WorkerJobs.giveUpPotentialJobSite(villager);
 		Carriers.dropBasket(villager, null);
 		if (this.workingvillagers$employer != null && villager.level() instanceof ServerLevel level) {
 			for (ItemStack stack : villager.getInventory().removeAllItems()) {
