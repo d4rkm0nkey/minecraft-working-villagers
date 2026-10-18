@@ -124,6 +124,7 @@ public final class WorkerTests {
 		registry.accept("butcher_slaughters_surplus", WorkerTests::butcherSlaughtersSurplus);
 		registry.accept("fisher_fishes_from_shore", WorkerTests::fisherFishesFromShore);
 		registry.accept("fisher_rows_out", WorkerTests::fisherRowsOut);
+		registry.accept("fisher_gives_back_enchanted_rod", WorkerTests::fisherGivesBackEnchantedRod);
 		registry.accept("butcher_breeds_pigs", WorkerTests::butcherBreedsPigs);
 		registry.accept("butcher_smokes_meat", WorkerTests::butcherSmokesMeat);
 		for (StationType type : StationType.values()) {
@@ -272,6 +273,36 @@ public final class WorkerTests {
 		helper.succeedWhen(() -> {
 			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> !stack.is(Items.FISHING_ROD), 3, "the catch in the output chest");
 			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.FISHING_ROD)) == 0, "The fisher delivered its rod");
+		});
+	}
+
+	/**
+	 * Two rods about to break: the plain one is cheap and used up, the enchanted one is given
+	 * back into the output chest (there is no village chest) instead of being broken.
+	 */
+	private static void fisherGivesBackEnchantedRod(GameTestHelper helper) {
+		helper.setBlock(STATION.below(), Blocks.BARREL);
+		pond(helper, 12, 12, 15, 15);
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, STATION.below(), OUTPUT, ChestRole.OUTPUT);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, STATION.below());
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2));
+		ItemStack enchanted = new ItemStack(Items.FISHING_ROD);
+		enchanted.enchant(helper.getLevel().registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
+			.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.LURE), 1);
+		enchanted.setDamageValue(enchanted.getMaxDamage() - 2);
+		ItemStack plain = new ItemStack(Items.FISHING_ROD);
+		plain.setDamageValue(plain.getMaxDamage() - 2);
+		// Into its inventory: a worker does not accept a worn tool from a player
+		worker.getInventory().addItem(enchanted);
+		worker.getInventory().addItem(plain);
+		helper.succeedWhen(() -> {
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.FISHING_ROD) && stack.isEnchanted()) == 1,
+				"The enchanted rod is not in the output chest: " + TestWorld.describe(worker));
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.FISHING_ROD) && !stack.isEnchanted()) == 0, "The plain rod was given back");
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> !stack.is(Items.FISHING_ROD)) >= 2, "Not caught with the plain rod until it broke");
+			helper.assertTrue(worker.getInventory().countItem(Items.FISHING_ROD) == 0, "The plain rod did not break");
 		});
 	}
 

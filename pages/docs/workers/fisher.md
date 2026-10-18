@@ -49,7 +49,10 @@ trips off in the overview, tab :mc-oak_boat: **Settings**: **Row out in a boat**
 
 ## Good to know
 
-- The rod wears out like a player's, one use per catch, and is used until it breaks. A
-  rod with **Lure** gets bites sooner, one with **Luck of the Sea** catches more treasure.
+- The rod wears out like a player's, one use per catch. A plain rod is used until it
+  breaks; an **enchanted or renamed** rod the fisher gives back shortly before, into a
+  village chest or the chest of the barrel (see [Worn tools](basics.md#worn-tools)), so you
+  can repair it at an anvil. A rod with **Lure** gets bites sooner, one with **Luck of the
+  Sea** catches more treasure.
 - Rods and boats it takes from a [village chest](basics.md#village-chests) too.
 - It hands in everything it catches; only its rods and its boat it keeps.

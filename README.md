@@ -119,8 +119,8 @@ stays in the wage box.
   to 16 each, `miner.keepFences`, `miner.keepPlanks`) and torches (up to 16,
   `miner.keepTorches`). It keeps up to 16 cobblestone of what it digs
   (`miner.keepSealBlocks`) for sealing water and lava and closing holes.
-- **Fisher:** needs a fishing rod (carries up to 2), one use per catch; rods are used until
-  they break. Optionally a boat (keeps 1) to row out.
+- **Fisher:** needs a fishing rod (carries up to 2), one use per catch; plain rods are used
+  until they break, enchanted or renamed ones are given back before. Optionally a boat (keeps 1) to row out.
 - **Butcher:** needs a sword or an axe (carries up to 2), one use per animal. Feed (up to
   16 of each kind, `butcher.keepFeed`) only for breeding, coal or charcoal (up to 16,
   `butcher.keepFuel`) only for smoking.
@@ -503,7 +503,8 @@ emeralds, a station put where another kind stood starts fresh, the lumberjack fe
 sawyer only cuts allowed wood, the stone sawyer cuts bricks, the carpenter stops at its
 stock, the carrier empties its source, the farmer harvests and replants (also a raised
 bed), the shepherd shears sheep over the fence of a pen and breeds a lamb with wheat, the
-fisher fishes at a pond and rows out on a lake with its boat and takes it back, the
+fisher fishes at a pond and rows out on a lake with its boat and takes it back, uses up a
+plain rod but gives back an enchanted one, the
 butcher slaughters cows down to the herd size, breeds a piglet and smokes chicken, a
 vanilla farmer is hired and stays at its composter and gets farmer trades, one that has
 traded keeps its trades and experience, a librarian is not hired, hired villagers do not trample farmland, the smith smelts raw iron, the kiln operator

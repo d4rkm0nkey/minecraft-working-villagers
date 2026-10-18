@@ -301,7 +301,9 @@ public class GoFishing extends Behavior<Villager> {
 			this.setState(State.ROW);
 			return;
 		}
-		if (hasCatch(inventory) && (this.catches >= Config.CATCHES_PER_TRIP.get() || !inventory.canAddItem(new ItemStack(Items.COD, 64)))) {
+		// The trip is over, the inventory is full, or the rod broke: the catch goes to the chest first
+		if (hasCatch(inventory) && (this.catches >= Config.CATCHES_PER_TRIP.get() || !inventory.canAddItem(new ItemStack(Items.COD, 64))
+			|| findRod(inventory).isEmpty())) {
 			this.setState(State.DELIVER);
 			return;
 		}
