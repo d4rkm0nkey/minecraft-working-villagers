@@ -1,8 +1,22 @@
 # Werkzeugrückgabe
 
-[← Wiki-Start](../README.md) · Phase: **Konzept** (Wunsch vom 15.10.2026) · baut auf [Dorftruhen](dorftruhen.md) auf
+[← Wiki-Start](../README.md) · Phase: **umgesetzt**, ohne Reparieren durch den Schmied (siehe [Stand der Umsetzung](#stand-der-umsetzung)) · Wunsch vom 15.10.2026 · baut auf [Dorftruhen](dorftruhen.md) auf
 
-Heute nutzt ein Arbeiter sein Werkzeug, bis es zerbricht. Dann ist es weg. Mit der Werkzeugrückgabe tauscht er es **kurz vorher** aus und legt das abgenutzte Werkzeug in eine [Dorftruhe](dorftruhen.md). Von dort kann der Spieler es reparieren, oder später der [Schmied](../berufe/schmied.md).
+Ohne Werkzeugrückgabe nutzt ein Arbeiter sein Werkzeug, bis es zerbricht. Dann ist es weg. Mit der Werkzeugrückgabe tauscht er es **kurz vorher** aus und legt das abgenutzte Werkzeug in eine [Dorftruhe](dorftruhen.md). Von dort kann der Spieler es reparieren, oder später der [Schmied](../berufe/schmied.md).
+
+## Stand der Umsetzung
+
+Umgesetzt für Holzfäller, Bauer, Grubenarbeiter und Minenarbeiter, mit diesen Abweichungen:
+
+- **Zeitpunkt:** Er gibt das Werkzeug vor seinem nächsten Arbeitsschritt zurück (nächster Baum, nächster Block), auch wenn er ein Ersatzwerkzeug dabeihat; nicht erst in der Pause. Die Grubenarbeit unterbricht er dafür wie für Lohn und Werkzeug: erst aus der Grube heraus.
+- **Wohin:** in die nächste Dorftruhe in Reichweite mit einem **freien Platz**, sonst in die nächste Zielkiste der Station mit freiem Platz. Geht er zu einer Dorftruhe, nimmt er im selben Gang mit, was ihm fehlt. Findet er keinen Platz (oder kommt nicht hin), behält er es und versucht es nach einer Minute wieder.
+- **Kein eigener Status „kein Platz zum Abgeben“:** Hat er kein brauchbares Werkzeug mehr, zeigt er wie bisher „Braucht eine Axt“. Der Tooltip der Versorgungszeile sagt „Gibt N abgenutzte Werkzeuge zurück“; Status unterwegs: „Gibt ein abgenutztes Werkzeug zurück“.
+- **Grenze:** `tools.returnBelow` Prozent der Haltbarkeit, mindestens 2 Nutzungen. Bei der Grenze von 10 % ist ein Werkzeug zugleich „fast aufgebraucht“ im Sinne der [Dorftruhen](dorftruhen.md#was-sich-ein-arbeiter-holt): Er holt sich dann Ersatz.
+- **Holz und Stein:** erkannt an der `repairable`-Komponente (repariert mit Brettern oder Bruchstein), so zählen auch Werkzeuge anderer Mods. Verzaubert oder umbenannt kommen sie immer zurück.
+- **Geben:** Ein abgenutztes Werkzeug nimmt ein Arbeiter auch vom Spieler nicht an.
+- **Anzeige:** Statt des gelben Rahmens nur die Tooltip-Zeile. Das Dorftruhen-Panel zeigt „N abgenutzte Werkzeuge zum Reparieren“.
+- **Nicht umgesetzt:** das Reparieren durch den Schmied, die Meldung „Hat die ‚Glücksschaufel‘ in … gelegt“.
+- **Tests:** Ein Holzfäller mit abgenutzter Axt und Ersatz fällt mit dem Ersatz und legt die alte in die Dorftruhe; ohne Ersatz tauscht er sie in einem Gang gegen eine neue; ohne Dorftruhe landet sie in der Zielkiste und er wartet, statt sie aufzubrauchen; eine Steinaxt wird aufgebraucht.
 
 ## Warum
 

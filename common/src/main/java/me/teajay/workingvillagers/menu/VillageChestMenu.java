@@ -40,6 +40,7 @@ public class VillageChestMenu extends ChestMenu {
 	private static final String TAG_JOB = "Job";
 	private static final String TAG_MISSING = "Missing";
 	private static final String TAG_WAGE_DAYS = "WageDays";
+	private static final String TAG_WORN_TOOLS = "WornTools";
 	private static final String TAG_RADIUS = "Radius";
 	private static final String TAG_ENABLED = "Enabled";
 
@@ -128,6 +129,7 @@ public class VillageChestMenu extends ChestMenu {
 			carried += WorkerSupplies.count(worker.getInventory(), WorkerSupplies::isWage);
 		}
 		tag.put(TAG_WORKERS, list);
+		tag.putInt(TAG_WORN_TOOLS, WorkerSupplies.count(this.getContainer(), WorkerSupplies::isWorn));
 		int wage = Config.DAILY_WAGE.get();
 		if (wage > 0 && !workers.isEmpty()) {
 			int emeralds = carried;
@@ -158,6 +160,11 @@ public class VillageChestMenu extends ChestMenu {
 	/** Client: for how many days the emeralds of the workers and their village chests pay them all; empty without wage. */
 	public Optional<Integer> getWageDays() {
 		return this.info.info().getInt(TAG_WAGE_DAYS);
+	}
+
+	/** Client: how many worn tools lie in the chest, given back by workers (see {@link WorkerSupplies#isWorn}). */
+	public int getWornTools() {
+		return this.info.info().getIntOr(TAG_WORN_TOOLS, 0);
 	}
 
 	public int getRadius() {

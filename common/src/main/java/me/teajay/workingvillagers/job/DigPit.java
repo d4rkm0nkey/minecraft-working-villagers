@@ -342,7 +342,7 @@ public class DigPit extends Behavior<Villager> {
 			return true;
 		}
 		for (WorkerSupplies.Need need : this.needs(pit, target)) {
-			if (!inventory.hasAnyMatching(stack -> !stack.isEmpty() && need.item().test(stack))) {
+			if (!inventory.hasAnyMatching(stack -> !stack.isEmpty() && need.ready().test(stack))) {
 				return true;
 			}
 		}

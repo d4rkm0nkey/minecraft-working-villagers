@@ -83,5 +83,6 @@ spawns in it at night.
 - Sand and gravel that fall down are dug in the next round.
 - **Everything** it digs goes to the chest, nothing is thrown away. If the chest is full,
   it waits.
-- The shovel and the pickaxe wear out like yours. It carries a spare of each; when all
-  are broken, it waits for new ones.
+- The shovel and the pickaxe wear out like yours. Shortly before one breaks, it gives it
+  back ([Worn tools](basics.md#worn-tools)) and uses its spare; without one it waits for a
+  new one.

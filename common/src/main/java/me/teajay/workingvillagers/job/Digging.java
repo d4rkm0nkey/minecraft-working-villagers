@@ -50,12 +50,13 @@ final class Digging {
 
 	/**
 	 * The tool for the block among the shovels and pickaxes the worker carries: whichever is
-	 * faster; one that gets the block's drops before one that does not.
+	 * faster; one that gets the block's drops before one that does not. Worn ones are given
+	 * back instead (see {@link WorkerSupplies#isWorn}).
 	 */
 	static ItemStack findTool(SimpleContainer inventory, BlockState state) {
 		ItemStack best = ItemStack.EMPTY;
 		for (ItemStack stack : inventory) {
-			if (stack.isEmpty() || !WorkerSupplies.SHOVEL.item().test(stack) && !WorkerSupplies.PICKAXE.item().test(stack)) {
+			if (stack.isEmpty() || !WorkerSupplies.SHOVEL.ready().test(stack) && !WorkerSupplies.PICKAXE.ready().test(stack)) {
 				continue;
 			}
 			boolean correct = !state.requiresCorrectToolForDrops() || stack.isCorrectToolForDrops(state);

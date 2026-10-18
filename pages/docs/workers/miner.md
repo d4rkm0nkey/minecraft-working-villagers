@@ -84,8 +84,9 @@ again. Make the tunnel longer with **+** and it goes on where it stopped.
 - An ore next to water or lava stays, so no liquid gets into the tunnel.
 - It keeps up to **16 cobblestone** for sealing and delivers the rest with everything
   else. Without cobblestone it waits when there is water or lava to seal.
-- The pickaxe wears out like yours. It carries a spare; when both are broken, it waits for
-  a new one.
+- The pickaxe wears out like yours. Shortly before it breaks, the miner gives it back
+  ([Worn tools](basics.md#worn-tools)) and uses its spare; without one it waits for a new
+  one.
 
 ## The mill
 

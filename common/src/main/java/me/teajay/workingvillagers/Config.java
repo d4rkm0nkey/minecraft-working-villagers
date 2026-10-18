@@ -150,6 +150,13 @@ public final class Config {
 	public static final BoolOption VILLAGE_CHEST_ENCHANTED = boolOption("villageChests", "takeEnchanted", false,
 		"Workers also take enchanted and renamed tools from village chests.");
 
+	public static final IntOption TOOL_RETURN_BELOW = intOption("tools", "returnBelow", 10, 0, 50,
+		"Workers stop using a tool once this many percent of its durability are left (but at least 2 uses)",
+		"and give it back instead of breaking it: into a village chest, or an output chest of their workstation.",
+		"They never take such a tool. 0: tools are used up until they break.");
+	public static final BoolOption TOOL_RETURN_CHEAP = boolOption("tools", "returnCheap", false,
+		"Wooden and stone tools are given back, too. Off: they are used up; enchanted and renamed ones always come back.");
+
 	private Config() {
 	}
 

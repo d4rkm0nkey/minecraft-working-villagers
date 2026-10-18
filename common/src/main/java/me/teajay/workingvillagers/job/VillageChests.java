@@ -26,8 +26,9 @@ import net.minecraft.world.phys.AABB;
  * {@link WorkerSupplies}). A worker uses each village chest within
  * {@link Config#VILLAGE_CHEST_RADIUS} blocks of its workplace (horizontally, and up to
  * {@link #VERTICAL_REACH} up or down), and only takes what runs low: the wage for a few days
- * once it has less than a day's wage, a spare tool once it has none or only a worn one, and
- * saplings, seeds, ... up to the amount it keeps once it has less than a quarter of that.
+ * once it has less than a day's wage, a spare tool once it has none or only an almost used up
+ * one, and saplings, seeds, ... up to the amount it keeps once it has less than a quarter of
+ * that. It never takes a worn tool ({@link WorkerSupplies#isWorn}): those are given back here.
  */
 public final class VillageChests {
 	/** How far up or down a village chest may be from the workplace (the pit digger's pit). */
@@ -88,8 +89,8 @@ public final class VillageChests {
 			lacking.add(Map.entry("wage", WorkerSupplies::isWage));
 		}
 		for (WorkerSupplies.Tool tool : WorkerSupplies.toolsOf(worker)) {
-			if (WorkerSupplies.count(inventory, tool.item()) == 0) {
-				lacking.add(Map.entry(tool.kind(), tool.item()));
+			if (WorkerSupplies.count(inventory, tool.ready()) == 0) {
+				lacking.add(Map.entry(tool.kind(), tool.ready()));
 			}
 		}
 		for (WorkerSupplies.Stock stock : WorkerSupplies.stocksOf(worker)) {
@@ -174,11 +175,11 @@ public final class VillageChests {
 			if (!toolLow(inventory, tool)) {
 				continue;
 			}
-			boolean hasNone = WorkerSupplies.count(inventory, tool.item()) == 0;
+			boolean hasNone = WorkerSupplies.count(inventory, tool.ready()) == 0;
 			int best = -1;
 			for (int slot = 0; slot < container.getContainerSize(); slot++) {
 				ItemStack stack = container.getItem(slot);
-				if (stack.isEmpty() || !tool.item().test(stack) || !mayTake(stack) || (!hasNone && isWorn(stack))) {
+				if (stack.isEmpty() || !tool.ready().test(stack) || !mayTake(stack) || (!hasNone && isAlmostUsedUp(stack))) {
 					continue;
 				}
 				// The one with the fewest uses left: worn tools are used up, cheap ones before good ones
@@ -227,15 +228,15 @@ public final class VillageChests {
 		return Math.max(0, Math.min(wage * Config.VILLAGE_CHEST_WAGE_DAYS.get(), WorkerSupplies.MAX_EMERALDS) - carried);
 	}
 
-	/** No tool of the kind, or only one that is about to break. */
+	/** No tool of the kind it can work with, or only one that is almost used up. */
 	private static boolean toolLow(SimpleContainer inventory, WorkerSupplies.Tool tool) {
 		List<ItemStack> carried = new ArrayList<>();
 		for (ItemStack stack : inventory) {
-			if (!stack.isEmpty() && tool.item().test(stack)) {
+			if (!stack.isEmpty() && tool.ready().test(stack)) {
 				carried.add(stack);
 			}
 		}
-		return carried.isEmpty() || carried.size() == 1 && carried.getFirst().getCount() == 1 && isWorn(carried.getFirst());
+		return carried.isEmpty() || carried.size() == 1 && carried.getFirst().getCount() == 1 && isAlmostUsedUp(carried.getFirst());
 	}
 
 	/** Less than a quarter of what it keeps. */
@@ -253,8 +254,11 @@ public final class VillageChests {
 		return Config.VILLAGE_CHEST_ENCHANTED.get() || !tool.isEnchanted() && !tool.has(DataComponents.CUSTOM_NAME);
 	}
 
-	/** A tool with a tenth of its durability or less left. */
-	static boolean isWorn(ItemStack tool) {
+	/**
+	 * A tool with a tenth of its durability or less left. Unless tools are used up (see
+	 * {@link WorkerSupplies#isWorn}), the worker gives it back about then, so it takes a spare.
+	 */
+	private static boolean isAlmostUsedUp(ItemStack tool) {
 		return tool.isDamageableItem() && usesLeft(tool) * 10 <= tool.getMaxDamage();
 	}
 

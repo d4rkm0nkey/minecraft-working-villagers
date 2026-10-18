@@ -114,6 +114,9 @@ final class SuppliesRow {
 				: Component.translatable("gui.workingvillagers.supplies." + tool.kind(),
 					100 - tool.stack().getDamageValue() * 100 / Math.max(1, tool.stack().getMaxDamage())).withStyle(ChatFormatting.GRAY));
 		}
+		if (info.worn() > 0) {
+			lines.add(Component.translatable("gui.workingvillagers.supplies.worn", info.worn()).withStyle(ChatFormatting.GOLD));
+		}
 		for (SuppliesInfo.Slot stock : info.stocks()) {
 			lines.add(Component.translatable("gui.workingvillagers.supplies." + stock.kind(), stock.stack().getCount())
 				.withStyle(stock.missing() ? ChatFormatting.RED : stock.stack().isEmpty() ? ChatFormatting.GOLD : ChatFormatting.GRAY));

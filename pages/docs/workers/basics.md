@@ -131,23 +131,44 @@ Place as many village chests as you like; a worker walks to the closest one that
 what it wants ("Fetching supplies from a village chest").
 
 - **Before its first work of the day** it fetches whatever runs low. **During the day**
-  it only goes when it cannot go on otherwise: no wage, its tool broke, no ladders left.
+  it only goes when it cannot go on otherwise: no wage, its tool is worn, no ladders left.
 - **Emeralds:** once it has less than a day's wage, it takes the wage for **3 days**.
   Your emeralds stay safe in the chest instead of in the pockets of a worker that might
   die.
 - **Tools:** once it has none, or only one that is about to break, it takes one. It takes
-  the **most worn** one first, so half used tools get used up and the new ones wait.
+  the **most worn** one first, so half used tools get used up and the new ones wait. It
+  never takes one that is [worn](#worn-tools).
 - **Saplings, seeds, ladders, torches:** once it has less than a quarter of what it
   keeps, it fills up to that amount, kinds it already carries first.
 - It never takes **enchanted or renamed tools**: give those directly.
-- Workers put nothing into a village chest. Hoppers and [carriers](carrier.md) can fill it
-  like any chest, e.g. with the saplings from the lumberjack's chest.
+- Workers put nothing into a village chest except their [worn tools](#worn-tools). Hoppers
+  and [carriers](carrier.md) can fill it like any chest, e.g. with the saplings from the
+  lumberjack's chest.
 - If no village chest has what it needs, it waits as before.
 
 Right-click the village chest to open it. Next to its slots it lists the **workers it
 serves**, marks the ones that lack something no village chest has (*Needs an axe!*), and
 says for **how many days** the emeralds (in their village chests and pockets) pay all their
-wages.
+wages. If workers gave back worn tools, it says how many lie in the chest.
+
+## Worn tools
+
+Workers do not break their tools. Once a tool has only **10 %** of its durability left
+(at least 2 uses), the worker stops using it and, before its next piece of work, gives it
+back ("Giving back a worn tool"):
+
+1. into the closest **village chest** with a free slot, taking a new tool from it on the
+   same walk if it needs one,
+2. otherwise into an **output chest** of its workstation,
+3. otherwise it keeps the tool and tries again a minute later.
+
+Then it works on with its spare tool, or waits for a new one ("needs an axe"). Repair the
+worn tools at an anvil, or combine two in a crafting table, and put them back. Workers
+never take a worn tool, and you cannot give them one.
+
+**Wooden and stone tools** are cheap: they are used until they break, unless they are
+enchanted or renamed. The tooltip of the worker's supplies says when it carries a worn tool
+to give back. Both limits can be changed in the [config](../configuration.md#tools-tools).
 
 ## Complaining
 

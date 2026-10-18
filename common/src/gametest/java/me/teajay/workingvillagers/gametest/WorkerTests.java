@@ -96,6 +96,10 @@ public final class WorkerTests {
 		registry.accept("worker_takes_lost_station", WorkerTests::workerTakesLostStation);
 		registry.accept("village_chest_supplies_lumberjack", WorkerTests::villageChestSuppliesLumberjack);
 		registry.accept("village_chest_keeps_named_tools", WorkerTests::villageChestKeepsNamedTools);
+		registry.accept("lumberjack_gives_back_worn_axe", WorkerTests::lumberjackGivesBackWornAxe);
+		registry.accept("lumberjack_swaps_worn_axe", WorkerTests::lumberjackSwapsWornAxe);
+		registry.accept("worn_axe_goes_to_output_chest", WorkerTests::wornAxeGoesToOutputChest);
+		registry.accept("stone_axe_is_used_up", WorkerTests::stoneAxeIsUsedUp);
 		for (StationType type : StationType.values()) {
 			String name = type.name().toLowerCase(Locale.ROOT);
 			registry.accept("worker_finds_" + name, helper -> workerFinds(helper, type));
@@ -262,6 +266,91 @@ public final class WorkerTests {
 			helper.assertTrue(((HiredVillager) worker).workingvillagers$hasProblem(), "The lumberjack without axe does not complain: " + TestWorld.describe(worker));
 			TestWorld.removeVillageChest(helper, VILLAGE_CHEST);
 			helper.succeed();
+		});
+	}
+
+	/** An iron axe with 20 of its 250 uses left: worn, it is given back instead of used. */
+	private static ItemStack wornAxe() {
+		ItemStack axe = new ItemStack(Items.IRON_AXE);
+		axe.setDamageValue(axe.getMaxDamage() - 20);
+		return axe;
+	}
+
+	/** Into its inventory: a worker does not accept a worn tool from a player. */
+	private static void carryWornAxe(Villager worker) {
+		worker.getInventory().addItem(wornAxe());
+	}
+
+	private static boolean isWornAxe(ItemStack stack) {
+		return stack.is(Items.IRON_AXE) && WorkerSupplies.isWorn(stack);
+	}
+
+	/**
+	 * A lumberjack with a worn axe and a spare fells the tree with the spare and puts the worn
+	 * axe into the village chest, where it does not take it again.
+	 */
+	private static void lumberjackGivesBackWornAxe(GameTestHelper helper) {
+		BlockPos tree = new BlockPos(15, 1, 15);
+		TestWorld.oakTree(helper, tree, 5, true, Blocks.DIRT);
+		TestWorld.villageChest(helper, VILLAGE_CHEST);
+		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_AXE));
+		carryWornAxe(worker);
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_LOG), 5, "oak logs in the output chest");
+			helper.assertTrue(TestWorld.count(helper, VILLAGE_CHEST, WorkerTests::isWornAxe) == 1,
+				"The worn axe is not in the village chest: " + TestWorld.describe(worker));
+			helper.assertTrue(WorkerSupplies.count(worker.getInventory(), stack -> stack.is(Items.IRON_AXE)) == 1, "The lumberjack lost its spare axe");
+			TestWorld.removeVillageChest(helper, VILLAGE_CHEST);
+		});
+	}
+
+	/**
+	 * A lumberjack whose only axe is worn takes a new one from the village chest and leaves
+	 * the worn one there, in one walk, and fells the tree.
+	 */
+	private static void lumberjackSwapsWornAxe(GameTestHelper helper) {
+		BlockPos tree = new BlockPos(15, 1, 15);
+		TestWorld.oakTree(helper, tree, 5, true, Blocks.DIRT);
+		TestWorld.villageChest(helper, VILLAGE_CHEST, new ItemStack(Items.IRON_AXE));
+		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 2));
+		carryWornAxe(worker);
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_LOG), 5, "oak logs in the output chest");
+			helper.assertTrue(TestWorld.count(helper, VILLAGE_CHEST, WorkerTests::isWornAxe) == 1,
+				"The worn axe is not in the village chest: " + TestWorld.describe(worker));
+			helper.assertTrue(TestWorld.count(helper, VILLAGE_CHEST, stack -> stack.is(Items.IRON_AXE)) == 1, "The lumberjack did not take the new axe");
+			TestWorld.removeVillageChest(helper, VILLAGE_CHEST);
+		});
+	}
+
+	/**
+	 * Without a village chest the worn axe goes into the output chest. The lumberjack does not
+	 * use it up: without another axe it waits and leaves the tree standing.
+	 */
+	private static void wornAxeGoesToOutputChest(GameTestHelper helper) {
+		BlockPos tree = new BlockPos(15, 1, 15);
+		TestWorld.oakTree(helper, tree, 4, true, Blocks.DIRT);
+		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 2));
+		carryWornAxe(worker);
+		helper.failIfEver(() -> helper.assertBlockPresent(Blocks.OAK_LOG, tree));
+		helper.succeedWhen(() -> {
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, WorkerTests::isWornAxe) == 1,
+				"The worn axe is not in the output chest: " + TestWorld.describe(worker));
+			helper.assertTrue(((HiredVillager) worker).workingvillagers$hasProblem(), "The lumberjack without axe does not complain: " + TestWorld.describe(worker));
+		});
+	}
+
+	/** A stone axe is cheap: the lumberjack uses it up instead of giving it back. */
+	private static void stoneAxeIsUsedUp(GameTestHelper helper) {
+		BlockPos tree = new BlockPos(15, 1, 15);
+		TestWorld.oakTree(helper, tree, 4, true, Blocks.DIRT);
+		ItemStack axe = new ItemStack(Items.STONE_AXE);
+		axe.setDamageValue(axe.getMaxDamage() - 2);
+		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 2), axe);
+		helper.succeedWhen(() -> {
+			helper.assertTrue(WorkerSupplies.count(worker.getInventory(), stack -> stack.is(Items.STONE_AXE)) == 0
+				&& TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.STONE_AXE)) == 0, "The stone axe was not used up: " + TestWorld.describe(worker));
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_LOG), 1, "oak logs in the output chest");
 		});
 	}
 

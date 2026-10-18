@@ -30,4 +30,4 @@ Status: **erledigt** · **teilweise** · **offen**. Was genau umgesetzt ist, ste
 
 - **[Arbeitsverträge je Beruf](../wirtschaft/arbeitsvertraege.md):** für jeden Beruf ein eigener Vertrag, nicht craftbar, sondern als Fund in Truhen von Dörfern, Minenschächten, Außenposten und Anwesen. Der Vertrag legt den Beruf des Angeheuerten fest. (Wunsch vom 15.10.2026)
 - **[Dorftruhen](../dorf/dorftruhen.md)** · *umgesetzt, ohne Dorfkasse*: ein eigenes Item/Block „Dorftruhe“. Der Spieler kann mehrere aufstellen, und alle Arbeiter des Dorfs bedienen sich aus allen Dorftruhen mit Lohn (Smaragde), Werkzeug und Saatgut/Setzlingen. Optional zusätzlich zum direkten Geben. (Wunsch vom 15.10.2026)
-- **[Werkzeugrückgabe](../dorf/werkzeugrueckgabe.md):** Arbeiter legen fast kaputtes Werkzeug in eine Dorftruhe, statt es zu zerbrechen; der Schmied repariert es später. (Wunsch vom 15.10.2026)
+- **[Werkzeugrückgabe](../dorf/werkzeugrueckgabe.md)** · *umgesetzt, ohne Reparieren durch den Schmied*: Arbeiter legen fast kaputtes Werkzeug in eine Dorftruhe (sonst in die Zielkiste), statt es zu zerbrechen; der Schmied repariert es später. (Wunsch vom 15.10.2026)

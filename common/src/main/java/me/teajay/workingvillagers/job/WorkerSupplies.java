@@ -1,6 +1,7 @@
 package me.teajay.workingvillagers.job;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,7 @@ import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -34,6 +36,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Repairable;
 import net.minecraft.world.level.block.TorchBlock;
 import org.jspecify.annotations.Nullable;
 
@@ -46,6 +49,11 @@ import org.jspecify.annotations.Nullable;
  * whatever runs low, during the day only what it cannot work without. Without its wage for
  * the day, or without its tool, a worker does not work; it waits at its workstation and
  * shakes its head.
+ *
+ * <p>A tool that is about to break ({@link #isWorn}) counts as no tool: the worker stops
+ * using it and, before its next piece of work, gives it back instead of breaking it, into a
+ * village chest or else an output chest of its workstation. Going to a village chest it
+ * takes a new tool at once.
  *
  * <p>An instance belongs to one work behavior and runs the waiting; the static part decides
  * what a worker accepts.
@@ -61,12 +69,19 @@ public final class WorkerSupplies {
 	private static final int RETRY_TICKS = 100;
 	/** How long the worker tries to get to a village chest; they may be farther off than its own chests. */
 	private static final int VILLAGE_CHEST_WALK_TICKS = 1200;
+	/** How long a worker that found no room for a worn tool waits before it looks again. */
+	private static final int GIVE_BACK_RETRY_TICKS = 1200;
 
 	/** Something the worker has to carry for its work, and the status while it has none. */
 	public interface Need {
 		Predicate<ItemStack> item();
 
 		String missingKey();
+
+		/** What counts as having it: for a tool, one that is not worn. */
+		default Predicate<ItemStack> ready() {
+			return this.item();
+		}
 	}
 
 	/**
@@ -74,6 +89,10 @@ public final class WorkerSupplies {
 	 * ({@code "axe"}, ...).
 	 */
 	public record Tool(String kind, Predicate<ItemStack> item, String missingKey) implements Need {
+		@Override
+		public Predicate<ItemStack> ready() {
+			return stack -> this.item.test(stack) && !isWorn(stack);
+		}
 	}
 
 	/**
@@ -100,8 +119,12 @@ public final class WorkerSupplies {
 	public static final Stock SEAL_BLOCKS = new Stock("seal", WorkerSupplies::isSealBlock, Config.KEEP_SEAL_BLOCKS::get, "", false);
 
 	private int waitTicks;
-	/** On the way to a village chest, null otherwise. */
+	/** On the way to a village chest, or to an output chest with a worn tool; null otherwise. */
 	private @Nullable ChestTrip trip;
+	/** Whether the trip goes to a village chest (and the worker also takes from it). */
+	private boolean toVillageChest;
+	/** Until when (game time) a worker that found no room for a worn tool keeps it. */
+	private long giveBackRetry;
 	/** The day the worker last looked for what runs low (see {@link VillageChests}). */
 	private long checkedDay = -1;
 	/** Village chests it could not get at or got nothing from, with the day; it tries them again the next day. */
@@ -121,6 +144,9 @@ public final class WorkerSupplies {
 			this.waitTicks--;
 			return true;
 		}
+		if (this.giveBackDue(level, villager) && this.giveBack(level, villager)) {
+			return true;
+		}
 		int wage = Config.DAILY_WAGE.get();
 		SimpleContainer inventory = villager.getInventory();
 		if (wage > 0 && !isPaid(level, villager)) {
@@ -135,8 +161,8 @@ public final class WorkerSupplies {
 			level.sendParticles(ParticleTypes.HAPPY_VILLAGER, villager.getX(), villager.getY() + 1.8, villager.getZ(), 5, 0.3, 0.2, 0.3, 0.0);
 		}
 		for (Need need : needs) {
-			if (!inventory.hasAnyMatching(stack -> !stack.isEmpty() && need.item().test(stack))) {
-				if (!this.fetch(level, villager, need.item())) {
+			if (!inventory.hasAnyMatching(stack -> !stack.isEmpty() && need.ready().test(stack))) {
+				if (!this.fetch(level, villager, need.ready())) {
 					this.waitFor(level, villager, need.missingKey());
 				}
 				return true;
@@ -146,11 +172,12 @@ public final class WorkerSupplies {
 	}
 
 	/**
-	 * Whether the worker wants to fetch what runs low before its first work of the day. Work
-	 * that only calls {@link #busy} when something is missing asks this, too.
+	 * Whether the worker wants to fetch what runs low before its first work of the day, or to
+	 * give back a worn tool. Work that only calls {@link #busy} when something is missing asks
+	 * this, too.
 	 */
 	public boolean refillDue(ServerLevel level, Villager villager) {
-		if (this.trip != null) {
+		if (this.trip != null || this.giveBackDue(level, villager)) {
 			return true;
 		}
 		long today = ChopTrees.today(level);
@@ -183,8 +210,70 @@ public final class WorkerSupplies {
 			return false;
 		}
 		this.trip = ChestTrip.to(level, villager, chest, VILLAGE_CHEST_WALK_TICKS);
+		this.toVillageChest = true;
 		WorkerStatus.task(villager, "village_chest.fetch");
 		return true;
+	}
+
+	/** Whether the worker carries a worn tool to give back, and has not just failed to find room for it. */
+	private boolean giveBackDue(ServerLevel level, Villager villager) {
+		return level.getGameTime() >= this.giveBackRetry && villager.getInventory().hasAnyMatching(stack -> isToGiveBack(villager, stack));
+	}
+
+	/**
+	 * Sets off with the worn tools to the closest village chest in reach with room, or else to
+	 * the closest output chest of the workstation with room. Returns false if there is none:
+	 * then the worker keeps them for a while.
+	 */
+	private boolean giveBack(ServerLevel level, Villager villager) {
+		BlockPos anchor = anchor(level, villager);
+		Optional<BlockPos> chest = VillageChests.inReach(level, anchor).stream()
+			.filter(pos -> !this.skipped.containsKey(pos) && hasRoom(Workstations.getContainer(level, pos)))
+			.findFirst();
+		this.toVillageChest = chest.isPresent();
+		if (chest.isEmpty()) {
+			chest = Workstations.find(level, anchor).stream()
+				.flatMap(station -> station.validOutputs(level).stream())
+				.filter(pos -> hasRoom(Workstations.getContainer(level, pos)))
+				.min(Comparator.comparingDouble(pos -> pos.distToCenterSqr(villager.position())));
+		}
+		if (chest.isEmpty()) {
+			this.giveBackRetry = level.getGameTime() + GIVE_BACK_RETRY_TICKS;
+			return false;
+		}
+		this.trip = ChestTrip.to(level, villager, chest.get(), VILLAGE_CHEST_WALK_TICKS);
+		WorkerStatus.task(villager, "tool_return");
+		return true;
+	}
+
+	private static boolean hasRoom(@Nullable Container container) {
+		if (container == null) {
+			return false;
+		}
+		for (int slot = 0; slot < container.getContainerSize(); slot++) {
+			if (container.getItem(slot).isEmpty()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** Puts the worn tools into the container, as many as fit. Returns how many. */
+	private static int putWornTools(Villager villager, Container container) {
+		SimpleContainer inventory = villager.getInventory();
+		int moved = 0;
+		for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+			ItemStack stack = inventory.getItem(slot);
+			if (isToGiveBack(villager, stack)) {
+				ItemStack rest = Chests.store(container, stack);
+				moved += stack.getCount() - rest.getCount();
+				inventory.setItem(slot, rest);
+			}
+		}
+		if (moved > 0) {
+			container.setChanged();
+		}
+		return moved;
 	}
 
 	private @Nullable BlockPos villageChest(ServerLevel level, Villager villager, Predicate<ItemStack> wanted) {
@@ -202,23 +291,38 @@ public final class WorkerSupplies {
 		return null;
 	}
 
-	/** Walks to the village chest and takes what it wants. Returns true while it is on its way. */
+	/**
+	 * Walks to the chest, puts its worn tools in and, at a village chest, takes what it wants.
+	 * Returns true while it is on its way.
+	 */
 	private boolean fetching(ServerLevel level, Villager villager) {
 		ChestTrip trip = Objects.requireNonNull(this.trip);
-		int[] taken = {0};
-		ChestTrip.Result result = trip.tick(level, villager, container -> taken[0] = VillageChests.take(villager, container));
+		boolean villageChest = this.toVillageChest;
+		int[] moved = {0, 0};
+		ChestTrip.Result result = trip.tick(level, villager, container -> {
+			moved[0] = putWornTools(villager, container);
+			moved[1] = villageChest ? VillageChests.take(villager, container) : 0;
+		});
 		if (result == ChestTrip.Result.RUNNING) {
-			WorkerStatus.task(villager, "village_chest.fetch");
+			boolean worn = villager.getInventory().hasAnyMatching(stack -> isToGiveBack(villager, stack));
+			WorkerStatus.task(villager, worn ? "tool_return" : "village_chest.fetch");
 			return true;
 		}
 		this.trip = null;
-		if (result == ChestTrip.Result.FAILED || taken[0] == 0) {
-			this.skipped.put(trip.chest(), ChopTrees.today(level));
-		} else {
+		if (moved[0] + moved[1] > 0) {
 			level.playSound(null, villager.getX(), villager.getY(), villager.getZ(), SoundEvents.ITEM_PICKUP, SoundSource.NEUTRAL, 0.3F, 1.2F);
 		}
-		// What runs low is fetched once a day; anything still missing waits for the next check
-		this.checkedDay = ChopTrees.today(level);
+		if (villager.getInventory().hasAnyMatching(stack -> isToGiveBack(villager, stack))) {
+			// No room after all, or the chest could not be reached: not again right away
+			this.giveBackRetry = level.getGameTime() + GIVE_BACK_RETRY_TICKS;
+		}
+		if (villageChest) {
+			if (result == ChestTrip.Result.FAILED || moved[0] + moved[1] == 0) {
+				this.skipped.put(trip.chest(), ChopTrees.today(level));
+			}
+			// What runs low is fetched once a day; anything still missing waits for the next check
+			this.checkedDay = ChopTrees.today(level);
+		}
 		return false;
 	}
 
@@ -242,6 +346,34 @@ public final class WorkerSupplies {
 
 	public static boolean isWage(ItemStack stack) {
 		return stack.is(WAGE);
+	}
+
+	/**
+	 * A tool about to break that is given back instead of used up: {@link Config#TOOL_RETURN_BELOW}
+	 * percent of its durability left or less, at least 2 uses. Wooden and stone tools are used up
+	 * unless {@link Config#TOOL_RETURN_CHEAP}, or they are enchanted or renamed.
+	 */
+	public static boolean isWorn(ItemStack stack) {
+		int percent = Config.TOOL_RETURN_BELOW.get();
+		if (percent <= 0 || stack.isEmpty() || !stack.isDamageableItem() || !isGivenBack(stack)) {
+			return false;
+		}
+		int left = stack.getMaxDamage() - stack.getDamageValue();
+		return left <= Math.max(2, stack.getMaxDamage() * percent / 100);
+	}
+
+	private static boolean isGivenBack(ItemStack tool) {
+		if (Config.TOOL_RETURN_CHEAP.get() || tool.isEnchanted() || tool.has(DataComponents.CUSTOM_NAME)) {
+			return true;
+		}
+		Repairable repairable = tool.get(DataComponents.REPAIRABLE);
+		return repairable == null
+			|| !repairable.isValidRepairItem(new ItemStack(Items.OAK_PLANKS)) && !repairable.isValidRepairItem(new ItemStack(Items.COBBLESTONE));
+	}
+
+	/** A worn tool of the worker's job, which it gives back. */
+	public static boolean isToGiveBack(Villager villager, ItemStack stack) {
+		return isWorn(stack) && toolsOf(villager).stream().anyMatch(tool -> tool.item().test(stack));
 	}
 
 	/** The tools the worker needs for its job. */
@@ -300,7 +432,7 @@ public final class WorkerSupplies {
 
 	/**
 	 * How many of the stack the worker takes: emeralds up to {@link #MAX_EMERALDS}, each tool
-	 * of its job up to two, and what it uses up (saplings, seeds, ladders) up to the amount it
+	 * of its job up to two (no worn one), and what it uses up (saplings, seeds, ladders) up to the amount it
 	 * keeps of each kind. 0 if it does not want it or has no room.
 	 */
 	public static int accepts(Villager villager, ItemStack stack) {
@@ -314,7 +446,7 @@ public final class WorkerSupplies {
 		if (isWage(stack)) {
 			wanted = MAX_EMERALDS - count(inventory, WorkerSupplies::isWage);
 		} else if (tool.isPresent()) {
-			wanted = MAX_TOOLS - count(inventory, tool.get().item());
+			wanted = isWorn(stack) ? 0 : MAX_TOOLS - count(inventory, tool.get().ready());
 		} else if (stock.isPresent()) {
 			wanted = stock.get().keep().getAsInt() - count(inventory, other -> other.is(stack.getItem()));
 		} else {
@@ -393,7 +525,7 @@ public final class WorkerSupplies {
 		return InteractionResult.SUCCESS_SERVER;
 	}
 
-	public static int count(SimpleContainer inventory, Predicate<ItemStack> filter) {
+	public static int count(Container inventory, Predicate<ItemStack> filter) {
 		int count = 0;
 		for (ItemStack stack : inventory) {
 			if (!stack.isEmpty() && filter.test(stack)) {

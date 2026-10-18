@@ -383,9 +383,10 @@ public class ChopTrees extends Behavior<Villager> {
 		return stack.is(ItemTags.AXES);
 	}
 
+	/** The axe the lumberjack works with; a worn one it gives back instead (see {@link WorkerSupplies#isWorn}). */
 	private static ItemStack findAxe(SimpleContainer inventory) {
 		for (ItemStack stack : inventory) {
-			if (!stack.isEmpty() && isAxe(stack)) {
+			if (!stack.isEmpty() && isAxe(stack) && !WorkerSupplies.isWorn(stack)) {
 				return stack;
 			}
 		}

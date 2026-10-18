@@ -28,8 +28,9 @@ import net.minecraft.world.item.Items;
  * @param stocks what the worker uses up, each as one stack with the total count (empty if
  *     it carries none)
  * @param villageChests how many village chests the worker has in reach (see {@link VillageChests})
+ * @param worn how many worn tools the worker carries to give back (see {@link WorkerSupplies#isWorn})
  */
-public record SuppliesInfo(int emeralds, int wage, boolean paid, List<Slot> tools, List<Slot> stocks, int villageChests) {
+public record SuppliesInfo(int emeralds, int wage, boolean paid, List<Slot> tools, List<Slot> stocks, int villageChests, int worn) {
 	private static final String TAG = "Supplies";
 	private static final String TAG_EMERALDS = "Emeralds";
 	private static final String TAG_WAGE = "Wage";
@@ -42,6 +43,7 @@ public record SuppliesInfo(int emeralds, int wage, boolean paid, List<Slot> tool
 	private static final String TAG_DAMAGE = "Damage";
 	private static final String TAG_REQUIRED = "Required";
 	private static final String TAG_VILLAGE_CHESTS = "VillageChests";
+	private static final String TAG_WORN = "Worn";
 
 	/**
 	 * A tool or something the worker uses up: its kind ({@code "axe"}, {@code "ladders"},
@@ -75,7 +77,7 @@ public record SuppliesInfo(int emeralds, int wage, boolean paid, List<Slot> tool
 			CompoundTag entry = new CompoundTag();
 			entry.putString(TAG_KIND, tool.kind());
 			for (ItemStack stack : inventory) {
-				if (!stack.isEmpty() && tool.item().test(stack)) {
+				if (!stack.isEmpty() && tool.ready().test(stack)) {
 					entry.putString(TAG_ITEM, BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
 					entry.putInt(TAG_DAMAGE, stack.getDamageValue());
 					break;
@@ -106,6 +108,7 @@ public record SuppliesInfo(int emeralds, int wage, boolean paid, List<Slot> tool
 		}
 		tag.put(TAG_STOCKS, stocks);
 		tag.putInt(TAG_VILLAGE_CHESTS, VillageChests.inReach(level, VillageChests.workplace(level, worker)).size());
+		tag.putInt(TAG_WORN, WorkerSupplies.count(inventory, stack -> WorkerSupplies.isToGiveBack(worker, stack)));
 		info.put(TAG, tag);
 	}
 
@@ -131,7 +134,8 @@ public record SuppliesInfo(int emeralds, int wage, boolean paid, List<Slot> tool
 				tag.getBooleanOr(TAG_PAID, false),
 				List.copyOf(tools),
 				List.copyOf(stocks),
-				tag.getIntOr(TAG_VILLAGE_CHESTS, 0)
+				tag.getIntOr(TAG_VILLAGE_CHESTS, 0),
+				tag.getIntOr(TAG_WORN, 0)
 			);
 		});
 	}

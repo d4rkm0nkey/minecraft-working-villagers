@@ -10,16 +10,17 @@ import net.minecraft.world.inventory.ChestMenu;
 
 /**
  * The village chest's screen: a chest, and to its right a panel with the workers it serves,
- * what one of them lacks and for how long the emeralds pay the wages.
+ * what one of them lacks, the worn tools given back and for how long the emeralds pay the
+ * wages.
  */
 public class VillageChestScreen extends ContainerScreen {
 	private static final int PANEL_WIDTH = 132;
 	private static final int PANEL_GAP = 2;
 	/** Two lines per worker: its name, then its job or what it lacks. */
 	private static final int ROW_HEIGHT = 21;
-	/** Above the workers: the heading; below: the wage line. */
+	/** Above the workers: the heading; below: the lines about worn tools and the wage. */
 	private static final int HEADER_HEIGHT = 20;
-	private static final int FOOTER_HEIGHT = 18;
+	private static final int FOOTER_HEIGHT = 28;
 	private static final int OK_COLOR = 0xFF2E6B2E;
 
 	private final VillageChestMenu villageChest;
@@ -71,6 +72,11 @@ public class VillageChestScreen extends ContainerScreen {
 		if (shown < workers.size()) {
 			graphics.text(this.font, Component.translatable("gui.workingvillagers.village_chest.more", workers.size() - shown), x, y,
 				GuiPanels.MUTED_COLOR, false);
+		}
+		int worn = this.villageChest.getWornTools();
+		if (worn > 0) {
+			GuiPanels.scrollingText(graphics, this.font, Component.translatable("gui.workingvillagers.village_chest.worn", worn).getString(),
+				this.panelX() + 7, this.topPos + this.imageHeight - 24, textWidth, GuiPanels.MUTED_COLOR);
 		}
 		this.villageChest.getWageDays().ifPresent(days -> GuiPanels.scrollingText(graphics, this.font,
 			Component.translatable("gui.workingvillagers.village_chest.wage_days", days).getString(), this.panelX() + 7, this.topPos + this.imageHeight - 14,

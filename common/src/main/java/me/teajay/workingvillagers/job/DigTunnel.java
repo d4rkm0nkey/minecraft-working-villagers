@@ -301,7 +301,7 @@ public class DigTunnel extends Behavior<Villager> {
 		if (Config.DAILY_WAGE.get() > 0 && !WorkerSupplies.isPaid(level, villager) || this.supplies.refillDue(level, villager)) {
 			return true;
 		}
-		return WorkerSupplies.count(villager.getInventory(), WorkerSupplies.PICKAXE.item()) == 0;
+		return WorkerSupplies.count(villager.getInventory(), WorkerSupplies.PICKAXE.ready()) == 0;
 	}
 
 	/** Makes the sections anew when the tunnel or its settings changed. */

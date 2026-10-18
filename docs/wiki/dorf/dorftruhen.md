@@ -11,7 +11,7 @@ Umgesetzt wie unten beschrieben, mit diesen Abweichungen:
 - **Block:** eine Vanilla-Truhe (Deckel, Geräusche, Katzen und Blöcke obendrauf, Doppeltruhe wie bei der Truhe) mit eigener Textur: die Truhentextur in Fichte, Eisenbänder statt der dunklen Kanten, ein Smaragd als Schloss. Erzeugt von `tools/generate_textures.py`.
 - **Unerreichbare Truhe:** Kein eigener Status „Kommt nicht an die Dorftruhe“. Eine Truhe, die er nicht erreicht oder aus der er nichts bekommt, lässt er für den Rest des Tages aus und sucht die nächste; sonst wartet er mit dem bekannten Status.
 - **Erneut nachsehen:** alle 100 Ticks, auch beim Lohn (nicht einmal pro Minute).
-- **Werkzeugwahl:** ein einziges Kriterium, die wenigsten verbleibenden Nutzungen. Das bevorzugt abgenutzte und billige Werkzeuge zugleich. Werkzeug mit höchstens 10 % Haltbarkeit nimmt er nur, wenn er gar keins hat (aus der [Werkzeugrückgabe](werkzeugrueckgabe.md#abgenutztes-werkzeug-wird-nicht-wieder-genommen) vorgezogen).
+- **Werkzeugwahl:** ein einziges Kriterium, die wenigsten verbleibenden Nutzungen. Das bevorzugt abgenutzte und billige Werkzeuge zugleich. Abgenutztes Werkzeug nimmt er nie (siehe [Werkzeugrückgabe](werkzeugrueckgabe.md#abgenutztes-werkzeug-wird-nicht-wieder-genommen)).
 - **Stationsmenü:** Der Tooltip der Versorgungszeile sagt nur, aus wie vielen Dorftruhen der Arbeiter sich bedient, nicht was darin liegt.
 - **Dorftruhen-Menü:** Liste mit ✔ oder ✘ und dem, was fehlt und in keiner Dorftruhe liegt („Braucht eine Axt!“). Einen gelben Zustand „knapp“ gibt es nicht. Ab 11 Arbeitern „… und N weitere“.
 - **Mehrspieler:** ohne Besitzer, wie unten beschrieben.

@@ -353,5 +353,8 @@
   "message.workingvillagers.tunnel.pick": "Rechtsklick auf die Seite des Blocks, an dem der Stollen beginnt. Rechtsklick auf die Grubenwerkbank bricht ab.",
   "message.workingvillagers.tunnel.side": "Die Seite eines Blocks anklicken, nicht oben oder unten.",
   "message.workingvillagers.tunnel.too_far": "Der Stollen muss höchstens %s Blöcke von der Grubenwerkbank entfernt beginnen.",
-  "message.workingvillagers.tunnel.picked": "Stollen gewählt: Er geht nach %s."
+  "message.workingvillagers.tunnel.picked": "Stollen gewählt: Er geht nach %s.",
+  "status.workingvillagers.tool_return": "Gibt ein abgenutztes Werkzeug zurück",
+  "gui.workingvillagers.supplies.worn": "Gibt %s abgenutzte(s) Werkzeug(e) zurück, statt sie zu zerbrechen",
+  "gui.workingvillagers.village_chest.worn": "%s abgenutzte(s) Werkzeug(e) zum Reparieren"
 }

@@ -353,5 +353,8 @@
   "message.workingvillagers.tunnel.pick": "Right-click the side of the block where the tunnel starts. Right-click the mining bench to cancel.",
   "message.workingvillagers.tunnel.side": "Click the side of a block, not its top or bottom.",
   "message.workingvillagers.tunnel.too_far": "The tunnel has to start at most %s blocks from the mining bench.",
-  "message.workingvillagers.tunnel.picked": "Tunnel picked: it goes to the %s."
+  "message.workingvillagers.tunnel.picked": "Tunnel picked: it goes to the %s.",
+  "status.workingvillagers.tool_return": "Giving back a worn tool",
+  "gui.workingvillagers.supplies.worn": "Gives back %s worn tool(s) instead of breaking them",
+  "gui.workingvillagers.village_chest.worn": "%s worn tool(s) to repair"
 }

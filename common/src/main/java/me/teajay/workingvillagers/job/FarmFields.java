@@ -338,9 +338,10 @@ public class FarmFields extends Behavior<Villager> {
 		villager.getInventory().setChanged();
 	}
 
+	/** The hoe the farmer works with; a worn one it gives back instead (see {@link WorkerSupplies#isWorn}). */
 	private static ItemStack findHoe(SimpleContainer inventory) {
 		for (ItemStack stack : inventory) {
-			if (!stack.isEmpty() && isHoe(stack)) {
+			if (!stack.isEmpty() && isHoe(stack) && !WorkerSupplies.isWorn(stack)) {
 				return stack;
 			}
 		}

@@ -130,6 +130,13 @@ default and its allowed range, so you can edit it with any text editor.
 | `wageDays` | 3 | 1–16 | For how many days a worker takes its wage at once. |
 | `takeEnchanted` | false | | Workers also take enchanted and renamed tools. |
 
+## Tools (`tools`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `returnBelow` | 10 | 0–50 | Once this many percent of a tool's durability are left (at least 2 uses), the worker stops using it and gives it back, see [Worn tools](workers/basics.md#worn-tools). `0`: tools are used until they break. |
+| `returnCheap` | false | | Wooden and stone tools are given back, too. `false`: they are used up, unless they are enchanted or renamed. |
+
 ## Example: a relaxed survival setup
 
 ```json
