@@ -9,6 +9,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractFurnaceMenu;
 import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.RecipeBookType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipePropertySet;
@@ -16,21 +17,30 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The kiln's screen: the furnace screen with the furnace's recipe book. The "i" button opens
+ * The kiln's screen: the furnace screen with the furnace's recipe book. The button with the worker's face opens
  * the overview of the kiln operator's station.
  */
-public class KilnMenu extends AbstractFurnaceMenu {
+public class KilnMenu extends AbstractFurnaceMenu implements StationWorker {
 	private final @Nullable Container kiln;
+	private final DataSlot worker;
 
 	/** Client side. */
 	public KilnMenu(int containerId, Inventory inventory) {
 		super(WorkingVillagers.KILN_MENU.get(), RecipePropertySet.FURNACE_INPUT, RecipeBookType.FURNACE, containerId, inventory);
 		this.kiln = null;
+		this.worker = this.addDataSlot(DataSlot.standalone());
 	}
 
 	public KilnMenu(int containerId, Inventory inventory, Container kiln, ContainerData data) {
 		super(WorkingVillagers.KILN_MENU.get(), RecipePropertySet.FURNACE_INPUT, RecipeBookType.FURNACE, containerId, inventory, kiln, data);
 		this.kiln = kiln;
+		this.worker = this.addDataSlot(kiln instanceof BlockEntity entity && entity.getLevel() instanceof ServerLevel level
+			? StationWorker.slot(level, entity.getBlockPos()) : DataSlot.standalone());
+	}
+
+	@Override
+	public boolean workingvillagers$hasWorker() {
+		return this.worker.get() == 1;
 	}
 
 	/** Shift-clicking only puts in what the kiln fires; the client only knows the furnace's inputs. */

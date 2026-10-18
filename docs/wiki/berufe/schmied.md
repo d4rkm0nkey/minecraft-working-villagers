@@ -6,7 +6,7 @@ Der Schmied schmilzt Erz zu Barren und repariert die Werkzeuge der anderen Anges
 
 ## Stand der Umsetzung
 
-- **Zwei Stationen:** Am Schmelzofen schmilzt er, am Schmiedetisch repariert er; was er tut, hängt allein davon ab, wo er arbeitet. Der Knopf **i** in beiden Menüs öffnet die Stationsübersicht. Panzermacher und Werkzeugschmiede aus dem Dorf arbeiten weiter an diesen Blöcken, außer an eingerichteten.
+- **Zwei Stationen:** Am Schmelzofen schmilzt er, am Schmiedetisch repariert er; was er tut, hängt allein davon ab, wo er arbeitet. Der Knopf mit dem Gesicht des Arbeiters in beiden Menüs öffnet die Stationsübersicht. Panzermacher und Werkzeugschmiede aus dem Dorf arbeiten weiter an diesen Blöcken, außer an eingerichteten.
 - **Kein Auftrag:** Er schmilzt alles aus den Eingangskisten, was der Schmelzofen annimmt (rohe Erze, Erzblöcke, Eisen- und Goldwerkzeug …). Was der Ofen nicht kann, lässt er liegen.
 - **Brennstoff** ist alles, was brennt (Kohle, Holzkohle, Kohleblöcke, Lavaeimer …). Er legt ihn aus denselben Eingangskisten nach; den leeren Eimer bringt er mit weg.
 - **Mengen:** Pro Gang holt er bis zu 16 Items zum Schmelzen (Config `smith.batchSize`) und bis zu 8 Brennstoff (Config `smith.fuelPerTrip`). Das Schmelzen selbst macht der Ofen in seinem normalen Tempo.

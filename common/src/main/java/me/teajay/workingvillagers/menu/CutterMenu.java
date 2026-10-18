@@ -12,12 +12,14 @@ import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Prediction;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.npc.villager.VillagerProfession;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -163,6 +165,14 @@ public class CutterMenu extends AbstractContainerMenu {
 	/** Whether the station has an order (shown below the result); the mill of the mining bench has none. */
 	public boolean hasOrder() {
 		return this.kind != WorkingVillagers.MILL_KIND;
+	}
+
+	/** The profession that works at the station: sawyer, stone sawyer or (at the mill) miner. */
+	public ResourceKey<VillagerProfession> profession() {
+		if (this.kind == WorkingVillagers.WOODCUTTER_KIND) {
+			return WorkingVillagers.WOODCUTTER_PROFESSION;
+		}
+		return this.kind == WorkingVillagers.STONECUTTER_KIND ? WorkingVillagers.STONECUTTER_PROFESSION : WorkingVillagers.MINER_PROFESSION;
 	}
 
 	/** Whether this is the woodcutter's menu, whose order can use several wood types. */

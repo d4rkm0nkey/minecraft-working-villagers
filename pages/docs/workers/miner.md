@@ -13,7 +13,7 @@ way, seals off water and lava, and brings everything to its chest.
 ## Setting it up
 
 1. Place a [mining bench](../blocks-and-items.md#mining-bench) near the hill and link at
-   least one **chest** (**+ Chest** in its overview: the **i** button at the top right of
+   least one **chest** (**+ Chest** in its overview: the button with the worker's face at the top right of
    the mill).
 2. Click **Pick tunnel**. The menu closes; right-click the **side** of the block where the
    tunnel starts. The tunnel goes straight into that block, away from the side you

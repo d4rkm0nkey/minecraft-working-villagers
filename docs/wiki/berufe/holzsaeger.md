@@ -9,7 +9,7 @@ Der Holzsäger verarbeitet Stämme und Bretter an der Holzsäge zu Brettern, Stu
 - Eigener Block, funktioniert für Spieler wie die Steinsäge: Stamm oder Brett hinein, Ergebnis anklicken. Ohne den Verschnitt der Werkbank, z. B. 1 Stamm → 4 Bretter, 4 Treppen, 8 Stufen oder 8 Stöcke; 1 Brett → 2 Stufen.
 - Rezept: 1 Eisenbarren über 3 Brettern (beliebige Holzart), passend zur Steinsäge mit Eisen + Stein.
 - Rezepte als eigener Rezepttyp `workingvillagers:woodcutting`, per Datapack erweiterbar (Holz aus anderen Mods). Was hineinpasst, legt der Item-Tag `workingvillagers:woodcuttable` fest: Stämme, Bretter, Bambusblöcke, Bambusmosaik.
-- Der Knopf **i** im Menü öffnet die Stationsübersicht mit Arbeiter, Kisten und Auftrag (siehe [Steuerung](../grundlagen/steuerung.md#stationsübersicht)).
+- Der Knopf mit dem Gesicht des Arbeiters im Menü öffnet die Stationsübersicht mit Arbeiter, Kisten und Auftrag (siehe [Steuerung](../grundlagen/steuerung.md#stationsübersicht)).
 - Nur angeheuerte Dorfbewohner arbeiten hier. Vanilla-Dorfbewohner nehmen die Holzsäge nicht als Arbeitsplatz.
 
 ## Auftrag

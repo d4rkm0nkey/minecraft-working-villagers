@@ -61,7 +61,7 @@ Hired villagers never take vanilla jobs and never quit by themselves. A worker t
 - A hired villager at a vanilla **composter** becomes a farmer: it harvests the ripe crops around it, replants them and brings the harvest to a chest. It needs a hoe you give it, never tills, never tramples the fields and touches nothing but crops.
 - A hired villager at a vanilla **blast furnace** becomes a smith: it loads the furnace with ore and fuel from its input chests and brings the ingots to its output chests.
 - At a vanilla **smithing table** the smith repairs instead: the worn tools the workers give back into the village chests, and anything damaged in its input chests, with ingots, diamonds or planks like at an anvil, but without experience costs.
-- Right-click the composter with an empty hand, or click the **i** button in the blast furnace screen, to set them up. Ordinary villagers still become vanilla farmers and armorers there, but not at one you have set up.
+- Right-click the composter with an empty hand, or click the button with the worker's face in the blast furnace screen, to set them up. Ordinary villagers still become vanilla farmers and armorers there, but not at one you have set up.
 
 ## ⛏️ Pit digger and kiln operator
 

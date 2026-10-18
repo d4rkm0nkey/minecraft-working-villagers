@@ -329,8 +329,8 @@ public final class WorkingVillagers {
 
 	/**
 	 * The smith smelts at the vanilla blast furnace and repairs tools at the vanilla smithing
-	 * table; ordinary villagers still become armorers and toolsmiths there. The overviews open
-	 * with the "i" button in the screens of the blast furnace and the smithing table.
+	 * table; ordinary villagers still become armorers and toolsmiths there. The button with the
+	 * smith's face in the screens of the blast furnace and the smithing table opens the overview.
 	 */
 	private static void registerSmith(Platform platform) {
 		BLAST_FURNACE_STATION_MENU = platform.registerMenu("blast_furnace_station", (containerId, inventory) -> new StationMenu(StationType.BLAST_FURNACE, containerId, inventory));
@@ -364,7 +364,7 @@ public final class WorkingVillagers {
 	/**
 	 * The kiln operator works at the kiln, a furnace for building materials: it fetches what
 	 * the kiln fires and fuel from its input chests and brings the results to its output
-	 * chests. The overview opens with the "i" button in the kiln's screen.
+	 * chests. The button with the kiln operator's face in the kiln's screen opens the overview.
 	 */
 	private static void registerKilnOperator(Platform platform) {
 		KILN = platform.register(Registries.BLOCK, "kiln", () -> new KilnBlock(

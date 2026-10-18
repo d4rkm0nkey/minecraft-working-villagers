@@ -6,7 +6,7 @@ Der Steinsäger verarbeitet Stein an der Vanilla-Steinsäge zu Ziegeln, Stufen, 
 
 ## Workstation: Steinsäge
 
-- Die normale Vanilla-Steinsäge, kein neuer Block. Für Spieler funktioniert sie wie immer; ihr Menü zeigt zusätzlich den Auftrag, und der Knopf **i** öffnet die Stationsübersicht.
+- Die normale Vanilla-Steinsäge, kein neuer Block. Für Spieler funktioniert sie wie immer; ihr Menü zeigt zusätzlich den Auftrag, und der Knopf mit dem Gesicht des Arbeiters öffnet die Stationsübersicht.
 - Steinmetze aus dem Dorf arbeiten weiter an Steinsägen. Arbeitet dort schon einer, zeigt die Station „besetzt“.
 - Ein angeheuerter Dorfbewohner, der hier anfängt, wird Steinsäger, nicht Steinmetz.
 

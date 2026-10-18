@@ -171,7 +171,7 @@ A hired villager at a woodcutter becomes a **sawyer**, at a vanilla stonecutter 
 **stone sawyer**. (Ordinary villagers still become masons at stonecutters.) Both work
 the same way:
 
-1. **Set the order** in the overview: the **i** button at the top right of the station's
+1. **Set the order** in the overview: the button with the worker's face at the top right of the station's
    menu (or a click on the order box below the result slot, which shows the current
    order) opens it.
    At the woodcutter an order is a **product shape and a set of wood types**: the shape
@@ -184,7 +184,7 @@ the same way:
    included). A click opens a family and shows its products; a click on a product orders
    it, another click clears the order. The family of the current order is marked green.
    Any material that has a recipe for the ordered item is used.
-2. **Worker and chests** are set up in the overview (**i** button, back with *Back*),
+2. **Worker and chests** are set up in the overview (the button with the worker's face, back with *Back*),
    like at the chopping block: **Assign** / **Remove** for the worker, **+ Input** and
    **+ Output** to link chests by right-clicking them (*input*: material is taken from
    here, *output*: products go here). The list shows how full each chest is; a chest's
@@ -249,7 +249,7 @@ today.
 ## Smith
 
 A hired villager at a vanilla **blast furnace** becomes a **smith** (ordinary villagers still
-become armorers). The **i** button at the top right of the blast furnace screen opens its
+become armorers). The button with the worker's face at the top right of the blast furnace screen opens its
 overview (*Back* leads to the furnace again); there you link input and
 output chests. There is no order: the smith fetches up to 16 items the blast furnace can
 smelt and up to 8 fuel (anything with the `cooking_fuel` component) from the input chests,
@@ -258,7 +258,7 @@ blast furnace smelts at its usual speed; the experience stays in it for the next
 takes something out. An empty bucket in the fuel slot is taken out and handed in.
 
 At a vanilla **smithing table** (ordinary villagers still become toolsmiths there) the
-smith **repairs** instead; the **i** button in the smithing screen opens its overview. It
+smith **repairs** instead; the button with the worker's face in the smithing screen opens its overview. It
 takes up to 4 items at a time: the worn tools the workers gave back into the village
 chests in reach of the table, and anything damaged in its input chests. It repairs them
 with the material of their `repairable` component from the input chests, a quarter of
@@ -328,7 +328,7 @@ furnace recipe book, but only fires the furnace recipes that are neither food (r
 category "food") nor smeltable in a blast furnace, minus the item tag
 `workingvillagers:kiln_excluded`: glass, stone, smooth stone, bricks, terracotta, charcoal,
 dyes, ... Anything else stays in its input slot. A hired villager there becomes a **kiln
-operator**; the **i** button in the kiln screen opens the overview. It works like the smith,
+operator**; the button with the worker's face in the kiln screen opens the overview. It works like the smith,
 and in the overview a product can be picked from everything the kiln makes: then it only
 fires what makes that product, fires it again until it is the product (cobblestone, stone,
 smooth stone; the stone in between stays with it), keeps a stock like the carpenter and does

@@ -25,9 +25,11 @@ Jede Station hat eine einzige Übersicht ohne Reiter. Man öffnet sie so:
 | Station | Öffnen |
 | --- | --- |
 | Hackklotz | Rechtsklick |
-| Holzsäge, Steinsäge, Hobelbank | Rechtsklick öffnet das Arbeitsmenü, der Knopf **i** die Übersicht |
+| Holzsäge, Steinsäge, Hobelbank | Rechtsklick öffnet das Arbeitsmenü, der Knopf mit dem Gesicht des Arbeiters die Übersicht |
 | Komposter | Rechtsklick mit leerer Hand |
-| Schmelzofen | Knopf **i** im Ofenmenü |
+| Schmelzofen | Knopf mit dem Gesicht des Arbeiters im Ofenmenü |
+
+Der Knopf sitzt oben rechts im Menü des Blocks (Holzsäge, Steinsäge, Mühle, Hobelbank, Schmelzofen, Brennofen, Schmiedetisch), so groß wie der Rezeptbuch-Knopf. Er zeigt das Gesicht des Berufs, der dort arbeitet, gezeichnet aus der Villager-Textur und der Kleidung des Berufs; ohne angeheuerten Arbeiter ist es abgedunkelt. Der Tooltip nennt den Arbeiter. Die Titelzeile der Block-Menüs zeigt den Arbeiter nicht mehr.
 
 Inhalt der Übersicht:
 
@@ -40,7 +42,7 @@ Zuweisen ist meist gar nicht nötig: Ein angeheuerter Dorfbewohner ohne Arbeit s
 
 ### Konzept (noch nicht umgesetzt)
 
-- **[Menüs überarbeiten](../planung/menues.md):** Reiter Block · Arbeit · Auftrag statt Knopf **i** und „Zurück“, jedes Menü in Vanilla-Breite und passend für 854×480.
+- **[Menüs überarbeiten](../planung/menues.md):** Reiter Block · Arbeit · Auftrag statt des Knopfs mit dem Gesicht und „Zurück“, jedes Menü in Vanilla-Breite und passend für 854×480.
 
 - Reiter „Auftrag“ für den Modus, z. B. Abbaumodus der Mine.
 - Reiter „Bereich“: Größe, Position und Visualisierung an/aus. Arbeitsbereiche gibt es noch nicht; Holzfäller und Bauer arbeiten im festen Umkreis ihrer Station.

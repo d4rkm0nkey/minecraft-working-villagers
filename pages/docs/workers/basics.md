@@ -45,7 +45,7 @@ traded keeps its job.
 ## Assigning and removing
 
 To pick a specific worker yourself, open the workstation menu (at the woodcutter,
-stonecutter, carpenter's bench, blast furnace, smithing table and kiln: the **i** button at the top right of
+stonecutter, carpenter's bench, blast furnace, smithing table and kiln: the button with the worker's face at the top right of
 its screen; at the composter: right-click it with an empty hand) and click **Assign**. The menu closes; right-click a hired villager. It becomes the
 worker of this station. A villager that already works somewhere else moves to the new
 station.

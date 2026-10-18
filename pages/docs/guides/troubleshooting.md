@@ -96,7 +96,7 @@ the status does not help, go through this list.
 
 ### Smith
 
-- [ ] An input and an output chest linked (the **i** button in the blast furnace screen).
+- [ ] An input and an output chest linked (the button with the worker's face in the blast furnace screen).
 - [ ] Something to smelt **and** fuel in the input chests.
 - [ ] At a smithing table: an input chest linked, with the repair material in it.
 
@@ -110,7 +110,7 @@ the status does not help, go through this list.
 
 ### Kiln operator
 
-- [ ] An input and an output chest linked (the **i** button in the kiln screen).
+- [ ] An input and an output chest linked (the button with the worker's face in the kiln screen).
 - [ ] Something the kiln fires **and** fuel in the input chests. With a product picked,
   only what makes that product counts.
 

@@ -13,9 +13,9 @@ Aufgenommen mit `./gradlew :fabric:runClientGameTest` (siehe [Screenshots](#scre
 | 1 | **Menü höher als der Bildschirm:** oben fehlt der Titel, unten der Knopf „+ Kiste“ | Übersicht von Hackklotz, Komposter, Grubenpflock, Grubenwerkbank, Handelstresen, Schmiedetisch: **auch bei 1920×1080** | Platz für 8 Kisten ist immer reserviert: 272 bis 303 px hoch, verfügbar 240 bzw. 270 |
 | 2 | Menü höher als der Bildschirm | Träger | Wege, Versorgung, Korb und Inventar untereinander |
 | 3 | **Text außerhalb des Menüs:** das Seitenfeld ragt über den rechten Rand, „Wages paid…“ ist angeschnitten | Dorftruhe | Feld (132 px) hängt rechts an der zentrierten Truhe |
-| 4 | **Texte überlagern sich:** Titel und „Worker: …“ in einer Zeile | Holzsäge, Steinsäge, Mühle, Hobelbank | Arbeitername in der Titelzeile |
+| 4 | **Texte überlagern sich:** Titel und „Worker: …“ in einer Zeile · *behoben*: die Titelzeile zeigt den Arbeiter nicht mehr | Holzsäge, Steinsäge, Mühle, Hobelbank | Arbeitername in der Titelzeile |
 | 5 | Titel „Carrier Carrier“ läuft in den Knopf „Employer only“ | Träger | Name und Knopf in einer Zeile |
-| 6 | **Knopf „i“ ist nicht zu verstehen**; zurück geht es mit „Back“ oben rechts | Holzsäge, Steinsäge, Hobelbank, Schmelzofen, Brennofen, Mühle, Schmiedetisch | zwei getrennte Menüs, verbunden über ein Symbol ohne Text |
+| 6 | **Knopf „i“ ist nicht zu verstehen**; zurück geht es mit „Back“ oben rechts · *teilweise behoben*: statt „i“ ein Knopf mit dem Gesicht des Berufs (siehe [Steuerung](../grundlagen/steuerung.md#stationsübersicht)) | Holzsäge, Steinsäge, Hobelbank, Schmelzofen, Brennofen, Mühle, Schmiedetisch | zwei getrennte Menüs, verbunden über ein Symbol ohne Text |
 | 7 | Abgeschnittene Zeilen und Lauftext: „Doing: Cannot work (chest or or…“, „aid for 2 more days“ hinter den Slots, „No tunnel picked ye“ | fast alle Übersichten | 162 px Breite für lange Sätze |
 | 8 | Viel leere Fläche, dafür alles andere gedrängt | einspaltige Übersichten | siehe 1 |
 | 9 | Alle unbenannten Kisten heißen „Chest“ und sind nicht zu unterscheiden | Übersichten, Träger | Hinweis zum Benennen nur im Tooltip |
@@ -96,7 +96,7 @@ Oben eine Zeile mit dem aktuellen Auftrag („Bretter aus Eiche“, rot „Kein 
 ### Block-Menüs
 
 - Der Arbeitername verschwindet aus der Titelzeile (Problem 4); wer arbeitet, zeigt der Reiter **Arbeit** mit seinem Kopf.
-- Knopf **i** entfällt; die Reiter sitzen über dem Vanilla-Fenster. Für Vanilla-Blöcke (Steinsäge, Schmelzofen, Schmiedetisch) erst, wenn die Station eingerichtet ist oder ein angeheuerter Arbeiter dort arbeitet; sonst sieht ein Vanilla-Spieler das gewohnte Menü. Ein nicht eingerichteter Block bekommt nur einen einzelnen Reiter **Arbeit** zum Einrichten.
+- Der Knopf mit dem Gesicht (heute anstelle von „i“) entfällt; die Reiter sitzen über dem Vanilla-Fenster, der Reiter **Arbeit** trägt dasselbe Gesicht. Für Vanilla-Blöcke (Steinsäge, Schmelzofen, Schmiedetisch) erst, wenn die Station eingerichtet ist oder ein angeheuerter Arbeiter dort arbeitet; sonst sieht ein Vanilla-Spieler das gewohnte Menü. Ein nicht eingerichteter Block bekommt nur einen einzelnen Reiter **Arbeit** zum Einrichten.
 - Der Auftrag als Geisterbild unter dem Ergebnis-Slot (Holzsäge, Steinsäge, Hobelbank) bleibt; ein Klick darauf öffnet den Reiter **Auftrag**.
 
 ### Träger

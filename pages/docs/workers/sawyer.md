@@ -26,7 +26,7 @@ no detour over planks: one log gives 8 slabs or 4 stairs directly.
 === "Woodcutter"
 
     An order at the woodcutter is a **product shape** and a **set of wood types**.
-    Open the overview with the **i** button at the top right (or click the order box
+    Open the overview with the button with the worker's face at the top right (or click the order box
     below the result slot):
 
     - pick the shape: planks, slabs, stairs, fences, fence gates, doors, trapdoors,
@@ -38,7 +38,7 @@ no detour over planks: one log gives 8 slabs or 4 stairs directly.
 
 === "Stonecutter"
 
-    Open the overview with the **i** button at the top right (or click the order box
+    Open the overview with the button with the worker's face at the top right (or click the order box
     below the result slot). It shows the stone families (stone, granite, deepslate,
     copper, ...):
 

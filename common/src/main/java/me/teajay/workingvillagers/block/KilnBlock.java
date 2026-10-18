@@ -21,7 +21,8 @@ import org.jspecify.annotations.Nullable;
 /**
  * The kiln, a brick furnace for building materials: glass, stone, bricks, terracotta,
  * charcoal (see {@link KilnBlockEntity}). Players use it like a furnace; it is the
- * workstation of the kiln operator, its overview opens with the "i" button in its screen.
+ * workstation of the kiln operator; the button with its face in the kiln's screen opens the
+ * station's overview.
  */
 public class KilnBlock extends AbstractFurnaceBlock {
 	public KilnBlock(Properties properties) {
