@@ -14,6 +14,7 @@ import me.teajay.workingvillagers.crafting.KilnRecipes;
 import me.teajay.workingvillagers.crafting.StoneFamilies;
 import me.teajay.workingvillagers.crafting.WoodTypes;
 import me.teajay.workingvillagers.job.ChopTrees;
+import me.teajay.workingvillagers.job.FletchArrows;
 import me.teajay.workingvillagers.job.HiredVillager;
 import me.teajay.workingvillagers.job.TendAnimals;
 import me.teajay.workingvillagers.job.TendSheep;
@@ -278,6 +279,7 @@ public class StationMenu extends AbstractContainerMenu {
 			case LOOM -> WorkingVillagers.LOOM_STATION_MENU;
 			case SMOKER -> WorkingVillagers.SMOKER_STATION_MENU;
 			case BARREL -> WorkingVillagers.BARREL_STATION_MENU;
+			case FLETCHING_TABLE -> WorkingVillagers.FLETCHING_TABLE_STATION_MENU;
 			case PIT_STAKE -> WorkingVillagers.PIT_STAKE_MENU;
 			case KILN -> WorkingVillagers.KILN_STATION_MENU;
 			case TRADING_COUNTER -> WorkingVillagers.TRADING_COUNTER_MENU;
@@ -423,8 +425,8 @@ public class StationMenu extends AbstractContainerMenu {
 				tag.put(TAG_PRODUCTS, products);
 				tag.putInt(TAG_STOCK, station.stock());
 			}
-			if (this.type == StationType.KILN) {
-				this.shownProducts = KilnRecipes.products(serverLevel);
+			if (this.type == StationType.KILN || this.type == StationType.FLETCHING_TABLE) {
+				this.shownProducts = this.type == StationType.KILN ? KilnRecipes.products(serverLevel) : FletchArrows.PRODUCTS;
 				ListTag products = new ListTag();
 				this.shownProducts.forEach(product -> products.add(StringTag.valueOf(BuiltInRegistries.ITEM.getKey(product).toString())));
 				tag.put(TAG_PRODUCTS, products);
@@ -788,7 +790,7 @@ public class StationMenu extends AbstractContainerMenu {
 			station.setDepth(station.depth() + (buttonId == DEPTH_MORE_BUTTON ? 1 : -1));
 			return true;
 		}
-		if (this.type == StationType.KILN) {
+		if (this.type == StationType.KILN || this.type == StationType.FLETCHING_TABLE) {
 			if (buttonId >= KILN_PRODUCT_BUTTON && buttonId < KILN_PRODUCT_BUTTON + this.shownProducts.size()) {
 				Item product = this.shownProducts.get(buttonId - KILN_PRODUCT_BUTTON);
 				station.setOrder(station.order() == product ? null : product);

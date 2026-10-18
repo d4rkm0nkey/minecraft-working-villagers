@@ -408,6 +408,44 @@ def fisher():
     return image
 
 
+def fletcher():
+    """Villager profession overlay: a forest green tunic with a diagonal leather strap of the
+    quiver across the chest, brown trousers, and a brown felt hat with a red feather."""
+    image = blank(64)
+    p = image.load()
+    green, green_dark = (55, 100, 55, 255), (40, 78, 42, 255)
+    leather, leather_dark, buckle = (120, 80, 45, 255), (90, 58, 32, 255), (200, 170, 80, 255)
+    felt, felt_dark, feather = (105, 75, 50, 255), (80, 56, 36, 255), (190, 40, 35, 255)
+    trousers = (90, 70, 50, 255)
+
+    def fill(x0, y0, x1, y1, color):
+        for y in range(y0, y1):
+            for x in range(x0, x1):
+                p[x, y] = color(x, y)
+
+    tunic = lambda x, y: green_dark if y % 4 == 3 else green
+    fill(16, 20, 44, 38, tunic)  # body
+    for y in range(20, 38):
+        x = 22 + (y - 20) * 8 // 18
+        p[x, y] = p[x + 1, y] = leather  # quiver strap across the front
+        bx = 39 - (y - 20) * 8 // 18
+        p[bx, y] = leather_dark  # and across the back
+    p[25, 29] = buckle
+    fill(44, 22, 60, 34, tunic)  # crossed arms
+    fill(40, 38, 64, 46, tunic)  # crossed arms, middle part
+    fill(6, 38, 14, 44, tunic)  # robe top
+    fill(0, 44, 28, 56, tunic)  # robe: the tunic
+    fill(0, 52, 28, 53, lambda x, y: leather)  # belt
+    fill(0, 56, 28, 64, lambda x, y: trousers)  # robe, lower part
+    fill(0, 22, 16, 38, lambda x, y: leather_dark if y in (28, 37) else trousers)  # legs
+    fill(40, 0, 48, 8, lambda x, y: felt)  # hat top
+    fill(32, 8, 64, 10, lambda x, y: felt_dark if (x + y) % 5 == 0 else felt)  # hat sides
+    for y in range(2, 10):
+        p[58, y] = p[59, y - 1] = feather  # feather at the side of the hat
+    hat_rim(p, lambda u, v: felt_dark if max(4 - u, u - 11, 4 - v, v - 11) == 1 else felt, 1)  # narrow brim
+    return image
+
+
 def kiln_operator():
     """Villager profession overlay: a brick red head scarf knotted at the back; a terracotta shirt with the sleeves rolled up, a grey leather waist
     apron with clay and ash stains, soot on the forearms, dark trousers and boots."""
@@ -879,6 +917,8 @@ def main():
         "entity/zombie_villager/profession/butcher.png": butcher(),
         "entity/villager/profession/fisher.png": fisher(),
         "entity/zombie_villager/profession/fisher.png": fisher(),
+        "entity/villager/profession/fletcher.png": fletcher(),
+        "entity/zombie_villager/profession/fletcher.png": fletcher(),
         "entity/zombie_villager/profession/shop_assistant.png": shop_assistant(),
     }
     for part, image in woodcutter(jar).items():

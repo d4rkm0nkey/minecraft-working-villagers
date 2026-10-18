@@ -111,6 +111,7 @@ public final class StationTabs {
 				case LOOM -> Items.WOOL.white();
 				case SMOKER -> Items.PORKCHOP;
 				case BARREL -> Items.OAK_BOAT;
+				case FLETCHING_TABLE -> Items.ARROW;
 				default -> Items.PAPER;
 			};
 			case WORK -> Items.AIR;

@@ -103,6 +103,7 @@ nav:
       - Shepherd: workers/shepherd.md
       - Butcher: workers/butcher.md
       - Fisher: workers/fisher.md
+      - Fletcher: workers/fletcher.md
       - Smith: workers/smith.md
       - Pit digger: workers/pit-digger.md
       - Miner: workers/miner.md

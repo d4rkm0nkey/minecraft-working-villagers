@@ -110,7 +110,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		int productRows = type == StationType.CARPENTER_BENCH ? 3 : 2;
 		this.woodsLabelY = SHAPES_Y + productRows * 18 + 5;
 		this.woodsY = this.woodsLabelY + 11;
-		this.stockY = type == StationType.KILN ? SHAPES_Y + KILN_ROWS * 18 + 8 : this.woodsY + 2 * 18 + 6;
+		this.stockY = type == StationType.KILN || type == StationType.FLETCHING_TABLE ? SHAPES_Y + KILN_ROWS * 18 + 8 : this.woodsY + 2 * 18 + 6;
 	}
 
 	/** The open tab, e.g. "wage" (for the tests of the menus). */
@@ -141,6 +141,16 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 
 	private boolean isKiln() {
 		return this.type() == StationType.KILN;
+	}
+
+	/** Kiln and fletching table: the order is picked from a grid of products, with a stock. */
+	private boolean hasProductGrid() {
+		return this.isKiln() || this.type() == StationType.FLETCHING_TABLE;
+	}
+
+	/** The start of the translation keys of the product grid: the kiln's or the fletcher's. */
+	private String gridKeys() {
+		return this.isKiln() ? "gui.workingvillagers.kiln" : "gui.workingvillagers.fletcher";
 	}
 
 	/**
@@ -455,7 +465,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	private void extractOrderTab(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
 		switch (this.type()) {
 			case STONECUTTER -> this.extractStoneOrder(graphics, mouseX, mouseY);
-			case KILN -> {
+			case KILN, FLETCHING_TABLE -> {
 				this.extractKilnOrder(graphics, mouseX, mouseY);
 				this.extractStock(graphics, mouseX, mouseY);
 			}
@@ -635,7 +645,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	}
 
 	/**
-	 * Kiln: everything it makes (a click orders one, another click clears the order, then
+	 * Kiln and fletching table: everything it makes (a click orders one, another click clears the order, at the kiln then
 	 * it fires everything), in pages.
 	 */
 	private void extractKilnOrder(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
@@ -669,10 +679,10 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			this.cell(graphics, x, y, product, selected, false);
 			List<Component> tooltip = new ArrayList<>();
 			tooltip.add(product.getHoverName());
-			tooltip.add(Component.translatable(selected ? "gui.workingvillagers.station.shape.selected" : "gui.workingvillagers.kiln.select")
+			tooltip.add(Component.translatable(selected ? "gui.workingvillagers.station.shape.selected" : this.gridKeys() + ".select")
 				.withStyle(ChatFormatting.GRAY));
 			if (selected) {
-				tooltip.add(Component.translatable("gui.workingvillagers.kiln.clear").withStyle(ChatFormatting.DARK_GRAY));
+				tooltip.add(Component.translatable(this.gridKeys() + ".clear").withStyle(ChatFormatting.DARK_GRAY));
 			}
 			this.hotspots.add(new Hotspot(x, y, 18, 18, StationMenu.KILN_PRODUCT_BUTTON + i, tooltip));
 		}
@@ -682,7 +692,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	private void extractStock(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
 		int y = this.topPos + this.stockY - 4;
 		List<Component> tooltip = List.of(
-			Component.translatable(this.isKiln() ? "gui.workingvillagers.kiln.stock.tooltip" : "gui.workingvillagers.station.stock.tooltip"),
+			Component.translatable(this.hasProductGrid() ? this.gridKeys() + ".stock.tooltip" : "gui.workingvillagers.station.stock.tooltip"),
 			Component.translatable("gui.workingvillagers.station.stock.tooltip2").withStyle(ChatFormatting.GRAY)
 		);
 		this.plusMinus(graphics, mouseX, mouseY, y, SMALL, StationMenu.STOCK_LESS_BUTTON, StationMenu.STOCK_MORE_BUTTON, tooltip);
@@ -805,7 +815,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		int textY = (BIG - 8) / 2 + 1;
 		switch (this.type()) {
 			case STONECUTTER -> GuiPanels.scrollingText(graphics, this.font, this.stoneLabel().getString(), 8, SHAPES_Y - 11, COLUMN_WIDTH - 40, GuiPanels.TEXT_COLOR);
-			case KILN -> graphics.text(this.font, Component.translatable("gui.workingvillagers.station.shape"), 8, SHAPES_Y - 11, GuiPanels.TEXT_COLOR, false);
+			case KILN, FLETCHING_TABLE -> graphics.text(this.font, Component.translatable("gui.workingvillagers.station.shape"), 8, SHAPES_Y - 11, GuiPanels.TEXT_COLOR, false);
 			case WOODCUTTER, CARPENTER_BENCH -> {
 				graphics.text(this.font, Component.translatable("gui.workingvillagers.station.shape"), 8, SHAPES_Y - 11, GuiPanels.TEXT_COLOR, false);
 				graphics.text(this.font, Component.translatable(this.isBench() ? "gui.workingvillagers.station.woods.bench" : "gui.workingvillagers.station.woods"),
@@ -873,7 +883,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			}
 			default -> { }
 		}
-		if (this.isBench() || this.isKiln()) {
+		if (this.isBench() || this.hasProductGrid()) {
 			int stock = this.menu.getStock();
 			Component text = this.isKiln() && this.menu.getOrder().isEmpty()
 				? Component.translatable("gui.workingvillagers.kiln.stock.no_order")

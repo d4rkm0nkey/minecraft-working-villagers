@@ -34,6 +34,7 @@ import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.npc.villager.VillagerProfession;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.trading.ItemCost;
@@ -124,6 +125,9 @@ public final class WorkerTests {
 		registry.accept("butcher_slaughters_surplus", WorkerTests::butcherSlaughtersSurplus);
 		registry.accept("fisher_fishes_from_shore", WorkerTests::fisherFishesFromShore);
 		registry.accept("fisher_rows_out", WorkerTests::fisherRowsOut);
+		registry.accept("fletcher_makes_arrows_from_gravel", WorkerTests::fletcherMakesArrowsFromGravel);
+		registry.accept("fletcher_makes_arrows_from_nuggets", WorkerTests::fletcherMakesArrowsFromNuggets);
+		registry.accept("fletcher_keeps_stock", WorkerTests::fletcherKeepsStock);
 		registry.accept("fisher_gives_back_enchanted_rod", WorkerTests::fisherGivesBackEnchantedRod);
 		registry.accept("butcher_breeds_pigs", WorkerTests::butcherBreedsPigs);
 		registry.accept("butcher_smokes_meat", WorkerTests::butcherSmokesMeat);
@@ -303,6 +307,47 @@ public final class WorkerTests {
 			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.FISHING_ROD) && !stack.isEnchanted()) == 0, "The plain rod was given back");
 			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> !stack.is(Items.FISHING_ROD)) >= 2, "Not caught with the plain rod until it broke");
 			helper.assertTrue(worker.getInventory().countItem(Items.FISHING_ROD) == 0, "The plain rod did not break");
+		});
+	}
+
+	/** A fletching table with an input chest holding {@code material}, an output chest and the order. */
+	private static Villager fletcher(GameTestHelper helper, Item order, int stock, ItemStack... material) {
+		BlockPos table = STATION.below();
+		helper.setBlock(table, Blocks.FLETCHING_TABLE);
+		TestWorld.chest(helper, INPUT, material);
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, table, INPUT, ChestRole.INPUT);
+		TestWorld.link(helper, table, OUTPUT, ChestRole.OUTPUT);
+		TestWorld.station(helper, table).setOrder(order);
+		TestWorld.station(helper, table).setStock(stock);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, table);
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2));
+		return worker;
+	}
+
+	/** Gravel, sticks and feathers: the fletcher knaps flint from the gravel and makes 4 arrows of each set. */
+	private static void fletcherMakesArrowsFromGravel(GameTestHelper helper) {
+		Villager worker = fletcher(helper, Items.ARROW, 0, new ItemStack(Items.GRAVEL, 6), new ItemStack(Items.STICK, 6), new ItemStack(Items.FEATHER, 6));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.ARROW), 24, "24 arrows in the output chest");
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.GRAVEL)) == 0, "Gravel left in the input chest");
+		});
+	}
+
+	/** An iron ingot instead of flint: 9 nuggets, 9 sets of arrows. */
+	private static void fletcherMakesArrowsFromNuggets(GameTestHelper helper) {
+		Villager worker = fletcher(helper, Items.ARROW, 0, new ItemStack(Items.IRON_INGOT), new ItemStack(Items.STICK, 9), new ItemStack(Items.FEATHER, 9));
+		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.ARROW), 36, "36 arrows in the output chest"));
+	}
+
+	/** A stock of 8: the fletcher makes 8 arrows and stops, although there is material for more. */
+	private static void fletcherKeepsStock(GameTestHelper helper) {
+		Villager worker = fletcher(helper, Items.ARROW, 8, new ItemStack(Items.FLINT, 16), new ItemStack(Items.STICK, 16), new ItemStack(Items.FEATHER, 16));
+		helper.runAfterDelay(1200, () -> {
+			int arrows = TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.ARROW));
+			helper.assertTrue(arrows == 8, "Arrows in the output chest: " + arrows + ", " + TestWorld.describe(worker));
+			helper.succeed();
 		});
 	}
 

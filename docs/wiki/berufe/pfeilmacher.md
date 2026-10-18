@@ -1,8 +1,19 @@
 # Beruf: Pfeilmacher
 
-[← Berufe](README.md) · Station: **Bognertisch** (Vanilla) · Phase: **Konzept** (Stand 18.10.2026)
+[← Berufe](README.md) · Station: **Bognertisch** (Vanilla) · Phase: **umgesetzt** (Pfeile, Spektralpfeile, Bögen, Armbrüste; ohne getränkte Pfeile und eigenes Bognertisch-Menü)
 
 Der Pfeilmacher versorgt die [Wachen](wache.md) des Dorfes mit Pfeilen und Bögen. Allein wäre „Pfeile craften“ langweilig; spannend wird er erst als Mittelstück eines Kreislaufs: Wachen **verbrauchen** jede Nacht Pfeile, und die Zutaten kommen aus drei anderen Betrieben. Fällt einer aus, gehen den Wachen nach ein paar Nächten die Pfeile aus.
+
+## Stand der Umsetzung
+
+- **Station:** Bognertisch, Rechtsklick mit leerer Hand öffnet die Übersicht (der Bognertisch hat in Vanilla kein Menü). Eingangs- und Ausgangskisten. Vanilla-Pfeilmacher lassen sich anheuern, behalten ihre Angebote; der Pfeilmacher handelt wie ein Vanilla-Pfeilmacher.
+- **Auftrag** im Raster wie beim Brennofen: Pfeile, Spektralpfeile, Bogen, Armbrust; dazu ein **Vorrat** (zählt das Produkt in den Ausgangskisten).
+- **Spitzen:** Feuerstein, Kupfer- oder Eisennugget, in dieser Reihenfolge. Fehlen sie, schlägt er Feuerstein aus Kies (1:1) oder zerlegt einen Barren (1 → 9 Nuggets, der Rest bleibt im Inventar). Alles ergibt 4 Pfeile pro Spitze wie im Vanilla-Rezept.
+- **Ablauf:** Material für einen Satz holen (16× Pfeile, 8× Spektralpfeile, 4 Bögen oder Armbrüste), am Bognertisch ein Stück pro Sekunde fertigen, abliefern. Was der Auftrag nicht braucht, legt er beim nächsten Holen in die Eingangskiste zurück; Erzeugnisse eines früheren Auftrags liefert er ab. Findet er in den Eingangskisten nichts, versucht er es erst nach 30 Sekunden wieder.
+- **Status:** „Sieht nach dem Auftrag“, „Holt Material“, „Fertigt Pfeile und Bögen“, „Wartet: kein Auftrag“, „Wartet auf Feder“ (das fehlende Material), „Vorrat ist voll (x/y)“, „Kommt nicht an den Bognertisch“, dazu „Heute: x“ (gefertigte Stücke).
+- **Kleidung:** waldgrüner Kittel mit Köcherriemen, brauner Filzhut mit roter Feder.
+- **Tests:** 6 Kies, Stöcke und Federn ergeben 24 Pfeile; ein Eisenbarren ergibt 36 Pfeile; bei einem Vorrat von 8 hört er bei 8 Pfeilen auf.
+- **Nicht umgesetzt:** getränkte Pfeile (braucht den Kleriker), ein eigenes Bognertisch-Menü für Spieler, Wahl der Spitzen im Auftrag (er nimmt sie in fester Reihenfolge).
 
 ## Der Kreislauf
 

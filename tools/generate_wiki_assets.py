@@ -47,6 +47,7 @@ VANILLA_ITEMS = [
     "brick", "clay_ball", "green_dye", "flint", "wooden_pickaxe", "stone_pickaxe", "diamond_pickaxe",
     "porkchop", "cooked_porkchop", "beef", "feather",
     "salmon", "tropical_fish", "pufferfish", "oak_boat",
+    "gravel:block", "copper_nugget", "iron_nugget", "spectral_arrow",
 ]
 MOD_ITEMS = ["work_contract", "wicker_basket"]
 
@@ -84,6 +85,7 @@ BLOCKS = {
     "smoker": "minecraft:block/smoker",
     "cauldron": "minecraft:block/cauldron",
     "fletching_table": "minecraft:block/fletching_table",
+    "target": "minecraft:block/target",
     "cartography_table": "minecraft:block/cartography_table",
     "smithing_table": "minecraft:block/smithing_table",
     "chopping_block": "workingvillagers:block/chopping_block",
@@ -103,7 +105,7 @@ BLOCKS = {
     "terracotta": "minecraft:block/terracotta",
 }
 
-PROFESSIONS = ["lumberjack", "woodcutter", "stonecutter", "carpenter", "carrier", "farmer", "smith", "pit_digger", "kiln_operator", "shop_assistant", "miner", "shepherd", "butcher", "fisher"]
+PROFESSIONS = ["lumberjack", "woodcutter", "stonecutter", "carpenter", "carrier", "farmer", "smith", "pit_digger", "kiln_operator", "shop_assistant", "miner", "shepherd", "butcher", "fisher", "fletcher"]
 
 # Navigation icons (pixel SVGs) made from item textures.
 NAV_ICONS = ["spyglass", "emerald", "work_contract", "book", "writable_book", "map", "filled_map", "clock", "barrier", "oak_sapling"]

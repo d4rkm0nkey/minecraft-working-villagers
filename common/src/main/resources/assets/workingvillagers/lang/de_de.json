@@ -461,5 +461,16 @@
   "gui.workingvillagers.barrel.boat.off": "Aus",
   "gui.workingvillagers.barrel.boat.tooltip": "Ob der Fischer mit einem Boot aufs offene Wasser hinausrudert",
   "gui.workingvillagers.barrel.boat.hint": "Mit Boot und offenem Wasser in der Nähe (Meer, großer See) rudert der Fischer hinaus und angelt dort, wo er auch Schätze fängt. Sonst angelt er vom Ufer.",
-  "gui.workingvillagers.station.back.tooltip.barrel": "Zurück zum Fass"
+  "gui.workingvillagers.station.back.tooltip.barrel": "Zurück zum Fass",
+  "entity.workingvillagers.villager.fletcher": "Pfeilmacher",
+  "status.workingvillagers.fletcher.plan": "Sieht nach dem Auftrag",
+  "status.workingvillagers.fletcher.fetch": "Holt Material",
+  "status.workingvillagers.fletcher.craft": "Fertigt Pfeile und Bögen",
+  "status.workingvillagers.fletcher.no_order": "Wartet: kein Auftrag",
+  "status.workingvillagers.fletcher.no_material": "Wartet auf %s",
+  "status.workingvillagers.fletcher.stock_full": "Vorrat ist voll (%s/%s)",
+  "status.workingvillagers.fletcher.table_unreachable": "Kommt nicht an den Bognertisch",
+  "gui.workingvillagers.fletcher.select": "Klicken: das herstellen",
+  "gui.workingvillagers.fletcher.clear": "Nochmal klicken: kein Auftrag",
+  "gui.workingvillagers.fletcher.stock.tooltip": "Wie viele davon der Pfeilmacher in den Ausgangskisten vorrätig hält: Bei so vielen hört er auf und macht weiter, wenn welche entnommen werden."
 }

@@ -292,6 +292,18 @@ it only starts a new pair while the lambs to come still fit. It brings the wool 
 nearest chest once there is nothing left to do. The menu shows the wool sheared today and
 the sheep around the loom.
 
+## Fletcher
+
+A hired villager at a vanilla **fletching table** becomes a **fletcher** (ordinary villagers
+still become vanilla fletchers there). The fletching table has no screen in vanilla: a
+right-click with an empty hand opens the overview. The fletcher makes the ordered product
+(arrows, spectral arrows, bow, crossbow) from its input chests at one piece per second and
+keeps a **stock** of it in its output chests, like the carpenter. An arrow needs a head, a
+stick and a feather and makes 4; the head is flint, a copper nugget or an iron nugget, in
+that order. It knaps flint from gravel (1:1) and cuts ingots into nuggets (1 ingot, 9
+heads) itself. What the order does not need it puts back into the input chest. It trades
+like a vanilla fletcher.
+
 ## Fisher
 
 A hired villager at a vanilla **barrel** becomes a **fisher** (ordinary villagers still
@@ -503,6 +515,7 @@ emeralds, a station put where another kind stood starts fresh, the lumberjack fe
 sawyer only cuts allowed wood, the stone sawyer cuts bricks, the carpenter stops at its
 stock, the carrier empties its source, the farmer harvests and replants (also a raised
 bed), the shepherd shears sheep over the fence of a pen and breeds a lamb with wheat, the
+fletcher makes 24 arrows from gravel and 36 from an iron ingot and stops at its stock, the
 fisher fishes at a pond and rows out on a lake with its boat and takes it back, uses up a
 plain rod but gives back an enchanted one, the
 butcher slaughters cows down to the herd size, breeds a piglet and smokes chicken, a

@@ -77,6 +77,8 @@ public final class WorkingVillagers {
 	public static final ResourceKey<VillagerProfession> FARMER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("farmer"));
 	/** Works at the vanilla loom, the job site of the vanilla shepherd. */
 	public static final ResourceKey<VillagerProfession> SHEPHERD_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("shepherd"));
+	/** Works at the vanilla fletching table, the job site of the vanilla fletcher. */
+	public static final ResourceKey<VillagerProfession> FLETCHER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("fletcher"));
 	/** Works at the vanilla barrel, the job site of the vanilla fisherman. */
 	public static final ResourceKey<VillagerProfession> FISHER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("fisher"));
 	/** Works at the vanilla smoker, the job site of the vanilla butcher. */
@@ -118,6 +120,7 @@ public final class WorkingVillagers {
 	public static Supplier<MenuType<StationMenu>> LOOM_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> SMOKER_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> BARREL_STATION_MENU;
+	public static Supplier<MenuType<StationMenu>> FLETCHING_TABLE_STATION_MENU;
 	public static Supplier<MenuType<CutterMenu>> WOODCUTTER_MENU;
 	public static Supplier<RecipeType<WoodcuttingRecipe>> WOODCUTTING;
 	public static Supplier<RecipeSerializer<WoodcuttingRecipe>> WOODCUTTING_SERIALIZER;
@@ -201,6 +204,7 @@ public final class WorkingVillagers {
 		registerShepherd(platform);
 		registerButcher(platform);
 		registerFisher(platform);
+		registerFletcher(platform);
 		registerPitDigger(platform);
 		registerKilnOperator(platform);
 		registerShopAssistant(platform);
@@ -360,6 +364,17 @@ public final class WorkingVillagers {
 	private static void registerShepherd(Platform platform) {
 		LOOM_STATION_MENU = platform.registerMenu("loom_station", (containerId, inventory) -> new StationMenu(StationType.LOOM, containerId, inventory));
 		registerProfession(platform, "shepherd", PoiTypes.SHEPHERD, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_SHEPHERD, VillagerProfession.SHEPHERD);
+	}
+
+	/**
+	 * The fletcher works at the vanilla fletching table, which has no screen in vanilla: a
+	 * right-click with an empty hand opens the overview. Ordinary villagers still become
+	 * (vanilla) fletchers there.
+	 */
+	private static void registerFletcher(Platform platform) {
+		FLETCHING_TABLE_STATION_MENU = platform.registerMenu("fletching_table_station",
+			(containerId, inventory) -> new StationMenu(StationType.FLETCHING_TABLE, containerId, inventory));
+		registerProfession(platform, "fletcher", PoiTypes.FLETCHER, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_FLETCHER, VillagerProfession.FLETCHER);
 	}
 
 	/**

@@ -1,7 +1,9 @@
 package me.teajay.workingvillagers.mixin;
 
 import me.teajay.workingvillagers.carrier.RouteSelection;
+import me.teajay.workingvillagers.menu.StationMenu;
 import me.teajay.workingvillagers.station.StationPicks;
+import me.teajay.workingvillagers.station.StationType;
 import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerPlayerGameMode;
@@ -18,7 +20,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 /**
  * While a player picks the containers of a new route or the chests of a workstation,
  * right-clicking a container selects it instead of opening it. Right-clicking a workstation
- * with emeralds puts them into its wage box instead of opening it.
+ * with emeralds puts them into its wage box instead of opening it. Blocks without a screen of
+ * their own (the fletching table, the target) open their overview on a right-click with an
+ * empty hand.
  */
 @Mixin(ServerPlayerGameMode.class)
 public class ServerPlayerGameModeMixin {
@@ -30,6 +34,14 @@ public class ServerPlayerGameModeMixin {
 			&& (RouteSelection.onUseBlock(player, hit.getBlockPos()) || StationPicks.onUseBlock(player, hit.getBlockPos(), hit.getDirection())
 				|| Workstations.depositWage(player, hit.getBlockPos(), stack))) {
 			cir.setReturnValue(InteractionResult.SUCCESS_SERVER);
+			return;
+		}
+		if (hand == InteractionHand.MAIN_HAND && stack.isEmpty() && !player.isSecondaryUseActive()) {
+			StationType type = StationType.of(level.getBlockState(hit.getBlockPos()));
+			if (type == StationType.FLETCHING_TABLE) {
+				player.openMenu(StationMenu.provider(type, level, hit.getBlockPos()));
+				cir.setReturnValue(InteractionResult.SUCCESS_SERVER);
+			}
 		}
 	}
 }

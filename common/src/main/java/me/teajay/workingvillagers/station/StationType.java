@@ -45,7 +45,9 @@ public enum StationType {
 	 */
 	SMOKER(true),
 	/** The fisher fishes from the shore or from a boat; it only delivers its catch. */
-	BARREL(false);
+	BARREL(false),
+	/** The fletcher makes arrows, bows and crossbows from its input chests, as ordered. */
+	FLETCHING_TABLE(true);
 
 	private final boolean processing;
 
@@ -69,7 +71,7 @@ public enum StationType {
 
 	/** Whether the worker needs an order, set in the order column of the overview. */
 	public boolean hasOrder() {
-		return this == WOODCUTTER || this == STONECUTTER || this == CARPENTER_BENCH || this == KILN;
+		return this == WOODCUTTER || this == STONECUTTER || this == CARPENTER_BENCH || this == KILN || this == FLETCHING_TABLE;
 	}
 
 	/**
@@ -77,7 +79,8 @@ public enum StationType {
 	 * profession. It only counts as a workstation of this mod once it has been set up.
 	 */
 	public boolean isVanilla() {
-		return this == STONECUTTER || this == COMPOSTER || this == BLAST_FURNACE || this == SMITHING_TABLE || this == LOOM || this == SMOKER || this == BARREL;
+		return this == STONECUTTER || this == COMPOSTER || this == BLAST_FURNACE || this == SMITHING_TABLE || this == LOOM || this == SMOKER || this == BARREL
+			|| this == FLETCHING_TABLE;
 	}
 
 	/**
@@ -113,6 +116,7 @@ public enum StationType {
 			case LOOM -> WorkingVillagers.SHEPHERD_PROFESSION;
 			case SMOKER -> WorkingVillagers.BUTCHER_PROFESSION;
 			case BARREL -> WorkingVillagers.FISHER_PROFESSION;
+			case FLETCHING_TABLE -> WorkingVillagers.FLETCHER_PROFESSION;
 		};
 	}
 
@@ -132,6 +136,7 @@ public enum StationType {
 			case LOOM -> Blocks.LOOM.getName();
 			case SMOKER -> Blocks.SMOKER.getName();
 			case BARREL -> Blocks.BARREL.getName();
+			case FLETCHING_TABLE -> Blocks.FLETCHING_TABLE.getName();
 		};
 	}
 
@@ -151,6 +156,7 @@ public enum StationType {
 			case LOOM -> Blocks.LOOM;
 			case SMOKER -> Blocks.SMOKER;
 			case BARREL -> Blocks.BARREL;
+			case FLETCHING_TABLE -> Blocks.FLETCHING_TABLE;
 		};
 	}
 
@@ -183,6 +189,8 @@ public enum StationType {
 			return SMOKER;
 		} else if (state.is(Blocks.BARREL)) {
 			return BARREL;
+		} else if (state.is(Blocks.FLETCHING_TABLE)) {
+			return FLETCHING_TABLE;
 		}
 		return null;
 	}

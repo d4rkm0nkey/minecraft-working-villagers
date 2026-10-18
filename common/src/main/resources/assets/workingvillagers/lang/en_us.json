@@ -461,5 +461,16 @@
   "gui.workingvillagers.barrel.boat.off": "Off",
   "gui.workingvillagers.barrel.boat.tooltip": "Whether the fisher rows out to open water when it has a boat",
   "gui.workingvillagers.barrel.boat.hint": "With a boat and open water nearby (a sea, a big lake) the fisher rows out and fishes there, where it also catches treasure. Otherwise it fishes from the shore.",
-  "gui.workingvillagers.station.back.tooltip.barrel": "Back to the barrel"
+  "gui.workingvillagers.station.back.tooltip.barrel": "Back to the barrel",
+  "entity.workingvillagers.villager.fletcher": "Fletcher",
+  "status.workingvillagers.fletcher.plan": "Looking at the order",
+  "status.workingvillagers.fletcher.fetch": "Fetching material",
+  "status.workingvillagers.fletcher.craft": "Making arrows and bows",
+  "status.workingvillagers.fletcher.no_order": "Waiting: no order",
+  "status.workingvillagers.fletcher.no_material": "Waiting for %s",
+  "status.workingvillagers.fletcher.stock_full": "Stock is full (%s/%s)",
+  "status.workingvillagers.fletcher.table_unreachable": "Cannot get to the fletching table",
+  "gui.workingvillagers.fletcher.select": "Click to make this",
+  "gui.workingvillagers.fletcher.clear": "Click again: no order",
+  "gui.workingvillagers.fletcher.stock.tooltip": "How many of the product the fletcher keeps in the output chests: it stops at that many and goes on when some are taken out."
 }

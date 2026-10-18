@@ -79,6 +79,18 @@ farmer:
     Makes: ":mc-wheat: Wheat, :mc-carrot: carrots, :mc-potato: potatoes, :mc-beetroot: beetroots"
     Range: 8 blocks
 
+fletcher:
+  name: Fletcher
+  page: workers/fletcher.md
+  head: fletcher
+  workstation: fletching_table
+  summary: Makes arrows, bows and crossbows, with heads of flint from gravel or of copper and iron.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-fletching_table: Fletching table"
+    Takes: ":mc-gravel: Gravel or nuggets, :mc-stick: sticks, :mc-feather: feathers"
+    Makes: ":mc-arrow: Arrows, :mc-spectral_arrow: spectral arrows, :mc-bow: bows"
+
 fisher:
   name: Fisher
   page: workers/fisher.md
