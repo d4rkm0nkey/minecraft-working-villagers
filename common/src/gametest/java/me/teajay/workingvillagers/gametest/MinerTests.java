@@ -37,9 +37,13 @@ final class MinerTests {
 	private MinerTests() {
 	}
 
-	static void register(BiConsumer<String, Consumer<GameTestHelper>> registry) {
+	/** The miner digs as fast as a player, so the tests stay short. */
+	static void configure() {
 		Config.MINER_DIG_SLOWDOWN.set(1.0);
 		Config.MINER_MIN_DIG_SECONDS.set(0.25);
+	}
+
+	static void register(BiConsumer<String, Consumer<GameTestHelper>> registry) {
 		registry.accept("miner_digs_tunnel", MinerTests::minerDigsTunnel);
 		registry.accept("miner_digs_ore_and_seals_lava", MinerTests::minerDigsOreAndSealsLava);
 		registry.accept("miner_stops_at_planks", MinerTests::minerStopsAtPlanks);

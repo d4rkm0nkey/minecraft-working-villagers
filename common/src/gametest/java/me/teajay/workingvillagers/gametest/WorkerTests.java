@@ -59,10 +59,16 @@ public final class WorkerTests {
 	private WorkerTests() {
 	}
 
-	/** Registers every test function under its name (the path of the test instance). */
-	public static void register(BiConsumer<String, Consumer<GameTestHelper>> registry) {
-		// The tests run side by side: the village chests of one test must not reach the workers of the next
-		Config.VILLAGE_CHEST_RADIUS.set(8);
+	/**
+	 * Registers every test function under its name (the path of the test instance). Each sets
+	 * the config values of the tests when it starts: the mod may load its config file after
+	 * this, the order of the mod initializers is not fixed.
+	 */
+	public static void register(BiConsumer<String, Consumer<GameTestHelper>> functions) {
+		BiConsumer<String, Consumer<GameTestHelper>> registry = (name, test) -> functions.accept(name, helper -> {
+			configure();
+			test.accept(helper);
+		});
 		MinerTests.register(registry);
 		registry.accept("contract_hires_unemployed", WorkerTests::contractHiresUnemployed);
 		registry.accept("contract_rejects_employed", WorkerTests::contractRejectsEmployed);
@@ -133,6 +139,12 @@ public final class WorkerTests {
 			"Nobody took the job: " + worker.getVillagerData().profession().getRegisteredName()
 				+ ", potential " + worker.getBrain().getMemory(MemoryModuleType.POTENTIAL_JOB_SITE) + ", job " + worker.getBrain().getMemory(MemoryModuleType.JOB_SITE)
 				+ ", at " + worker.blockPosition() + ", station " + helper.absolutePos(station)));
+	}
+
+	private static void configure() {
+		// The tests run side by side: the village chests of one test must not reach the workers of the next
+		Config.VILLAGE_CHEST_RADIUS.set(8);
+		MinerTests.configure();
 	}
 
 	private static void contractHiresUnemployed(GameTestHelper helper) {
