@@ -25,8 +25,8 @@ import org.jspecify.annotations.Nullable;
 /**
  * The jobs of hired villagers at their workstations (chopping block: lumberjack, woodcutter:
  * sawyer, stonecutter: stone sawyer, carpenter's bench: carpenter, composter: farmer, blast
- * furnace: smith, pit stake: pit digger, kiln: kiln operator, trading counter: shop
- * assistant). A hired villager without a job looks for a free one itself (see
+ * furnace: smith, pit stake: pit digger, kiln: kiln operator, trading counter: shop assistant,
+ * mining bench: miner). A hired villager without a job looks for a free one itself (see
  * {@link FindWorkplace}); the player can also give it one in the station menu, and take it
  * away again there. Hired villagers do not take any vanilla job.
  *
@@ -45,7 +45,8 @@ public final class WorkerJobs {
 		PoiTypes.ARMORER, WorkingVillagers.SMITH_PROFESSION,
 		WorkingVillagers.PIT_DIGGER_POI, WorkingVillagers.PIT_DIGGER_PROFESSION,
 		WorkingVillagers.KILN_OPERATOR_POI, WorkingVillagers.KILN_OPERATOR_PROFESSION,
-		WorkingVillagers.SHOP_ASSISTANT_POI, WorkingVillagers.SHOP_ASSISTANT_PROFESSION
+		WorkingVillagers.SHOP_ASSISTANT_POI, WorkingVillagers.SHOP_ASSISTANT_PROFESSION,
+		WorkingVillagers.MINER_POI, WorkingVillagers.MINER_PROFESSION
 	);
 	private static final int CHECK_INTERVAL = 20;
 	/** How long a worker taken away from a station does not take it again by itself. */

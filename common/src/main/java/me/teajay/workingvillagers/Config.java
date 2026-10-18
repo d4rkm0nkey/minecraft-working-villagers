@@ -111,6 +111,28 @@ public final class Config {
 	public static final IntOption KEEP_TORCHES = intOption("pitDigger", "keepTorches", 16, 0, 64,
 		"How many torches the pit digger carries at most (0: it takes none).");
 
+	public static final IntOption TUNNEL_MAX_LENGTH = intOption("miner", "maxTunnelLength", 32, 4, 64,
+		"How long (in blocks) a tunnel may be at most. The miner carries every load out to its chests itself.");
+	public static final IntOption TUNNEL_MAX_BRANCH = intOption("miner", "maxBranchLength", 16, 0, 32,
+		"How long the side tunnels (every 4 blocks, left and right) may be at most. 0: no side tunnels.");
+	public static final IntOption MINER_DAILY_BLOCKS = intOption("miner", "dailyBlocks", 256, 1, 4096,
+		"After this many blocks a day the miner stops for the day.");
+	public static final DoubleOption MINER_DIG_SLOWDOWN = doubleOption("miner", "digSlowdown", 8.0, 1.0, 32.0,
+		"How many times as long as a player with the same pickaxe a (novice) miner needs for a block,",
+		"but at least minSecondsPerBlock.");
+	public static final DoubleOption MINER_MIN_DIG_SECONDS = doubleOption("miner", "minSecondsPerBlock", 1.5, 0.25, 20.0,
+		"How long the miner needs at least for a block, however good its pickaxe.");
+	public static final BoolOption TUNNEL_SUPPORTS = boolOption("miner", "supports", true,
+		"The miner puts wooden supports (fences and planks) into its tunnels every 4 blocks, like a mineshaft.");
+	public static final IntOption KEEP_FENCES = intOption("miner", "keepFences", 16, 0, 64,
+		"How many fences for the supports the miner carries at most (0: it takes none).");
+	public static final IntOption KEEP_PLANKS = intOption("miner", "keepPlanks", 16, 0, 64,
+		"How many planks for the supports the miner carries at most (0: it takes none).");
+	public static final IntOption KEEP_SEAL_BLOCKS = intOption("miner", "keepSealBlocks", 16, 1, 64,
+		"How much cobblestone the miner keeps of what it digs, to seal off water and lava and to close holes in the floor.");
+	public static final IntOption MINER_KEEP_TORCHES = intOption("miner", "keepTorches", 16, 0, 64,
+		"How many torches the miner carries at most (0: it takes none and leaves its tunnels dark).");
+
 	public static final IntOption ROUTE_LENGTH = intOption("carrier", "maxRouteLength", 32, 4, 64,
 		"How far (in blocks) source and target of a route may be apart.");
 	public static final IntOption ROUTE_SOURCE_SPREAD = intOption("carrier", "maxSourceSpread", 40, 4, 96,
@@ -284,6 +306,11 @@ public final class Config {
 
 		public double get() {
 			return this.value;
+		}
+
+		/** Changes the value for this run (the game tests), clamped to the range. The file stays as it is. */
+		public void set(double value) {
+			this.value = Math.clamp(value, this.min, this.max);
 		}
 
 		@Override

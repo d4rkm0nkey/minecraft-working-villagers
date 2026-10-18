@@ -91,7 +91,7 @@ public class Workstations extends SavedData {
 		if (station == null) {
 			station = new Station(
 				pos.immutable(), Optional.empty(), List.of(), List.of(), Optional.empty(), Optional.empty(), Optional.empty(), List.of(), 0, false,
-				Optional.empty(), Pit.DEFAULT_DEPTH
+				Optional.empty(), Pit.DEFAULT_DEPTH, Optional.empty()
 			);
 			workstations.stations.put(station.pos, station);
 		}
@@ -136,7 +136,8 @@ public class Workstations extends SavedData {
 			Codec.INT.optionalFieldOf("stock", 0).forGetter(station -> station.stock),
 			Codec.BOOL.optionalFieldOf("strip", false).forGetter(station -> station.strip),
 			Pit.CODEC.optionalFieldOf("pit").forGetter(station -> Optional.ofNullable(station.pit)),
-			Codec.INT.optionalFieldOf("depth", Pit.DEFAULT_DEPTH).forGetter(station -> station.depth)
+			Codec.INT.optionalFieldOf("depth", Pit.DEFAULT_DEPTH).forGetter(station -> station.depth),
+			Tunnel.CODEC.optionalFieldOf("tunnel").forGetter(station -> Optional.ofNullable(station.tunnel))
 		).apply(i, Station::new));
 
 		private final BlockPos pos;
@@ -158,15 +159,18 @@ public class Workstations extends SavedData {
 		private @Nullable Pit pit;
 		/** Pit stake: how deep to dig, below the highest string of the ring. */
 		private int depth;
+		/** Mining bench: the tunnel to dig, null until one is picked. */
+		private @Nullable Tunnel tunnel;
 		private @Nullable Workstations owner;
 		/** The kind of station the settings belong to, unknown for entries saved before it was stored. */
 		private @Nullable StationType type;
 
 		private Station(
 			BlockPos pos, Optional<String> type, List<BlockPos> inputs, List<BlockPos> outputs, Optional<Item> order, Optional<UUID> worker, Optional<String> workerName,
-			List<String> woods, int stock, boolean strip, Optional<Pit> pit, int depth
+			List<String> woods, int stock, boolean strip, Optional<Pit> pit, int depth, Optional<Tunnel> tunnel
 		) {
 			this.pit = pit.orElse(null);
+			this.tunnel = tunnel.orElse(null);
 			this.depth = depth;
 			this.woods = new LinkedHashSet<>(woods);
 			this.stock = stock;
@@ -243,6 +247,18 @@ public class Workstations extends SavedData {
 		public void setPit(@Nullable Pit pit) {
 			this.pit = pit;
 			this.setDirty();
+		}
+
+		/** Mining bench: the tunnel to dig, null until one is picked. */
+		public @Nullable Tunnel tunnel() {
+			return this.tunnel;
+		}
+
+		public void setTunnel(@Nullable Tunnel tunnel) {
+			if (!Objects.equals(this.tunnel, tunnel)) {
+				this.tunnel = tunnel;
+				this.setDirty();
+			}
 		}
 
 		/** Pit stake: how deep to dig, below the highest string of the ring. */
@@ -444,7 +460,7 @@ public class Workstations extends SavedData {
 
 		private boolean isEmpty() {
 			return this.inputs.isEmpty() && this.outputs.isEmpty() && this.order == null && this.worker == null && this.woods.isEmpty() && this.stock == 0
-				&& !this.strip && this.pit == null && this.depth == Pit.DEFAULT_DEPTH;
+				&& !this.strip && this.pit == null && this.depth == Pit.DEFAULT_DEPTH && this.tunnel == null;
 		}
 
 		private void setDirty() {

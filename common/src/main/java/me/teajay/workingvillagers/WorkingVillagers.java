@@ -9,11 +9,13 @@ import me.teajay.workingvillagers.block.CarpenterBenchBlock;
 import me.teajay.workingvillagers.block.ChoppingBlock;
 import me.teajay.workingvillagers.block.KilnBlock;
 import me.teajay.workingvillagers.block.KilnBlockEntity;
+import me.teajay.workingvillagers.block.MiningBenchBlock;
 import me.teajay.workingvillagers.block.PitStakeBlock;
 import me.teajay.workingvillagers.block.TradingCounterBlock;
 import me.teajay.workingvillagers.block.VillageChestBlock;
 import me.teajay.workingvillagers.block.VillageChestBlockEntity;
 import me.teajay.workingvillagers.block.WoodcutterBlock;
+import me.teajay.workingvillagers.crafting.MillingRecipe;
 import me.teajay.workingvillagers.crafting.WoodcuttingRecipe;
 import me.teajay.workingvillagers.item.WickerBasketItem;
 import me.teajay.workingvillagers.item.WorkContractItem;
@@ -76,6 +78,8 @@ public final class WorkingVillagers {
 	public static final ResourceKey<VillagerProfession> PIT_DIGGER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("pit_digger"));
 	public static final ResourceKey<PoiType> KILN_OPERATOR_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("kiln_operator"));
 	public static final ResourceKey<VillagerProfession> KILN_OPERATOR_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("kiln_operator"));
+	public static final ResourceKey<PoiType> MINER_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("miner"));
+	public static final ResourceKey<VillagerProfession> MINER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("miner"));
 	public static final ResourceKey<PoiType> SHOP_ASSISTANT_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("shop_assistant"));
 	public static final ResourceKey<VillagerProfession> SHOP_ASSISTANT_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("shop_assistant"));
 
@@ -124,6 +128,23 @@ public final class WorkingVillagers {
 	public static Supplier<MenuType<KilnMenu>> KILN_MENU;
 	public static Supplier<MenuType<StationMenu>> KILN_STATION_MENU;
 
+	/** What the miner digs through: natural ground and stone, ores, cave plants. */
+	public static final TagKey<Block> MINE_DIGGABLE = TagKey.create(Registries.BLOCK, id("mine_diggable"));
+	/** The ores the miner follows from its tunnel. */
+	public static final TagKey<Block> MINER_ORES = TagKey.create(Registries.BLOCK, id("miner_ores"));
+	/** Items that can be put into the mill by shift-clicking. */
+	public static final TagKey<Item> MILLABLE = TagKey.create(Registries.ITEM, id("millable"));
+	public static Supplier<Block> MINING_BENCH;
+	public static Supplier<Item> MINING_BENCH_ITEM;
+	public static Supplier<MenuType<StationMenu>> MINING_BENCH_MENU;
+	public static Supplier<MenuType<CutterMenu>> MILL_MENU;
+	public static Supplier<RecipeType<MillingRecipe>> MILLING;
+	public static Supplier<RecipeSerializer<MillingRecipe>> MILLING_SERIALIZER;
+	public static final CutterMenu.Kind MILL_KIND = new CutterMenu.Kind(
+		() -> MILL_MENU.get(), () -> MILLING.get(), () -> MINING_BENCH.get(),
+		(level, stack) -> stack.is(MILLABLE)
+	);
+
 	public static Supplier<Block> TRADING_COUNTER;
 	public static Supplier<Item> TRADING_COUNTER_ITEM;
 	public static Supplier<MenuType<StationMenu>> TRADING_COUNTER_MENU;
@@ -168,6 +189,7 @@ public final class WorkingVillagers {
 		registerKilnOperator(platform);
 		registerShopAssistant(platform);
 		registerVillageChest(platform);
+		registerMiner(platform);
 		platform.registerServerbound(RenameRoutePayload.TYPE, RenameRoutePayload.CODEC, RenameRoutePayload::handle);
 		platform.registerServerbound(RenameContainerPayload.TYPE, RenameContainerPayload.CODEC, RenameContainerPayload::handle);
 	}
@@ -376,6 +398,35 @@ public final class WorkingVillagers {
 		TRADING_COUNTER_MENU = platform.registerMenu("trading_counter", (containerId, inventory) -> new StationMenu(StationType.TRADING_COUNTER, containerId, inventory));
 		platform.registerPoi("shop_assistant", () -> TRADING_COUNTER.get(), 1, 1);
 		registerProfession(platform, "shop_assistant", SHOP_ASSISTANT_POI, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_LIBRARIAN);
+	}
+
+	/**
+	 * The miner works at the mining bench: it digs the tunnel the player picked (3×3 with
+	 * supports, side tunnels, or stairs down) and brings what it digs to its chests. For
+	 * players the bench is a mill: cobblestone to gravel, gravel to sand and flint.
+	 */
+	private static void registerMiner(Platform platform) {
+		MINING_BENCH = platform.register(Registries.BLOCK, "mining_bench", () -> new MiningBenchBlock(
+			BlockBehaviour.Properties.of()
+				.setId(ResourceKey.create(Registries.BLOCK, id("mining_bench")))
+				.mapColor(MapColor.STONE)
+				.instrument(NoteBlockInstrument.BASEDRUM)
+				.requiresCorrectToolForDrops()
+				.strength(3.0F)
+				.noOcclusion()
+		));
+		MINING_BENCH_ITEM = platform.register(Registries.ITEM, "mining_bench", () -> new BlockItem(
+			MINING_BENCH.get(),
+			itemProperties("mining_bench").useBlockDescriptionPrefix()
+		));
+		MINING_BENCH_MENU = platform.registerMenu("mining_bench", (containerId, inventory) -> new StationMenu(StationType.MINING_BENCH, containerId, inventory));
+		MILL_MENU = platform.registerMenu("mill", (containerId, inventory) -> new CutterMenu(MILL_KIND, containerId, inventory));
+		MILLING = registerRecipeType(platform, "milling");
+		MILLING_SERIALIZER = registerRecipeSerializer(platform, "milling", () -> new RecipeSerializer<>(
+			MillingRecipe.MAP_CODEC, MillingRecipe.STREAM_CODEC
+		));
+		platform.registerPoi("miner", () -> MINING_BENCH.get(), 1, 1);
+		registerProfession(platform, "miner", MINER_POI, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_TOOLSMITH);
 	}
 
 	/**

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "P": "#minecraft:pickaxes",
+    "I": "minecraft:iron_ingot",
+    "S": "minecraft:smooth_stone",
+    "C": "minecraft:cobblestone"
+  },
+  "pattern": [
+    "SPS",
+    "CIC",
+    "CCC"
+  ],
+  "result": {
+    "id": "workingvillagers:mining_bench"
+  }
+}

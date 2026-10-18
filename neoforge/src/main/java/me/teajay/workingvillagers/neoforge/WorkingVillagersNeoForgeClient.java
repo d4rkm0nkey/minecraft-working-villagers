@@ -32,6 +32,8 @@ public class WorkingVillagersNeoForgeClient {
 			event.register(WorkingVillagers.KILN_STATION_MENU.get(), StationScreen::new);
 			event.register(WorkingVillagers.KILN_MENU.get(), KilnScreen::new);
 			event.register(WorkingVillagers.TRADING_COUNTER_MENU.get(), StationScreen::new);
+			event.register(WorkingVillagers.MINING_BENCH_MENU.get(), StationScreen::new);
+			event.register(WorkingVillagers.MILL_MENU.get(), CutterScreen::new);
 			event.register(WorkingVillagers.VILLAGE_CHEST_MENU.get(), VillageChestScreen::new);
 			event.register(WorkingVillagers.VILLAGE_CHEST_DOUBLE_MENU.get(), VillageChestScreen::new);
 		});

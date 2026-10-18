@@ -61,6 +61,7 @@ public final class WorkerTests {
 	public static void register(BiConsumer<String, Consumer<GameTestHelper>> registry) {
 		// The tests run side by side: the village chests of one test must not reach the workers of the next
 		Config.VILLAGE_CHEST_RADIUS.set(8);
+		MinerTests.register(registry);
 		registry.accept("contract_hires_unemployed", WorkerTests::contractHiresUnemployed);
 		registry.accept("contract_rejects_employed", WorkerTests::contractRejectsEmployed);
 		registry.accept("lumberjack_fells_tree", WorkerTests::lumberjackFellsTree);

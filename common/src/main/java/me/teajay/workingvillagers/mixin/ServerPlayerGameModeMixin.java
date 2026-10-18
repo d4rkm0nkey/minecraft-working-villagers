@@ -25,7 +25,7 @@ public class ServerPlayerGameModeMixin {
 		ServerPlayer player, Level level, ItemStack stack, InteractionHand hand, BlockHitResult hit, CallbackInfoReturnable<InteractionResult> cir
 	) {
 		if (hand == InteractionHand.MAIN_HAND
-			&& (RouteSelection.onUseBlock(player, hit.getBlockPos()) || StationPicks.onUseBlock(player, hit.getBlockPos()))) {
+			&& (RouteSelection.onUseBlock(player, hit.getBlockPos()) || StationPicks.onUseBlock(player, hit.getBlockPos(), hit.getDirection()))) {
 			cir.setReturnValue(InteractionResult.SUCCESS_SERVER);
 		}
 	}

@@ -21,6 +21,7 @@ import me.teajay.workingvillagers.station.ContainerNames;
 import me.teajay.workingvillagers.station.Pit;
 import me.teajay.workingvillagers.station.StationPicks;
 import me.teajay.workingvillagers.station.StationType;
+import me.teajay.workingvillagers.station.Tunnel;
 import me.teajay.workingvillagers.station.Workstations;
 import me.teajay.workingvillagers.station.Workstations.ChestRole;
 import net.minecraft.core.BlockPos;
@@ -97,6 +98,18 @@ public class StationMenu extends AbstractContainerMenu {
 	/** Pit stake: less / more deep. */
 	public static final int DEPTH_LESS_BUTTON = 313;
 	public static final int DEPTH_MORE_BUTTON = 314;
+	/** Mining bench: closes the menu, the player then right-clicks the side of a block where the tunnel starts. */
+	public static final int PICK_TUNNEL_BUTTON = 315;
+	/** Mining bench: shorter / longer tunnel. */
+	public static final int LENGTH_LESS_BUTTON = 316;
+	public static final int LENGTH_MORE_BUTTON = 317;
+	/** Mining bench: shorter / longer side tunnels (0: none). */
+	public static final int BRANCHES_LESS_BUTTON = 318;
+	public static final int BRANCHES_MORE_BUTTON = 319;
+	/** Mining bench: switches between a tunnel and stairs down. */
+	public static final int STAIRS_BUTTON = 320;
+	/** The steps of the side tunnel length the buttons go through. */
+	private static final int BRANCH_STEP = 4;
 	/**
 	 * Stonecutter: plus the index of the product in all families one after another, orders
 	 * it (or clears the order if it is the order already).
@@ -136,6 +149,12 @@ public class StationMenu extends AbstractContainerMenu {
 	private static final String TAG_STRIP = "Strip";
 	private static final String TAG_FAMILIES = "Families";
 	private static final String TAG_PIT = "Pit";
+	private static final String TAG_TUNNEL = "Tunnel";
+	private static final String TAG_BRANCHES = "Branches";
+	private static final String TAG_STAIRS = "Stairs";
+	private static final String TAG_MAX_LENGTH = "MaxLength";
+	private static final String TAG_MAX_BRANCHES = "MaxBranches";
+	private static final String TAG_FACING = "Facing";
 	private static final String TAG_WIDTH = "Width";
 	private static final String TAG_LENGTH = "Length";
 	private static final String TAG_AREA = "Area";
@@ -179,6 +198,7 @@ public class StationMenu extends AbstractContainerMenu {
 			case PIT_STAKE -> WorkingVillagers.PIT_STAKE_MENU;
 			case KILN -> WorkingVillagers.KILN_STATION_MENU;
 			case TRADING_COUNTER -> WorkingVillagers.TRADING_COUNTER_MENU;
+			case MINING_BENCH -> WorkingVillagers.MINING_BENCH_MENU;
 		};
 	}
 
@@ -208,6 +228,7 @@ public class StationMenu extends AbstractContainerMenu {
 			tag.store(TAG_STATION, BlockPos.CODEC, pos);
 			tag.putInt(TAG_DAILY_LOGS, switch (this.type) {
 				case PIT_STAKE -> Config.PIT_DAILY_BLOCKS.get();
+				case MINING_BENCH -> Config.MINER_DAILY_BLOCKS.get();
 				default -> Config.DAILY_LOGS.get();
 			});
 			tag.putInt(TAG_MAX_CHESTS, Config.MAX_CHESTS.get());
@@ -218,7 +239,7 @@ public class StationMenu extends AbstractContainerMenu {
 					tag.store(TAG_STATUS, ComponentSerialization.CODEC, WorkerStatus.describe(villager));
 					SuppliesInfo.write(serverLevel, villager, tag);
 					if (this.type == StationType.CHOPPING_BLOCK || this.type == StationType.COMPOSTER || this.type == StationType.PIT_STAKE
-						|| this.type == StationType.TRADING_COUNTER) {
+						|| this.type == StationType.TRADING_COUNTER || this.type == StationType.MINING_BENCH) {
 						tag.putInt(TAG_LOGS, ((HiredVillager) villager).workingvillagers$getWorkDone(ChopTrees.today(serverLevel)));
 					}
 				}
@@ -256,6 +277,19 @@ public class StationMenu extends AbstractContainerMenu {
 					pitTag.putInt(TAG_LENGTH, pit.length());
 					pitTag.putInt(TAG_AREA, pit.inside().size());
 					tag.put(TAG_PIT, pitTag);
+				}
+			}
+			if (this.type == StationType.MINING_BENCH) {
+				tag.putInt(TAG_MAX_LENGTH, Config.TUNNEL_MAX_LENGTH.get());
+				tag.putInt(TAG_MAX_BRANCHES, Config.TUNNEL_MAX_BRANCH.get());
+				Tunnel tunnel = station.tunnel();
+				if (tunnel != null) {
+					CompoundTag tunnelTag = new CompoundTag();
+					tunnelTag.putInt(TAG_LENGTH, tunnel.clampedLength());
+					tunnelTag.putInt(TAG_BRANCHES, tunnel.clampedBranches());
+					tunnelTag.putBoolean(TAG_STAIRS, tunnel.stairs());
+					tunnelTag.putString(TAG_FACING, tunnel.direction().getSerializedName());
+					tag.put(TAG_TUNNEL, tunnelTag);
 				}
 			}
 			if (station.order() != null) {
@@ -466,6 +500,26 @@ public class StationMenu extends AbstractContainerMenu {
 		return this.info.info().getCompound(TAG_PIT).map(pit -> new int[] {pit.getIntOr(TAG_WIDTH, 0), pit.getIntOr(TAG_LENGTH, 0), pit.getIntOr(TAG_AREA, 0)});
 	}
 
+	/** Mining bench: the picked tunnel, empty if none. */
+	public Optional<TunnelInfo> getTunnel() {
+		return this.info.info().getCompound(TAG_TUNNEL).map(tunnel -> new TunnelInfo(
+			tunnel.getIntOr(TAG_LENGTH, Tunnel.DEFAULT_LENGTH), tunnel.getIntOr(TAG_BRANCHES, 0), tunnel.getBooleanOr(TAG_STAIRS, false),
+			tunnel.getStringOr(TAG_FACING, "north")
+		));
+	}
+
+	public int getMaxTunnelLength() {
+		return this.info.info().getIntOr(TAG_MAX_LENGTH, 32);
+	}
+
+	public int getMaxBranches() {
+		return this.info.info().getIntOr(TAG_MAX_BRANCHES, 16);
+	}
+
+	/** Mining bench: what the screen shows about the tunnel ({@code facing}: the direction it goes, e.g. "north"). */
+	public record TunnelInfo(int length, int branches, boolean stairs, String facing) {
+	}
+
 	/** Pit stake: how deep to dig. */
 	public int getDepth() {
 		return this.info.info().getIntOr(TAG_DEPTH, Pit.DEFAULT_DEPTH);
@@ -504,7 +558,8 @@ public class StationMenu extends AbstractContainerMenu {
 			this.access.execute((level, pos) -> player.openMenu(level.getBlockState(pos).getMenuProvider(level, pos)));
 			return true;
 		}
-		if (buttonId >= ASSIGN_BUTTON && buttonId <= ADD_OUTPUTS_BUTTON || buttonId == PICK_PIT_BUTTON || buttonId == PICK_LADDER_BUTTON) {
+		if (buttonId >= ASSIGN_BUTTON && buttonId <= ADD_OUTPUTS_BUTTON || buttonId == PICK_PIT_BUTTON || buttonId == PICK_LADDER_BUTTON
+			|| buttonId == PICK_TUNNEL_BUTTON) {
 			if (!(player instanceof ServerPlayer serverPlayer)) {
 				return false;
 			}
@@ -561,6 +616,12 @@ public class StationMenu extends AbstractContainerMenu {
 				}
 				StationPicks.pickPit(player, pos);
 			}
+			case PICK_TUNNEL_BUTTON -> {
+				if (this.type != StationType.MINING_BENCH) {
+					return false;
+				}
+				StationPicks.pickTunnel(player, pos);
+			}
 			case PICK_LADDER_BUTTON -> {
 				if (this.type != StationType.PIT_STAKE || station.pit() == null) {
 					return false;
@@ -584,6 +645,22 @@ public class StationMenu extends AbstractContainerMenu {
 		}
 		if (this.type == StationType.CHOPPING_BLOCK && buttonId == STRIP_BUTTON) {
 			station.setStrip(!station.strip());
+			return true;
+		}
+		if (this.type == StationType.MINING_BENCH && station.tunnel() != null) {
+			Tunnel tunnel = station.tunnel();
+			Tunnel changed = switch (buttonId) {
+				case LENGTH_LESS_BUTTON -> tunnel.withLength(tunnel.clampedLength() - 1);
+				case LENGTH_MORE_BUTTON -> tunnel.withLength(tunnel.clampedLength() + 1);
+				case BRANCHES_LESS_BUTTON -> tunnel.withBranches((tunnel.clampedBranches() - 1) / BRANCH_STEP * BRANCH_STEP);
+				case BRANCHES_MORE_BUTTON -> tunnel.withBranches((tunnel.clampedBranches() / BRANCH_STEP + 1) * BRANCH_STEP);
+				case STAIRS_BUTTON -> tunnel.withStairs(!tunnel.stairs());
+				default -> null;
+			};
+			if (changed == null) {
+				return false;
+			}
+			station.setTunnel(changed);
 			return true;
 		}
 		if (this.type == StationType.PIT_STAKE && (buttonId == DEPTH_LESS_BUTTON || buttonId == DEPTH_MORE_BUTTON)) {

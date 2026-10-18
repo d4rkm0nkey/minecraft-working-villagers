@@ -1,5 +1,6 @@
 package me.teajay.workingvillagers.job;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,6 +92,12 @@ public final class WorkerSupplies {
 	public static final Stock SEEDS = new Stock("seeds", FarmFields::isSeed, Config.KEEP_SEEDS::get, "farmer.no_seeds", false);
 	public static final Stock LADDERS = new Stock("ladders", stack -> stack.is(Items.LADDER), Config.KEEP_LADDERS::get, "pit_digger.no_ladders", true);
 	public static final Stock TORCHES = new Stock("torches", WorkerSupplies::isTorch, Config.KEEP_TORCHES::get, "", false);
+	public static final Stock MINER_TORCHES = new Stock("torches", WorkerSupplies::isTorch, Config.MINER_KEEP_TORCHES::get, "", false);
+	/** The miner's supports: fences as posts, planks as the beam above. */
+	public static final Stock FENCES = new Stock("fences", stack -> stack.is(ItemTags.WOODEN_FENCES), Config.KEEP_FENCES::get, "", false);
+	public static final Stock PLANKS = new Stock("planks", stack -> stack.is(ItemTags.PLANKS), Config.KEEP_PLANKS::get, "", false);
+	/** Cobblestone the miner keeps of what it digs, to seal off water and lava and to close holes in the floor. */
+	public static final Stock SEAL_BLOCKS = new Stock("seal", WorkerSupplies::isSealBlock, Config.KEEP_SEAL_BLOCKS::get, "", false);
 
 	private int waitTicks;
 	/** On the way to a village chest, null otherwise. */
@@ -249,6 +256,9 @@ public final class WorkerSupplies {
 		if (profession.is(WorkingVillagers.PIT_DIGGER_PROFESSION)) {
 			return List.of(SHOVEL, PICKAXE);
 		}
+		if (profession.is(WorkingVillagers.MINER_PROFESSION)) {
+			return List.of(PICKAXE);
+		}
 		return List.of();
 	}
 
@@ -264,7 +274,23 @@ public final class WorkerSupplies {
 		if (profession.is(WorkingVillagers.PIT_DIGGER_PROFESSION)) {
 			return Config.KEEP_TORCHES.get() > 0 ? List.of(LADDERS, TORCHES) : List.of(LADDERS);
 		}
+		if (profession.is(WorkingVillagers.MINER_PROFESSION)) {
+			List<Stock> stocks = new ArrayList<>(List.of(SEAL_BLOCKS));
+			if (Config.MINER_KEEP_TORCHES.get() > 0) {
+				stocks.add(MINER_TORCHES);
+			}
+			if (Config.TUNNEL_SUPPORTS.get() && Config.KEEP_FENCES.get() > 0 && Config.KEEP_PLANKS.get() > 0) {
+				stocks.add(FENCES);
+				stocks.add(PLANKS);
+			}
+			return List.copyOf(stocks);
+		}
 		return List.of();
+	}
+
+	/** Cobblestone or cobbled deepslate, what the miner seals and closes holes with. */
+	public static boolean isSealBlock(ItemStack stack) {
+		return stack.is(Items.COBBLESTONE) || stack.is(Items.COBBLED_DEEPSLATE);
 	}
 
 	/** A torch that stands on the ground (torch, soul torch, ...), not a redstone torch. */

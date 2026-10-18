@@ -11,6 +11,7 @@ import me.teajay.workingvillagers.job.WorkerJobs;
 import me.teajay.workingvillagers.menu.StationMenu;
 import me.teajay.workingvillagers.station.Workstations.ChestRole;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -24,8 +25,8 @@ import org.jspecify.annotations.Nullable;
 /**
  * Picking things for a workstation in the world, started with a button in its menu: the
  * worker (right-click a hired villager), chests (right-click containers, each click links
- * or unlinks one), at a pit stake the pit and its ladder (right-click a string).
- * Right-clicking the workstation ends picking chests and opens its menu
+ * or unlinks one), at a pit stake the pit and its ladder (right-click a string), at a mining
+ * bench the tunnel (right-click the side of a block). Right-clicking the workstation ends picking chests and opens its menu
  * again; unfinished picking runs out after two minutes.
  */
 public final class StationPicks {
@@ -36,7 +37,7 @@ public final class StationPicks {
 	}
 
 	/** Pit stake: picking the ring of the pit, or the string where the ladder goes. */
-	private enum PitPick { RING, LADDER }
+	private enum PitPick { RING, LADDER, TUNNEL }
 
 	/**
 	 * What is picked for which station; {@code role} and {@code pit} are null when picking
@@ -65,6 +66,12 @@ public final class StationPicks {
 	public static void pickLadder(ServerPlayer player, BlockPos station) {
 		start(player, new Pending(station.immutable(), null, PitPick.LADDER, player.level().getGameTime() + TIMEOUT_TICKS),
 			Component.translatable("message.workingvillagers.pit.pick_ladder"));
+	}
+
+	/** Mining bench: the player right-clicks the side of the block where the tunnel starts. */
+	public static void pickTunnel(ServerPlayer player, BlockPos station) {
+		start(player, new Pending(station.immutable(), null, PitPick.TUNNEL, player.level().getGameTime() + TIMEOUT_TICKS),
+			Component.translatable("message.workingvillagers.tunnel.pick"));
 	}
 
 	private static void start(ServerPlayer player, Pending pending, Component message) {
@@ -115,8 +122,11 @@ public final class StationPicks {
 	 * Handles a right-click on a block. Returns true if it belonged to picking chests (or
 	 * ended it by clicking the workstation), so the container does not open.
 	 */
-	public static boolean onUseBlock(ServerPlayer player, BlockPos pos) {
+	public static boolean onUseBlock(ServerPlayer player, BlockPos pos, Direction face) {
 		Pending pending = pending(player);
+		if (pending != null && pending.pit() == PitPick.TUNNEL) {
+			return onPickTunnel(player, pending, pos, face);
+		}
 		if (pending != null && pending.pit() != null) {
 			return onPickPit(player, pending, pos);
 		}
@@ -205,6 +215,47 @@ public final class StationPicks {
 		player.sendOverlayMessage(pending.pit() == PitPick.LADDER
 			? Component.translatable("message.workingvillagers.pit.ladder_set")
 			: Component.translatable("message.workingvillagers.pit.picked", pit.width(), pit.length(), pit.inside().size()));
+		return true;
+	}
+
+	/**
+	 * A right-click while picking the tunnel: the side of a block starts the tunnel there,
+	 * going into the block; the station ends picking and opens its menu again.
+	 */
+	private static boolean onPickTunnel(ServerPlayer player, Pending pending, BlockPos pos, Direction face) {
+		ServerLevel level = player.level();
+		Optional<Workstations.Station> found = Workstations.find(level, pending.station());
+		if (found.isEmpty()) {
+			PENDING.remove(player.getUUID());
+			return false;
+		}
+		Workstations.Station station = found.get();
+		if (pos.equals(pending.station())) {
+			PENDING.remove(player.getUUID());
+			player.openMenu(StationMenu.provider(station.type(), level, pos));
+			return true;
+		}
+		if (!face.getAxis().isHorizontal()) {
+			player.sendOverlayMessage(Component.translatable("message.workingvillagers.tunnel.side"));
+			return true;
+		}
+		if (!station.canReach(pos)) {
+			player.sendOverlayMessage(Component.translatable("message.workingvillagers.tunnel.too_far", Config.CHEST_DISTANCE.get()));
+			return true;
+		}
+		Direction direction = face.getOpposite();
+		Tunnel old = station.tunnel();
+		Tunnel tunnel = old == null ? Tunnel.of(pos, direction) : old.at(pos, direction);
+		PENDING.remove(player.getUUID());
+		station.setTunnel(tunnel);
+		for (Tunnel.Section section : tunnel.sections(false).subList(0, Math.min(3, tunnel.clampedLength()))) {
+			for (BlockPos cell : section.cells()) {
+				level.sendParticles(ParticleTypes.HAPPY_VILLAGER, cell.getX() + 0.5, cell.getY() + 0.5, cell.getZ() + 0.5, 1, 0.3, 0.3, 0.3, 0.0);
+			}
+		}
+		mark(level, pos);
+		player.sendOverlayMessage(Component.translatable("message.workingvillagers.tunnel.picked",
+			Component.translatable("gui.workingvillagers.direction." + direction.getSerializedName())));
 		return true;
 	}
 

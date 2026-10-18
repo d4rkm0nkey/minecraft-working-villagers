@@ -452,6 +452,46 @@ def pit_digger():
     return image
 
 
+
+def miner():
+    """Villager profession overlay: a brown leather miner's helmet with a lamp; a dark grey-blue
+    work jacket dusted with stone and soot, a belt, dark trousers and boots."""
+    image = blank(64)
+    p = image.load()
+    cloth, cloth_dark, dirt = (70, 78, 92, 255), (56, 62, 74, 255), (128, 128, 124, 255)
+    belt, buckle = (55, 40, 25, 255), (200, 170, 80, 255)
+    trousers, mud, boots = (52, 48, 46, 255), (38, 36, 36, 255), (32, 26, 22, 255)
+    hat, hat_dark, hat_light = (120, 82, 50, 255), (92, 62, 38, 255), (150, 108, 70, 255)
+    lamp, lamp_frame = (255, 245, 190, 255), (90, 90, 95, 255)
+
+    def fill(x0, y0, x1, y1, color):
+        for y in range(y0, y1):
+            for x in range(x0, x1):
+                p[x, y] = color(x, y)
+
+    work = lambda x, y: dirt if (x * 5 + y * 3) % 13 == 0 else cloth_dark if y % 4 == 3 else cloth
+    fill(16, 20, 44, 38, work)  # body
+    fill(6, 38, 14, 44, work)  # jacket top
+    fill(0, 44, 28, 56, work)  # jacket, upper part
+    fill(0, 56, 28, 64, lambda x, y: mud if y >= 60 and (x + y) % 3 else trousers)  # trousers, sooty at the bottom
+    fill(0, 55, 28, 56, lambda x, y: belt)  # belt
+    p[9, 55] = p[10, 55] = buckle
+    for x in (8, 11):
+        for y in (47, 48):
+            p[x, y] = cloth_dark  # chest pockets
+    fill(44, 22, 60, 34, work)  # arms
+    fill(40, 38, 64, 46, work)  # crossed arms, middle part
+    fill(0, 22, 16, 30, lambda x, y: trousers)  # legs
+    fill(0, 30, 16, 34, lambda x, y: mud if (x + y) % 2 else trousers)
+    fill(0, 34, 16, 38, lambda x, y: boots)
+    fill(40, 0, 48, 8, lambda x, y: hat_light if x == 43 or x == 44 else hat)  # leather helmet top with a ridge
+    fill(32, 8, 64, 11, lambda x, y: hat)  # helmet sides
+    fill(32, 11, 64, 12, lambda x, y: hat_dark)
+    fill(42, 8, 46, 11, lambda x, y: lamp_frame)  # lamp on the front
+    p[43, 9] = p[44, 9] = lamp
+    hat_rim(p, lambda u, v: hat_dark, 1, front=1)  # brim
+    return image
+
 def kiln(jar):
     """The furnace textures with bricks instead of cobblestone: grey (stone) pixels take the
     bricks pixel at the same position, keeping the brightness of the stone pixel so the
@@ -730,6 +770,8 @@ def main():
         "entity/zombie_villager/profession/smith.png": smith(),
         "entity/villager/profession/pit_digger.png": pit_digger(),
         "entity/zombie_villager/profession/pit_digger.png": pit_digger(),
+        "entity/villager/profession/miner.png": miner(),
+        "entity/zombie_villager/profession/miner.png": miner(),
         "entity/villager/profession/kiln_operator.png": kiln_operator(),
         "entity/zombie_villager/profession/kiln_operator.png": kiln_operator(),
         "entity/villager/profession/shop_assistant.png": shop_assistant(),

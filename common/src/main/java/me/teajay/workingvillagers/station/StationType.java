@@ -27,7 +27,9 @@ public enum StationType {
 	/** The kiln operator fires everything, or only what makes the order. */
 	KILN(true),
 	/** The shop assistant sells the goods of the input chests, the emeralds go to the output chests. */
-	TRADING_COUNTER(true);
+	TRADING_COUNTER(true),
+	/** The miner only delivers what it digs; the bench itself is a mill for players. */
+	MINING_BENCH(false);
 
 	private final boolean processing;
 
@@ -45,7 +47,7 @@ public enum StationType {
 
 	/** Whether the block has a screen of its own, which the overview leads back to. */
 	public boolean hasOwnScreen() {
-		return this == WOODCUTTER || this == STONECUTTER || this == CARPENTER_BENCH || this == BLAST_FURNACE || this == KILN;
+		return this == WOODCUTTER || this == STONECUTTER || this == CARPENTER_BENCH || this == BLAST_FURNACE || this == KILN || this == MINING_BENCH;
 	}
 
 	/** Whether the worker needs an order, set in the order column of the overview. */
@@ -89,6 +91,7 @@ public enum StationType {
 			case PIT_STAKE -> WorkingVillagers.PIT_STAKE.get().getName();
 			case KILN -> WorkingVillagers.KILN.get().getName();
 			case TRADING_COUNTER -> WorkingVillagers.TRADING_COUNTER.get().getName();
+			case MINING_BENCH -> WorkingVillagers.MINING_BENCH.get().getName();
 		};
 	}
 
@@ -103,6 +106,7 @@ public enum StationType {
 			case PIT_STAKE -> WorkingVillagers.PIT_STAKE.get();
 			case KILN -> WorkingVillagers.KILN.get();
 			case TRADING_COUNTER -> WorkingVillagers.TRADING_COUNTER.get();
+			case MINING_BENCH -> WorkingVillagers.MINING_BENCH.get();
 		};
 	}
 
@@ -125,6 +129,8 @@ public enum StationType {
 			return KILN;
 		} else if (state.is(WorkingVillagers.TRADING_COUNTER.get())) {
 			return TRADING_COUNTER;
+		} else if (state.is(WorkingVillagers.MINING_BENCH.get())) {
+			return MINING_BENCH;
 		}
 		return null;
 	}

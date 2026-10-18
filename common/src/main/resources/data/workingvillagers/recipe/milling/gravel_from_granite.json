@@ -1,0 +1,7 @@
+{
+  "type": "workingvillagers:milling",
+  "ingredient": "minecraft:granite",
+  "result": {
+    "id": "minecraft:gravel"
+  }
+}

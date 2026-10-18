@@ -38,6 +38,7 @@ public class WorkingVillagersFabric implements ModInitializer {
 				output.accept(WorkingVillagers.PIT_STAKE_ITEM.get());
 				output.accept(WorkingVillagers.KILN_ITEM.get());
 				output.accept(WorkingVillagers.TRADING_COUNTER_ITEM.get());
+				output.accept(WorkingVillagers.MINING_BENCH_ITEM.get());
 				output.accept(WorkingVillagers.VILLAGE_CHEST_ITEM.get());
 			});
 		CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.TOOLS_AND_UTILITIES).register(output -> {

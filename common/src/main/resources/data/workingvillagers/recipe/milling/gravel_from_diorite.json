@@ -1,0 +1,7 @@
+{
+  "type": "workingvillagers:milling",
+  "ingredient": "minecraft:diorite",
+  "result": {
+    "id": "minecraft:gravel"
+  }
+}

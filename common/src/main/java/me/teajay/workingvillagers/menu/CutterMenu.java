@@ -37,8 +37,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 
 /**
- * The menu of the woodcutter and the stonecutter, a copy of the vanilla stonecutter menu
- * that also shows the order of the workstation, what its worker makes. The order is set
+ * The menu of the woodcutter, the stonecutter and the mill of the mining bench, a copy of the
+ * vanilla stonecutter menu that also shows the order of the workstation, what its worker makes. The order is set
  * in the overview.
  *
  * <p>Unlike stonecutter recipes, custom recipes are not sent to the client. So the server
@@ -158,6 +158,11 @@ public class CutterMenu extends AbstractContainerMenu {
 	public ItemStack getOrder() {
 		Item item = BuiltInRegistries.ITEM.byId(this.order.get());
 		return item == Items.AIR ? ItemStack.EMPTY : new ItemStack(item);
+	}
+
+	/** Whether the station has an order (shown below the result); the mill of the mining bench has none. */
+	public boolean hasOrder() {
+		return this.kind != WorkingVillagers.MILL_KIND;
 	}
 
 	/** Whether this is the woodcutter's menu, whose order can use several wood types. */

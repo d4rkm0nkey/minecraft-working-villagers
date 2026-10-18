@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "workingvillagers:work_hours",
+  "function": "workingvillagers:miner_digs_stairs",
+  "max_ticks": 3000,
+  "setup_ticks": 1,
+  "structure": "workingvillagers:platform"
+}

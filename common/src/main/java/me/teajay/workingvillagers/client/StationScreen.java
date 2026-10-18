@@ -60,6 +60,10 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	/** Pit stake: the row with the pit and the one with its depth. */
 	private static final int PIT_Y = 71;
 	private static final int DEPTH_Y = 86;
+	/** Mining bench: the rows of the tunnel (picked tunnel, length and kind, side tunnels). */
+	private static final int TUNNEL_Y = 71;
+	private static final int LENGTH_Y = 86;
+	private static final int BRANCHES_Y = 101;
 	/** Kiln: rows of products on one page. */
 	private static final int KILN_ROWS = 5;
 	private static final int KILN_CELLS = GRID_COLUMNS * KILN_ROWS;
@@ -116,12 +120,17 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		return this.menu.type() == StationType.PIT_STAKE;
 	}
 
+	private boolean isMiningBench() {
+		return this.menu.type() == StationType.MINING_BENCH;
+	}
+
 	private static int chestsY(StationMenu menu) {
 		if (hasOrderColumn(menu)) {
 			return 29;
 		}
 		return switch (menu.type()) {
 			case PIT_STAKE -> 111;
+			case MINING_BENCH -> 126;
 			default -> 95;
 		};
 	}
@@ -162,6 +171,9 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		}
 		if (this.isPitStake()) {
 			this.extractPit(graphics, mouseX, mouseY);
+		}
+		if (this.isMiningBench()) {
+			this.extractTunnel(graphics, mouseX, mouseY);
 		}
 		this.extractChests(graphics, mouseX, mouseY);
 		this.extractWorkerButton(graphics, mouseX, mouseY);
@@ -402,6 +414,52 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		}
 	}
 
+	/** Mining bench: picking the tunnel, its length and kind, and the side tunnels. */
+	private void extractTunnel(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+		int right = this.leftPos + 7 + COLUMN_WIDTH;
+		String pick = Component.translatable("gui.workingvillagers.tunnel.pick").getString();
+		int pickWidth = this.font.width(pick) + 10;
+		this.button(graphics, mouseX, mouseY, right - pickWidth, this.topPos + TUNNEL_Y - 2, pickWidth, BUTTON_SIZE, pick, StationMenu.PICK_TUNNEL_BUTTON, List.of(
+			Component.translatable("gui.workingvillagers.tunnel.pick.tooltip"),
+			Component.translatable("gui.workingvillagers.tunnel.pick.tooltip2").withStyle(ChatFormatting.GRAY)
+		));
+		Optional<StationMenu.TunnelInfo> tunnel = this.menu.getTunnel();
+		if (tunnel.isEmpty()) {
+			return;
+		}
+		List<Component> lengthTooltip = List.of(
+			Component.translatable("gui.workingvillagers.tunnel.length.tooltip"),
+			Component.translatable("gui.workingvillagers.tunnel.length.tooltip2", this.menu.getMaxTunnelLength()).withStyle(ChatFormatting.GRAY)
+		);
+		int y = this.topPos + LENGTH_Y - 2;
+		this.button(graphics, mouseX, mouseY, right - BUTTON_SIZE, y, BUTTON_SIZE, BUTTON_SIZE, "+", StationMenu.LENGTH_MORE_BUTTON, lengthTooltip);
+		this.button(graphics, mouseX, mouseY, right - 2 * BUTTON_SIZE - 2, y, BUTTON_SIZE, BUTTON_SIZE, "-", StationMenu.LENGTH_LESS_BUTTON, lengthTooltip);
+		String kind = this.stairsLabel(tunnel.get().stairs()).getString();
+		int kindWidth = this.stairsButtonWidth();
+		this.button(graphics, mouseX, mouseY, right - 2 * BUTTON_SIZE - 6 - kindWidth, y, kindWidth, BUTTON_SIZE, kind, StationMenu.STAIRS_BUTTON, List.of(
+			Component.translatable("gui.workingvillagers.tunnel.kind.tooltip"),
+			Component.translatable("gui.workingvillagers.tunnel.kind.tooltip2").withStyle(ChatFormatting.GRAY),
+			Component.translatable("gui.workingvillagers.station.click_toggle").withStyle(ChatFormatting.DARK_GRAY)
+		));
+		if (!tunnel.get().stairs() && this.menu.getMaxBranches() > 0) {
+			List<Component> branchTooltip = List.of(
+				Component.translatable("gui.workingvillagers.tunnel.branches.tooltip"),
+				Component.translatable("gui.workingvillagers.tunnel.branches.tooltip2", this.menu.getMaxBranches()).withStyle(ChatFormatting.GRAY)
+			);
+			y = this.topPos + BRANCHES_Y - 2;
+			this.button(graphics, mouseX, mouseY, right - BUTTON_SIZE, y, BUTTON_SIZE, BUTTON_SIZE, "+", StationMenu.BRANCHES_MORE_BUTTON, branchTooltip);
+			this.button(graphics, mouseX, mouseY, right - 2 * BUTTON_SIZE - 2, y, BUTTON_SIZE, BUTTON_SIZE, "-", StationMenu.BRANCHES_LESS_BUTTON, branchTooltip);
+		}
+	}
+
+	private Component stairsLabel(boolean stairs) {
+		return Component.translatable(stairs ? "gui.workingvillagers.tunnel.kind.stairs" : "gui.workingvillagers.tunnel.kind.tunnel");
+	}
+
+	private int stairsButtonWidth() {
+		return Math.max(this.font.width(this.stairsLabel(true)), this.font.width(this.stairsLabel(false))) + 10;
+	}
+
 	/** Carpenter's bench and kiln: how many products to keep in the output chests, with buttons to change it. */
 	private void extractStock(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
 		int right = this.leftPos + 7 + COLUMN_WIDTH;
@@ -549,6 +607,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			case CARPENTER_BENCH -> "gui.workingvillagers.station.back.tooltip.bench";
 			case BLAST_FURNACE -> "gui.workingvillagers.station.back.tooltip.furnace";
 			case KILN -> "gui.workingvillagers.station.back.tooltip.kiln";
+			case MINING_BENCH -> "gui.workingvillagers.station.back.tooltip.mill";
 			default -> "gui.workingvillagers.station.back.tooltip";
 		};
 	}
@@ -558,6 +617,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			case CHOPPING_BLOCK -> "gui.workingvillagers.chopping_block.no_chests";
 			case COMPOSTER -> "gui.workingvillagers.composter.no_chests";
 			case PIT_STAKE -> "gui.workingvillagers.pit_stake.no_chests";
+			case MINING_BENCH -> "gui.workingvillagers.mining_bench.no_chests";
 			default -> "gui.workingvillagers.station.no_chests";
 		});
 	}
@@ -636,6 +696,27 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			GuiPanels.scrollingText(graphics, this.font, Component.translatable("gui.workingvillagers.pit.depth", this.menu.getDepth()).getString(), 8, DEPTH_Y,
 				COLUMN_WIDTH - 2 * BUTTON_SIZE - ladderWidth - 6, GuiPanels.TEXT_COLOR);
 		}
+		if (this.isMiningBench()) {
+			Optional<StationMenu.TunnelInfo> tunnel = this.menu.getTunnel();
+			int pickWidth = this.font.width(Component.translatable("gui.workingvillagers.tunnel.pick")) + 10;
+			Component summary = tunnel
+				.map(info -> (Component) Component.translatable("gui.workingvillagers.tunnel.direction",
+					Component.translatable("gui.workingvillagers.direction." + info.facing())))
+				.orElse(Component.translatable("gui.workingvillagers.tunnel.none"));
+			GuiPanels.scrollingText(graphics, this.font, summary.getString(), 8, TUNNEL_Y, COLUMN_WIDTH - pickWidth - 4,
+				tunnel.isPresent() ? GuiPanels.TEXT_COLOR : GuiPanels.WARNING_COLOR);
+			tunnel.ifPresent(info -> {
+				GuiPanels.scrollingText(graphics, this.font,
+					Component.translatable(info.stairs() ? "gui.workingvillagers.tunnel.steps" : "gui.workingvillagers.tunnel.length", info.length()).getString(),
+					8, LENGTH_Y, COLUMN_WIDTH - 2 * BUTTON_SIZE - this.stairsButtonWidth() - 10, GuiPanels.TEXT_COLOR);
+				if (!info.stairs() && this.menu.getMaxBranches() > 0) {
+					GuiPanels.scrollingText(graphics, this.font, (info.branches() == 0
+						? Component.translatable("gui.workingvillagers.tunnel.branches.none")
+						: Component.translatable("gui.workingvillagers.tunnel.branches", info.branches())).getString(),
+						8, BRANCHES_Y, COLUMN_WIDTH - 2 * BUTTON_SIZE - 6, GuiPanels.TEXT_COLOR);
+				}
+			});
+		}
 		if (this.isBench() || this.isKiln()) {
 			int stock = this.menu.getStock();
 			Component text = this.isKiln() && this.menu.getOrder().isEmpty()
@@ -670,7 +751,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			}
 			return crops < 0 ? Optional.empty() : Optional.of(Component.translatable("gui.workingvillagers.composter.crops", crops));
 		}
-		if (this.isPitStake()) {
+		if (this.isPitStake() || this.isMiningBench()) {
 			int blocks = this.menu.getLogsToday();
 			if (this.menu.getWorker().isEmpty()) {
 				return Optional.of(Component.translatable("gui.workingvillagers.chopping_block.hire"));

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "workingvillagers:block/mining_bench"
+    },
+    "facing=east": {
+      "model": "workingvillagers:block/mining_bench",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "workingvillagers:block/mining_bench",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "workingvillagers:block/mining_bench",
+      "y": 270
+    }
+  }
+}

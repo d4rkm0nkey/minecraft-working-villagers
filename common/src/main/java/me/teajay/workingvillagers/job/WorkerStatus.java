@@ -30,7 +30,8 @@ public final class WorkerStatus {
 		"saw.no_material", "carpenter.no_recipe", "carpenter.waiting_for", "carpenter.inventory_full", "smith.no_ore", "smith.no_fuel",
 		"kiln.no_ore", "kiln.no_fuel", "kiln.furnace_unreachable", "shop.no_goods", "shop.no_buyer",
 		"pit_digger.no_shovel", "pit_digger.no_pickaxe", "pit_digger.no_ladders", "pit_digger.no_pit", "pit_digger.ring_broken",
-		"pit_digger.blocked_liquid", "pit_digger.blocked_tool", "pit_digger.unreachable", "pit_digger.ladder_blocked", "pit_digger.not_loaded"
+		"pit_digger.blocked_liquid", "pit_digger.blocked_tool", "pit_digger.unreachable", "pit_digger.ladder_blocked", "pit_digger.not_loaded",
+		"miner.no_tunnel", "miner.not_loaded", "miner.blocked", "miner.blocked_tool", "miner.no_seal_blocks", "miner.unreachable"
 	);
 
 	private WorkerStatus() {

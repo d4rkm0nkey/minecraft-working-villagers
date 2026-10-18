@@ -55,6 +55,9 @@ final class SuppliesRow {
 			case "seeds" -> Items.WHEAT_SEEDS;
 			case "ladders" -> Items.LADDER;
 			case "torches" -> Items.TORCH;
+			case "fences" -> Items.OAK_FENCE;
+			case "planks" -> Items.OAK_PLANKS;
+			case "seal" -> Items.COBBLESTONE;
 			default -> Items.BARRIER;
 		});
 	}

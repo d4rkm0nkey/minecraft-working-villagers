@@ -72,16 +72,18 @@ public class CutterScreen extends AbstractContainerScreen<CutterMenu> {
 				: CursorTypes.NOT_ALLOWED);
 		}
 
-		int orderX = xo + ORDER_X;
-		int orderY = yo + ORDER_Y;
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SLOT_SPRITE, orderX - 1, orderY - 1, 18, 18);
-		ItemStack order = this.menu.getOrder();
-		if (!order.isEmpty()) {
-			graphics.item(order, orderX, orderY);
-		}
-		if (this.isOverOrder(mouseX, mouseY)) {
-			graphics.fill(orderX, orderY, orderX + 16, orderY + 16, 0x80FFFFFF);
-			graphics.requestCursor(CursorTypes.POINTING_HAND);
+		if (this.menu.hasOrder()) {
+			int orderX = xo + ORDER_X;
+			int orderY = yo + ORDER_Y;
+			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SLOT_SPRITE, orderX - 1, orderY - 1, 18, 18);
+			ItemStack order = this.menu.getOrder();
+			if (!order.isEmpty()) {
+				graphics.item(order, orderX, orderY);
+			}
+			if (this.isOverOrder(mouseX, mouseY)) {
+				graphics.fill(orderX, orderY, orderX + 16, orderY + 16, 0x80FFFFFF);
+				graphics.requestCursor(CursorTypes.POINTING_HAND);
+			}
 		}
 
 		boolean overStation = this.isOverStation(mouseX, mouseY);
@@ -172,6 +174,9 @@ public class CutterScreen extends AbstractContainerScreen<CutterMenu> {
 	}
 
 	private boolean isOverOrder(double mouseX, double mouseY) {
+		if (!this.menu.hasOrder()) {
+			return false;
+		}
 		int x = this.leftPos + ORDER_X;
 		int y = this.topPos + ORDER_Y;
 		return mouseX >= x - 1 && mouseX < x + 17 && mouseY >= y - 1 && mouseY < y + 17;

@@ -9,6 +9,7 @@ import me.teajay.workingvillagers.job.ChopTrees;
 import me.teajay.workingvillagers.job.CraftAtBench;
 import me.teajay.workingvillagers.job.CutAtStation;
 import me.teajay.workingvillagers.job.DigPit;
+import me.teajay.workingvillagers.job.DigTunnel;
 import me.teajay.workingvillagers.job.FarmFields;
 import me.teajay.workingvillagers.job.FindWorkplace;
 import me.teajay.workingvillagers.job.SellGoods;
@@ -59,6 +60,8 @@ public abstract class VillagerGoalPackagesMixin {
 			work = new SmeltAtFurnace(SmeltAtFurnace.Kind.KILN);
 		} else if (profession.is(WorkingVillagers.PIT_DIGGER_PROFESSION)) {
 			work = new DigPit();
+		} else if (profession.is(WorkingVillagers.MINER_PROFESSION)) {
+			work = new DigTunnel();
 		} else if (profession.is(WorkingVillagers.SHOP_ASSISTANT_PROFESSION)) {
 			work = new SellGoods();
 		}
