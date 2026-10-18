@@ -112,7 +112,7 @@ public class SmeltAtFurnace extends Behavior<Villager> {
 		WorkerStatus.clear(villager);
 		villager.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
 		villager.getBrain().eraseMemory(MemoryModuleType.LOOK_TARGET);
-		this.supplies.stop();
+		this.supplies.stop(villager);
 		if (this.trip != null) {
 			this.trip.close(villager);
 			this.trip = null;
@@ -127,7 +127,7 @@ public class SmeltAtFurnace extends Behavior<Villager> {
 			return;
 		}
 		this.stateTicks++;
-		if (this.state == State.PLAN && this.supplies.busy(level, villager, null)) {
+		if (this.state == State.PLAN && this.supplies.busy(level, villager)) {
 			return; // wage first, the chest sets the status
 		}
 		if (timestamp - this.smeltableTime > RECIPE_REFRESH_TICKS) {

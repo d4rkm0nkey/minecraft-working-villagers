@@ -2,6 +2,7 @@
   "values": [
     "workingvillagers:chopping_block",
     "workingvillagers:woodcutter",
-    "workingvillagers:carpenter_bench"
+    "workingvillagers:carpenter_bench",
+    "workingvillagers:village_chest"
   ]
 }

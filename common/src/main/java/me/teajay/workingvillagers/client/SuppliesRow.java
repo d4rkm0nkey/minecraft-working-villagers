@@ -2,6 +2,7 @@ package me.teajay.workingvillagers.client;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import me.teajay.workingvillagers.menu.SuppliesInfo;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
@@ -14,7 +15,7 @@ import net.minecraft.world.item.Items;
 
 /**
  * The row about what a worker carries for its work in the station and carrier screens:
- * slots with its emeralds, its tool (with the durability bar) and what it plants, like an
+ * slots with its emeralds, its tools (with the durability bar) and what it uses up, like an
  * inventory, and a short line next to them. Details in the tooltip.
  */
 final class SuppliesRow {
@@ -27,8 +28,7 @@ final class SuppliesRow {
 
 	/** How wide the slots are. */
 	static int slotsWidth(SuppliesInfo info) {
-		int slots = 1 + (info.needsTool() ? 1 : 0) + (info.stockKind().isEmpty() ? 0 : 1);
-		return slots * SLOT;
+		return (1 + info.tools().size() + info.stocks().size()) * SLOT;
 	}
 
 	/** Draws the slots with their top left corner at x, y. */
@@ -36,12 +36,23 @@ final class SuppliesRow {
 		boolean unpaid = !info.paid() && info.emeralds() < info.wage();
 		x = slot(graphics, font, x, y, info.emeralds() > 0 ? new ItemStack(Items.EMERALD, info.emeralds()) : ItemStack.EMPTY,
 			new ItemStack(Items.EMERALD), unpaid);
-		if (info.needsTool()) {
-			x = slot(graphics, font, x, y, info.tool(), new ItemStack("axe".equals(info.toolKind()) ? Items.IRON_AXE : Items.IRON_HOE), info.tool().isEmpty());
+		for (SuppliesInfo.Slot slot : info.tools()) {
+			x = slot(graphics, font, x, y, slot.stack(), placeholder(slot.kind()), slot.missing());
 		}
-		if (!info.stockKind().isEmpty()) {
-			slot(graphics, font, x, y, info.stock(), new ItemStack("saplings".equals(info.stockKind()) ? Items.OAK_SAPLING : Items.WHEAT_SEEDS), false);
+		for (SuppliesInfo.Slot slot : info.stocks()) {
+			x = slot(graphics, font, x, y, slot.stack(), placeholder(slot.kind()), slot.missing());
 		}
+	}
+
+	/** What an empty slot shows, faded. */
+	private static ItemStack placeholder(String kind) {
+		return new ItemStack(switch (kind) {
+			case "axe" -> Items.IRON_AXE;
+			case "hoe" -> Items.IRON_HOE;
+			case "saplings" -> Items.OAK_SAPLING;
+			case "seeds" -> Items.WHEAT_SEEDS;
+			default -> Items.BARRIER;
+		});
 	}
 
 	/** A slot with the stack, or a faded placeholder if it is empty (red if that is a problem). */
@@ -65,8 +76,9 @@ final class SuppliesRow {
 		if (!info.paid() && info.emeralds() < info.wage()) {
 			return Component.translatable("gui.workingvillagers.supplies.no_wage");
 		}
-		if (info.needsTool() && info.tool().isEmpty()) {
-			return Component.translatable("gui.workingvillagers.supplies.no_" + info.toolKind());
+		Optional<SuppliesInfo.Slot> missing = info.firstMissing();
+		if (missing.isPresent()) {
+			return Component.translatable("gui.workingvillagers.supplies.no_" + missing.get().kind());
 		}
 		if (info.wage() == 0) {
 			return Component.translatable("gui.workingvillagers.supplies.free");
@@ -89,16 +101,19 @@ final class SuppliesRow {
 				? Component.translatable("gui.workingvillagers.supplies.paid").withStyle(ChatFormatting.DARK_GREEN)
 				: Component.translatable("gui.workingvillagers.supplies.unpaid").withStyle(ChatFormatting.GOLD));
 		}
-		if (info.needsTool()) {
-			lines.add(info.tool().isEmpty()
-				? Component.translatable("gui.workingvillagers.supplies.no_" + info.toolKind()).withStyle(ChatFormatting.RED)
-				: Component.translatable("gui.workingvillagers.supplies." + info.toolKind(),
-					100 - info.tool().getDamageValue() * 100 / Math.max(1, info.tool().getMaxDamage())).withStyle(ChatFormatting.GRAY));
+		for (SuppliesInfo.Slot tool : info.tools()) {
+			lines.add(tool.stack().isEmpty()
+				? Component.translatable("gui.workingvillagers.supplies.no_" + tool.kind()).withStyle(ChatFormatting.RED)
+				: Component.translatable("gui.workingvillagers.supplies." + tool.kind(),
+					100 - tool.stack().getDamageValue() * 100 / Math.max(1, tool.stack().getMaxDamage())).withStyle(ChatFormatting.GRAY));
 		}
-		if (!info.stockKind().isEmpty()) {
-			lines.add(Component.translatable("gui.workingvillagers.supplies." + info.stockKind(), info.stock().getCount())
-				.withStyle(info.stock().isEmpty() ? ChatFormatting.GOLD : ChatFormatting.GRAY));
+		for (SuppliesInfo.Slot stock : info.stocks()) {
+			lines.add(Component.translatable("gui.workingvillagers.supplies." + stock.kind(), stock.stack().getCount())
+				.withStyle(stock.missing() ? ChatFormatting.RED : stock.stack().isEmpty() ? ChatFormatting.GOLD : ChatFormatting.GRAY));
 		}
+		lines.add(info.villageChests() > 0
+			? Component.translatable("gui.workingvillagers.supplies.village_chests", info.villageChests()).withStyle(ChatFormatting.DARK_GREEN)
+			: Component.translatable("gui.workingvillagers.supplies.no_village_chest").withStyle(ChatFormatting.DARK_GRAY));
 		lines.add(Component.translatable("gui.workingvillagers.supplies.give").withStyle(ChatFormatting.DARK_GRAY));
 		return lines;
 	}

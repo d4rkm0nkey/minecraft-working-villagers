@@ -3,6 +3,7 @@ package me.teajay.workingvillagers.gametest;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import me.teajay.workingvillagers.Config;
 import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.carrier.CarrierData;
 import me.teajay.workingvillagers.carrier.Carriers;
@@ -15,7 +16,9 @@ import me.teajay.workingvillagers.station.Workstations;
 import me.teajay.workingvillagers.station.Workstations.ChestRole;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityTypes;
@@ -45,12 +48,15 @@ public final class WorkerTests {
 	private static final BlockPos STATION = new BlockPos(8, 1, 8);
 	private static final BlockPos INPUT = new BlockPos(10, 1, 6);
 	private static final BlockPos OUTPUT = new BlockPos(12, 1, 6);
+	private static final BlockPos VILLAGE_CHEST = new BlockPos(4, 1, 12);
 
 	private WorkerTests() {
 	}
 
 	/** Registers every test function under its name (the path of the test instance). */
 	public static void register(BiConsumer<String, Consumer<GameTestHelper>> registry) {
+		// The tests run side by side: the village chests of one test must not reach the workers of the next
+		Config.VILLAGE_CHEST_RADIUS.set(8);
 		registry.accept("contract_hires_unemployed", WorkerTests::contractHiresUnemployed);
 		registry.accept("contract_rejects_employed", WorkerTests::contractRejectsEmployed);
 		registry.accept("lumberjack_fells_tree", WorkerTests::lumberjackFellsTree);
@@ -70,6 +76,8 @@ public final class WorkerTests {
 		registry.accept("smith_smelts_ore", WorkerTests::smithSmeltsOre);
 		registry.accept("replaced_station_starts_fresh", WorkerTests::replacedStationStartsFresh);
 		registry.accept("old_station_notes_are_removed", WorkerTests::oldStationNotesAreRemoved);
+		registry.accept("village_chest_supplies_lumberjack", WorkerTests::villageChestSuppliesLumberjack);
+		registry.accept("village_chest_keeps_named_tools", WorkerTests::villageChestKeepsNamedTools);
 	}
 
 	private static void contractHiresUnemployed(GameTestHelper helper) {
@@ -158,6 +166,50 @@ public final class WorkerTests {
 		helper.failIfEver(() -> helper.assertBlockPresent(Blocks.OAK_LOG, build));
 		helper.runAfterDelay(600, () -> {
 			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> !stack.isEmpty()) == 0, "The lumberjack delivered something");
+			helper.succeed();
+		});
+	}
+
+	/**
+	 * A lumberjack that was given nothing takes its wage for a few days, the more worn of two
+	 * axes and saplings from a village chest, and fells the tree.
+	 */
+	private static void villageChestSuppliesLumberjack(GameTestHelper helper) {
+		BlockPos tree = new BlockPos(15, 1, 15);
+		TestWorld.oakTree(helper, tree, 5, true, Blocks.DIRT);
+		ItemStack worn = new ItemStack(Items.IRON_AXE);
+		worn.setDamageValue(worn.getMaxDamage() / 2);
+		TestWorld.villageChest(helper, VILLAGE_CHEST, new ItemStack(Items.EMERALD, 10), new ItemStack(Items.IRON_AXE), worn,
+			new ItemStack(Items.OAK_SAPLING, 32));
+		Villager worker = lumberjack(helper);
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_LOG), 5, "oak logs in the output chest");
+			int wageDays = Config.VILLAGE_CHEST_WAGE_DAYS.get() * Config.DAILY_WAGE.get();
+			helper.assertTrue(TestWorld.count(helper, VILLAGE_CHEST, WorkerSupplies::isWage) == 10 - wageDays,
+				"The lumberjack did not take its wage for " + Config.VILLAGE_CHEST_WAGE_DAYS.get() + " days: " + TestWorld.describe(worker));
+			helper.assertTrue(TestWorld.count(helper, VILLAGE_CHEST, stack -> stack.is(Items.IRON_AXE) && !stack.isDamaged()) == 1,
+				"The lumberjack took the new axe instead of the worn one");
+			helper.assertTrue(TestWorld.count(helper, VILLAGE_CHEST, stack -> stack.is(Items.OAK_SAPLING)) == 32 - Config.KEEP_SAPLINGS.get(),
+				"The lumberjack did not take its saplings");
+			TestWorld.removeVillageChest(helper, VILLAGE_CHEST);
+		});
+	}
+
+	/** Renamed (and enchanted) tools in a village chest stay there for the player. */
+	private static void villageChestKeepsNamedTools(GameTestHelper helper) {
+		BlockPos tree = new BlockPos(15, 1, 15);
+		TestWorld.oakTree(helper, tree, 4, true, Blocks.DIRT);
+		ItemStack named = new ItemStack(Items.DIAMOND_AXE);
+		named.set(DataComponents.CUSTOM_NAME, Component.literal("Lucky"));
+		TestWorld.villageChest(helper, VILLAGE_CHEST, new ItemStack(Items.EMERALD, 10), named);
+		Villager worker = lumberjack(helper);
+		helper.failIfEver(() -> helper.assertBlockPresent(Blocks.OAK_LOG, tree));
+		helper.runAfterDelay(600, () -> {
+			helper.assertTrue(TestWorld.count(helper, VILLAGE_CHEST, stack -> stack.is(Items.DIAMOND_AXE)) == 1,
+				"The lumberjack took the named axe");
+			helper.assertTrue(WorkerSupplies.count(worker.getInventory(), WorkerSupplies::isWage) > 0, "The lumberjack took no wage: " + TestWorld.describe(worker));
+			helper.assertTrue(((HiredVillager) worker).workingvillagers$hasProblem(), "The lumberjack without axe does not complain: " + TestWorld.describe(worker));
+			TestWorld.removeVillageChest(helper, VILLAGE_CHEST);
 			helper.succeed();
 		});
 	}

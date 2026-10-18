@@ -121,6 +121,7 @@
   "status.workingvillagers.chest_unreachable": "Wartet: kommt nicht an die Kiste",
   "status.workingvillagers.stuck": "Steckt fest: kommt nirgendwo hin",
   "status.workingvillagers.no_wage": "Wartet auf Lohn (gib ihm einen Smaragd)",
+  "status.workingvillagers.village_chest.fetch": "Holt Vorräte aus der Dorftruhe",
   "message.workingvillagers.status.unnamed_worker": "Angeheuerter Dorfbewohner",
   "status.workingvillagers.lumberjack.search": "Sucht einen Baum",
   "status.workingvillagers.lumberjack.walk": "Geht zum Baum",
@@ -216,5 +217,13 @@
   "gui.workingvillagers.supplies.hoe": "Hacke: noch %s %%",
   "gui.workingvillagers.supplies.saplings": "Setzlinge: %s",
   "gui.workingvillagers.supplies.seeds": "Saatgut: %s",
-  "gui.workingvillagers.supplies.give": "Rechtsklick mit Smaragden oder Werkzeug auf den Arbeiter gibt sie ihm."
+  "gui.workingvillagers.supplies.give": "Rechtsklick mit Smaragden oder Werkzeug auf den Arbeiter gibt sie ihm.",
+  "gui.workingvillagers.supplies.village_chests": "Nimmt sich, was fehlt, aus %s Dorftruhe(n) in der Nähe.",
+  "gui.workingvillagers.supplies.no_village_chest": "Keine Dorftruhe in der Nähe.",
+  "gui.workingvillagers.village_chest.serves": "Versorgt %s Arbeiter",
+  "gui.workingvillagers.village_chest.none": "Kein Arbeiter hat seine Station im Umkreis von %s Blöcken.",
+  "gui.workingvillagers.village_chest.more": "… und %s weitere",
+  "gui.workingvillagers.village_chest.wage_days": "Lohn reicht für ~%s Tage",
+  "gui.workingvillagers.village_chest.disabled": "Dorftruhen sind auf diesem Server ausgeschaltet: Arbeiter nehmen hier nichts.",
+  "block.workingvillagers.village_chest": "Dorftruhe"
 }

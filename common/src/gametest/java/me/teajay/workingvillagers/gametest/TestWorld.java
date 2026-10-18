@@ -71,6 +71,25 @@ final class TestWorld {
 		return pos;
 	}
 
+	/** A village chest with the given items in it. */
+	static BlockPos villageChest(GameTestHelper helper, BlockPos pos, ItemStack... items) {
+		helper.setBlock(pos, WorkingVillagers.VILLAGE_CHEST.get());
+		Container container = container(helper, pos);
+		for (int i = 0; i < items.length; i++) {
+			container.setItem(i, items[i]);
+		}
+		return pos;
+	}
+
+	/**
+	 * Empties and removes a village chest, so no worker of a test that runs later nearby
+	 * takes from it.
+	 */
+	static void removeVillageChest(GameTestHelper helper, BlockPos pos) {
+		container(helper, pos).clearContent();
+		helper.setBlock(pos, Blocks.AIR);
+	}
+
 	static void link(GameTestHelper helper, BlockPos station, BlockPos chest, ChestRole role) {
 		station(helper, station).setRole(helper.absolutePos(chest), role);
 	}

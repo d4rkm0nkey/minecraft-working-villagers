@@ -121,6 +121,7 @@
   "status.workingvillagers.chest_unreachable": "Waiting: cannot reach the chest",
   "status.workingvillagers.stuck": "Stuck: cannot get anywhere",
   "status.workingvillagers.no_wage": "Waiting for wages (give them an emerald)",
+  "status.workingvillagers.village_chest.fetch": "Fetching supplies from a village chest",
   "message.workingvillagers.status.unnamed_worker": "Hired villager",
   "status.workingvillagers.lumberjack.search": "Looking for a tree",
   "status.workingvillagers.lumberjack.walk": "Walking to a tree",
@@ -216,5 +217,13 @@
   "gui.workingvillagers.supplies.hoe": "Hoe: %s %% left",
   "gui.workingvillagers.supplies.saplings": "Saplings: %s",
   "gui.workingvillagers.supplies.seeds": "Seeds: %s",
-  "gui.workingvillagers.supplies.give": "Right-click the worker with emeralds or tools to give them."
+  "gui.workingvillagers.supplies.give": "Right-click the worker with emeralds or tools to give them.",
+  "gui.workingvillagers.supplies.village_chests": "Takes what it lacks from %s village chest(s) nearby.",
+  "gui.workingvillagers.supplies.no_village_chest": "No village chest nearby.",
+  "gui.workingvillagers.village_chest.serves": "Serves %s workers",
+  "gui.workingvillagers.village_chest.none": "No worker has its workstation within %s blocks.",
+  "gui.workingvillagers.village_chest.more": "... and %s more",
+  "gui.workingvillagers.village_chest.wage_days": "Wages paid for ~%s days",
+  "gui.workingvillagers.village_chest.disabled": "Village chests are switched off on this server: workers take nothing from here.",
+  "block.workingvillagers.village_chest": "Village Chest"
 }

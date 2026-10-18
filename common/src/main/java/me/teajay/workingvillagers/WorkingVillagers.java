@@ -3,9 +3,12 @@ package me.teajay.workingvillagers;
 import com.google.common.collect.ImmutableSet;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Supplier;
 import me.teajay.workingvillagers.block.CarpenterBenchBlock;
 import me.teajay.workingvillagers.block.ChoppingBlock;
+import me.teajay.workingvillagers.block.VillageChestBlock;
+import me.teajay.workingvillagers.block.VillageChestBlockEntity;
 import me.teajay.workingvillagers.block.WoodcutterBlock;
 import me.teajay.workingvillagers.crafting.WoodcuttingRecipe;
 import me.teajay.workingvillagers.item.WickerBasketItem;
@@ -14,6 +17,7 @@ import me.teajay.workingvillagers.menu.CarpenterMenu;
 import me.teajay.workingvillagers.menu.CarrierMenu;
 import me.teajay.workingvillagers.menu.CutterMenu;
 import me.teajay.workingvillagers.menu.StationMenu;
+import me.teajay.workingvillagers.menu.VillageChestMenu;
 import me.teajay.workingvillagers.network.RenameContainerPayload;
 import me.teajay.workingvillagers.network.RenameRoutePayload;
 import me.teajay.workingvillagers.station.StationType;
@@ -38,7 +42,10 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import net.minecraft.world.level.material.MapColor;
 import org.jspecify.annotations.Nullable;
 
@@ -90,6 +97,15 @@ public final class WorkingVillagers {
 	);
 
 	public static Supplier<MenuType<CutterMenu>> STONECUTTER_MENU;
+
+	/** Every worker nearby takes its supplies from these, see VillageChests. */
+	public static final ResourceKey<PoiType> VILLAGE_CHEST_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("village_chest"));
+	public static Supplier<Block> VILLAGE_CHEST;
+	public static Supplier<Item> VILLAGE_CHEST_ITEM;
+	public static Supplier<BlockEntityType<VillageChestBlockEntity>> VILLAGE_CHEST_BLOCK_ENTITY;
+	public static Supplier<MenuType<VillageChestMenu>> VILLAGE_CHEST_MENU;
+	public static Supplier<MenuType<VillageChestMenu>> VILLAGE_CHEST_DOUBLE_MENU;
+
 	public static final CutterMenu.Kind STONECUTTER_KIND = new CutterMenu.Kind(
 		() -> STONECUTTER_MENU.get(), () -> RecipeType.STONECUTTING, () -> Blocks.STONECUTTER,
 		(level, stack) -> level.recipeAccess().stonecutterRecipes().acceptsInput(stack)
@@ -119,6 +135,7 @@ public final class WorkingVillagers {
 		registerCarrier(platform);
 		registerFarmer(platform);
 		registerSmith(platform);
+		registerVillageChest(platform);
 		platform.registerServerbound(RenameRoutePayload.TYPE, RenameRoutePayload.CODEC, RenameRoutePayload::handle);
 		platform.registerServerbound(RenameContainerPayload.TYPE, RenameContainerPayload.CODEC, RenameContainerPayload::handle);
 	}
@@ -254,6 +271,38 @@ public final class WorkingVillagers {
 	private static void registerSmith(Platform platform) {
 		BLAST_FURNACE_STATION_MENU = platform.registerMenu("blast_furnace_station", (containerId, inventory) -> new StationMenu(StationType.BLAST_FURNACE, containerId, inventory));
 		registerProfession(platform, "smith", PoiTypes.ARMORER, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_ARMORER);
+	}
+
+	/**
+	 * The village chest: a chest the workers nearby take their wage, tools and what they use
+	 * up from. A point of interest without job, so the workers find it quickly.
+	 */
+	private static void registerVillageChest(Platform platform) {
+		VILLAGE_CHEST = platform.register(Registries.BLOCK, "village_chest", () -> new VillageChestBlock(
+			BlockBehaviour.Properties.of()
+				.setId(ResourceKey.create(Registries.BLOCK, id("village_chest")))
+				.mapColor(MapColor.WOOD)
+				.instrument(NoteBlockInstrument.BASS)
+				.strength(2.5F)
+				.sound(SoundType.WOOD)
+				.ignitedByLava()
+		));
+		VILLAGE_CHEST_ITEM = platform.register(Registries.ITEM, "village_chest", () -> new BlockItem(
+			VILLAGE_CHEST.get(),
+			itemProperties("village_chest").useBlockDescriptionPrefix()
+		));
+		VILLAGE_CHEST_BLOCK_ENTITY = registerBlockEntityType(platform, "village_chest", VillageChestBlockEntity::new, () -> VILLAGE_CHEST.get());
+		VILLAGE_CHEST_MENU = platform.registerMenu("village_chest", VillageChestMenu::single);
+		VILLAGE_CHEST_DOUBLE_MENU = platform.registerMenu("village_chest_double", VillageChestMenu::doubleChest);
+		platform.registerPoi("village_chest", () -> VILLAGE_CHEST.get(), 0, 1);
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <T extends BlockEntity> Supplier<BlockEntityType<T>> registerBlockEntityType(
+		Platform platform, String name, BlockEntityType.BlockEntitySupplier<T> factory, Supplier<Block> block
+	) {
+		Supplier<BlockEntityType<?>> registered = platform.register(Registries.BLOCK_ENTITY_TYPE, name, () -> new BlockEntityType<>(factory, Set.of(block.get())));
+		return () -> (BlockEntityType<T>) registered.get();
 	}
 
 	@SuppressWarnings("unchecked")

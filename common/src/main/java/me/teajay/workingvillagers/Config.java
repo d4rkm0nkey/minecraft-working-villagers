@@ -90,6 +90,16 @@ public final class Config {
 	public static final IntOption STACKS_PER_TRIP = intOption("carrier", "stacksPerTrip", 6, 1, 6,
 		"How many stacks a carrier carries at once (its basket holds 6).");
 
+	public static final BoolOption VILLAGE_CHESTS = boolOption("villageChests", "enabled", true,
+		"Workers take their wage, tools, saplings and seeds from village chests nearby.",
+		"Off: village chests are ordinary chests.");
+	public static final IntOption VILLAGE_CHEST_RADIUS = intOption("villageChests", "radius", 48, 8, 128,
+		"How far (in blocks, horizontally) a village chest may be from a worker's workstation (24 up or down).");
+	public static final IntOption VILLAGE_CHEST_WAGE_DAYS = intOption("villageChests", "wageDays", 3, 1, 16,
+		"For how many days a worker takes its wage from a village chest at once.");
+	public static final BoolOption VILLAGE_CHEST_ENCHANTED = boolOption("villageChests", "takeEnchanted", false,
+		"Workers also take enchanted and renamed tools from village chests.");
+
 	private Config() {
 	}
 
@@ -202,6 +212,11 @@ public final class Config {
 
 		public int get() {
 			return this.value;
+		}
+
+		/** Changes the value for this run (the game tests), clamped to the range. The file stays as it is. */
+		public void set(int value) {
+			this.value = Math.clamp(value, this.min, this.max);
 		}
 
 		@Override

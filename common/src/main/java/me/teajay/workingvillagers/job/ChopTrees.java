@@ -139,7 +139,7 @@ public class ChopTrees extends Behavior<Villager> {
 		villager.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
 		villager.getBrain().eraseMemory(MemoryModuleType.LOOK_TARGET);
 		villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
-		this.supplies.stop();
+		this.supplies.stop(villager);
 		if (this.tree != null) {
 			level.destroyBlockProgress(villager.getId(), this.tree.base(), -1);
 		}

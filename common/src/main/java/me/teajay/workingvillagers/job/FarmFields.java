@@ -118,7 +118,7 @@ public class FarmFields extends Behavior<Villager> {
 		villager.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
 		villager.getBrain().eraseMemory(MemoryModuleType.LOOK_TARGET);
 		villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
-		this.supplies.stop();
+		this.supplies.stop(villager);
 		if (this.trip != null) {
 			this.trip.close(villager);
 			this.trip = null;

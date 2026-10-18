@@ -4,7 +4,8 @@
 Usage: python3 tools/generate_textures.py <minecraft client or merged jar>
 
 The woodcutter textures are the vanilla stonecutter textures with the stone replaced by
-oak planks, so they are read from the Minecraft jar. The chopping block uses the vanilla
+oak planks, the village chest texture the chest texture in spruce with iron bands and an
+emerald lock, so they are read from the Minecraft jar. The chopping block uses the vanilla
 iron axe texture (copied, block models cannot use the item atlas) and its model is built
 from the axe pixels, so it also needs the jar. Everything else is drawn from scratch.
 
@@ -308,6 +309,58 @@ def farmer():
     return image
 
 
+def box_faces(u, v, width, height, depth):
+    """The faces of an entity model box in its texture, unwrapped like every box, as
+    (x, y, width, height)."""
+    return [
+        (u + depth, v, width, depth), (u + depth + width, v, width, depth),
+        (u, v + depth, depth, height), (u + depth, v + depth, width, height),
+        (u + depth + width, v + depth, depth, height), (u + 2 * depth + width, v + depth, width, height),
+    ]
+
+
+def village_chest(jar, half=""):
+    """The vanilla chest (or a half of the double chest: half "_left" or "_right") in spruce,
+    with iron bands instead of the dark edges of its faces and an emerald as lock. Each pixel
+    keeps its brightness relative to the oak, so the grain and the shading stay. Only dark
+    edge pixels become iron, so where the halves of a double chest meet stays wood."""
+    image = read_vanilla(jar, f"entity/chest/normal{half}")
+    oak = average(read_vanilla(jar, "block/oak_planks"))
+    spruce = average(read_vanilla(jar, "block/spruce_planks"))
+    p = image.load()
+    width = 15 if half else 14
+    edges = set()
+    for fx, fy, fw, fh in box_faces(0, 0, width, 5, 14) + box_faces(0, 19, width, 10, 14):
+        for x in range(fx, fx + fw):
+            edges.add((x, fy))
+            edges.add((x, fy + fh - 1))
+        for y in range(fy, fy + fh):
+            edges.add((fx, y))
+            edges.add((fx + fw - 1, y))
+    lx, ly, lw, lh = CHEST_LOCK
+    for y in range(image.height):
+        for x in range(image.width):
+            r, g, b, a = p[x, y]
+            if not a or max(r, g, b) < 12:
+                continue  # transparent, or the black inside of the chest
+            light = (r + g + b) / 3
+            if lx <= x < lx + lw and ly <= y < ly + lh:
+                # Emerald: dark green to light green by the brightness of the iron lock
+                t = min(1.0, light / 200)
+                p[x, y] = (int(10 + 60 * t), int(90 + 140 * t), int(40 + 70 * t), a)
+            elif (x, y) in edges and light < 70:
+                grey = int(min(170, 70 + light * 1.2))
+                p[x, y] = (grey, grey, min(255, grey + 6), a)
+            else:
+                p[x, y] = tuple(min(255, int(c * s / o)) for c, s, o in zip((r, g, b), spruce, oak)) + (a,)
+    return image
+
+
+def average(image):
+    pixels = [c for c in image.getdata() if c[3]]
+    return tuple(sum(c[i] for c in pixels) / len(pixels) for i in range(3))
+
+
 WICKER_LIGHT, WICKER_DARK, WICKER_SHADOW = (205, 165, 105, 255), (160, 118, 68, 255), (110, 78, 42, 255)
 
 
@@ -503,6 +556,8 @@ def main():
     }
     for part, image in woodcutter(jar).items():
         outputs[f"block/woodcutter_{part}.png"] = image
+    for half in ("", "_left", "_right"):
+        outputs[f"entity/chest/village{half}.png"] = village_chest(jar, half)
     axe = read_vanilla(jar, "item/iron_axe")
     outputs["block/chopping_block_axe.png"] = axe
     model = ROOT / "common/src/main/resources/assets/workingvillagers/models/block/chopping_block.json"
