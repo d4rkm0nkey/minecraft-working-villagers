@@ -79,6 +79,19 @@ farmer:
     Makes: ":mc-wheat: Wheat, :mc-carrot: carrots, :mc-potato: potatoes, :mc-beetroot: beetroots"
     Range: 8 blocks
 
+fisher:
+  name: Fisher
+  page: workers/fisher.md
+  head: fisher
+  workstation: barrel
+  summary: Fishes near its barrel, from the shore or out in a boat.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-barrel: Barrel"
+    Needs: ":mc-fishing_rod: A fishing rod, optionally :mc-oak_boat: a boat"
+    Makes: ":mc-cod: Fish, junk, and treasure out on open water"
+    Range: 16 blocks, by boat 32
+
 butcher:
   name: Butcher
   page: workers/butcher.md

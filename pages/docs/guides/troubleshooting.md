@@ -29,6 +29,9 @@ the status does not help, go through this list.
 | *Waiting for the crops to grow* | No ripe crops and no empty farmland within 8 blocks of the composter. |
 | *Waiting: no seeds for the empty farmland (give them some)* | Right-click the farmer with seeds (or carrots, potatoes). |
 | *Waiting: needs a hoe (give them one)* | Right-click the farmer with a hoe. |
+| *Waiting: no water near the barrel* | No water (at least a small pond) within 16 blocks of the barrel, or no bank next to it to stand on. |
+| *Cannot get to the water* | The fisher cannot walk to the bank it picked. Make a path, or move the barrel. |
+| *Waiting: needs a fishing rod (give them one)* | Right-click the fisher with a fishing rod. |
 | *Waiting for the herd to grow* | The butcher's herds are as big as set, or the young ones still have to grow up. |
 | *Waiting: no animals near the smoker* | No cows, pigs, chickens or rabbits within 12 blocks of the smoker. |
 | *Waiting: no feed to breed the animals (give them some)* | A kind has fewer animals than the herd size. Give the butcher their food (wheat, carrots, seeds, ...) or put it into an input chest. |
@@ -101,6 +104,14 @@ the status does not help, go through this list.
 - [ ] It carries an emerald and a hoe.
 - [ ] Farmland with crops within 8 blocks of the composter. The farmer does not till.
 - [ ] Seeds for empty farmland (right-click it with some).
+
+### Fisher
+
+- [ ] A chest linked (the **Chests** tab above the barrel screen).
+- [ ] It carries an emerald and a fishing rod.
+- [ ] Water within 16 blocks of the barrel, with a bank it can stand on.
+- [ ] For boat trips: a boat, open water (7 × 7, two deep) within 32 blocks, and **Row out in
+  a boat** switched on.
 
 ### Butcher
 

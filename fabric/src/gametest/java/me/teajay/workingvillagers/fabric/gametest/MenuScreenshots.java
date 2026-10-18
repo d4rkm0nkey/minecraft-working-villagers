@@ -56,6 +56,7 @@ public class MenuScreenshots implements FabricClientGameTest {
 			world.getServer().runCommand("time set noon");
 			world.getServer().runOnServer(MenuScreenshots::setUp);
 			context.waitTicks(40);
+			fisherInBoat(context, world);
 			for (int[] size : new int[][] {{854, 480}, {1920, 1080}}) {
 				context.getInput().resizeWindow(size[0], size[1]);
 				context.waitTicks(5);
@@ -190,6 +191,51 @@ public class MenuScreenshots implements FabricClientGameTest {
 		context.waitTicks(2);
 	}
 
+	/** The barrel of the fisher with the lake, away from the other stations. */
+	private static BlockPos barrelPos() {
+		return origin().offset(0, 0, -17);
+	}
+
+	/** A lake south of the barrel, its surface one block below the ground. */
+	private static void lake(ServerLevel level) {
+		for (int x = -12; x <= 12; x++) {
+			for (int z = -42; z <= -19; z++) {
+				for (int y = 1; y <= 2; y++) {
+					level.setBlockAndUpdate(origin().offset(x, -y, z), net.minecraft.world.level.block.Blocks.WATER.defaultBlockState());
+				}
+			}
+		}
+		level.setBlockAndUpdate(barrelPos(), net.minecraft.world.level.block.Blocks.BARREL.defaultBlockState());
+		chest(level, barrelPos().east(2));
+		Workstations.find(level, barrelPos()).orElseThrow().setRole(barrelPos().east(2), ChestRole.OUTPUT);
+	}
+
+	/** Waits until the fisher has rowed out onto the lake and takes a picture from the shore. */
+	private static void fisherInBoat(ClientGameTestContext context, TestSingleplayerContext world) {
+		for (int i = 0; i < 90; i++) {
+			boolean out = world.getServer().computeOnServer(server -> server.overworld().getEntitiesOfClass(Villager.class,
+					new net.minecraft.world.phys.AABB(barrelPos()).inflate(40), villager -> villager.getVehicle() != null).stream()
+				.anyMatch(villager -> villager.getVehicle().position().distanceTo(net.minecraft.world.phys.Vec3.atCenterOf(barrelPos())) > 8.0));
+			if (out) {
+				break;
+			}
+			context.waitTicks(20);
+		}
+		world.getServer().runOnServer(server -> server.getPlayerList().getPlayers().getFirst()
+			.teleportTo(barrelPos().getX() + 3.5, barrelPos().getY(), barrelPos().getZ() + 3.5));
+		context.waitTicks(5);
+		BlockPos boat = world.getServer().computeOnServer(server -> server.overworld().getEntitiesOfClass(Villager.class,
+				new net.minecraft.world.phys.AABB(barrelPos()).inflate(40), villager -> villager.getVehicle() != null).stream()
+			.findFirst().map(villager -> villager.getVehicle().blockPosition()).orElse(barrelPos().offset(0, 0, -14)));
+		context.getInput().lookAt(boat);
+		context.runOnClient(minecraft -> {
+			minecraft.gui.toastManager().clear();
+			minecraft.gui.hud.getChat().clearMessages(false);
+		});
+		context.waitTicks(10);
+		context.takeScreenshot("fisher_in_boat");
+	}
+
 	private static BlockPos origin() {
 		return new BlockPos(0, -60, 0);
 	}
@@ -237,9 +283,14 @@ public class MenuScreenshots implements FabricClientGameTest {
 			give(player, villager, worn, new ItemStack(Items.IRON_HOE), new ItemStack(Items.IRON_SHOVEL), new ItemStack(Items.IRON_PICKAXE),
 				new ItemStack(Items.OAK_SAPLING, 5), new ItemStack(Items.WHEAT_SEEDS, 12), new ItemStack(Items.LADDER, 30), new ItemStack(Items.TORCH, 3),
 				new ItemStack(Items.SHEARS), new ItemStack(Items.WHEAT, 10), new ItemStack(Items.IRON_SWORD), new ItemStack(Items.CARROT, 8),
-				new ItemStack(Items.COAL, 5));
+				new ItemStack(Items.COAL, 5), new ItemStack(Items.FISHING_ROD));
 		}
 		level.setBlockAndUpdate(stationPos(STATIONS.size() + 1), Blocks.STONECUTTER.defaultBlockState());
+		// A fisher with a boat at a lake
+		lake(level);
+		Villager fisher = hire(level, player, barrelPos().offset(1, 0, 1));
+		WorkerJobs.assign(level, fisher, barrelPos());
+		give(player, fisher, new ItemStack(Items.EMERALD, 3), new ItemStack(Items.FISHING_ROD), new ItemStack(Items.OAK_BOAT));
 		// A chopping block nobody works at, without chests
 		level.setBlockAndUpdate(stationPos(STATIONS.size()), StationType.CHOPPING_BLOCK.block().defaultBlockState());
 		// A village chest with a worker in reach that lacks something

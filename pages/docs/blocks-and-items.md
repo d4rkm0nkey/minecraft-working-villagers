@@ -97,6 +97,11 @@ has the order box and the [tabs](workers/basics.md#the-overview) of the station 
 :mc-loom: Workstation of the [shepherd](workers/shepherd.md). The [tabs](workers/basics.md#the-overview)
 above its screen lead to the overview; the loom itself works as usual.
 
+## Barrel (vanilla)
+
+:mc-barrel: Workstation of the [fisher](workers/fisher.md). The [tabs](workers/basics.md#the-overview)
+above its screen lead to the overview; the barrel stays a barrel for your items.
+
 ## Smoker (vanilla)
 
 :mc-smoker: Workstation of the [butcher](workers/butcher.md). The [tabs](workers/basics.md#the-overview)
@@ -125,6 +130,7 @@ composts as usual.
 | :mc-head_farmer: Farmer | :mc-composter: Composter | :mc-work_contract: Work contract |
 | :mc-head_shepherd: Shepherd | :mc-loom: Loom | :mc-work_contract: Work contract |
 | :mc-head_butcher: Butcher | :mc-smoker: Smoker | :mc-work_contract: Work contract |
+| :mc-head_fisher: Fisher | :mc-barrel: Barrel | :mc-work_contract: Work contract |
 | :mc-head_smith: Smith | :mc-blast_furnace: Blast furnace | :mc-work_contract: Work contract |
 | :mc-head_pit_digger: Pit digger | :mc-pit_stake: Pit stake | :mc-work_contract: Work contract |
 | :mc-head_kiln_operator: Kiln operator | :mc-kiln: Kiln | :mc-work_contract: Work contract |

@@ -77,6 +77,8 @@ public final class WorkingVillagers {
 	public static final ResourceKey<VillagerProfession> FARMER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("farmer"));
 	/** Works at the vanilla loom, the job site of the vanilla shepherd. */
 	public static final ResourceKey<VillagerProfession> SHEPHERD_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("shepherd"));
+	/** Works at the vanilla barrel, the job site of the vanilla fisherman. */
+	public static final ResourceKey<VillagerProfession> FISHER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("fisher"));
 	/** Works at the vanilla smoker, the job site of the vanilla butcher. */
 	public static final ResourceKey<VillagerProfession> BUTCHER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("butcher"));
 	/** Works at the vanilla blast furnace (the job site of the armorer) or the smithing table (the toolsmith's). */
@@ -115,6 +117,7 @@ public final class WorkingVillagers {
 	public static Supplier<MenuType<StationMenu>> SMITHING_TABLE_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> LOOM_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> SMOKER_STATION_MENU;
+	public static Supplier<MenuType<StationMenu>> BARREL_STATION_MENU;
 	public static Supplier<MenuType<CutterMenu>> WOODCUTTER_MENU;
 	public static Supplier<RecipeType<WoodcuttingRecipe>> WOODCUTTING;
 	public static Supplier<RecipeSerializer<WoodcuttingRecipe>> WOODCUTTING_SERIALIZER;
@@ -197,6 +200,7 @@ public final class WorkingVillagers {
 		registerSmith(platform);
 		registerShepherd(platform);
 		registerButcher(platform);
+		registerFisher(platform);
 		registerPitDigger(platform);
 		registerKilnOperator(platform);
 		registerShopAssistant(platform);
@@ -356,6 +360,15 @@ public final class WorkingVillagers {
 	private static void registerShepherd(Platform platform) {
 		LOOM_STATION_MENU = platform.registerMenu("loom_station", (containerId, inventory) -> new StationMenu(StationType.LOOM, containerId, inventory));
 		registerProfession(platform, "shepherd", PoiTypes.SHEPHERD, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_SHEPHERD, VillagerProfession.SHEPHERD);
+	}
+
+	/**
+	 * The fisher works at the vanilla barrel: it fishes from the shore nearby or rows out in a
+	 * boat. Ordinary villagers still become (vanilla) fishermen there.
+	 */
+	private static void registerFisher(Platform platform) {
+		BARREL_STATION_MENU = platform.registerMenu("barrel_station", (containerId, inventory) -> new StationMenu(StationType.BARREL, containerId, inventory));
+		registerProfession(platform, "fisher", PoiTypes.FISHERMAN, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_FISHERMAN, VillagerProfession.FISHERMAN);
 	}
 
 	/**

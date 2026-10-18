@@ -2,8 +2,13 @@ package me.teajay.workingvillagers.mixin.client;
 
 import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import me.teajay.workingvillagers.client.GuiPanels;
+import me.teajay.workingvillagers.client.StationTabs;
+import me.teajay.workingvillagers.menu.CutterMenu;
+import me.teajay.workingvillagers.menu.StationTabFlags;
+import me.teajay.workingvillagers.menu.StationWorker;
 import me.teajay.workingvillagers.network.RenameContainerPayload;
 import me.teajay.workingvillagers.station.ContainerNames;
+import me.teajay.workingvillagers.station.StationType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -74,6 +79,9 @@ public abstract class ContainerScreenMixin extends AbstractContainerScreen<Chest
 	/** After the chest texture (ContainerScreen's own method, so it is added to, not replaced). */
 	@Inject(method = "extractBackground", at = @At("TAIL"))
 	private void workingvillagers$extractRenameButton(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
+		if (this.workingvillagers$isBarrel()) {
+			StationTabs.extractAbove(graphics, this.leftPos, this.topPos, mouseX, mouseY, StationType.BARREL, this.workingvillagers$tabFlags());
+		}
 		if (this.workingvillagers$pos == null || this.workingvillagers$nameBox != null) {
 			return;
 		}
@@ -97,6 +105,10 @@ public abstract class ContainerScreenMixin extends AbstractContainerScreen<Chest
 	@Override
 	protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
 		super.extractTooltip(graphics, mouseX, mouseY);
+		if (this.workingvillagers$isBarrel()
+			&& StationTabs.tooltip(graphics, this.font, mouseX, mouseY, this.leftPos, this.topPos, StationType.BARREL, this.workingvillagers$tabFlags())) {
+			return;
+		}
 		if (this.workingvillagers$nameBox == null && this.workingvillagers$isOverRename(mouseX, mouseY)) {
 			graphics.setTooltipForNextFrame(this.font, Component.translatable("gui.workingvillagers.container.rename"), mouseX, mouseY);
 		}
@@ -107,6 +119,10 @@ public abstract class ContainerScreenMixin extends AbstractContainerScreen<Chest
 		EditBox box = this.workingvillagers$nameBox;
 		if (box != null && !box.isMouseOver(event.x(), event.y())) {
 			this.workingvillagers$finishRename(true);
+		}
+		if (this.workingvillagers$isBarrel() && StationTabs.click(this.minecraft, this.menu.containerId, CutterMenu.STATION_BUTTON, event.x(), event.y(),
+			this.leftPos, this.topPos, StationType.BARREL, this.workingvillagers$tabFlags())) {
+			return true;
 		}
 		if (this.workingvillagers$nameBox == null && this.workingvillagers$isOverRename(event.x(), event.y())) {
 			Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
@@ -176,6 +192,17 @@ public abstract class ContainerScreenMixin extends AbstractContainerScreen<Chest
 			return Component.translatable("container.chestDouble");
 		}
 		return this.minecraft.level.getBlockState(this.workingvillagers$pos).getBlock().getName();
+	}
+
+	/** The tabs of the fisher's station stand above a barrel's screen (see {@code ChestMenuMixin}). */
+	@Unique
+	private boolean workingvillagers$isBarrel() {
+		return StationTabFlags.has(this.workingvillagers$tabFlags(), StationTabFlags.STATION);
+	}
+
+	@Unique
+	private int workingvillagers$tabFlags() {
+		return ((StationWorker) this.menu).workingvillagers$tabFlags();
 	}
 
 	@Unique

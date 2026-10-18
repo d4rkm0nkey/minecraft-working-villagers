@@ -30,6 +30,7 @@ hide:
 <span class="wv-villager" style="--delay: 1s"><img src="assets/mc/heads/miner.png" alt=""><img src="assets/mc/blocks/mining_bench.png" alt=""></span>
 <span class="wv-villager" style="--delay: .45s"><img src="assets/mc/heads/shepherd.png" alt=""><img src="assets/mc/blocks/loom.png" alt=""></span>
 <span class="wv-villager" style="--delay: .85s"><img src="assets/mc/heads/butcher.png" alt=""><img src="assets/mc/blocks/smoker.png" alt=""></span>
+<span class="wv-villager" style="--delay: .15s"><img src="assets/mc/heads/fisher.png" alt=""><img src="assets/mc/blocks/barrel.png" alt=""></span>
 </div>
 </div>
 

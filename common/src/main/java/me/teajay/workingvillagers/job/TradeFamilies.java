@@ -9,7 +9,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Which workers of this mod trade like which vanilla villagers: the farmer like the farmer,
- * the stone sawyer like the mason, the shepherd and the butcher like theirs, the smith like
+ * the stone sawyer like the mason, the shepherd, the butcher and the fisher like theirs, the smith like
  * the armorer (at the blast furnace) or the toolsmith (at the smithing table). Professions of
  * one family keep their trades when a villager changes between them, e.g. a vanilla farmer
  * that is hired and becomes the farmer of this mod.
@@ -24,6 +24,8 @@ public final class TradeFamilies {
 		Map.entry(WorkingVillagers.SHEPHERD_PROFESSION, "shepherd"),
 		Map.entry(VillagerProfession.BUTCHER, "butcher"),
 		Map.entry(WorkingVillagers.BUTCHER_PROFESSION, "butcher"),
+		Map.entry(VillagerProfession.FISHERMAN, "fisherman"),
+		Map.entry(WorkingVillagers.FISHER_PROFESSION, "fisherman"),
 		Map.entry(VillagerProfession.ARMORER, "smith"),
 		Map.entry(VillagerProfession.TOOLSMITH, "smith"),
 		Map.entry(WorkingVillagers.SMITH_PROFESSION, "smith")

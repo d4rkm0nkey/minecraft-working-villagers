@@ -25,7 +25,7 @@ public final class WorkerStatus {
 	private static final double COMPLAIN_DISTANCE = 8.0;
 	/** The statuses the player has to do something about. */
 	private static final Set<String> PROBLEMS = Set.of(
-		"no_wage", "lumberjack.no_axe", "farmer.no_hoe", "farmer.no_seeds", "shepherd.no_shears", "shepherd.no_sheep", "shepherd.no_wheat", "butcher.no_weapon", "butcher.no_animals", "butcher.no_feed", "butcher.smoker_unreachable",
+		"no_wage", "lumberjack.no_axe", "farmer.no_hoe", "farmer.no_seeds", "shepherd.no_shears", "shepherd.no_sheep", "shepherd.no_wheat", "fisher.no_rod", "fisher.no_water", "fisher.water_unreachable", "butcher.no_weapon", "butcher.no_animals", "butcher.no_feed", "butcher.smoker_unreachable",
 		"chests_full", "chest_unreachable", "saw.station_unreachable", "carpenter.bench_unreachable", "smith.furnace_unreachable",
 		"saw.no_material", "carpenter.no_recipe", "carpenter.waiting_for", "carpenter.inventory_full", "smith.no_ore", "smith.no_fuel", "smith.no_material", "smith.table_unreachable",
 		"kiln.no_ore", "kiln.no_fuel", "kiln.furnace_unreachable", "shop.no_goods", "shop.no_buyer",

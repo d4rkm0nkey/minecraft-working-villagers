@@ -122,6 +122,8 @@ public final class WorkerTests {
 		registry.accept("contract_hires_at_job_site", WorkerTests::contractHiresAtJobSite);
 		registry.accept("contract_keeps_trades", WorkerTests::contractKeepsTrades);
 		registry.accept("butcher_slaughters_surplus", WorkerTests::butcherSlaughtersSurplus);
+		registry.accept("fisher_fishes_from_shore", WorkerTests::fisherFishesFromShore);
+		registry.accept("fisher_rows_out", WorkerTests::fisherRowsOut);
 		registry.accept("butcher_breeds_pigs", WorkerTests::butcherBreedsPigs);
 		registry.accept("butcher_smokes_meat", WorkerTests::butcherSmokesMeat);
 		for (StationType type : StationType.values()) {
@@ -162,6 +164,10 @@ public final class WorkerTests {
 	private static void configure() {
 		// The tests run side by side: the village chests of one test must not reach the workers of the next
 		Config.VILLAGE_CHEST_RADIUS.set(8);
+		// Quick bites, short trips
+		Config.MIN_BITE_SECONDS.set(1);
+		Config.MAX_BITE_SECONDS.set(1);
+		Config.CATCHES_PER_TRIP.set(3);
 		MinerTests.configure();
 	}
 
@@ -237,6 +243,56 @@ public final class WorkerTests {
 		helper.assertTrue(farmer.getOffers().size() == 1 && farmer.getOffers().getFirst().getCostA().is(Items.WHEAT), "The trades were lost: " + farmer.getOffers().size());
 		helper.assertTrue(farmer.getVillagerXp() == 5, "The experience was lost");
 		helper.succeed();
+	}
+
+	/**
+	 * Water two deep from {@code from} to {@code to} (inclusive, x and z), its surface level
+	 * with the floor's air, a rim of dirt around it and stone below.
+	 */
+	private static void pond(GameTestHelper helper, int fromX, int fromZ, int toX, int toZ) {
+		for (int x = fromX - 1; x <= toX + 1; x++) {
+			for (int z = fromZ - 1; z <= toZ + 1; z++) {
+				boolean inside = x >= fromX && x <= toX && z >= fromZ && z <= toZ;
+				helper.setBlock(new BlockPos(x, -2, z), Blocks.STONE);
+				helper.setBlock(new BlockPos(x, -1, z), inside ? Blocks.WATER : Blocks.DIRT);
+				helper.setBlock(new BlockPos(x, 0, z), inside ? Blocks.WATER : Blocks.DIRT);
+			}
+		}
+	}
+
+	/** A small pond next to the barrel: the fisher fishes from the shore and brings the catch to the chest. */
+	private static void fisherFishesFromShore(GameTestHelper helper) {
+		helper.setBlock(STATION.below(), Blocks.BARREL);
+		pond(helper, 12, 12, 15, 15);
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, STATION.below(), OUTPUT, ChestRole.OUTPUT);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, STATION.below());
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.FISHING_ROD));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> !stack.is(Items.FISHING_ROD), 3, "the catch in the output chest");
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.FISHING_ROD)) == 0, "The fisher delivered its rod");
+		});
+	}
+
+	/** A lake and a boat: the fisher rows out, fishes, rows back, takes its boat and delivers the catch. */
+	private static void fisherRowsOut(GameTestHelper helper) {
+		helper.setBlock(STATION.below(), Blocks.BARREL);
+		pond(helper, 3, 11, 22, 22);
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, STATION.below(), OUTPUT, ChestRole.OUTPUT);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, STATION.below());
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.FISHING_ROD), new ItemStack(Items.OAK_BOAT));
+		boolean[] rowed = {false};
+		helper.onEachTick(() -> rowed[0] |= worker.getVehicle() instanceof net.minecraft.world.entity.vehicle.boat.AbstractBoat
+			&& worker.getVehicle().position().distanceTo(helper.absoluteVec(new net.minecraft.world.phys.Vec3(8, 0, 11))) > 5.0);
+		helper.succeedWhen(() -> {
+			helper.assertTrue(rowed[0], "The fisher did not row out");
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> !stack.is(Items.FISHING_ROD) && !stack.is(Items.OAK_BOAT), 3, "the catch in the output chest");
+			helper.assertTrue(worker.getVehicle() == null, "The fisher is still in the boat");
+			helper.assertTrue(worker.getInventory().countItem(Items.OAK_BOAT) == 1, "The fisher did not take its boat back");
+		});
 	}
 
 	/** A pen of fences without a gate (3 × 3 inside, around {@link #PEN}) with animals of one kind, a smoker and an output chest. */

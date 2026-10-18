@@ -98,7 +98,7 @@ public class Workstations extends SavedData {
 		if (station == null) {
 			station = new Station(
 				pos.immutable(), Optional.empty(), List.of(), List.of(), Optional.empty(), Optional.empty(), Optional.empty(), List.of(), 0, false,
-				Optional.empty(), Pit.DEFAULT_DEPTH, Optional.empty(), 0, DEFAULT_HERD
+				Optional.empty(), Pit.DEFAULT_DEPTH, Optional.empty(), 0, DEFAULT_HERD, true
 			);
 			workstations.stations.put(station.pos, station);
 		}
@@ -203,7 +203,8 @@ public class Workstations extends SavedData {
 			Codec.INT.optionalFieldOf("depth", Pit.DEFAULT_DEPTH).forGetter(station -> station.depth),
 			Tunnel.CODEC.optionalFieldOf("tunnel").forGetter(station -> Optional.ofNullable(station.tunnel)),
 			Codec.intRange(0, MAX_WAGE).optionalFieldOf("wage", 0).forGetter(station -> station.wage),
-			Codec.intRange(0, MAX_HERD).optionalFieldOf("herd", DEFAULT_HERD).forGetter(station -> station.herd)
+			Codec.intRange(0, MAX_HERD).optionalFieldOf("herd", DEFAULT_HERD).forGetter(station -> station.herd),
+			Codec.BOOL.optionalFieldOf("boat", true).forGetter(station -> station.boat)
 		).apply(i, Station::new));
 
 		private final BlockPos pos;
@@ -231,16 +232,19 @@ public class Workstations extends SavedData {
 		private int wage;
 		/** Loom: up to how many sheep the shepherd breeds, 0 for none. */
 		private int herd;
+		/** Barrel: whether the fisher rows out in a boat. */
+		private boolean boat;
 		private @Nullable Workstations owner;
 		/** The kind of station the settings belong to, unknown for entries saved before it was stored. */
 		private @Nullable StationType type;
 
 		private Station(
 			BlockPos pos, Optional<String> type, List<BlockPos> inputs, List<BlockPos> outputs, Optional<Item> order, Optional<UUID> worker, Optional<String> workerName,
-			List<String> woods, int stock, boolean strip, Optional<Pit> pit, int depth, Optional<Tunnel> tunnel, int wage, int herd
+			List<String> woods, int stock, boolean strip, Optional<Pit> pit, int depth, Optional<Tunnel> tunnel, int wage, int herd, boolean boat
 		) {
 			this.wage = wage;
 			this.herd = herd;
+			this.boat = boat;
 			this.pit = pit.orElse(null);
 			this.tunnel = tunnel.orElse(null);
 			this.depth = depth;
@@ -345,6 +349,18 @@ public class Workstations extends SavedData {
 			int clamped = Math.clamp(herd, 0, MAX_HERD);
 			if (this.herd != clamped) {
 				this.herd = clamped;
+				this.setDirty();
+			}
+		}
+
+		/** Barrel: whether the fisher rows out in a boat when there is open water nearby. */
+		public boolean boat() {
+			return this.boat;
+		}
+
+		public void setBoat(boolean boat) {
+			if (this.boat != boat) {
+				this.boat = boat;
 				this.setDirty();
 			}
 		}
@@ -549,7 +565,7 @@ public class Workstations extends SavedData {
 		private boolean isEmpty() {
 			return this.inputs.isEmpty() && this.outputs.isEmpty() && this.order == null && this.worker == null && this.woods.isEmpty() && this.stock == 0
 				&& !this.strip && this.pit == null && this.depth == Pit.DEFAULT_DEPTH && this.tunnel == null && this.wage == 0
-				&& this.herd == DEFAULT_HERD;
+				&& this.herd == DEFAULT_HERD && this.boat;
 		}
 
 		/**

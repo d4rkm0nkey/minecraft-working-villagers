@@ -60,6 +60,18 @@ default and its allowed range, so you can edit it with any text editor.
 | `secondsPerCrop` | 1.5 | 0.1–20.0 | Time to harvest or plant one crop. |
 | `keepSeeds` | 16 | 1–64 | Seeds of each kind it keeps for planting (wheat seeds, carrots, potatoes, ...) and takes when you give them. |
 
+## Fisher (`fisher`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `waterRadius` | 16 | 4–32 | How far from the barrel (sideways) the fisher looks for water to fish from the shore. |
+| `seaRadius` | 32 | 8–64 | How far from the barrel it rows out in a boat. |
+| `minBiteSeconds` | 5 | 1–60 | The shortest wait for a bite (a lure shortens it). |
+| `maxBiteSeconds` | 30 | 1–120 | The longest wait for a bite. |
+| `catchesPerTrip` | 12 | 1–64 | Catches before it brings them to a chest. |
+
+Whether the fisher rows out is set at each barrel (tab **Settings**).
+
 ## Butcher (`butcher`)
 
 | Option | Default | Range | What it does |

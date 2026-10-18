@@ -43,7 +43,9 @@ public enum StationType {
 	 * The butcher breeds and slaughters the animals around the smoker and smokes the meat;
 	 * feed and coal can come from input chests.
 	 */
-	SMOKER(true);
+	SMOKER(true),
+	/** The fisher fishes from the shore or from a boat; it only delivers its catch. */
+	BARREL(false);
 
 	private final boolean processing;
 
@@ -62,7 +64,7 @@ public enum StationType {
 	/** Whether the block has a screen of its own, which the overview leads back to. */
 	public boolean hasOwnScreen() {
 		return this == WOODCUTTER || this == STONECUTTER || this == CARPENTER_BENCH || this == BLAST_FURNACE || this == KILN || this == MINING_BENCH
-			|| this == SMITHING_TABLE || this == LOOM || this == SMOKER;
+			|| this == SMITHING_TABLE || this == LOOM || this == SMOKER || this == BARREL;
 	}
 
 	/** Whether the worker needs an order, set in the order column of the overview. */
@@ -75,7 +77,7 @@ public enum StationType {
 	 * profession. It only counts as a workstation of this mod once it has been set up.
 	 */
 	public boolean isVanilla() {
-		return this == STONECUTTER || this == COMPOSTER || this == BLAST_FURNACE || this == SMITHING_TABLE || this == LOOM || this == SMOKER;
+		return this == STONECUTTER || this == COMPOSTER || this == BLAST_FURNACE || this == SMITHING_TABLE || this == LOOM || this == SMOKER || this == BARREL;
 	}
 
 	/**
@@ -110,6 +112,7 @@ public enum StationType {
 			case MINING_BENCH -> WorkingVillagers.MINER_PROFESSION;
 			case LOOM -> WorkingVillagers.SHEPHERD_PROFESSION;
 			case SMOKER -> WorkingVillagers.BUTCHER_PROFESSION;
+			case BARREL -> WorkingVillagers.FISHER_PROFESSION;
 		};
 	}
 
@@ -128,6 +131,7 @@ public enum StationType {
 			case SMITHING_TABLE -> Blocks.SMITHING_TABLE.getName();
 			case LOOM -> Blocks.LOOM.getName();
 			case SMOKER -> Blocks.SMOKER.getName();
+			case BARREL -> Blocks.BARREL.getName();
 		};
 	}
 
@@ -146,6 +150,7 @@ public enum StationType {
 			case SMITHING_TABLE -> Blocks.SMITHING_TABLE;
 			case LOOM -> Blocks.LOOM;
 			case SMOKER -> Blocks.SMOKER;
+			case BARREL -> Blocks.BARREL;
 		};
 	}
 
@@ -176,6 +181,8 @@ public enum StationType {
 			return LOOM;
 		} else if (state.is(Blocks.SMOKER)) {
 			return SMOKER;
+		} else if (state.is(Blocks.BARREL)) {
+			return BARREL;
 		}
 		return null;
 	}

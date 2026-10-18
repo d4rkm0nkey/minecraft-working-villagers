@@ -429,6 +429,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			case MINING_BENCH -> "gui.workingvillagers.mining_bench.no_chests";
 			case LOOM -> "gui.workingvillagers.loom.no_chests";
 			case SMOKER -> "gui.workingvillagers.smoker.no_chests";
+			case BARREL -> "gui.workingvillagers.barrel.no_chests";
 			default -> "gui.workingvillagers.station.no_chests";
 		});
 	}
@@ -468,6 +469,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 				this.extractWoods(graphics, mouseX, mouseY);
 			}
 			case CHOPPING_BLOCK -> this.extractStrip(graphics, mouseX, mouseY);
+			case BARREL -> this.extractBoat(graphics, mouseX, mouseY);
 			case PIT_STAKE -> this.extractPit(graphics, mouseX, mouseY);
 			case MINING_BENCH -> this.extractTunnel(graphics, mouseX, mouseY);
 			case LOOM, SMOKER -> this.plusMinus(graphics, mouseX, mouseY, this.settingY(0), BIG, StationMenu.HERD_LESS_BUTTON, StationMenu.HERD_MORE_BUTTON, List.of(
@@ -700,6 +702,20 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		this.hotspots.add(new Hotspot(this.leftPos + COLUMN_X, y, COLUMN_WIDTH - width - 4, BIG, -1, tooltip));
 	}
 
+	/** Barrel: the switch whether the fisher rows out in a boat. */
+	private void extractBoat(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+		int width = this.toggleWidth("gui.workingvillagers.barrel.boat.on", "gui.workingvillagers.barrel.boat.off");
+		int y = this.topPos + CONTENT_Y;
+		List<Component> tooltip = List.of(
+			Component.translatable("gui.workingvillagers.barrel.boat.tooltip"),
+			Component.translatable("gui.workingvillagers.station.click_toggle").withStyle(ChatFormatting.DARK_GRAY)
+		);
+		this.button(graphics, mouseX, mouseY, this.leftPos + COLUMN_X + COLUMN_WIDTH - width, y, width, BIG,
+			Component.translatable(this.menu.getBoat() ? "gui.workingvillagers.barrel.boat.on" : "gui.workingvillagers.barrel.boat.off").getString(),
+			StationMenu.BOAT_BUTTON, tooltip);
+		this.hotspots.add(new Hotspot(this.leftPos + COLUMN_X, y, COLUMN_WIDTH - width - 4, BIG, -1, tooltip));
+	}
+
 	private Component stripLabel() {
 		return Component.translatable(this.menu.getStrip() ? "gui.workingvillagers.chopping_block.strip.on" : "gui.workingvillagers.chopping_block.strip.off");
 	}
@@ -794,6 +810,12 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 				graphics.text(this.font, Component.translatable("gui.workingvillagers.station.shape"), 8, SHAPES_Y - 11, GuiPanels.TEXT_COLOR, false);
 				graphics.text(this.font, Component.translatable(this.isBench() ? "gui.workingvillagers.station.woods.bench" : "gui.workingvillagers.station.woods"),
 					8, this.woodsLabelY, GuiPanels.TEXT_COLOR, false);
+			}
+			case BARREL -> {
+				int width = this.toggleWidth("gui.workingvillagers.barrel.boat.on", "gui.workingvillagers.barrel.boat.off");
+				GuiPanels.scrollingText(graphics, this.font, Component.translatable("gui.workingvillagers.barrel.boat").getString(), 8,
+					CONTENT_Y + textY, COLUMN_WIDTH - width - 4, GuiPanels.TEXT_COLOR);
+				this.hint(graphics, Component.translatable("gui.workingvillagers.barrel.boat.hint"), CONTENT_Y + BIG + 8);
 			}
 			case LOOM, SMOKER -> {
 				String keys = "gui.workingvillagers." + this.herdKeys();
@@ -894,6 +916,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			case SMITHING_TABLE -> "gui.workingvillagers.station.back.tooltip.smithing_table";
 			case LOOM -> "gui.workingvillagers.station.back.tooltip.loom";
 			case SMOKER -> "gui.workingvillagers.station.back.tooltip.smoker";
+			case BARREL -> "gui.workingvillagers.station.back.tooltip.barrel";
 			case KILN -> "gui.workingvillagers.station.back.tooltip.kiln";
 			case MINING_BENCH -> "gui.workingvillagers.station.back.tooltip.mill";
 			default -> "gui.workingvillagers.station.back.tooltip";
@@ -956,6 +979,13 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 				return Optional.of(Component.translatable("gui.workingvillagers.chopping_block.hire"));
 			}
 			return blocks < 0 ? Optional.empty() : Optional.of(Component.translatable("gui.workingvillagers.pit.today", blocks, this.menu.getDailyLogs()));
+		}
+		if (this.type() == StationType.BARREL) {
+			int catches = this.menu.getLogsToday();
+			if (this.menu.getWorker().isEmpty()) {
+				return Optional.of(Component.translatable("gui.workingvillagers.chopping_block.hire"));
+			}
+			return catches < 0 ? Optional.empty() : Optional.of(Component.translatable("gui.workingvillagers.barrel.today", catches));
 		}
 		if (this.type() == StationType.LOOM || this.type() == StationType.SMOKER) {
 			int done = this.menu.getLogsToday();

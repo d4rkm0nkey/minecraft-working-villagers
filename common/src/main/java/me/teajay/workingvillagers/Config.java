@@ -85,6 +85,17 @@ public final class Config {
 	public static final IntOption KEEP_WHEAT = intOption("shepherd", "keepWheat", 16, 2, 64,
 		"How much wheat the shepherd keeps for breeding its sheep.");
 
+	public static final IntOption WATER_RADIUS = intOption("fisher", "waterRadius", 16, 4, 32,
+		"How far from the barrel (in blocks, sideways) the fisher looks for water to fish from the shore.");
+	public static final IntOption SEA_RADIUS = intOption("fisher", "seaRadius", 32, 8, 64,
+		"How far from the barrel the fisher rows out in a boat.");
+	public static final IntOption MIN_BITE_SECONDS = intOption("fisher", "minBiteSeconds", 5, 1, 60,
+		"The shortest wait for a bite, like vanilla fishing (a lure shortens it).");
+	public static final IntOption MAX_BITE_SECONDS = intOption("fisher", "maxBiteSeconds", 30, 1, 120,
+		"The longest wait for a bite.");
+	public static final IntOption CATCHES_PER_TRIP = intOption("fisher", "catchesPerTrip", 12, 1, 64,
+		"How many catches the fisher makes before it brings them to a chest.");
+
 	public static final IntOption BUTCHER_RADIUS = intOption("butcher", "pastureRadius", 12, 4, 24,
 		"How far from the smoker (in blocks, sideways) the butcher looks after cows, pigs, chickens and rabbits.");
 	public static final DoubleOption SECONDS_PER_ANIMAL = doubleOption("butcher", "secondsPerAnimal", 1.5, 0.1, 20.0,

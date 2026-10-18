@@ -30,7 +30,7 @@ flowchart LR
 ## Stand der Umsetzung
 
 1. **Anheuern:** Arbeitsvertrag aus Papier, Tintenbeutel und 3 Emeralds craften, Rechtsklick auf einen erwachsenen Dorfbewohner; einer mit Beruf bleibt an seinem Block und behält seine Angebote, sofern es dort Arbeit dieser Mod gibt. Einen Dorfkauf und eine Anheuergebühr gibt es nicht.
-2. **Zuweisen:** Der Angestellte sucht sich selbst eine freie Station im Umkreis von 48 Blöcken, oder man weist ihn in der [Stationsübersicht](steuerung.md#stationsübersicht) zu. Die Station bestimmt den Beruf: Hackklotz → Holzfäller, Holzsäge → Holzsäger, Steinsäge → Steinsäger, Hobelbank → Tischler, Komposter → Bauer, Webstuhl → Hirte, Räucherofen → Metzger, Schmelzofen und Schmiedetisch → Schmied. Der Träger bekommt statt einer Station den Weidenkorb.
+2. **Zuweisen:** Der Angestellte sucht sich selbst eine freie Station im Umkreis von 48 Blöcken, oder man weist ihn in der [Stationsübersicht](steuerung.md#stationsübersicht) zu. Die Station bestimmt den Beruf: Hackklotz → Holzfäller, Holzsäge → Holzsäger, Steinsäge → Steinsäger, Hobelbank → Tischler, Komposter → Bauer, Webstuhl → Hirte, Räucherofen → Metzger, Fass → Fischer, Schmelzofen und Schmiedetisch → Schmied. Der Träger bekommt statt einer Station den Weidenkorb.
 3. **Konfigurieren:** Kisten als Eingang bzw. Ausgang verknüpfen und, wo nötig, einen Auftrag wählen. Arbeitsbereiche gibt es nicht; Werkzeug und Setzlinge bzw. Saatgut gibt man dem Arbeiter direkt.
 4. **Arbeiten:** in der normalen Vanilla-Arbeitszeit der Dorfbewohner.
 5. **Abliefern:** in die Ausgangskisten. Sind sie voll, wartet er; der Status steht in der Stationsübersicht. Statt einer Sprechblase schüttelt er ab und zu den Kopf mit dem „Nein“-Sound, wenn ein Spieler in der Nähe ist.

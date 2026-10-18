@@ -28,7 +28,7 @@ The workers fit together. A lumberjack supplies the sawyer, and a carrier takes 
 
 ## 📜 Hiring and wages
 
-1. Craft a **work contract** (paper, ink sac and 3 emeralds) and right-click a villager with it. It's hired. A farmer, mason, shepherd, butcher, armorer or toolsmith keeps its block, its trades and its level, and simply starts working for you. These workers still trade with you like before.
+1. Craft a **work contract** (paper, ink sac and 3 emeralds) and right-click a villager with it. It's hired. A farmer, mason, shepherd, butcher, fisherman, armorer or toolsmith keeps its block, its trades and its level, and simply starts working for you. These workers still trade with you like before.
 2. Place a **workstation**. The villager finds it by itself, walks there and takes the job (or you **assign** one in the menu).
 3. **Link chests:** where the material comes from and where the products go.
 4. **Right-click the worker with emeralds**, like giving a villager food. Every worker takes **one emerald a day** as its wage. No wage, no work. The lumberjack also needs an axe, the farmer a hoe and some seeds, the shepherd shears, the pit digger a shovel, a pickaxe and ladders.
@@ -56,9 +56,10 @@ Hired villagers never take vanilla jobs and never quit by themselves. A worker t
 - The **carpenter's bench** is a crafting table for wooden things only: chests, barrels, ladders, bookshelves, wooden tools, boats, shields, bows, torches and more. Its menu lists everything and shows what you're missing.
 - The carpenter crafts your order from its input chests and keeps a **stock** you choose, e.g. "always keep 16 chests ready".
 
-## 🌾 Farmer, shepherd, butcher and smith
+## 🌾 Farmer, shepherd, butcher, fisher and smith
 
 - A hired villager at a vanilla **composter** becomes a farmer: it harvests the ripe crops around it, replants them and brings the harvest to a chest. It needs a hoe you give it, never tills, never tramples the fields and touches nothing but crops.
+- A hired villager at a vanilla **barrel** becomes a fisher: it fishes at the water nearby, and with a boat it rows out onto a lake or the sea, fishes there (treasure included, like a player on open water) and rows back with its catch.
 - A hired villager at a vanilla **smoker** becomes a butcher: it keeps the cows, pigs, chickens and rabbits around it at the herd size you set, breeding below it and slaughtering above it (never named or leashed animals), and smokes the meat if you give it coal.
 - A hired villager at a vanilla **loom** becomes a shepherd: it shears the sheep around it, even over the fence of a pen without a gate, and breeds them with wheat up to the herd size you set. The wool goes to a chest.
 - A hired villager at a vanilla **blast furnace** becomes a smith: it loads the furnace with ore and fuel from its input chests and brings the ingots to its output chests.

@@ -25,6 +25,8 @@ public final class StationTabFlags {
 	public static final int CHESTS_PROBLEM = 16;
 	/** No order, no pit, no tunnel. */
 	public static final int ORDER_PROBLEM = 32;
+	/** The menu belongs to a station at all: a chest menu only for a barrel (see {@code ChestMenuMixin}). */
+	public static final int STATION = 64;
 	/** How often (in ticks) a block's screen works it out again. */
 	private static final int UPDATE_TICKS = 20;
 
@@ -84,7 +86,7 @@ public final class StationTabFlags {
 				long now = level.getGameTime();
 				if (!this.known || now - this.computed >= UPDATE_TICKS) {
 					this.known = true;
-					this.value = compute(level, pos, type);
+					this.value = compute(level, pos, type) | STATION;
 					this.computed = now;
 				}
 				return this.value;

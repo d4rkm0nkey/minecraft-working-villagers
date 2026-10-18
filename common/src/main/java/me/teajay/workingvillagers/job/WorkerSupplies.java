@@ -115,6 +115,7 @@ public final class WorkerSupplies {
 	public static final Tool PICKAXE = new Tool("pickaxe", stack -> stack.is(ItemTags.PICKAXES), "pit_digger.no_pickaxe");
 	/** The butcher's: a sword or an axe. */
 	public static final Tool WEAPON = new Tool("weapon", stack -> stack.is(ItemTags.SWORDS) || stack.is(ItemTags.AXES), "butcher.no_weapon");
+	public static final Tool ROD = new Tool("rod", stack -> stack.is(Items.FISHING_ROD), "fisher.no_rod");
 	public static final Tool SHEARS = new Tool("shears", stack -> stack.is(Items.SHEARS), "shepherd.no_shears");
 	public static final Stock SAPLINGS = new Stock("saplings", stack -> stack.is(ItemTags.SAPLINGS), Config.KEEP_SAPLINGS::get, "", false);
 	public static final Stock SEEDS = new Stock("seeds", FarmFields::isSeed, Config.KEEP_SEEDS::get, "farmer.no_seeds", false);
@@ -124,6 +125,8 @@ public final class WorkerSupplies {
 	public static final Stock FEED = new Stock("feed", TendAnimals::isFeed, Config.KEEP_FEED::get, "butcher.no_feed", false);
 	/** Coal or charcoal for the smoker; without it the butcher hands in the raw meat. */
 	public static final Stock FUEL = new Stock("fuel", stack -> stack.is(ItemTags.COALS), Config.KEEP_FUEL::get, "", false);
+	/** The fisher's boat, to row out to open water; without it it fishes from the shore. */
+	public static final Stock BOAT = new Stock("boat", stack -> stack.is(ItemTags.BOATS), () -> 1, "", false);
 	public static final Stock LADDERS = new Stock("ladders", stack -> stack.is(Items.LADDER), Config.KEEP_LADDERS::get, "pit_digger.no_ladders", true);
 	public static final Stock TORCHES = new Stock("torches", WorkerSupplies::isTorch, Config.KEEP_TORCHES::get, "", false);
 	public static final Stock MINER_TORCHES = new Stock("torches", WorkerSupplies::isTorch, Config.MINER_KEEP_TORCHES::get, "", false);
@@ -408,8 +411,8 @@ public final class WorkerSupplies {
 		if (Config.TOOL_RETURN_CHEAP.get() || tool.isEnchanted() || tool.has(DataComponents.CUSTOM_NAME)) {
 			return true;
 		}
-		// Shears are cheap too, and nothing repairs them
-		if (tool.is(Items.SHEARS)) {
+		// Shears and fishing rods are cheap too, and the smith cannot repair them
+		if (tool.is(Items.SHEARS) || tool.is(Items.FISHING_ROD)) {
 			return false;
 		}
 		Repairable repairable = tool.get(DataComponents.REPAIRABLE);
@@ -437,6 +440,9 @@ public final class WorkerSupplies {
 		if (profession.is(WorkingVillagers.BUTCHER_PROFESSION)) {
 			return List.of(WEAPON);
 		}
+		if (profession.is(WorkingVillagers.FISHER_PROFESSION)) {
+			return List.of(ROD);
+		}
 		if (profession.is(WorkingVillagers.PIT_DIGGER_PROFESSION)) {
 			return List.of(SHOVEL, PICKAXE);
 		}
@@ -460,6 +466,9 @@ public final class WorkerSupplies {
 		}
 		if (profession.is(WorkingVillagers.BUTCHER_PROFESSION)) {
 			return List.of(FEED, FUEL);
+		}
+		if (profession.is(WorkingVillagers.FISHER_PROFESSION)) {
+			return List.of(BOAT);
 		}
 		if (profession.is(WorkingVillagers.PIT_DIGGER_PROFESSION)) {
 			return Config.KEEP_TORCHES.get() > 0 ? List.of(LADDERS, TORCHES) : List.of(LADDERS);

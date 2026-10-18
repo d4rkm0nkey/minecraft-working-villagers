@@ -21,7 +21,7 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
    adult villager with it. The villager is now under contract. One that already has a
    vanilla job stays at its block and becomes the worker of this mod there (a farmer at
    its composter, a mason as stone sawyer at its stonecutter, a shepherd at its loom, a
-   butcher at its smoker, an armorer or toolsmith as smith), keeping its trades and level,
+   butcher at its smoker, a fisherman at its barrel, an armorer or toolsmith as smith), keeping its trades and level,
    unless its job has no work in this mod (librarian, ...). These workers trade like their
    vanilla counterparts (the smith like an armorer at a blast furnace, like a toolsmith at a
    smithing table), level up by trading and restock at their workstation; right-click with
@@ -29,7 +29,7 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
    name (like vanilla villagers; a name tag names it), unless `workers.randomNames` is on.
 2. **Place a chopping block** (an axe above a log). A hired villager without a job looks
    for a free workstation of this mod within 48 blocks that it can walk to (chopping
-   block, woodcutter, stonecutter, carpenter's bench, composter, loom, smoker, blast furnace, smithing table, ...), walks
+   block, woodcutter, stonecutter, carpenter's bench, composter, loom, smoker, barrel, blast furnace, smithing table, ...), walks
    there and takes the job (green particles), like vanilla villagers claim job sites.
    Right-click the block to open its menu: **Assign** (next to the worker line) closes
    the menu; then right-click a hired villager to pick a specific worker. A worker that
@@ -72,9 +72,9 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
   name on the front of the stations; notes left in a world remove themselves when they are
   loaded.)
 - Hired villagers never take vanilla jobs (lectern etc.). At a stonecutter, composter,
-  loom, smoker, blast furnace or smithing table a hired villager becomes the stone sawyer,
-  farmer, shepherd, butcher or smith of this mod; unhired villagers still become masons,
-  farmers, shepherds, butchers, armorers and toolsmiths, except at one that is set
+  loom, smoker, barrel, blast furnace or smithing table a hired villager becomes the stone
+  sawyer, farmer, shepherd, butcher, fisher or smith of this mod; unhired villagers still
+  become masons, farmers, shepherds, butchers, fishermen, armorers and toolsmiths, except at one that is set
   up (chests, order or worker): vanilla job acquisition skips it. *Assign* there makes an
   ordinary villager that works there and has never traded (villager XP 0) unemployed;
   one that has traded keeps its job.
@@ -119,6 +119,8 @@ stays in the wage box.
   to 16 each, `miner.keepFences`, `miner.keepPlanks`) and torches (up to 16,
   `miner.keepTorches`). It keeps up to 16 cobblestone of what it digs
   (`miner.keepSealBlocks`) for sealing water and lava and closing holes.
+- **Fisher:** needs a fishing rod (carries up to 2), one use per catch; rods are used until
+  they break. Optionally a boat (keeps 1) to row out.
 - **Butcher:** needs a sword or an axe (carries up to 2), one use per animal. Feed (up to
   16 of each kind, `butcher.keepFeed`) only for breeding, coal or charcoal (up to 16,
   `butcher.keepFuel`) only for smoking.
@@ -289,6 +291,24 @@ reaches 3.5 blocks, also over a fence, so a pen needs no gate. While there are f
 it only starts a new pair while the lambs to come still fit. It brings the wool to the
 nearest chest once there is nothing left to do. The menu shows the wool sheared today and
 the sheep around the loom.
+
+## Fisher
+
+A hired villager at a vanilla **barrel** becomes a **fisher** (ordinary villagers still
+become vanilla fishermen there). The tabs above the barrel screen open the overview; the
+barrel stays a barrel for the player. **Without a chest the fisher does not work.**
+
+From the shore it fishes at the closest bank of water within 16 blocks of the barrel
+(`fisher.waterRadius`, a small pond is enough): a bite after 5 to 30 seconds
+(`fisher.minBiteSeconds`, `fisher.maxBiteSeconds`, shortened by Lure), then a catch from the
+vanilla fishing loot (fish 85, junk 10, treasure 5 only on open water; Luck of the Sea
+helps). After 12 catches (`fisher.catchesPerTrip`) it brings them to the chest. With a
+**boat** it rows out to open water (7 × 7 blocks, two deep, only water on the way) within 32
+blocks (`fisher.seaRadius`): it puts the boat on the water at the bank, rows out, fishes
+there, also treasure, rows back, gets out and takes the boat with it. Once in the boat it
+keeps going until it is back on land, also after work. Boat trips can be switched off at
+each barrel (tab *Settings*). The fisher trades like a vanilla fisherman. The menu shows the
+catches of today.
 
 ## Butcher
 
@@ -483,6 +503,7 @@ emeralds, a station put where another kind stood starts fresh, the lumberjack fe
 sawyer only cuts allowed wood, the stone sawyer cuts bricks, the carpenter stops at its
 stock, the carrier empties its source, the farmer harvests and replants (also a raised
 bed), the shepherd shears sheep over the fence of a pen and breeds a lamb with wheat, the
+fisher fishes at a pond and rows out on a lake with its boat and takes it back, the
 butcher slaughters cows down to the herd size, breeds a piglet and smokes chicken, a
 vanilla farmer is hired and stays at its composter and gets farmer trades, one that has
 traded keeps its trades and experience, a librarian is not hired, hired villagers do not trample farmland, the smith smelts raw iron, the kiln operator

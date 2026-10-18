@@ -116,6 +116,8 @@ public class StationMenu extends AbstractContainerMenu {
 	/** Loom: fewer / more sheep the shepherd breeds (0: none). */
 	public static final int HERD_LESS_BUTTON = 321;
 	public static final int HERD_MORE_BUTTON = 322;
+	/** Barrel: turns rowing out in a boat on or off. */
+	public static final int BOAT_BUTTON = 323;
 	/** The steps of the side tunnel length the buttons go through. */
 	private static final int BRANCH_STEP = 4;
 	/**
@@ -171,6 +173,7 @@ public class StationMenu extends AbstractContainerMenu {
 	private static final String TAG_MAX_DEPTH = "MaxDepth";
 	private static final String TAG_HERD = "Herd";
 	private static final String TAG_TAB_FLAGS = "TabFlags";
+	private static final String TAG_BOAT = "Boat";
 	private static final String TAG_SHEEP = "Sheep";
 
 	/** Wage tab: the slot of the wage box, and the top left of the player's inventory. */
@@ -274,6 +277,7 @@ public class StationMenu extends AbstractContainerMenu {
 			case SMITHING_TABLE -> WorkingVillagers.SMITHING_TABLE_STATION_MENU;
 			case LOOM -> WorkingVillagers.LOOM_STATION_MENU;
 			case SMOKER -> WorkingVillagers.SMOKER_STATION_MENU;
+			case BARREL -> WorkingVillagers.BARREL_STATION_MENU;
 			case PIT_STAKE -> WorkingVillagers.PIT_STAKE_MENU;
 			case KILN -> WorkingVillagers.KILN_STATION_MENU;
 			case TRADING_COUNTER -> WorkingVillagers.TRADING_COUNTER_MENU;
@@ -320,7 +324,7 @@ public class StationMenu extends AbstractContainerMenu {
 					SuppliesInfo.write(serverLevel, villager, tag);
 					if (this.type == StationType.CHOPPING_BLOCK || this.type == StationType.COMPOSTER || this.type == StationType.PIT_STAKE
 						|| this.type == StationType.TRADING_COUNTER || this.type == StationType.MINING_BENCH || this.type == StationType.LOOM
-						|| this.type == StationType.SMOKER) {
+						|| this.type == StationType.SMOKER || this.type == StationType.BARREL) {
 						tag.putInt(TAG_LOGS, ((HiredVillager) villager).workingvillagers$getWorkDone(ChopTrees.today(serverLevel)));
 					}
 				}
@@ -347,6 +351,9 @@ public class StationMenu extends AbstractContainerMenu {
 
 			if (this.type == StationType.CHOPPING_BLOCK) {
 				tag.putBoolean(TAG_STRIP, station.strip());
+			}
+			if (this.type == StationType.BARREL) {
+				tag.putBoolean(TAG_BOAT, station.boat());
 			}
 			tag.putInt(TAG_TAB_FLAGS, StationTabFlags.compute(serverLevel, pos, this.type));
 			if (this.type == StationType.LOOM || this.type == StationType.SMOKER) {
@@ -635,6 +642,11 @@ public class StationMenu extends AbstractContainerMenu {
 		return this.info.info().getIntOr(TAG_SHEEP, 0);
 	}
 
+	/** Barrel: whether the fisher rows out in a boat. */
+	public boolean getBoat() {
+		return this.info.info().getBooleanOr(TAG_BOAT, true);
+	}
+
 	/** Chopping block: whether the lumberjack strips the logs. */
 	public boolean getStrip() {
 		return this.info.info().getBooleanOr(TAG_STRIP, false);
@@ -746,6 +758,10 @@ public class StationMenu extends AbstractContainerMenu {
 		}
 		if (this.type == StationType.CHOPPING_BLOCK && buttonId == STRIP_BUTTON) {
 			station.setStrip(!station.strip());
+			return true;
+		}
+		if (this.type == StationType.BARREL && buttonId == BOAT_BUTTON) {
+			station.setBoat(!station.boat());
 			return true;
 		}
 		if ((this.type == StationType.LOOM || this.type == StationType.SMOKER) && (buttonId == HERD_LESS_BUTTON || buttonId == HERD_MORE_BUTTON)) {
