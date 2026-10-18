@@ -22,6 +22,10 @@ Der Schmied schmilzt Erz zu Barren und repariert die Werkzeuge der anderen Anges
   - Tests: eine abgenutzte Eisenaxt aus der Dorftruhe wird mit 4 Eisenbarren repariert und zurückgelegt; eine verzauberte, beschädigte Diamantspitzhacke aus der Eingangskiste mit 2 Diamanten, Stein bleibt liegen.
 - **Nicht umgesetzt:** Master-Fähigkeit.
 
+## Konzept: Reparatur mit Erfahrung
+
+Mit Erfahrungsfläschchen der [Wachen](wache.md) soll der Schmied auch reparieren, was kein Reparaturmaterial hat (Bögen, Angeln, Scheren), und für Verzaubertes Fläschchen verlangen. Siehe [Jagd und Erfahrung](../dorf/erfahrung.md).
+
 ## Modi
 
 | Modus | Station | Was passiert |

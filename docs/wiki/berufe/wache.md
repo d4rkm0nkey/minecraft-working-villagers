@@ -53,6 +53,8 @@ Reiter Arbeiter: „Letzte Nacht: 14 Pfeile verschossen, 6 eingesammelt, 4 Monst
 
 ## Stufe 2 (später)
 
+- **Jagen und Erfahrung:** Wachen jagen nachts aktiv, füllen die Erfahrung der erlegten Monster in Erfahrungsfläschchen, und der Schmied repariert damit Bögen und verzauberte Ausrüstung. Eigenes Konzept: [Jagd und Erfahrung](../dorf/erfahrung.md).
+
 - Armbrust statt Bogen (durchschlagende Pfeile, langsamer).
 - Spektral- und getränkte Pfeile gezielt gegen bestimmte Mobs.
 - Begleitschutz für [Minenarbeiter](minenarbeiter.md) und [Händler](haendler.md) (frühere Idee dieser Seite).
