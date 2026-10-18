@@ -67,6 +67,7 @@ BLOCKS = {
     "crafting_table": "minecraft:block/crafting_table",
     "barrel": "minecraft:block/barrel",
     "composter": "minecraft:block/composter",
+    "white_wool": "minecraft:block/white_wool",
     "blast_furnace": "minecraft:block/blast_furnace",
     "stonecutter": "minecraft:block/stonecutter",
     "grass_block": "minecraft:block/grass_block",
@@ -100,7 +101,7 @@ BLOCKS = {
     "terracotta": "minecraft:block/terracotta",
 }
 
-PROFESSIONS = ["lumberjack", "woodcutter", "stonecutter", "carpenter", "carrier", "farmer", "smith", "pit_digger", "kiln_operator", "shop_assistant", "miner"]
+PROFESSIONS = ["lumberjack", "woodcutter", "stonecutter", "carpenter", "carrier", "farmer", "smith", "pit_digger", "kiln_operator", "shop_assistant", "miner", "shepherd"]
 
 # Navigation icons (pixel SVGs) made from item textures.
 NAV_ICONS = ["spyglass", "emerald", "work_contract", "book", "writable_book", "map", "filled_map", "clock", "barrier", "oak_sapling"]

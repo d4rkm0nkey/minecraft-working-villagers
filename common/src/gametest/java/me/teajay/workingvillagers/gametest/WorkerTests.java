@@ -42,6 +42,9 @@ import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.FarmlandBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.entity.animal.sheep.Sheep;
+import me.teajay.workingvillagers.job.TendSheep;
 
 /**
  * The game tests: hiring, and one test per profession that sets up a station like a player
@@ -55,6 +58,8 @@ public final class WorkerTests {
 	private static final BlockPos INPUT = new BlockPos(10, 1, 6);
 	private static final BlockPos OUTPUT = new BlockPos(12, 1, 6);
 	private static final BlockPos VILLAGE_CHEST = new BlockPos(4, 1, 12);
+	/** The middle of the sheep pen, on the floor. */
+	private static final BlockPos PEN = new BlockPos(15, 0, 15);
 
 	private WorkerTests() {
 	}
@@ -111,6 +116,8 @@ public final class WorkerTests {
 		registry.accept("broken_station_drops_wage", WorkerTests::brokenStationDropsWage);
 		registry.accept("right_click_fills_wage_box", WorkerTests::rightClickFillsWageBox);
 		registry.accept("smith_repairs_input_chest", WorkerTests::smithRepairsInputChest);
+		registry.accept("shepherd_shears_over_fence", WorkerTests::shepherdShearsOverFence);
+		registry.accept("shepherd_breeds_sheep", WorkerTests::shepherdBreedsSheep);
 		for (StationType type : StationType.values()) {
 			String name = type.name().toLowerCase(Locale.ROOT);
 			registry.accept("worker_finds_" + name, helper -> workerFinds(helper, type));
@@ -557,6 +564,54 @@ public final class WorkerTests {
 				helper.assertBlockPresent(Blocks.WHEAT, crop);
 			}
 			helper.assertBlockPresent(Blocks.WHEAT, empty);
+		});
+	}
+
+	/** A pen of fences without a gate (3 × 3 inside, around {@link #PEN}) with sheep in it, a loom and an output chest. */
+	private static List<Sheep> pen(GameTestHelper helper, int sheep, boolean sheared) {
+		helper.setBlock(STATION.below(), Blocks.LOOM);
+		for (int x = -2; x <= 2; x++) {
+			for (int z = -2; z <= 2; z++) {
+				if (Math.abs(x) == 2 || Math.abs(z) == 2) {
+					helper.setBlock(PEN.offset(x, 0, z), Blocks.OAK_FENCE);
+				}
+			}
+		}
+		List<Sheep> herd = new java.util.ArrayList<>();
+		for (int i = 0; i < sheep; i++) {
+			Sheep animal = helper.spawn(EntityTypes.SHEEP, PEN.offset(i - 1, 0, 0));
+			animal.setColor(DyeColor.WHITE);
+			animal.setSheared(sheared);
+			herd.add(animal);
+		}
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, STATION.below(), OUTPUT, ChestRole.OUTPUT);
+		return herd;
+	}
+
+	/** Sheep in a pen without a gate: the shepherd shears them over the fence and brings the wool to the chest. */
+	private static void shepherdShearsOverFence(GameTestHelper helper) {
+		List<Sheep> herd = pen(helper, 2, false);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, STATION.below());
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.SHEARS));
+		helper.succeedWhen(() -> {
+			helper.assertTrue(herd.stream().allMatch(Sheep::isSheared), "Not every sheep was sheared");
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.WOOL.white()), 2, "white wool in the output chest");
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.SHEARS)) == 0, "The shepherd delivered its shears");
+		});
+	}
+
+	/** Two sheared sheep, fewer than the herd size: the shepherd feeds them wheat and they get a lamb. */
+	private static void shepherdBreedsSheep(GameTestHelper helper) {
+		pen(helper, 2, true);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, STATION.below());
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.SHEARS), new ItemStack(Items.WHEAT, 4));
+		helper.succeedWhen(() -> {
+			List<Sheep> herd = TendSheep.herd(helper.getLevel(), helper.absolutePos(STATION.below()));
+			helper.assertTrue(herd.stream().anyMatch(Sheep::isBaby), "No lamb yet, " + herd.size() + " sheep");
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.WHEAT)) == 0, "The shepherd delivered its wheat");
 		});
 	}
 

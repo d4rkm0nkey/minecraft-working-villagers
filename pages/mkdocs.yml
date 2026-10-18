@@ -100,6 +100,7 @@ nav:
       - Carpenter: workers/carpenter.md
       - Carrier: workers/carrier.md
       - Farmer: workers/farmer.md
+      - Shepherd: workers/shepherd.md
       - Smith: workers/smith.md
       - Pit digger: workers/pit-digger.md
       - Miner: workers/miner.md

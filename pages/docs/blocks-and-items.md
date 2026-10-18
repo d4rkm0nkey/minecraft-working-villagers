@@ -92,6 +92,11 @@ Use it like a chest: two village chests next to each other form a double chest (
 opens the cutter menu of this mod, which looks and works like the vanilla one but
 has the order box and the button with the worker's face.
 
+## Loom (vanilla)
+
+:mc-loom: Workstation of the [shepherd](workers/shepherd.md). The button with the shepherd's
+face at the top right of its screen opens the overview; the loom itself works as usual.
+
 ## Composter (vanilla)
 
 :mc-composter: Workstation of the [farmer](workers/farmer.md). Right-click it with an empty hand to open
@@ -113,6 +118,7 @@ the top right of its screen opens the overview.
 | :mc-head_carpenter: Carpenter | :mc-carpenter_bench: Carpenter's bench | :mc-work_contract: Work contract |
 | :mc-head_carrier: Carrier | (wicker basket) | :mc-wicker_basket: Wicker basket |
 | :mc-head_farmer: Farmer | :mc-composter: Composter | :mc-work_contract: Work contract |
+| :mc-head_shepherd: Shepherd | :mc-loom: Loom | :mc-work_contract: Work contract |
 | :mc-head_smith: Smith | :mc-blast_furnace: Blast furnace | :mc-work_contract: Work contract |
 | :mc-head_pit_digger: Pit digger | :mc-pit_stake: Pit stake | :mc-work_contract: Work contract |
 | :mc-head_kiln_operator: Kiln operator | :mc-kiln: Kiln | :mc-work_contract: Work contract |

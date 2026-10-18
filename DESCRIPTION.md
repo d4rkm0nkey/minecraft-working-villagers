@@ -31,7 +31,7 @@ The workers fit together. A lumberjack supplies the sawyer, and a carrier takes 
 1. Craft a **work contract** (paper, ink sac and 3 emeralds) and right-click an unemployed villager with it. It's hired.
 2. Place a **workstation**. The villager finds it by itself, walks there and takes the job (or you **assign** one in the menu).
 3. **Link chests:** where the material comes from and where the products go.
-4. **Right-click the worker with emeralds**, like giving a villager food. Every worker takes **one emerald a day** as its wage. No wage, no work. The lumberjack also needs an axe, the farmer a hoe and some seeds, the pit digger a shovel, a pickaxe and ladders.
+4. **Right-click the worker with emeralds**, like giving a villager food. Every worker takes **one emerald a day** as its wage. No wage, no work. The lumberjack also needs an axe, the farmer a hoe and some seeds, the shepherd shears, the pit digger a shovel, a pickaxe and ladders.
 5. During the day the villager works on its own.
 
 Tired of handing out emeralds? Put wages, tools, saplings and seeds into a **village chest** (a chest plus an emerald). Every worker nearby takes what it runs low on by itself, before the first work of the day.
@@ -56,12 +56,13 @@ Hired villagers never take vanilla jobs and never quit by themselves. A worker t
 - The **carpenter's bench** is a crafting table for wooden things only: chests, barrels, ladders, bookshelves, wooden tools, boats, shields, bows, torches and more. Its menu lists everything and shows what you're missing.
 - The carpenter crafts your order from its input chests and keeps a **stock** you choose, e.g. "always keep 16 chests ready".
 
-## 🌾 Farmer and smith
+## 🌾 Farmer, shepherd and smith
 
 - A hired villager at a vanilla **composter** becomes a farmer: it harvests the ripe crops around it, replants them and brings the harvest to a chest. It needs a hoe you give it, never tills, never tramples the fields and touches nothing but crops.
+- A hired villager at a vanilla **loom** becomes a shepherd: it shears the sheep around it, even over the fence of a pen without a gate, and breeds them with wheat up to the herd size you set. The wool goes to a chest.
 - A hired villager at a vanilla **blast furnace** becomes a smith: it loads the furnace with ore and fuel from its input chests and brings the ingots to its output chests.
 - At a vanilla **smithing table** the smith repairs instead: the worn tools the workers give back into the village chests, and anything damaged in its input chests, with ingots, diamonds or planks like at an anvil, but without experience costs.
-- Right-click the composter with an empty hand, or click the button with the worker's face in the blast furnace screen, to set them up. Ordinary villagers still become vanilla farmers and armorers there, but not at one you have set up.
+- Right-click the composter with an empty hand, or click the button with the worker's face in the loom or blast furnace screen, to set them up. Ordinary villagers still become vanilla farmers, shepherds and armorers there, but not at one you have set up.
 
 ## ⛏️ Pit digger and kiln operator
 

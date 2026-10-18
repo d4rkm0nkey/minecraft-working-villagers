@@ -28,8 +28,9 @@ Jede Station hat eine Übersicht in Vanilla-Größe (176×166, wie eine Kiste) m
 | Holzsäge, Steinsäge, Hobelbank | Rechtsklick öffnet das Arbeitsmenü, der Knopf mit dem Gesicht des Arbeiters die Übersicht |
 | Komposter | Rechtsklick mit leerer Hand |
 | Schmelzofen | Knopf mit dem Gesicht des Arbeiters im Ofenmenü |
+| Webstuhl | Knopf mit dem Gesicht des Hirten im Webstuhl-Menü |
 
-Der Knopf sitzt oben rechts im Menü des Blocks (Holzsäge, Steinsäge, Mühle, Hobelbank, Schmelzofen, Brennofen, Schmiedetisch), so groß wie der Rezeptbuch-Knopf. Er zeigt das Gesicht des Berufs, der dort arbeitet, gezeichnet aus der Villager-Textur und der Kleidung des Berufs; ohne angeheuerten Arbeiter ist es abgedunkelt. Der Tooltip nennt den Arbeiter. Die Titelzeile der Block-Menüs zeigt den Arbeiter nicht mehr.
+Der Knopf sitzt oben rechts im Menü des Blocks (Holzsäge, Steinsäge, Mühle, Hobelbank, Schmelzofen, Brennofen, Schmiedetisch, Webstuhl), so groß wie der Rezeptbuch-Knopf. Er zeigt das Gesicht des Berufs, der dort arbeitet, gezeichnet aus der Villager-Textur und der Kleidung des Berufs; ohne angeheuerten Arbeiter ist es abgedunkelt. Der Tooltip nennt den Arbeiter. Die Titelzeile der Block-Menüs zeigt den Arbeiter nicht mehr.
 
 Die Reiter (ein roter Punkt am Reiter zeigt, dass dort etwas fehlt):
 
@@ -37,7 +38,7 @@ Die Reiter (ein roter Punkt am Reiter zeigt, dass dort etwas fehlt):
 - **Arbeiter** (Symbol: Gesicht des Berufs, abgedunkelt ohne Arbeiter): Name, **„Zuweisen“** bzw. **„Abziehen“** als großer Knopf, der Status auf bis zu drei Zeilen umgebrochen, darunter das Tagespensum oder der Auftrag, die Versorgung als Slots („Lohn und Werkzeug“, Details im Tooltip) und unten, wie man dem Arbeiter etwas gibt. Roter Punkt: kein Arbeiter, oder ihm fehlt Lohn oder Werkzeug.
 - **Lohn** (Smaragd): die [Lohnkasse](../wirtschaft/anheuern-und-lohn.md#stand-der-umsetzung) der Station mit einem Slot und darunter das Spielerinventar, wie ein Container; Shift-Klick schiebt Emeralds hin und her. Roter Punkt: der Arbeiter hat heute keinen Lohn.
 - **Kisten**: höchstens 8, sechs sichtbar, dann scrollen (Mausrad). Pro Zeile Name, die Rolle als Knopf (**Eingang**/**Ausgang**, Klick schaltet um), Füllstand und ×; Art, Füllstand und Entfernung im Tooltip. Unten **„+ Eingang“** und **„+ Ausgang“** (an Stationen nur mit Ausgang **„+ Kiste“**). Roter Punkt: keine Kiste.
-- **Auftrag** (Holzsäge, Steinsäge, Hobelbank, Brennofen): Erzeugnis, Holzsorten, Vorrat. **Einstellungen** an Hackklotz („Stämme entrinden“), Grubenpflock (Grube, Tiefe, Leiter) und Grubenwerkbank (Stollen, Länge, Art, Abzweige), jeweils mit Erklärung darunter. Roter Punkt: kein Auftrag, keine Grube, kein Stollen.
+- **Auftrag** (Holzsäge, Steinsäge, Hobelbank, Brennofen): Erzeugnis, Holzsorten, Vorrat. **Einstellungen** an Hackklotz („Stämme entrinden“), Webstuhl (Herdengröße), Grubenpflock (Grube, Tiefe, Leiter) und Grubenwerkbank (Stollen, Länge, Art, Abzweige), jeweils mit Erklärung darunter. Roter Punkt: kein Auftrag, keine Grube, kein Stollen.
 
 Komposter, Schmelzofen, Handelstresen und Schmiedetisch haben keinen dritten Reiter. Alle Knöpfe sind 16 bis 20 px hoch, wie Vanilla-Knöpfe.
 

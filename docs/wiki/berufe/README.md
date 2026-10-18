@@ -23,7 +23,7 @@ Alle Berufe folgen dem [Kernloop](../grundlagen/kernloop.md) und den [Lohnstufen
 | [Grubenarbeiter](grubenarbeiter.md) | Grubenpflock | Mit Schnur umrandete Grube ausheben, Leiter als Ausgang | Grubenpflock | umgesetzt |
 | [Brenner](brenner.md) | Brennofen | Glas, Stein, Ziegel, Holzkohle brennen (Ofen ohne Essen) | Brennofen | umgesetzt |
 | [Fischer](fischer.md) | Barrel | Angeln an markiertem Wasser | nein | später |
-| [Hirte](hirte.md) | Loom | Schafe scheren, Wolle sortieren | nein | später |
+| [Hirte](hirte.md) | Webstuhl (Loom) | Schafe scheren und züchten, Wolle abliefern | nein | umgesetzt (ohne Wolle sortieren) |
 | [Metzger](metzger.md) | Smoker | Tiere züchten, schlachten, räuchern | nein | später |
 | [Gerber](gerber.md) | Cauldron | Leder verarbeiten | nein | später |
 | [Maurer](maurer.md) | Steinsäge | Ausbau des Steinsägers (Glattstein, Master) | nein | später |
@@ -33,7 +33,7 @@ Alle Berufe folgen dem [Kernloop](../grundlagen/kernloop.md) und den [Lohnstufen
 | [Bibliothekar](bibliothekar.md) | Lectern | Lagerverwaltung, Inventarliste | nein | später |
 | [Wache](wache.md) | – (Idee) | Schutz von Minen und Karawanen | offen | Idee |
 
-Umgesetzt sind: Holzfäller, Holzsäger, Steinsäger, Tischler, Bauer, Schmied (Schmelzen und Reparieren), Grubenarbeiter, Minenarbeiter, Brenner, Handelsangestellter (Verkauf) und Träger. Damit läuft die Holzkette Holzfäller → Holzsäger → Tischler, verbunden durch Träger (siehe [Logistik](../grundlagen/logistik.md)), und Erz kommt aus der Mine zum Schmied.
+Umgesetzt sind: Holzfäller, Holzsäger, Steinsäger, Tischler, Bauer, Hirte, Schmied (Schmelzen und Reparieren), Grubenarbeiter, Minenarbeiter, Brenner, Handelsangestellter (Verkauf) und Träger. Damit läuft die Holzkette Holzfäller → Holzsäger → Tischler, verbunden durch Träger (siehe [Logistik](../grundlagen/logistik.md)), und Erz kommt aus der Mine zum Schmied.
 
 Als Nächstes stehen auf der [Roadmap](../planung/roadmap.md): Wirtschaft und Dorf (M2) und der [Crafter-Bediener](crafter-bediener.md) (M4). Mit ihm ist die Kette Erz → Barren → Crafter geschlossen.
 

@@ -98,7 +98,7 @@ public class Workstations extends SavedData {
 		if (station == null) {
 			station = new Station(
 				pos.immutable(), Optional.empty(), List.of(), List.of(), Optional.empty(), Optional.empty(), Optional.empty(), List.of(), 0, false,
-				Optional.empty(), Pit.DEFAULT_DEPTH, Optional.empty(), 0
+				Optional.empty(), Pit.DEFAULT_DEPTH, Optional.empty(), 0, DEFAULT_HERD
 			);
 			workstations.stations.put(station.pos, station);
 		}
@@ -183,6 +183,9 @@ public class Workstations extends SavedData {
 
 	/** The most emeralds the wage box of a station holds: one stack. */
 	public static final int MAX_WAGE = 64;
+	/** Loom: how many sheep the shepherd keeps around it unless set otherwise, and at most. */
+	public static final int DEFAULT_HERD = 8;
+	public static final int MAX_HERD = 32;
 
 	public static final class Station {
 		private static final Codec<Station> CODEC = RecordCodecBuilder.create(i -> i.group(
@@ -199,7 +202,8 @@ public class Workstations extends SavedData {
 			Pit.CODEC.optionalFieldOf("pit").forGetter(station -> Optional.ofNullable(station.pit)),
 			Codec.INT.optionalFieldOf("depth", Pit.DEFAULT_DEPTH).forGetter(station -> station.depth),
 			Tunnel.CODEC.optionalFieldOf("tunnel").forGetter(station -> Optional.ofNullable(station.tunnel)),
-			Codec.intRange(0, MAX_WAGE).optionalFieldOf("wage", 0).forGetter(station -> station.wage)
+			Codec.intRange(0, MAX_WAGE).optionalFieldOf("wage", 0).forGetter(station -> station.wage),
+			Codec.intRange(0, MAX_HERD).optionalFieldOf("herd", DEFAULT_HERD).forGetter(station -> station.herd)
 		).apply(i, Station::new));
 
 		private final BlockPos pos;
@@ -225,15 +229,18 @@ public class Workstations extends SavedData {
 		private @Nullable Tunnel tunnel;
 		/** The emeralds in the wage box, see {@link #wage}. */
 		private int wage;
+		/** Loom: up to how many sheep the shepherd breeds, 0 for none. */
+		private int herd;
 		private @Nullable Workstations owner;
 		/** The kind of station the settings belong to, unknown for entries saved before it was stored. */
 		private @Nullable StationType type;
 
 		private Station(
 			BlockPos pos, Optional<String> type, List<BlockPos> inputs, List<BlockPos> outputs, Optional<Item> order, Optional<UUID> worker, Optional<String> workerName,
-			List<String> woods, int stock, boolean strip, Optional<Pit> pit, int depth, Optional<Tunnel> tunnel, int wage
+			List<String> woods, int stock, boolean strip, Optional<Pit> pit, int depth, Optional<Tunnel> tunnel, int wage, int herd
 		) {
 			this.wage = wage;
+			this.herd = herd;
 			this.pit = pit.orElse(null);
 			this.tunnel = tunnel.orElse(null);
 			this.depth = depth;
@@ -322,6 +329,22 @@ public class Workstations extends SavedData {
 		public void setTunnel(@Nullable Tunnel tunnel) {
 			if (!Objects.equals(this.tunnel, tunnel)) {
 				this.tunnel = tunnel;
+				this.setDirty();
+			}
+		}
+
+		/**
+		 * Loom: up to how many sheep (lambs included) the shepherd breeds around the loom, 0
+		 * if it does not breed them.
+		 */
+		public int herd() {
+			return this.herd;
+		}
+
+		public void setHerd(int herd) {
+			int clamped = Math.clamp(herd, 0, MAX_HERD);
+			if (this.herd != clamped) {
+				this.herd = clamped;
 				this.setDirty();
 			}
 		}
@@ -525,7 +548,8 @@ public class Workstations extends SavedData {
 
 		private boolean isEmpty() {
 			return this.inputs.isEmpty() && this.outputs.isEmpty() && this.order == null && this.worker == null && this.woods.isEmpty() && this.stock == 0
-				&& !this.strip && this.pit == null && this.depth == Pit.DEFAULT_DEPTH && this.tunnel == null && this.wage == 0;
+				&& !this.strip && this.pit == null && this.depth == Pit.DEFAULT_DEPTH && this.tunnel == null && this.wage == 0
+				&& this.herd == DEFAULT_HERD;
 		}
 
 		/**

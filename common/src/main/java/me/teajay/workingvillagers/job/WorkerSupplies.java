@@ -113,8 +113,11 @@ public final class WorkerSupplies {
 	public static final Tool HOE = new Tool("hoe", stack -> stack.is(ItemTags.HOES), "farmer.no_hoe");
 	public static final Tool SHOVEL = new Tool("shovel", stack -> stack.is(ItemTags.SHOVELS), "pit_digger.no_shovel");
 	public static final Tool PICKAXE = new Tool("pickaxe", stack -> stack.is(ItemTags.PICKAXES), "pit_digger.no_pickaxe");
+	public static final Tool SHEARS = new Tool("shears", stack -> stack.is(Items.SHEARS), "shepherd.no_shears");
 	public static final Stock SAPLINGS = new Stock("saplings", stack -> stack.is(ItemTags.SAPLINGS), Config.KEEP_SAPLINGS::get, "", false);
 	public static final Stock SEEDS = new Stock("seeds", FarmFields::isSeed, Config.KEEP_SEEDS::get, "farmer.no_seeds", false);
+	/** The shepherd's wheat for breeding; without it it still shears. */
+	public static final Stock WHEAT = new Stock("wheat", stack -> stack.is(Items.WHEAT), Config.KEEP_WHEAT::get, "shepherd.no_wheat", false);
 	public static final Stock LADDERS = new Stock("ladders", stack -> stack.is(Items.LADDER), Config.KEEP_LADDERS::get, "pit_digger.no_ladders", true);
 	public static final Stock TORCHES = new Stock("torches", WorkerSupplies::isTorch, Config.KEEP_TORCHES::get, "", false);
 	public static final Stock MINER_TORCHES = new Stock("torches", WorkerSupplies::isTorch, Config.MINER_KEEP_TORCHES::get, "", false);
@@ -399,6 +402,10 @@ public final class WorkerSupplies {
 		if (Config.TOOL_RETURN_CHEAP.get() || tool.isEnchanted() || tool.has(DataComponents.CUSTOM_NAME)) {
 			return true;
 		}
+		// Shears are cheap too, and nothing repairs them
+		if (tool.is(Items.SHEARS)) {
+			return false;
+		}
 		Repairable repairable = tool.get(DataComponents.REPAIRABLE);
 		return repairable == null
 			|| !repairable.isValidRepairItem(new ItemStack(Items.OAK_PLANKS)) && !repairable.isValidRepairItem(new ItemStack(Items.COBBLESTONE));
@@ -418,6 +425,9 @@ public final class WorkerSupplies {
 		if (profession.is(WorkingVillagers.FARMER_PROFESSION)) {
 			return List.of(HOE);
 		}
+		if (profession.is(WorkingVillagers.SHEPHERD_PROFESSION)) {
+			return List.of(SHEARS);
+		}
 		if (profession.is(WorkingVillagers.PIT_DIGGER_PROFESSION)) {
 			return List.of(SHOVEL, PICKAXE);
 		}
@@ -435,6 +445,9 @@ public final class WorkerSupplies {
 		}
 		if (profession.is(WorkingVillagers.FARMER_PROFESSION)) {
 			return List.of(SEEDS);
+		}
+		if (profession.is(WorkingVillagers.SHEPHERD_PROFESSION)) {
+			return List.of(WHEAT);
 		}
 		if (profession.is(WorkingVillagers.PIT_DIGGER_PROFESSION)) {
 			return Config.KEEP_TORCHES.get() > 0 ? List.of(LADDERS, TORCHES) : List.of(LADDERS);

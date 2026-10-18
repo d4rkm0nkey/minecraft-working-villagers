@@ -78,6 +78,13 @@ public final class Config {
 	public static final IntOption KEEP_SEEDS = intOption("farmer", "keepSeeds", 16, 1, 64,
 		"How many seeds of each kind (wheat seeds, carrots, potatoes, ...) the farmer keeps for planting.");
 
+	public static final IntOption PASTURE_RADIUS = intOption("shepherd", "pastureRadius", 12, 4, 24,
+		"How far from the loom (in blocks, sideways) the shepherd looks after sheep.");
+	public static final DoubleOption SECONDS_PER_SHEEP = doubleOption("shepherd", "secondsPerSheep", 1.5, 0.1, 20.0,
+		"How long the shepherd needs to shear or feed one sheep.");
+	public static final IntOption KEEP_WHEAT = intOption("shepherd", "keepWheat", 16, 2, 64,
+		"How much wheat the shepherd keeps for breeding its sheep.");
+
 	public static final IntOption SMELT_BATCH = intOption("smith", "batchSize", 16, 1, 64,
 		"How many items to smelt the smith fetches from an input chest at once.");
 	public static final IntOption FUEL_BATCH = intOption("smith", "fuelPerTrip", 8, 1, 64,

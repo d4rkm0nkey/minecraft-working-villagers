@@ -97,7 +97,7 @@ public class MenuScreenshots implements FabricClientGameTest {
 	private static void tabs(ClientGameTestContext context, TestSingleplayerContext world, String name, String suffix, BlockPos near, StationType type,
 		BiConsumer<MinecraftServer, ServerPlayer> open) {
 		List<String> tabs = new java.util.ArrayList<>(List.of("work", "wage", "chests"));
-		if (type.hasOrder() || type == StationType.CHOPPING_BLOCK || type == StationType.PIT_STAKE || type == StationType.MINING_BENCH) {
+		if (StationScreen.hasOrderTab(type)) {
 			tabs.add("order");
 		}
 		tabs(context, world, name, suffix, near, tabs, open);
@@ -196,7 +196,8 @@ public class MenuScreenshots implements FabricClientGameTest {
 			ItemStack worn = new ItemStack(Items.IRON_AXE);
 			worn.setDamageValue(100);
 			give(player, villager, worn, new ItemStack(Items.IRON_HOE), new ItemStack(Items.IRON_SHOVEL), new ItemStack(Items.IRON_PICKAXE),
-				new ItemStack(Items.OAK_SAPLING, 5), new ItemStack(Items.WHEAT_SEEDS, 12), new ItemStack(Items.LADDER, 30), new ItemStack(Items.TORCH, 3));
+				new ItemStack(Items.OAK_SAPLING, 5), new ItemStack(Items.WHEAT_SEEDS, 12), new ItemStack(Items.LADDER, 30), new ItemStack(Items.TORCH, 3),
+				new ItemStack(Items.SHEARS), new ItemStack(Items.WHEAT, 10));
 		}
 		// A chopping block nobody works at, without chests
 		level.setBlockAndUpdate(stationPos(STATIONS.size()), StationType.CHOPPING_BLOCK.block().defaultBlockState());

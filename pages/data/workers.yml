@@ -79,6 +79,19 @@ farmer:
     Makes: ":mc-wheat: Wheat, :mc-carrot: carrots, :mc-potato: potatoes, :mc-beetroot: beetroots"
     Range: 8 blocks
 
+shepherd:
+  name: Shepherd
+  page: workers/shepherd.md
+  head: shepherd
+  workstation: loom
+  summary: Shears and breeds the sheep around its loom.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-loom: Loom"
+    Needs: ":mc-shears: Shears, :mc-wheat: wheat for breeding"
+    Makes: ":mc-white_wool: Wool"
+    Range: 12 blocks
+
 smith:
   name: Smith
   page: workers/smith.md

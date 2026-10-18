@@ -60,6 +60,16 @@ default and its allowed range, so you can edit it with any text editor.
 | `secondsPerCrop` | 1.5 | 0.1–20.0 | Time to harvest or plant one crop. |
 | `keepSeeds` | 16 | 1–64 | Seeds of each kind it keeps for planting (wheat seeds, carrots, potatoes, ...) and takes when you give them. |
 
+## Shepherd (`shepherd`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `pastureRadius` | 12 | 4–24 | How far from the loom (sideways) the shepherd looks after sheep. |
+| `secondsPerSheep` | 1.5 | 0.1–20.0 | Time to shear or feed one sheep. |
+| `keepWheat` | 16 | 2–64 | Wheat it keeps for breeding and takes when you give it. |
+
+The herd size is no config option: set it at each loom (tab **Settings**).
+
 ## Smith (`smith`)
 
 | Option | Default | Range | What it does |

@@ -12,7 +12,7 @@ These rules apply to every worker.
 
 ## Hiring
 
-- **Lumberjack, sawyer, stone sawyer, carpenter, farmer, smith, pit digger, kiln operator, shop assistant:** right-click an unemployed adult
+- **Lumberjack, sawyer, stone sawyer, carpenter, farmer, shepherd, smith, pit digger, kiln operator, shop assistant:** right-click an unemployed adult
   villager with a [work contract](../blocks-and-items.md#work-contract). Then it looks for
   a free workstation by itself.
 - **Carrier:** right-click an unemployed adult villager with a
@@ -32,12 +32,12 @@ zombies and raids.
 
 A hired villager without a job looks for a **free workstation of this mod** within
 **48 blocks** that it can walk to: a chopping block, woodcutter, stonecutter, carpenter's
-bench, composter, blast furnace, smithing table, pit stake, kiln, trading counter or mining bench. It walks there and takes the job (green particles),
+bench, composter, loom, blast furnace, smithing table, pit stake, kiln, trading counter or mining bench. It walks there and takes the job (green particles),
 just like vanilla villagers claim their job sites.
 
-At a stonecutter, composter, blast furnace or smithing table a hired villager becomes the
-stone sawyer, farmer or smith of this mod. Unhired villagers still become vanilla masons,
-farmers, armorers and toolsmiths there, but not at one you have set up (linked chests or set an order): that one
+At a stonecutter, composter, loom, blast furnace or smithing table a hired villager becomes the
+stone sawyer, farmer, shepherd or smith of this mod. Unhired villagers still become vanilla masons,
+farmers, shepherds, armorers and toolsmiths there, but not at one you have set up (linked chests or set an order): that one
 is kept for a hired worker. **Assign** at a station where an ordinary villager already
 works gives it to your worker, as long as that villager has never traded; one that has
 traded keeps its job.
@@ -45,7 +45,7 @@ traded keeps its job.
 ## Assigning and removing
 
 To pick a specific worker yourself, open the workstation menu (at the woodcutter,
-stonecutter, carpenter's bench, blast furnace, smithing table and kiln: the button with the worker's face at the top right of
+stonecutter, carpenter's bench, loom, blast furnace, smithing table and kiln: the button with the worker's face at the top right of
 its screen; at the composter: right-click it with an empty hand) and click **Assign**. The menu closes; right-click a hired villager. It becomes the
 worker of this station. A villager that already works somewhere else moves to the new
 station.
@@ -65,7 +65,7 @@ The overview of a workstation has tabs at the top, like the creative inventory:
 - :mc-emerald: **Wage**: the station's [wage box](#the-wage-box) and your inventory.
 - :mc-chest: **Chests**: the linked chests with **+ Input** / **+ Output** (or **+ Chest**).
 - :mc-paper: **Order** (woodcutter, stonecutter, carpenter's bench, kiln) or **Settings**
-  (chopping block, pit stake, mining bench).
+  (chopping block, pit stake, mining bench, loom).
 
 A red dot on a tab means something is missing there: no worker, no wage or tool, no
 chest, no order.
@@ -79,7 +79,7 @@ other mods):
 - up to **8 chests** per station
 - within **16 blocks** of the station
 
-Click **+ Chest** (lumberjack, farmer and pit digger) or **+ Input** / **+ Output** (the others). The menu
+Click **+ Chest** (lumberjack, farmer, shepherd and pit digger) or **+ Input** / **+ Output** (the others). The menu
 closes; right-click the chests you want to link. Right-click a linked chest again to
 unlink it. Right-click the workstation to finish; its menu opens again.
 
@@ -129,6 +129,7 @@ vanilla mobs picking up items); right-clicking always works.
 | every worker | :mc-emerald: emeralds | 64, in the wage box of its workstation |
 | lumberjack | :mc-any_axe: an axe, optionally :mc-oak_sapling: saplings | 2 axes, 16 saplings of each kind |
 | farmer | :mc-any_hoe: a hoe, :mc-wheat_seeds: seeds to start with | 2 hoes, 16 seeds of each kind |
+| shepherd | :mc-shears: shears, optionally :mc-wheat: wheat for breeding | 2 shears, 16 wheat |
 | pit digger | :mc-iron_shovel: a shovel, :mc-iron_pickaxe: a pickaxe, :mc-ladder: ladders, optionally :mc-torch: torches | 2 of each tool, 64 ladders, 16 torches |
 
 - **Wage:** before work each day the worker takes **1 emerald** from the wage box (then
@@ -136,7 +137,7 @@ vanilla mobs picking up items); right-clicking always works.
   64 emeralds pay for 64 work days. Without an emerald it does not work. It waits next
   to its workstation ("Waiting for wages") and checks again every few seconds, so you
   can pay it late.
-- **Tools:** the lumberjack needs an axe, the farmer a hoe, the pit digger a shovel, a
+- **Tools:** the lumberjack needs an axe, the farmer a hoe, the shepherd shears, the pit digger a shovel, a
   pickaxe and ladders. The sawyer, stone sawyer, carpenter, smith, kiln operator, shop
   assistant and carrier only need emeralds.
 - Workers never hand in their emeralds or their tool to the output chests.
@@ -202,8 +203,8 @@ Then it works on with its spare tool, or waits for a new one ("needs an axe"). A
 village chests; or repair them yourself at an anvil and put them back. Workers
 never take a worn tool, and you cannot give them one.
 
-**Wooden and stone tools** are cheap: they are used until they break, unless they are
-enchanted or renamed. The tooltip of the worker's supplies says when it carries a worn tool
+**Wooden and stone tools** and **shears** are cheap: they are used until they break, unless
+they are enchanted or renamed. The tooltip of the worker's supplies says when it carries a worn tool
 to give back. Both limits can be changed in the [config](../configuration.md#tools-tools).
 
 ## Complaining

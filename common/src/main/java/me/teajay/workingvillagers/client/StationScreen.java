@@ -116,8 +116,9 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	}
 
 	/** Whether the station has a third tab: its order, or its settings. */
-	private static boolean hasOrderTab(StationType type) {
-		return type.hasOrder() || type == StationType.CHOPPING_BLOCK || type == StationType.PIT_STAKE || type == StationType.MINING_BENCH;
+	public static boolean hasOrderTab(StationType type) {
+		return type.hasOrder() || type == StationType.CHOPPING_BLOCK || type == StationType.PIT_STAKE || type == StationType.MINING_BENCH
+			|| type == StationType.LOOM;
 	}
 
 	@Override
@@ -232,6 +233,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 					case CHOPPING_BLOCK -> Items.STRIPPED_OAK_LOG;
 					case PIT_STAKE -> Items.STRING;
 					case MINING_BENCH -> Items.IRON_PICKAXE;
+					case LOOM -> Items.WOOL.white();
 					default -> Items.PAPER;
 				});
 			}
@@ -262,7 +264,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			case ORDER -> switch (this.type()) {
 				case PIT_STAKE -> this.menu.getPit().isEmpty();
 				case MINING_BENCH -> this.menu.getTunnel().isEmpty();
-				case CHOPPING_BLOCK, KILN -> false;
+				case CHOPPING_BLOCK, KILN, LOOM -> false;
 				default -> this.type().hasOrder() && (this.menu.getOrder().isEmpty()
 					|| this.type().hasWoods() && this.menu.getShape() != null && this.menu.getWoods().isEmpty());
 			};
@@ -484,6 +486,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			case COMPOSTER -> "gui.workingvillagers.composter.no_chests";
 			case PIT_STAKE -> "gui.workingvillagers.pit_stake.no_chests";
 			case MINING_BENCH -> "gui.workingvillagers.mining_bench.no_chests";
+			case LOOM -> "gui.workingvillagers.loom.no_chests";
 			default -> "gui.workingvillagers.station.no_chests";
 		});
 	}
@@ -525,6 +528,10 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			case CHOPPING_BLOCK -> this.extractStrip(graphics, mouseX, mouseY);
 			case PIT_STAKE -> this.extractPit(graphics, mouseX, mouseY);
 			case MINING_BENCH -> this.extractTunnel(graphics, mouseX, mouseY);
+			case LOOM -> this.plusMinus(graphics, mouseX, mouseY, this.settingY(0), BIG, StationMenu.HERD_LESS_BUTTON, StationMenu.HERD_MORE_BUTTON, List.of(
+				Component.translatable("gui.workingvillagers.loom.herd.tooltip"),
+				Component.translatable("gui.workingvillagers.loom.herd.tooltip2", Workstations.MAX_HERD).withStyle(ChatFormatting.GRAY)
+			));
 			default -> { }
 		}
 	}
@@ -846,6 +853,16 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 				graphics.text(this.font, Component.translatable(this.isBench() ? "gui.workingvillagers.station.woods.bench" : "gui.workingvillagers.station.woods"),
 					8, this.woodsLabelY, GuiPanels.TEXT_COLOR, false);
 			}
+			case LOOM -> {
+				int herd = this.menu.getHerd();
+				GuiPanels.scrollingText(graphics, this.font, (herd == 0
+					? Component.translatable("gui.workingvillagers.loom.herd.none")
+					: Component.translatable("gui.workingvillagers.loom.herd", herd)).getString(),
+					8, this.settingRowY(0) + textY, COLUMN_WIDTH - 2 * BIG - 6, GuiPanels.TEXT_COLOR);
+				graphics.text(this.font, Component.translatable("gui.workingvillagers.loom.sheep", this.menu.getSheep()), 8, this.settingRowY(1) - 2,
+					GuiPanels.MUTED_COLOR, false);
+				this.hint(graphics, Component.translatable("gui.workingvillagers.loom.herd.hint"), this.settingRowY(1) + LINE);
+			}
 			case CHOPPING_BLOCK -> {
 				int width = this.toggleWidth("gui.workingvillagers.chopping_block.strip.on", "gui.workingvillagers.chopping_block.strip.off");
 				GuiPanels.scrollingText(graphics, this.font, Component.translatable("gui.workingvillagers.chopping_block.strip").getString(), 8,
@@ -927,6 +944,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			case CARPENTER_BENCH -> "gui.workingvillagers.station.back.tooltip.bench";
 			case BLAST_FURNACE -> "gui.workingvillagers.station.back.tooltip.furnace";
 			case SMITHING_TABLE -> "gui.workingvillagers.station.back.tooltip.smithing_table";
+			case LOOM -> "gui.workingvillagers.station.back.tooltip.loom";
 			case KILN -> "gui.workingvillagers.station.back.tooltip.kiln";
 			case MINING_BENCH -> "gui.workingvillagers.station.back.tooltip.mill";
 			default -> "gui.workingvillagers.station.back.tooltip";
@@ -989,6 +1007,13 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 				return Optional.of(Component.translatable("gui.workingvillagers.chopping_block.hire"));
 			}
 			return blocks < 0 ? Optional.empty() : Optional.of(Component.translatable("gui.workingvillagers.pit.today", blocks, this.menu.getDailyLogs()));
+		}
+		if (this.type() == StationType.LOOM) {
+			int wool = this.menu.getLogsToday();
+			if (this.menu.getWorker().isEmpty()) {
+				return Optional.of(Component.translatable("gui.workingvillagers.chopping_block.hire"));
+			}
+			return wool < 0 ? Optional.empty() : Optional.of(Component.translatable("gui.workingvillagers.loom.wool", wool));
 		}
 		if (this.type() == StationType.TRADING_COUNTER) {
 			int earned = this.menu.getLogsToday();

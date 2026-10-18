@@ -15,6 +15,7 @@ import me.teajay.workingvillagers.crafting.StoneFamilies;
 import me.teajay.workingvillagers.crafting.WoodTypes;
 import me.teajay.workingvillagers.job.ChopTrees;
 import me.teajay.workingvillagers.job.HiredVillager;
+import me.teajay.workingvillagers.job.TendSheep;
 import me.teajay.workingvillagers.job.WorkerJobs;
 import me.teajay.workingvillagers.job.WorkerStatus;
 import me.teajay.workingvillagers.station.ContainerNames;
@@ -111,6 +112,9 @@ public class StationMenu extends AbstractContainerMenu {
 	public static final int BRANCHES_MORE_BUTTON = 319;
 	/** Mining bench: switches between a tunnel and stairs down. */
 	public static final int STAIRS_BUTTON = 320;
+	/** Loom: fewer / more sheep the shepherd breeds (0: none). */
+	public static final int HERD_LESS_BUTTON = 321;
+	public static final int HERD_MORE_BUTTON = 322;
 	/** The steps of the side tunnel length the buttons go through. */
 	private static final int BRANCH_STEP = 4;
 	/**
@@ -164,6 +168,8 @@ public class StationMenu extends AbstractContainerMenu {
 	private static final String TAG_AREA = "Area";
 	private static final String TAG_DEPTH = "Depth";
 	private static final String TAG_MAX_DEPTH = "MaxDepth";
+	private static final String TAG_HERD = "Herd";
+	private static final String TAG_SHEEP = "Sheep";
 
 	/** Wage tab: the slot of the wage box, and the top left of the player's inventory. */
 	public static final int WAGE_X = 8;
@@ -264,6 +270,7 @@ public class StationMenu extends AbstractContainerMenu {
 			case COMPOSTER -> WorkingVillagers.COMPOSTER_STATION_MENU;
 			case BLAST_FURNACE -> WorkingVillagers.BLAST_FURNACE_STATION_MENU;
 			case SMITHING_TABLE -> WorkingVillagers.SMITHING_TABLE_STATION_MENU;
+			case LOOM -> WorkingVillagers.LOOM_STATION_MENU;
 			case PIT_STAKE -> WorkingVillagers.PIT_STAKE_MENU;
 			case KILN -> WorkingVillagers.KILN_STATION_MENU;
 			case TRADING_COUNTER -> WorkingVillagers.TRADING_COUNTER_MENU;
@@ -309,7 +316,7 @@ public class StationMenu extends AbstractContainerMenu {
 					tag.store(TAG_STATUS, ComponentSerialization.CODEC, WorkerStatus.describe(villager));
 					SuppliesInfo.write(serverLevel, villager, tag);
 					if (this.type == StationType.CHOPPING_BLOCK || this.type == StationType.COMPOSTER || this.type == StationType.PIT_STAKE
-						|| this.type == StationType.TRADING_COUNTER || this.type == StationType.MINING_BENCH) {
+						|| this.type == StationType.TRADING_COUNTER || this.type == StationType.MINING_BENCH || this.type == StationType.LOOM) {
 						tag.putInt(TAG_LOGS, ((HiredVillager) villager).workingvillagers$getWorkDone(ChopTrees.today(serverLevel)));
 					}
 				}
@@ -336,6 +343,10 @@ public class StationMenu extends AbstractContainerMenu {
 
 			if (this.type == StationType.CHOPPING_BLOCK) {
 				tag.putBoolean(TAG_STRIP, station.strip());
+			}
+			if (this.type == StationType.LOOM) {
+				tag.putInt(TAG_HERD, station.herd());
+				tag.putInt(TAG_SHEEP, TendSheep.herd(serverLevel, pos).size());
 			}
 			if (this.type == StationType.PIT_STAKE) {
 				tag.putInt(TAG_DEPTH, station.depth());
@@ -604,6 +615,16 @@ public class StationMenu extends AbstractContainerMenu {
 		return this.info.info().getIntOr(TAG_STOCK, 0);
 	}
 
+	/** Loom: up to how many sheep the shepherd breeds, 0 for none. */
+	public int getHerd() {
+		return this.info.info().getIntOr(TAG_HERD, Workstations.DEFAULT_HERD);
+	}
+
+	/** Loom: how many sheep there are around it. */
+	public int getSheep() {
+		return this.info.info().getIntOr(TAG_SHEEP, 0);
+	}
+
 	/** Chopping block: whether the lumberjack strips the logs. */
 	public boolean getStrip() {
 		return this.info.info().getBooleanOr(TAG_STRIP, false);
@@ -715,6 +736,10 @@ public class StationMenu extends AbstractContainerMenu {
 		}
 		if (this.type == StationType.CHOPPING_BLOCK && buttonId == STRIP_BUTTON) {
 			station.setStrip(!station.strip());
+			return true;
+		}
+		if (this.type == StationType.LOOM && (buttonId == HERD_LESS_BUTTON || buttonId == HERD_MORE_BUTTON)) {
+			station.setHerd(station.herd() + (buttonId == HERD_MORE_BUTTON ? 1 : -1));
 			return true;
 		}
 		if (this.type == StationType.MINING_BENCH && station.tunnel() != null) {

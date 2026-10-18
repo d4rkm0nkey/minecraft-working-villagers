@@ -60,9 +60,9 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
   name on the front of the stations; notes left in a world remove themselves when they are
   loaded.)
 - Hired villagers never take vanilla jobs (lectern etc.). At a stonecutter, composter,
-  blast furnace or smithing table a hired villager becomes the stone sawyer, farmer or
-  smith of this mod; unhired villagers still become masons, farmers, armorers and
-  toolsmiths, except at one that is set
+  loom, blast furnace or smithing table a hired villager becomes the stone sawyer, farmer,
+  shepherd or smith of this mod; unhired villagers still become masons, farmers, shepherds,
+  armorers and toolsmiths, except at one that is set
   up (chests, order or worker): vanilla job acquisition skips it. *Assign* there makes an
   ordinary villager that works there and has never traded (villager XP 0) unemployed;
   one that has traded keeps its job.
@@ -107,6 +107,8 @@ stays in the wage box.
   to 16 each, `miner.keepFences`, `miner.keepPlanks`) and torches (up to 16,
   `miner.keepTorches`). It keeps up to 16 cobblestone of what it digs
   (`miner.keepSealBlocks`) for sealing water and lava and closing holes.
+- **Shepherd:** needs shears (carries up to 2), one use per sheep; shears are used until
+  they break. Wheat (up to 16, `shepherd.keepWheat`) only for breeding.
 - **Sawyer, stone sawyer, carpenter, smith, kiln operator, shop assistant, carrier:** only
   emeralds.
 
@@ -256,6 +258,22 @@ to do. It needs a hoe it carries (one use per harvested crop). It does not
 till: it only works farmland that is already there. When it waits, it stands next to the
 composter, and hired villagers never trample farmland. The menu shows the crops harvested
 today.
+
+## Shepherd
+
+A hired villager at a vanilla **loom** becomes a **shepherd** (ordinary villagers still
+become vanilla shepherds there). The button with the shepherd's face at the top right of the
+loom screen opens the overview: assign the worker and link chests. **Without a chest the
+shepherd does not work.**
+
+During work hours it shears every sheep with wool within 12 blocks of the loom
+(`shepherd.pastureRadius`, 4 up or down), 1.5 seconds per sheep, and picks up the wool. It
+reaches 3.5 blocks, also over a fence, so a pen needs no gate. While there are fewer sheep
+(lambs included) than the **herd size** set at the loom (tab *Settings*, 0 to 32, default
+8), it feeds wheat to two grown sheep, which then get a lamb like after a player fed them;
+it only starts a new pair while the lambs to come still fit. It brings the wool to the
+nearest chest once there is nothing left to do. The menu shows the wool sheared today and
+the sheep around the loom.
 
 ## Smith
 
@@ -433,7 +451,7 @@ emeralds, a station put where another kind stood starts fresh, the lumberjack fe
 (also on grass and mud), replants it and spares builds, nobody works without wage, the
 sawyer only cuts allowed wood, the stone sawyer cuts bricks, the carpenter stops at its
 stock, the carrier empties its source, the farmer harvests and replants (also a raised
-bed), hired villagers do not trample farmland, the smith smelts raw iron, the kiln operator
+bed), the shepherd shears sheep over the fence of a pen and breeds a lamb with wheat, hired villagers do not trample farmland, the smith smelts raw iron, the kiln operator
 fires glass but leaves meat and raw iron alone and fires cobblestone twice for smooth stone,
 the pit digger digs a pit with a ladder down to its bottom without touching the ring, the
 shop assistant sells wheat to a farmer until its trade is sold out, ordinary villagers do

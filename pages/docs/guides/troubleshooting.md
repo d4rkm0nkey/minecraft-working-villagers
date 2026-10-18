@@ -29,6 +29,10 @@ the status does not help, go through this list.
 | *Waiting for the crops to grow* | No ripe crops and no empty farmland within 8 blocks of the composter. |
 | *Waiting: no seeds for the empty farmland (give them some)* | Right-click the farmer with seeds (or carrots, potatoes). |
 | *Waiting: needs a hoe (give them one)* | Right-click the farmer with a hoe. |
+| *Waiting for the wool to grow back* | Every sheep around the loom is sheared, and the herd is as big as set. Sheep need grass to grow their wool back. |
+| *Waiting: no sheep near the loom* | No sheep within 12 blocks of the loom. Bring two and the shepherd breeds more. |
+| *Waiting: no wheat to breed the sheep (give them some)* | There are fewer sheep than the herd size. Right-click the shepherd with wheat, or set the herd size lower. |
+| *Waiting: needs shears (give them some)* | Right-click the shepherd with shears. |
 | *Waiting for something to smelt* | The smith's input chests have nothing the blast furnace can smelt. |
 | *Waiting for fuel* | Put coal, charcoal or other fuel into the smith's input chests. |
 | *Waiting for tools to repair* | The smith at the smithing table finds no worn tool in the village chests near it and nothing damaged in its input chests. Nothing to do. |
@@ -93,6 +97,13 @@ the status does not help, go through this list.
 - [ ] It carries an emerald and a hoe.
 - [ ] Farmland with crops within 8 blocks of the composter. The farmer does not till.
 - [ ] Seeds for empty farmland (right-click it with some).
+
+### Shepherd
+
+- [ ] At least one chest linked (the button with the worker's face in the loom screen).
+- [ ] It carries an emerald and shears.
+- [ ] Sheep within 12 blocks of the loom, close enough to the fence to reach them (3 blocks).
+- [ ] Wheat, if it should breed them.
 
 ### Smith
 

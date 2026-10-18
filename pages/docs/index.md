@@ -28,6 +28,7 @@ hide:
 <span class="wv-villager" style="--delay: .8s"><img src="assets/mc/heads/kiln_operator.png" alt=""><img src="assets/mc/blocks/kiln.png" alt=""></span>
 <span class="wv-villager" style="--delay: .6s"><img src="assets/mc/heads/shop_assistant.png" alt=""><img src="assets/mc/blocks/trading_counter.png" alt=""></span>
 <span class="wv-villager" style="--delay: 1s"><img src="assets/mc/heads/miner.png" alt=""><img src="assets/mc/blocks/mining_bench.png" alt=""></span>
+<span class="wv-villager" style="--delay: .45s"><img src="assets/mc/heads/shepherd.png" alt=""><img src="assets/mc/blocks/loom.png" alt=""></span>
 </div>
 </div>
 

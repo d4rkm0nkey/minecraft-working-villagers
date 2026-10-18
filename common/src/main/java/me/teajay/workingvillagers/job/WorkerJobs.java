@@ -29,14 +29,14 @@ import org.jspecify.annotations.Nullable;
  * The jobs of hired villagers at their workstations (chopping block: lumberjack, woodcutter:
  * sawyer, stonecutter: stone sawyer, carpenter's bench: carpenter, composter: farmer, blast
  * furnace: smith, pit stake: pit digger, kiln: kiln operator, trading counter: shop assistant,
- * mining bench: miner). A hired villager without a job looks for a free one itself (see
+ * mining bench: miner, loom: shepherd). A hired villager without a job looks for a free one itself (see
  * {@link FindWorkplace}); the player can also give it one in the station menu, and take it
  * away again there. Hired villagers do not take any vanilla job.
  *
  * <p>Vanilla job acquisition only looks at job sites in the {@code acquirable_job_site} tag,
  * which the blocks of this mod are not part of. The stonecutter, the composter, the blast
- * furnace and the smithing table are in the tag, ordinary villagers still become masons,
- * farmers, armorers and toolsmiths there.
+ * furnace, the smithing table and the loom are in the tag, ordinary villagers still become
+ * masons, farmers, armorers, toolsmiths and shepherds there.
  */
 public final class WorkerJobs {
 	private static final Map<ResourceKey<PoiType>, ResourceKey<VillagerProfession>> JOBS = Map.ofEntries(
@@ -47,6 +47,7 @@ public final class WorkerJobs {
 		Map.entry(PoiTypes.FARMER, WorkingVillagers.FARMER_PROFESSION),
 		Map.entry(PoiTypes.ARMORER, WorkingVillagers.SMITH_PROFESSION),
 		Map.entry(PoiTypes.TOOLSMITH, WorkingVillagers.SMITH_PROFESSION),
+		Map.entry(PoiTypes.SHEPHERD, WorkingVillagers.SHEPHERD_PROFESSION),
 		Map.entry(WorkingVillagers.PIT_DIGGER_POI, WorkingVillagers.PIT_DIGGER_PROFESSION),
 		Map.entry(WorkingVillagers.KILN_OPERATOR_POI, WorkingVillagers.KILN_OPERATOR_PROFESSION),
 		Map.entry(WorkingVillagers.SHOP_ASSISTANT_POI, WorkingVillagers.SHOP_ASSISTANT_PROFESSION),

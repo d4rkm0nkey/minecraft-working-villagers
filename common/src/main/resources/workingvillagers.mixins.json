@@ -11,6 +11,7 @@
     "ComposterBlockMixin",
     "DisplayMixin",
     "FarmlandBlockMixin",
+    "LoomMenuMixin",
     "ServerLevelMixin",
     "ServerPlayerGameModeMixin",
     "SmithingMenuMixin",
@@ -21,6 +22,7 @@
   "client": [
     "client.BlastFurnaceScreenMixin",
     "client.ContainerScreenMixin",
+    "client.LoomScreenMixin",
     "client.ScreenAccessor",
     "client.SmithingScreenMixin",
     "client.VillagerRendererMixin"

@@ -6,13 +6,13 @@ Ohne Werkzeugrückgabe nutzt ein Arbeiter sein Werkzeug, bis es zerbricht. Dann 
 
 ## Stand der Umsetzung
 
-Umgesetzt für Holzfäller, Bauer, Grubenarbeiter und Minenarbeiter, mit diesen Abweichungen:
+Umgesetzt für Holzfäller, Bauer, Hirte, Grubenarbeiter und Minenarbeiter, mit diesen Abweichungen:
 
 - **Zeitpunkt:** Er gibt das Werkzeug vor seinem nächsten Arbeitsschritt zurück (nächster Baum, nächster Block), auch wenn er ein Ersatzwerkzeug dabeihat; nicht erst in der Pause. Die Grubenarbeit unterbricht er dafür wie für Lohn und Werkzeug: erst aus der Grube heraus.
 - **Wohin:** in die nächste Dorftruhe in Reichweite mit einem **freien Platz**, sonst in die nächste Zielkiste der Station mit freiem Platz. Geht er zu einer Dorftruhe, nimmt er im selben Gang mit, was ihm fehlt. Findet er keinen Platz (oder kommt nicht hin), behält er es und versucht es nach einer Minute wieder.
 - **Kein eigener Status „kein Platz zum Abgeben“:** Hat er kein brauchbares Werkzeug mehr, zeigt er wie bisher „Braucht eine Axt“. Der Tooltip der Versorgungszeile sagt „Gibt N abgenutzte Werkzeuge zurück“; Status unterwegs: „Gibt ein abgenutztes Werkzeug zurück“.
 - **Grenze:** `tools.returnBelow` Prozent der Haltbarkeit, mindestens 2 Nutzungen. Bei der Grenze von 10 % ist ein Werkzeug zugleich „fast aufgebraucht“ im Sinne der [Dorftruhen](dorftruhen.md#was-sich-ein-arbeiter-holt): Er holt sich dann Ersatz.
-- **Holz und Stein:** erkannt an der `repairable`-Komponente (repariert mit Brettern oder Bruchstein), so zählen auch Werkzeuge anderer Mods. Verzaubert oder umbenannt kommen sie immer zurück.
+- **Holz und Stein:** erkannt an der `repairable`-Komponente (repariert mit Brettern oder Bruchstein), so zählen auch Werkzeuge anderer Mods. Verzaubert oder umbenannt kommen sie immer zurück. **Scheren** zählen ebenfalls als billig: Sie kosten zwei Eisen, und der Schmied kann sie nicht reparieren.
 - **Geben:** Ein abgenutztes Werkzeug nimmt ein Arbeiter auch vom Spieler nicht an.
 - **Anzeige:** Statt des gelben Rahmens nur die Tooltip-Zeile. Das Dorftruhen-Panel zeigt „N abgenutzte Werkzeuge zum Reparieren“.
 - **Reparieren durch den Schmied:** umgesetzt, siehe [Schmied, Stand der Umsetzung](../berufe/schmied.md#stand-der-umsetzung). Abweichend repariert er auch alles Beschädigte aus den Eingangskisten seines Schmiedetischs. Das Dorftruhen-Panel zeigt nicht an, ob ein Schmied repariert.

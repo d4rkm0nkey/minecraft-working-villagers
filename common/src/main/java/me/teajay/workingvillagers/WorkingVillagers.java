@@ -74,6 +74,8 @@ public final class WorkingVillagers {
 	public static final ResourceKey<VillagerProfession> STONECUTTER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("stonecutter"));
 	/** Works at the vanilla composter, the job site of the vanilla farmer. */
 	public static final ResourceKey<VillagerProfession> FARMER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("farmer"));
+	/** Works at the vanilla loom, the job site of the vanilla shepherd. */
+	public static final ResourceKey<VillagerProfession> SHEPHERD_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("shepherd"));
 	/** Works at the vanilla blast furnace (the job site of the armorer) or the smithing table (the toolsmith's). */
 	public static final ResourceKey<VillagerProfession> SMITH_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("smith"));
 	public static final ResourceKey<PoiType> PIT_DIGGER_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("pit_digger"));
@@ -108,6 +110,7 @@ public final class WorkingVillagers {
 	public static Supplier<MenuType<StationMenu>> COMPOSTER_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> BLAST_FURNACE_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> SMITHING_TABLE_STATION_MENU;
+	public static Supplier<MenuType<StationMenu>> LOOM_STATION_MENU;
 	public static Supplier<MenuType<CutterMenu>> WOODCUTTER_MENU;
 	public static Supplier<RecipeType<WoodcuttingRecipe>> WOODCUTTING;
 	public static Supplier<RecipeSerializer<WoodcuttingRecipe>> WOODCUTTING_SERIALIZER;
@@ -188,6 +191,7 @@ public final class WorkingVillagers {
 		registerCarrier(platform);
 		registerFarmer(platform);
 		registerSmith(platform);
+		registerShepherd(platform);
 		registerPitDigger(platform);
 		registerKilnOperator(platform);
 		registerShopAssistant(platform);
@@ -325,6 +329,16 @@ public final class WorkingVillagers {
 		registerProfession(platform, "farmer", PoiTypes.FARMER, ImmutableSet.of(
 			Items.WHEAT, Items.WHEAT_SEEDS, Items.BEETROOT_SEEDS, Items.CARROT, Items.POTATO, Items.BEETROOT, Items.BONE_MEAL
 		), SoundEvents.VILLAGER_WORK_FARMER);
+	}
+
+	/**
+	 * The shepherd works at the vanilla loom: it shears the sheep around it and breeds them.
+	 * Ordinary villagers still become (vanilla) shepherds there; the button with the
+	 * shepherd's face in the loom's screen opens the overview.
+	 */
+	private static void registerShepherd(Platform platform) {
+		LOOM_STATION_MENU = platform.registerMenu("loom_station", (containerId, inventory) -> new StationMenu(StationType.LOOM, containerId, inventory));
+		registerProfession(platform, "shepherd", PoiTypes.SHEPHERD, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_SHEPHERD);
 	}
 
 	/**

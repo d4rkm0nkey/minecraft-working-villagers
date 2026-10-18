@@ -36,7 +36,9 @@ public enum StationType {
 	 * The smith repairs tools: worn ones from the village chests nearby and damaged ones from
 	 * the input chests, with the material from the input chests.
 	 */
-	SMITHING_TABLE(true);
+	SMITHING_TABLE(true),
+	/** The shepherd shears and breeds the sheep around the loom; it only delivers the wool. */
+	LOOM(false);
 
 	private final boolean processing;
 
@@ -55,7 +57,7 @@ public enum StationType {
 	/** Whether the block has a screen of its own, which the overview leads back to. */
 	public boolean hasOwnScreen() {
 		return this == WOODCUTTER || this == STONECUTTER || this == CARPENTER_BENCH || this == BLAST_FURNACE || this == KILN || this == MINING_BENCH
-			|| this == SMITHING_TABLE;
+			|| this == SMITHING_TABLE || this == LOOM;
 	}
 
 	/** Whether the worker needs an order, set in the order column of the overview. */
@@ -68,7 +70,7 @@ public enum StationType {
 	 * profession. It only counts as a workstation of this mod once it has been set up.
 	 */
 	public boolean isVanilla() {
-		return this == STONECUTTER || this == COMPOSTER || this == BLAST_FURNACE || this == SMITHING_TABLE;
+		return this == STONECUTTER || this == COMPOSTER || this == BLAST_FURNACE || this == SMITHING_TABLE || this == LOOM;
 	}
 
 	/**
@@ -101,6 +103,7 @@ public enum StationType {
 			case KILN -> WorkingVillagers.KILN_OPERATOR_PROFESSION;
 			case TRADING_COUNTER -> WorkingVillagers.SHOP_ASSISTANT_PROFESSION;
 			case MINING_BENCH -> WorkingVillagers.MINER_PROFESSION;
+			case LOOM -> WorkingVillagers.SHEPHERD_PROFESSION;
 		};
 	}
 
@@ -117,6 +120,7 @@ public enum StationType {
 			case TRADING_COUNTER -> WorkingVillagers.TRADING_COUNTER.get().getName();
 			case MINING_BENCH -> WorkingVillagers.MINING_BENCH.get().getName();
 			case SMITHING_TABLE -> Blocks.SMITHING_TABLE.getName();
+			case LOOM -> Blocks.LOOM.getName();
 		};
 	}
 
@@ -133,6 +137,7 @@ public enum StationType {
 			case TRADING_COUNTER -> WorkingVillagers.TRADING_COUNTER.get();
 			case MINING_BENCH -> WorkingVillagers.MINING_BENCH.get();
 			case SMITHING_TABLE -> Blocks.SMITHING_TABLE;
+			case LOOM -> Blocks.LOOM;
 		};
 	}
 
@@ -159,6 +164,8 @@ public enum StationType {
 			return MINING_BENCH;
 		} else if (state.is(Blocks.SMITHING_TABLE)) {
 			return SMITHING_TABLE;
+		} else if (state.is(Blocks.LOOM)) {
+			return LOOM;
 		}
 		return null;
 	}
