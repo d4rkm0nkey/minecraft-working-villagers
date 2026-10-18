@@ -17,6 +17,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -68,6 +69,7 @@ public final class WorkerTests {
 		registry.accept("worker_picks_up_wage", WorkerTests::workerPicksUpWage);
 		registry.accept("smith_smelts_ore", WorkerTests::smithSmeltsOre);
 		registry.accept("replaced_station_starts_fresh", WorkerTests::replacedStationStartsFresh);
+		registry.accept("old_station_notes_are_removed", WorkerTests::oldStationNotesAreRemoved);
 	}
 
 	private static void contractHiresUnemployed(GameTestHelper helper) {
@@ -316,6 +318,26 @@ public final class WorkerTests {
 		helper.setBlock(STATION, Blocks.BLAST_FURNACE);
 		Villager worker = processingStation(helper, new ItemStack(Items.RAW_IRON, 4), new ItemStack(Items.COAL, 2));
 		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.IRON_INGOT), 4, "iron ingots in the output chest"));
+	}
+
+	/**
+	 * Earlier versions put name notes (text displays) on the stations, also under the old mod
+	 * name: they remove themselves. Other text displays stay.
+	 */
+	private static void oldStationNotesAreRemoved(GameTestHelper helper) {
+		Display.TextDisplay note = textDisplay(helper, new BlockPos(4, 2, 4), "workingvillagers_note");
+		Display.TextDisplay oldNote = textDisplay(helper, new BlockPos(6, 2, 4), "letmework_note");
+		Display.TextDisplay sign = textDisplay(helper, new BlockPos(8, 2, 4), "some_other_tag");
+		helper.succeedWhen(() -> {
+			helper.assertTrue(note.isRemoved() && oldNote.isRemoved(), "An old station note is still there");
+			helper.assertFalse(sign.isRemoved(), "Another text display was removed");
+		});
+	}
+
+	private static Display.TextDisplay textDisplay(GameTestHelper helper, BlockPos pos, String tag) {
+		Display.TextDisplay display = helper.spawn(EntityTypes.TEXT_DISPLAY, pos);
+		display.addTag(tag);
+		return display;
 	}
 
 	private static void carrierMovesItems(GameTestHelper helper) {

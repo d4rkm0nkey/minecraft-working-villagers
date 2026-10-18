@@ -8,9 +8,9 @@
     "BlastFurnaceMenuMixin",
     "BrainAccessor",
     "ComposterBlockMixin",
+    "DisplayMixin",
     "FarmlandBlockMixin",
     "ServerPlayerGameModeMixin",
-    "ServerLevelMixin",
     "StonecutterBlockMixin",
     "VillagerGoalPackagesMixin",
     "VillagerMixin"
