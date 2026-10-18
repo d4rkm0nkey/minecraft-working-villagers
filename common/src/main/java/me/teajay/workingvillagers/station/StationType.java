@@ -47,7 +47,12 @@ public enum StationType {
 	/** The fisher fishes from the shore or from a boat; it only delivers its catch. */
 	BARREL(false),
 	/** The fletcher makes arrows, bows and crossbows from its input chests, as ordered. */
-	FLETCHING_TABLE(true);
+	FLETCHING_TABLE(true),
+	/**
+	 * The guard stands at the target at night and shoots monsters; arrows and bows can come
+	 * from input chests, what the monsters drop goes to the output chests.
+	 */
+	TARGET(true);
 
 	private final boolean processing;
 
@@ -117,6 +122,7 @@ public enum StationType {
 			case SMOKER -> WorkingVillagers.BUTCHER_PROFESSION;
 			case BARREL -> WorkingVillagers.FISHER_PROFESSION;
 			case FLETCHING_TABLE -> WorkingVillagers.FLETCHER_PROFESSION;
+			case TARGET -> WorkingVillagers.GUARD_PROFESSION;
 		};
 	}
 
@@ -137,6 +143,7 @@ public enum StationType {
 			case SMOKER -> Blocks.SMOKER.getName();
 			case BARREL -> Blocks.BARREL.getName();
 			case FLETCHING_TABLE -> Blocks.FLETCHING_TABLE.getName();
+			case TARGET -> Blocks.TARGET.getName();
 		};
 	}
 
@@ -157,6 +164,7 @@ public enum StationType {
 			case SMOKER -> Blocks.SMOKER;
 			case BARREL -> Blocks.BARREL;
 			case FLETCHING_TABLE -> Blocks.FLETCHING_TABLE;
+			case TARGET -> Blocks.TARGET;
 		};
 	}
 
@@ -191,6 +199,8 @@ public enum StationType {
 			return BARREL;
 		} else if (state.is(Blocks.FLETCHING_TABLE)) {
 			return FLETCHING_TABLE;
+		} else if (state.is(Blocks.TARGET)) {
+			return TARGET;
 		}
 		return null;
 	}

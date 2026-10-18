@@ -7,7 +7,7 @@ workers: [fletcher]
 
 Hired with a work contract, the fletcher works at a vanilla **fletching table**. It makes
 arrows, spectral arrows, bows and crossbows from its input chests and keeps a stock of them
-in its output chests, for you, for trading, and for the guards.
+in its output chests, for you, for trading, and for the [guards](guard.md).
 
 !!! note
     Ordinary (not hired) villagers still become vanilla fletchers at fletching tables. A

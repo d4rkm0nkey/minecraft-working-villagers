@@ -15,6 +15,7 @@ import me.teajay.workingvillagers.crafting.StoneFamilies;
 import me.teajay.workingvillagers.crafting.WoodTypes;
 import me.teajay.workingvillagers.job.ChopTrees;
 import me.teajay.workingvillagers.job.FletchArrows;
+import me.teajay.workingvillagers.job.GuardPost;
 import me.teajay.workingvillagers.job.HiredVillager;
 import me.teajay.workingvillagers.job.TendAnimals;
 import me.teajay.workingvillagers.job.TendSheep;
@@ -280,6 +281,7 @@ public class StationMenu extends AbstractContainerMenu {
 			case SMOKER -> WorkingVillagers.SMOKER_STATION_MENU;
 			case BARREL -> WorkingVillagers.BARREL_STATION_MENU;
 			case FLETCHING_TABLE -> WorkingVillagers.FLETCHING_TABLE_STATION_MENU;
+			case TARGET -> WorkingVillagers.TARGET_STATION_MENU;
 			case PIT_STAKE -> WorkingVillagers.PIT_STAKE_MENU;
 			case KILN -> WorkingVillagers.KILN_STATION_MENU;
 			case TRADING_COUNTER -> WorkingVillagers.TRADING_COUNTER_MENU;
@@ -326,8 +328,10 @@ public class StationMenu extends AbstractContainerMenu {
 					SuppliesInfo.write(serverLevel, villager, tag);
 					if (this.type == StationType.CHOPPING_BLOCK || this.type == StationType.COMPOSTER || this.type == StationType.PIT_STAKE
 						|| this.type == StationType.TRADING_COUNTER || this.type == StationType.MINING_BENCH || this.type == StationType.LOOM
-						|| this.type == StationType.SMOKER || this.type == StationType.BARREL) {
-						tag.putInt(TAG_LOGS, ((HiredVillager) villager).workingvillagers$getWorkDone(ChopTrees.today(serverLevel)));
+						|| this.type == StationType.SMOKER || this.type == StationType.BARREL || this.type == StationType.FLETCHING_TABLE
+						|| this.type == StationType.TARGET) {
+						tag.putInt(TAG_LOGS, ((HiredVillager) villager).workingvillagers$getWorkDone(
+							this.type == StationType.TARGET ? GuardPost.night(serverLevel) : ChopTrees.today(serverLevel)));
 					}
 				}
 			});
@@ -356,6 +360,9 @@ public class StationMenu extends AbstractContainerMenu {
 			}
 			if (this.type == StationType.BARREL) {
 				tag.putBoolean(TAG_BOAT, station.boat());
+			}
+			if (this.type == StationType.TARGET) {
+				tag.putInt(TAG_HERD, station.guardRadius());
 			}
 			tag.putInt(TAG_TAB_FLAGS, StationTabFlags.compute(serverLevel, pos, this.type));
 			if (this.type == StationType.LOOM || this.type == StationType.SMOKER) {
@@ -764,6 +771,10 @@ public class StationMenu extends AbstractContainerMenu {
 		}
 		if (this.type == StationType.BARREL && buttonId == BOAT_BUTTON) {
 			station.setBoat(!station.boat());
+			return true;
+		}
+		if (this.type == StationType.TARGET && (buttonId == HERD_LESS_BUTTON || buttonId == HERD_MORE_BUTTON)) {
+			station.setGuardRadius(station.guardRadius() + (buttonId == HERD_MORE_BUTTON ? 2 : -2));
 			return true;
 		}
 		if ((this.type == StationType.LOOM || this.type == StationType.SMOKER) && (buttonId == HERD_LESS_BUTTON || buttonId == HERD_MORE_BUTTON)) {

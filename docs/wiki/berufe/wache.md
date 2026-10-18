@@ -1,10 +1,23 @@
 # Beruf: Wache
 
-[← Berufe](README.md) · Station: **Zielscheibe** (Vanilla) · Phase: **Konzept** (Stand 18.10.2026)
+[← Berufe](README.md) · Station: **Zielscheibe** (Vanilla) · Phase: **umgesetzt** (Bewachen mit Bogen; ohne Glocke, Rückzug und Pfeil-Anzeige in der Dorftruhe)
 
 Die Wache schützt das Dorf nachts mit Pfeil und Bogen vor Monstern. Sie ist der Grund, warum das Dorf eine dauernde **Pfeilversorgung** braucht: Jeder Schuss kostet einen Pfeil, und ohne Pfeile ist die Wache wehrlos. Die Pfeile macht der [Pfeilmacher](pfeilmacher.md).
 
 Vanilla-Dorfbewohner kämpfen nicht; die Wache ist eine bewusste Abweichung. Sie bleibt aber nah an Vanilla: Sie schießt wie ein Skelett mit echten Pfeilen und echtem Bogen, und Monster können sie verletzen.
+
+## Stand der Umsetzung
+
+- **Station:** Die Zielscheibe ist ein POI dieser Mod (`workingvillagers:guard`), kein Vanilla-Dorfbewohner nimmt sie. Rechtsklick mit leerer Hand öffnet die Übersicht; Eingangskisten für Pfeile und Bögen, Ausgangskisten für die Beute, beides freiwillig. Reiter **Einstellungen**: Wachradius 8–32 Blöcke, Standard 16 (gespeichert im Feld `herd` der Station als halber Radius).
+- **Nachtschicht:** eigener Tagesplan statt des Vanilla-Plans (Mixin auf den Schritt `UpdateActivityFromSchedule`, der am Ende jedes Pakets steht): Arbeit von 12000 bis 1000, Schlaf bis 9000, danach Freizeit. Dadurch setzt der Plan die Wache auch nach Überfall oder Glocke wieder an die Arbeit. **Keine Panik** (Mixin auf `VillagerPanicTrigger`).
+- **Schießen:** wie ein Skelett mit echtem Pfeil (`ProjectileUtil.getMobArrow`) aus dem Inventar und dem Bogen der Wache, alle 1,5 Sekunden (Config `guard.secondsPerShot`), bis 24 Blöcke weit (Config `guard.range`), auf das nächste sichtbare Monster (`Enemy`, aber nicht `NeutralMob`) im Wachradius. Jeder Schuss kostet einen Pfeil und eine Nutzung des Bogens; Unendlichkeit wirkt nicht.
+- **Kein Eigenbeschuss:** Pfeile von Wachen treffen nur `Enemy` (Mixin auf `AbstractArrow.canHitEntity`).
+- **Morgenrunde** (0 bis 1000): eigene Fehlschüsse im Radius + 8 aufsammeln, dann die Beute an den Stellen der erlegten Monster; die Beute (nicht Pfeile und Bögen, Pfeile über 64 schon) in die Ausgangskiste.
+- **Versorgung:** Bogen (Werkzeug, bis 2, wird kurz vor dem Bruch zurückgegeben) und Pfeile (Pflicht, bis 64, Config `guard.keepArrows`). Unter 16 Pfeilen holt sie Pfeile (und fehlt der Bogen, einen Bogen) aus den Eingangskisten; die Dorftruhe füllt wie bei allen Arbeitern auf.
+- **Menü:** „Monster letzte Nacht: x“ (gezählt pro Nacht von Dämmerung bis Dämmerung).
+- **Kleidung:** Kettenhemd unter blauem Wappenrock, Eisenhelm mit Nasenschutz.
+- **Tests:** Nachts erlegt die Wache einen Zombie, ohne die Kuh daneben zu treffen; morgens sammelt sie ihre drei Fehlschüsse ein, einen fremden Pfeil nicht.
+- **Nicht umgesetzt:** Glocke läuten, Zurückweichen, „Pfeile reichen für ~N Nächte“ in der Dorftruhe, Rüstung tragen, Armbrust, Jagen und Erfahrung ([Konzept](../dorf/erfahrung.md)).
 
 ## Station: Zielscheibe
 

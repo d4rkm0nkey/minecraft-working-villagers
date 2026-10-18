@@ -60,6 +60,20 @@ default and its allowed range, so you can edit it with any text editor.
 | `secondsPerCrop` | 1.5 | 0.1–20.0 | Time to harvest or plant one crop. |
 | `keepSeeds` | 16 | 1–64 | Seeds of each kind it keeps for planting (wheat seeds, carrots, potatoes, ...) and takes when you give them. |
 
+## Guard (`guard`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `keepArrows` | 64 | 8–256 | Arrows a guard carries. |
+| `secondsPerShot` | 1.5 | 0.25–10.0 | Time to draw the bow again. |
+| `range` | 24 | 8–48 | How far a guard shoots. |
+
+The radius it guards is set at each target (tab **Settings**).
+
+## Fletcher
+
+The fletcher has no config options; its order and stock are set at the fletching table.
+
 ## Fisher (`fisher`)
 
 | Option | Default | Range | What it does |

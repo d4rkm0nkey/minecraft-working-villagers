@@ -115,6 +115,8 @@ public final class WorkerSupplies {
 	public static final Tool PICKAXE = new Tool("pickaxe", stack -> stack.is(ItemTags.PICKAXES), "pit_digger.no_pickaxe");
 	/** The butcher's: a sword or an axe. */
 	public static final Tool WEAPON = new Tool("weapon", stack -> stack.is(ItemTags.SWORDS) || stack.is(ItemTags.AXES), "butcher.no_weapon");
+	/** The guard's bow. */
+	public static final Tool BOW = new Tool("bow", stack -> stack.is(Items.BOW), "guard.no_bow");
 	public static final Tool ROD = new Tool("rod", stack -> stack.is(Items.FISHING_ROD), "fisher.no_rod");
 	public static final Tool SHEARS = new Tool("shears", stack -> stack.is(Items.SHEARS), "shepherd.no_shears");
 	public static final Stock SAPLINGS = new Stock("saplings", stack -> stack.is(ItemTags.SAPLINGS), Config.KEEP_SAPLINGS::get, "", false);
@@ -127,6 +129,8 @@ public final class WorkerSupplies {
 	public static final Stock FUEL = new Stock("fuel", stack -> stack.is(ItemTags.COALS), Config.KEEP_FUEL::get, "", false);
 	/** The fisher's boat, to row out to open water; without it it fishes from the shore. */
 	public static final Stock BOAT = new Stock("boat", stack -> stack.is(ItemTags.BOATS), () -> 1, "", false);
+	/** The guard's arrows: without them it cannot do its work. */
+	public static final Stock ARROWS = new Stock("arrows", stack -> stack.is(Items.ARROW), Config.KEEP_ARROWS::get, "guard.no_arrows", true);
 	public static final Stock LADDERS = new Stock("ladders", stack -> stack.is(Items.LADDER), Config.KEEP_LADDERS::get, "pit_digger.no_ladders", true);
 	public static final Stock TORCHES = new Stock("torches", WorkerSupplies::isTorch, Config.KEEP_TORCHES::get, "", false);
 	public static final Stock MINER_TORCHES = new Stock("torches", WorkerSupplies::isTorch, Config.MINER_KEEP_TORCHES::get, "", false);
@@ -443,6 +447,9 @@ public final class WorkerSupplies {
 		if (profession.is(WorkingVillagers.FISHER_PROFESSION)) {
 			return List.of(ROD);
 		}
+		if (profession.is(WorkingVillagers.GUARD_PROFESSION)) {
+			return List.of(BOW);
+		}
 		if (profession.is(WorkingVillagers.PIT_DIGGER_PROFESSION)) {
 			return List.of(SHOVEL, PICKAXE);
 		}
@@ -469,6 +476,9 @@ public final class WorkerSupplies {
 		}
 		if (profession.is(WorkingVillagers.FISHER_PROFESSION)) {
 			return List.of(BOAT);
+		}
+		if (profession.is(WorkingVillagers.GUARD_PROFESSION)) {
+			return List.of(ARROWS);
 		}
 		if (profession.is(WorkingVillagers.PIT_DIGGER_PROFESSION)) {
 			return Config.KEEP_TORCHES.get() > 0 ? List.of(LADDERS, TORCHES) : List.of(LADDERS);

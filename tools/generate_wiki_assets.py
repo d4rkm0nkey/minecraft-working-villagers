@@ -105,7 +105,7 @@ BLOCKS = {
     "terracotta": "minecraft:block/terracotta",
 }
 
-PROFESSIONS = ["lumberjack", "woodcutter", "stonecutter", "carpenter", "carrier", "farmer", "smith", "pit_digger", "kiln_operator", "shop_assistant", "miner", "shepherd", "butcher", "fisher", "fletcher"]
+PROFESSIONS = ["lumberjack", "woodcutter", "stonecutter", "carpenter", "carrier", "farmer", "smith", "pit_digger", "kiln_operator", "shop_assistant", "miner", "shepherd", "butcher", "fisher", "fletcher", "guard"]
 
 # Navigation icons (pixel SVGs) made from item textures.
 NAV_ICONS = ["spyglass", "emerald", "work_contract", "book", "writable_book", "map", "filled_map", "clock", "barrier", "oak_sapling"]

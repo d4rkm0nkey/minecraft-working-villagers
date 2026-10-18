@@ -12,7 +12,7 @@ These rules apply to every worker.
 
 ## Hiring
 
-- **Lumberjack, sawyer, stone sawyer, carpenter, farmer, shepherd, butcher, fisher, fletcher, smith, pit digger, kiln operator, shop assistant:** right-click an adult
+- **Lumberjack, sawyer, stone sawyer, carpenter, farmer, shepherd, butcher, fisher, fletcher, guard, smith, pit digger, kiln operator, shop assistant:** right-click an adult
   villager with a [work contract](../blocks-and-items.md#work-contract). An unemployed one
   then looks for a free workstation by itself.
 - **Carrier:** right-click an unemployed adult villager with a
@@ -60,7 +60,7 @@ zombies and raids.
 
 A hired villager without a job looks for a **free workstation of this mod** within
 **48 blocks** that it can walk to: a chopping block, woodcutter, stonecutter, carpenter's
-bench, composter, loom, smoker, barrel, fletching table, blast furnace, smithing table, pit stake, kiln, trading counter or mining bench. It walks there and takes the job (green particles),
+bench, composter, loom, smoker, barrel, fletching table, target, blast furnace, smithing table, pit stake, kiln, trading counter or mining bench. It walks there and takes the job (green particles),
 just like vanilla villagers claim their job sites.
 
 At a stonecutter, composter, loom, smoker, barrel, blast furnace or smithing table a hired villager becomes the
@@ -95,7 +95,7 @@ to get to that part of the overview, and the block's tab to get back.
 - :mc-emerald: **Wage**: the station's [wage box](#the-wage-box) and your inventory.
 - :mc-chest: **Chests**: the linked chests with **+ Input** / **+ Output** (or **+ Chest**).
 - :mc-paper: **Order** (woodcutter, stonecutter, carpenter's bench, kiln, fletching table) or **Settings**
-  (chopping block, pit stake, mining bench, loom, smoker, barrel).
+  (chopping block, pit stake, mining bench, loom, smoker, barrel, target).
 
 A red dot on a tab means something is missing there: no worker, no wage or tool, no
 chest, no order.
@@ -164,6 +164,7 @@ vanilla mobs picking up items); right-clicking always works.
 | lumberjack | :mc-any_axe: an axe, optionally :mc-oak_sapling: saplings | 2 axes, 16 saplings of each kind |
 | farmer | :mc-any_hoe: a hoe, :mc-wheat_seeds: seeds to start with | 2 hoes, 16 seeds of each kind |
 | shepherd | :mc-shears: shears, optionally :mc-wheat: wheat for breeding | 2 shears, 16 wheat |
+| guard | :mc-bow: a bow, :mc-arrow: arrows | 2 bows, 64 arrows |
 | fisher | :mc-fishing_rod: a fishing rod, optionally :mc-oak_boat: a boat | 2 rods, 1 boat |
 | butcher | :mc-iron_sword: a sword or an axe, optionally :mc-carrot: feed and :mc-charcoal: coal | 2 weapons, 16 feed of each kind, 16 coal |
 | pit digger | :mc-iron_shovel: a shovel, :mc-iron_pickaxe: a pickaxe, :mc-ladder: ladders, optionally :mc-torch: torches | 2 of each tool, 64 ladders, 16 torches |
@@ -173,7 +174,7 @@ vanilla mobs picking up items); right-clicking always works.
   64 emeralds pay for 64 work days. Without an emerald it does not work. It waits next
   to its workstation ("Waiting for wages") and checks again every few seconds, so you
   can pay it late.
-- **Tools:** the lumberjack needs an axe, the farmer a hoe, the shepherd shears, the butcher a sword or an axe, the fisher a fishing rod, the pit digger a shovel, a
+- **Tools:** the lumberjack needs an axe, the farmer a hoe, the shepherd shears, the butcher a sword or an axe, the fisher a fishing rod, the guard a bow and arrows, the pit digger a shovel, a
   pickaxe and ladders. The sawyer, stone sawyer, carpenter, smith, kiln operator, shop
   assistant and carrier only need emeralds.
 - Workers never hand in their emeralds or their tool to the output chests.

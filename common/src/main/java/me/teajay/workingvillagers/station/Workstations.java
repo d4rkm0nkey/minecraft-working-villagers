@@ -186,6 +186,8 @@ public class Workstations extends SavedData {
 	/** Loom: how many sheep the shepherd keeps around it unless set otherwise, and at most. */
 	public static final int DEFAULT_HERD = 8;
 	public static final int MAX_HERD = 32;
+	public static final int MIN_GUARD_RADIUS = 8;
+	public static final int MAX_GUARD_RADIUS = 32;
 
 	public static final class Station {
 		private static final Codec<Station> CODEC = RecordCodecBuilder.create(i -> i.group(
@@ -351,6 +353,18 @@ public class Workstations extends SavedData {
 				this.herd = clamped;
 				this.setDirty();
 			}
+		}
+
+		/**
+		 * Target: how far around it the guard shoots, 8 to 32 blocks. Kept in the herd field
+		 * (half the radius; the target has no herd), so the default herd of 8 is a radius of 16.
+		 */
+		public int guardRadius() {
+			return Math.clamp(this.herd * 2, MIN_GUARD_RADIUS, MAX_GUARD_RADIUS);
+		}
+
+		public void setGuardRadius(int radius) {
+			this.setHerd(Math.clamp(radius, MIN_GUARD_RADIUS, MAX_GUARD_RADIUS) / 2);
 		}
 
 		/** Barrel: whether the fisher rows out in a boat when there is open water nearby. */

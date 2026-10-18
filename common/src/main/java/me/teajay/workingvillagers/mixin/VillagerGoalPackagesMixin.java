@@ -15,6 +15,7 @@ import me.teajay.workingvillagers.job.DigTunnel;
 import me.teajay.workingvillagers.job.FarmFields;
 import me.teajay.workingvillagers.job.FletchArrows;
 import me.teajay.workingvillagers.job.GoFishing;
+import me.teajay.workingvillagers.job.GuardPost;
 import me.teajay.workingvillagers.job.TendAnimals;
 import me.teajay.workingvillagers.job.TendSheep;
 import me.teajay.workingvillagers.job.FindWorkplace;
@@ -85,6 +86,8 @@ public abstract class VillagerGoalPackagesMixin {
 			work = new GoFishing();
 		} else if (profession.is(WorkingVillagers.FLETCHER_PROFESSION)) {
 			work = new FletchArrows();
+		} else if (profession.is(WorkingVillagers.GUARD_PROFESSION)) {
+			work = new GuardPost();
 		} else if (profession.is(WorkingVillagers.KILN_OPERATOR_PROFESSION)) {
 			work = new SmeltAtFurnace(SmeltAtFurnace.Kind.KILN);
 		} else if (profession.is(WorkingVillagers.PIT_DIGGER_PROFESSION)) {

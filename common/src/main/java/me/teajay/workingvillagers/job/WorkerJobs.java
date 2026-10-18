@@ -31,7 +31,7 @@ import org.jspecify.annotations.Nullable;
  * sawyer, stonecutter: stone sawyer, carpenter's bench: carpenter, composter: farmer, blast
  * furnace: smith, pit stake: pit digger, kiln: kiln operator, trading counter: shop assistant,
  * mining bench: miner, loom: shepherd, smoker: butcher, barrel: fisher, fletching table:
- * fletcher). A hired villager without a job looks for a free one itself (see
+ * fletcher, target: guard). A hired villager without a job looks for a free one itself (see
  * {@link FindWorkplace}); the player can also give it one in the station menu, and take it
  * away again there. Hired villagers do not take any vanilla job.
  *
@@ -54,6 +54,7 @@ public final class WorkerJobs {
 		Map.entry(PoiTypes.BUTCHER, WorkingVillagers.BUTCHER_PROFESSION),
 		Map.entry(PoiTypes.FISHERMAN, WorkingVillagers.FISHER_PROFESSION),
 		Map.entry(PoiTypes.FLETCHER, WorkingVillagers.FLETCHER_PROFESSION),
+		Map.entry(WorkingVillagers.GUARD_POI, WorkingVillagers.GUARD_PROFESSION),
 		Map.entry(WorkingVillagers.PIT_DIGGER_POI, WorkingVillagers.PIT_DIGGER_PROFESSION),
 		Map.entry(WorkingVillagers.KILN_OPERATOR_POI, WorkingVillagers.KILN_OPERATOR_PROFESSION),
 		Map.entry(WorkingVillagers.SHOP_ASSISTANT_POI, WorkingVillagers.SHOP_ASSISTANT_PROFESSION),

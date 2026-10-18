@@ -292,6 +292,21 @@ it only starts a new pair while the lambs to come still fit. It brings the wool 
 nearest chest once there is nothing left to do. The menu shows the wool sheared today and
 the sheep around the loom.
 
+## Guard
+
+A hired villager at a vanilla **target** becomes a **guard** (the target becomes a point of
+interest of this mod; no vanilla villager takes it). Right-click the target with an empty
+hand to open the overview. Guards have their own schedule: they **work at night** (from dusk
+to the early morning), sleep in the morning and have free time in the afternoon, and they do
+not panic. At night the guard stands at its target (on top of it if there is room) and
+shoots every monster (`Enemy`, not neutral mobs) it can see within its radius (tab
+*Settings*, 8 to 32 blocks, default 16) and at most 24 blocks away (`guard.range`), like a
+skeleton, every 1.5 seconds (`guard.secondsPerShot`). Every shot uses an arrow and a use of
+the bow; Infinity does not help. Its arrows hit only monsters. In the early morning it picks
+up its arrows that missed and what the monsters it killed dropped, and brings the loot to
+its output chest. It carries up to 64 arrows (`guard.keepArrows`) and fetches more from its
+input chests or a village chest. The menu shows the monsters of last night.
+
 ## Fletcher
 
 A hired villager at a vanilla **fletching table** becomes a **fletcher** (ordinary villagers
@@ -515,6 +530,8 @@ emeralds, a station put where another kind stood starts fresh, the lumberjack fe
 sawyer only cuts allowed wood, the stone sawyer cuts bricks, the carpenter stops at its
 stock, the carrier empties its source, the farmer harvests and replants (also a raised
 bed), the shepherd shears sheep over the fence of a pen and breeds a lamb with wheat, the
+guard shoots a zombie at night without hitting the cow next to it and picks up its own
+arrows in the morning, the
 fletcher makes 24 arrows from gravel and 36 from an iron ingot and stops at its stock, the
 fisher fishes at a pond and rows out on a lake with its boat and takes it back, uses up a
 plain rod but gives back an enchanted one, the

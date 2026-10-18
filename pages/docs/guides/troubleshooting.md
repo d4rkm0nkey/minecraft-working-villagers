@@ -29,6 +29,9 @@ the status does not help, go through this list.
 | *Waiting for the crops to grow* | No ripe crops and no empty farmland within 8 blocks of the composter. |
 | *Waiting: no seeds for the empty farmland (give them some)* | Right-click the farmer with seeds (or carrots, potatoes). |
 | *Waiting: needs a hoe (give them one)* | Right-click the farmer with a hoe. |
+| *Going to bed* (a guard in the morning) | Guards work at night and sleep in the morning. |
+| *Waiting: no arrows (give them some)* | Give the guard arrows, or put arrows into its input chest or a village chest. |
+| *Waiting: needs a bow (give them one)* | Give the guard a bow. |
 | *Waiting: no order* | Pick a product at the fletching table (right-click it with an empty hand, tab **Order**). |
 | *Waiting for Feather* (or another material) | The fletcher's input chests lack it. Arrows need a head (flint, gravel, copper or iron), a stick and a feather. |
 | *Waiting: no water near the barrel* | No water (at least a small pond) within 16 blocks of the barrel, or no bank next to it to stand on. |

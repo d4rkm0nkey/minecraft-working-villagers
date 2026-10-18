@@ -268,6 +268,10 @@ public class MenuScreenshots implements FabricClientGameTest {
 				chest(level, chestPos(i, true), new ItemStack(Items.IRON_INGOT, 8));
 				station.setRole(chestPos(i, true), ChestRole.INPUT);
 			}
+			if (type == StationType.FLETCHING_TABLE) {
+				station.setOrder(Items.ARROW);
+				station.setStock(64);
+			}
 			if (type == StationType.WOODCUTTER) {
 				station.setShape("planks");
 				station.setWood("oak", true);
@@ -283,7 +287,7 @@ public class MenuScreenshots implements FabricClientGameTest {
 			give(player, villager, worn, new ItemStack(Items.IRON_HOE), new ItemStack(Items.IRON_SHOVEL), new ItemStack(Items.IRON_PICKAXE),
 				new ItemStack(Items.OAK_SAPLING, 5), new ItemStack(Items.WHEAT_SEEDS, 12), new ItemStack(Items.LADDER, 30), new ItemStack(Items.TORCH, 3),
 				new ItemStack(Items.SHEARS), new ItemStack(Items.WHEAT, 10), new ItemStack(Items.IRON_SWORD), new ItemStack(Items.CARROT, 8),
-				new ItemStack(Items.COAL, 5), new ItemStack(Items.FISHING_ROD));
+				new ItemStack(Items.COAL, 5), new ItemStack(Items.FISHING_ROD), new ItemStack(Items.BOW), new ItemStack(Items.ARROW, 48));
 		}
 		level.setBlockAndUpdate(stationPos(STATIONS.size() + 1), Blocks.STONECUTTER.defaultBlockState());
 		// A fisher with a boat at a lake

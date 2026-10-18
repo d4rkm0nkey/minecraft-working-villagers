@@ -85,6 +85,13 @@ public final class Config {
 	public static final IntOption KEEP_WHEAT = intOption("shepherd", "keepWheat", 16, 2, 64,
 		"How much wheat the shepherd keeps for breeding its sheep.");
 
+	public static final IntOption KEEP_ARROWS = intOption("guard", "keepArrows", 64, 8, 256,
+		"How many arrows a guard carries.");
+	public static final DoubleOption SECONDS_PER_SHOT = doubleOption("guard", "secondsPerShot", 1.5, 0.25, 10.0,
+		"How long a guard needs to draw the bow again, like a skeleton.");
+	public static final IntOption GUARD_RANGE = intOption("guard", "range", 24, 8, 48,
+		"How far a guard shoots.");
+
 	public static final IntOption WATER_RADIUS = intOption("fisher", "waterRadius", 16, 4, 32,
 		"How far from the barrel (in blocks, sideways) the fisher looks for water to fish from the shore.");
 	public static final IntOption SEA_RADIUS = intOption("fisher", "seaRadius", 32, 8, 64,

@@ -38,7 +38,7 @@ public class ServerPlayerGameModeMixin {
 		}
 		if (hand == InteractionHand.MAIN_HAND && stack.isEmpty() && !player.isSecondaryUseActive()) {
 			StationType type = StationType.of(level.getBlockState(hit.getBlockPos()));
-			if (type == StationType.FLETCHING_TABLE) {
+			if (type == StationType.FLETCHING_TABLE || type == StationType.TARGET) {
 				player.openMenu(StationMenu.provider(type, level, hit.getBlockPos()));
 				cir.setReturnValue(InteractionResult.SUCCESS_SERVER);
 			}

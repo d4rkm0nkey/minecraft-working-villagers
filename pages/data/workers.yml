@@ -79,6 +79,19 @@ farmer:
     Makes: ":mc-wheat: Wheat, :mc-carrot: carrots, :mc-potato: potatoes, :mc-beetroot: beetroots"
     Range: 8 blocks
 
+guard:
+  name: Guard
+  page: workers/guard.md
+  head: guard
+  workstation: target
+  summary: Shoots the monsters around its target at night and picks up its arrows in the morning.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-target: Target"
+    Needs: ":mc-bow: A bow, :mc-arrow: arrows"
+    Makes: "Safety, and the loot of the monsters"
+    Range: 8 to 32 blocks
+
 fletcher:
   name: Fletcher
   page: workers/fletcher.md

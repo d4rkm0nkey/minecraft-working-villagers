@@ -446,6 +446,42 @@ def fletcher():
     return image
 
 
+def guard():
+    """Villager profession overlay: a chain mail shirt (grey rings) under a blue tabard with a
+    white stripe, a leather belt, dark trousers and an iron helmet with a nose guard."""
+    image = blank(64)
+    p = image.load()
+    chain, chain_dark, chain_light = (120, 125, 130, 255), (85, 88, 95, 255), (160, 165, 170, 255)
+    blue, blue_dark, white = (45, 70, 140, 255), (32, 52, 110, 255), (225, 225, 220, 255)
+    leather, buckle, trousers = (95, 62, 35, 255), (200, 170, 80, 255), (55, 55, 65, 255)
+    iron, iron_dark, iron_light = (165, 168, 172, 255), (115, 118, 122, 255), (205, 208, 210, 255)
+
+    def fill(x0, y0, x1, y1, color):
+        for y in range(y0, y1):
+            for x in range(x0, x1):
+                p[x, y] = color(x, y)
+
+    rings = lambda x, y: chain_dark if (x + y) % 2 == 0 else chain_light if (x * 3 + y) % 7 == 0 else chain
+    tabard = lambda x, y: white if x in (25, 26, 33, 34) else blue_dark if y % 5 == 4 else blue
+    fill(16, 20, 44, 38, rings)  # body: chain mail
+    fill(22, 22, 30, 38, tabard)  # tabard at the front
+    fill(30, 22, 38, 38, tabard)  # and at the back
+    fill(44, 22, 60, 34, rings)  # crossed arms
+    fill(40, 38, 64, 46, rings)  # crossed arms, middle part
+    fill(6, 38, 14, 44, rings)  # robe top
+    fill(0, 44, 28, 56, lambda x, y: tabard(x + 22 if x < 14 else x + 16, y) if x % 14 in range(3, 11) else rings(x, y))  # robe
+    fill(0, 52, 28, 53, lambda x, y: leather)  # belt
+    p[9, 52] = p[10, 52] = buckle
+    fill(0, 56, 28, 64, lambda x, y: trousers)  # robe, lower part
+    fill(0, 22, 16, 38, lambda x, y: chain_dark if y in (28, 37) else trousers)  # legs
+    helmet = lambda x, y: iron_light if (x + y) % 9 == 0 else iron_dark if y == 10 else iron
+    fill(40, 0, 48, 8, helmet)  # helmet top
+    fill(32, 8, 64, 11, helmet)  # helmet sides
+    for y in range(8, 12):
+        p[43, y] = p[44, y] = iron_dark  # nose guard at the front
+    return image
+
+
 def kiln_operator():
     """Villager profession overlay: a brick red head scarf knotted at the back; a terracotta shirt with the sleeves rolled up, a grey leather waist
     apron with clay and ash stains, soot on the forearms, dark trousers and boots."""
@@ -919,6 +955,8 @@ def main():
         "entity/zombie_villager/profession/fisher.png": fisher(),
         "entity/villager/profession/fletcher.png": fletcher(),
         "entity/zombie_villager/profession/fletcher.png": fletcher(),
+        "entity/villager/profession/guard.png": guard(),
+        "entity/zombie_villager/profession/guard.png": guard(),
         "entity/zombie_villager/profession/shop_assistant.png": shop_assistant(),
     }
     for part, image in woodcutter(jar).items():

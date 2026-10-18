@@ -25,6 +25,7 @@ Jede Station hat eine Übersicht in Vanilla-Größe (176×166, wie eine Kiste) m
 | Station | Öffnen |
 | --- | --- |
 | Hackklotz, Grubenpflock, Handelstresen | Rechtsklick |
+| Bognertisch, Zielscheibe | Rechtsklick mit leerer Hand (sie haben in Vanilla kein Menü) |
 | Komposter | Rechtsklick mit leerer Hand |
 | Holzsäge, Steinsäge, Mühle, Hobelbank, Brennofen, Schmelzofen, Schmiedetisch, Webstuhl, Räucherofen, Fass | Rechtsklick öffnet das Menü des Blocks; über ihm stehen dieselben Reiter wie über der Übersicht |
 

@@ -77,6 +77,9 @@ public final class WorkingVillagers {
 	public static final ResourceKey<VillagerProfession> FARMER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("farmer"));
 	/** Works at the vanilla loom, the job site of the vanilla shepherd. */
 	public static final ResourceKey<VillagerProfession> SHEPHERD_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("shepherd"));
+	/** Works at the vanilla target, which no vanilla profession uses: guards the village at night. */
+	public static final ResourceKey<PoiType> GUARD_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("guard"));
+	public static final ResourceKey<VillagerProfession> GUARD_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("guard"));
 	/** Works at the vanilla fletching table, the job site of the vanilla fletcher. */
 	public static final ResourceKey<VillagerProfession> FLETCHER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("fletcher"));
 	/** Works at the vanilla barrel, the job site of the vanilla fisherman. */
@@ -121,6 +124,7 @@ public final class WorkingVillagers {
 	public static Supplier<MenuType<StationMenu>> SMOKER_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> BARREL_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> FLETCHING_TABLE_STATION_MENU;
+	public static Supplier<MenuType<StationMenu>> TARGET_STATION_MENU;
 	public static Supplier<MenuType<CutterMenu>> WOODCUTTER_MENU;
 	public static Supplier<RecipeType<WoodcuttingRecipe>> WOODCUTTING;
 	public static Supplier<RecipeSerializer<WoodcuttingRecipe>> WOODCUTTING_SERIALIZER;
@@ -205,6 +209,7 @@ public final class WorkingVillagers {
 		registerButcher(platform);
 		registerFisher(platform);
 		registerFletcher(platform);
+		registerGuard(platform);
 		registerPitDigger(platform);
 		registerKilnOperator(platform);
 		registerShopAssistant(platform);
@@ -364,6 +369,17 @@ public final class WorkingVillagers {
 	private static void registerShepherd(Platform platform) {
 		LOOM_STATION_MENU = platform.registerMenu("loom_station", (containerId, inventory) -> new StationMenu(StationType.LOOM, containerId, inventory));
 		registerProfession(platform, "shepherd", PoiTypes.SHEPHERD, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_SHEPHERD, VillagerProfession.SHEPHERD);
+	}
+
+	/**
+	 * The guard works at the vanilla target, which becomes a point of interest of this mod
+	 * (no vanilla villager takes it): it shoots monsters at night. A right-click with an empty
+	 * hand opens the overview.
+	 */
+	private static void registerGuard(Platform platform) {
+		TARGET_STATION_MENU = platform.registerMenu("target_station", (containerId, inventory) -> new StationMenu(StationType.TARGET, containerId, inventory));
+		platform.registerPoi("guard", () -> Blocks.TARGET, 1, 1);
+		registerProfession(platform, "guard", GUARD_POI, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_WEAPONSMITH);
 	}
 
 	/**

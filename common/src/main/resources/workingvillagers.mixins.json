@@ -4,6 +4,7 @@
   "package": "me.teajay.workingvillagers.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "AbstractArrowMixin",
     "AbstractVillagerAccessor",
     "AbstractFurnaceMenuAccessor",
     "BaseContainerBlockEntityAccessor",
@@ -20,8 +21,10 @@
     "SmithingMenuMixin",
     "SmokerMenuMixin",
     "StonecutterBlockMixin",
+    "UpdateActivityFromScheduleMixin",
     "VillagerGoalPackagesMixin",
-    "VillagerMixin"
+    "VillagerMixin",
+    "VillagerPanicTriggerMixin"
   ],
   "client": [
     "client.BlastFurnaceScreenMixin",

@@ -128,6 +128,8 @@ public final class WorkerTests {
 		registry.accept("fletcher_makes_arrows_from_gravel", WorkerTests::fletcherMakesArrowsFromGravel);
 		registry.accept("fletcher_makes_arrows_from_nuggets", WorkerTests::fletcherMakesArrowsFromNuggets);
 		registry.accept("fletcher_keeps_stock", WorkerTests::fletcherKeepsStock);
+		registry.accept("guard_shoots_zombie", WorkerTests::guardShootsZombie);
+		registry.accept("guard_collects_arrows", WorkerTests::guardCollectsArrows);
 		registry.accept("fisher_gives_back_enchanted_rod", WorkerTests::fisherGivesBackEnchantedRod);
 		registry.accept("butcher_breeds_pigs", WorkerTests::butcherBreedsPigs);
 		registry.accept("butcher_smokes_meat", WorkerTests::butcherSmokesMeat);
@@ -348,6 +350,50 @@ public final class WorkerTests {
 			int arrows = TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.ARROW));
 			helper.assertTrue(arrows == 8, "Arrows in the output chest: " + arrows + ", " + TestWorld.describe(worker));
 			helper.succeed();
+		});
+	}
+
+	/**
+	 * At night a guard at its target shoots a zombie dead with its arrows. A cow stands in the
+	 * way: the guard's arrows fly through it.
+	 */
+	private static void guardShootsZombie(GameTestHelper helper) {
+		BlockPos target = STATION.below();
+		helper.setBlock(target, Blocks.TARGET);
+		Villager guard = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, guard, target);
+		TestWorld.give(helper, guard, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.BOW), new ItemStack(Items.ARROW, 32));
+		net.minecraft.world.entity.monster.zombie.Zombie zombie = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(18, 0, 18));
+		net.minecraft.world.entity.animal.cow.Cow cow = helper.spawn(EntityTypes.COW, new BlockPos(13, 0, 13));
+		cow.setNoAi(true);
+		helper.succeedWhen(() -> {
+			helper.assertTrue(!zombie.isAlive(), "The zombie is still alive: " + TestWorld.describe(guard));
+			helper.assertTrue(zombie.getLastHurtByMob() == guard, "Not the guard killed the zombie");
+			helper.assertTrue(guard.getInventory().countItem(Items.ARROW) < 32, "The guard used no arrows");
+			helper.assertTrue(cow.getHealth() == cow.getMaxHealth(), "The guard hit the cow");
+		});
+	}
+
+	/** In the morning a guard picks up its arrows that missed, but not somebody else's. */
+	private static void guardCollectsArrows(GameTestHelper helper) {
+		BlockPos target = STATION.below();
+		helper.setBlock(target, Blocks.TARGET);
+		Villager guard = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, guard, target);
+		TestWorld.give(helper, guard, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.BOW), new ItemStack(Items.ARROW, 10));
+		List<net.minecraft.world.entity.projectile.arrow.Arrow> missed = new java.util.ArrayList<>();
+		for (BlockPos pos : List.of(new BlockPos(14, 0, 14), new BlockPos(4, 0, 15), new BlockPos(15, 0, 3))) {
+			net.minecraft.world.entity.projectile.arrow.Arrow arrow = helper.spawn(EntityTypes.ARROW, pos);
+			arrow.setOwner(guard);
+			arrow.pickup = net.minecraft.world.entity.projectile.arrow.AbstractArrow.Pickup.ALLOWED;
+			missed.add(arrow);
+		}
+		net.minecraft.world.entity.projectile.arrow.Arrow other = helper.spawn(EntityTypes.ARROW, new BlockPos(12, 0, 12));
+		other.pickup = net.minecraft.world.entity.projectile.arrow.AbstractArrow.Pickup.ALLOWED;
+		helper.succeedWhen(() -> {
+			helper.assertTrue(missed.stream().noneMatch(arrow -> arrow.isAlive()), "Arrows left: " + TestWorld.describe(guard));
+			helper.assertTrue(guard.getInventory().countItem(Items.ARROW) == 13, "Arrows carried: " + guard.getInventory().countItem(Items.ARROW));
+			helper.assertTrue(other.isAlive(), "The guard picked up somebody else's arrow");
 		});
 	}
 
