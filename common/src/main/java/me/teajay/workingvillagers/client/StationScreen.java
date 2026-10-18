@@ -372,7 +372,8 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			int barX = buttonX - 4 - BAR_WIDTH;
 			int roleX = barX - 4 - ROLE_WIDTH;
 			int textWidth = (processing ? roleX : barX) - (left + 20) - 3;
-			graphics.text(this.font, this.font.plainSubstrByWidth(GuiPanels.coordinates(chest.pos()), textWidth), left + 20, y + 5, GuiPanels.TEXT_COLOR, false);
+			GuiPanels.scrollingText(graphics, this.font, chest.name().getString(), left + 20, y + 5, textWidth,
+				chest.named() ? GuiPanels.TEXT_COLOR : GuiPanels.MUTED_COLOR);
 
 			List<Component> rowTooltip = this.chestTooltip(chest, state);
 			this.hotspots.add(new Hotspot(left, y, roleX - left, ROW_HEIGHT - 1, -1, rowTooltip));
@@ -459,12 +460,17 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 
 	private List<Component> chestTooltip(StationMenu.Chest chest, BlockState state) {
 		List<Component> lines = new ArrayList<>();
-		lines.add(state.isAir() ? Component.translatable("gui.workingvillagers.unknown_block") : state.getBlock().getName());
-		lines.add(Component.literal(GuiPanels.coordinates(chest.pos())).withStyle(ChatFormatting.GRAY));
+		lines.add(chest.name());
+		if (chest.named() && !state.isAir()) {
+			lines.add(state.getBlock().getName().copy().withStyle(ChatFormatting.GRAY));
+		}
 		lines.add(Component.translatable("gui.workingvillagers.chopping_block.used", chest.used(), chest.size()).withStyle(ChatFormatting.GRAY));
 		this.menu.getStationPos().ifPresent(station -> lines.add(
 			Component.translatable("gui.workingvillagers.distance", Math.round(Math.sqrt(station.distSqr(chest.pos())))).withStyle(ChatFormatting.GRAY)
 		));
+		if (!chest.named()) {
+			lines.add(Component.translatable("gui.workingvillagers.container.unnamed").withStyle(ChatFormatting.DARK_GRAY));
+		}
 		return lines;
 	}
 
@@ -491,35 +497,34 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		Component worker = this.menu.getWorker()
 			.map(name -> (Component) Component.translatable("gui.workingvillagers.worker", name))
 			.orElse(Component.translatable("gui.workingvillagers.worker.none"));
-		graphics.text(this.font, this.font.plainSubstrByWidth(worker.getString(), COLUMN_WIDTH - this.workerButtonWidth() - 4), 8, 18, GuiPanels.TEXT_COLOR, false);
-		this.menu.getStatus().ifPresent(status -> graphics.text(this.font,
-			this.font.plainSubstrByWidth(Component.translatable("gui.workingvillagers.status", status).getString(), COLUMN_WIDTH), 8, STATUS_Y, GuiPanels.STATUS_COLOR, false));
-		this.secondLine().ifPresent(line -> graphics.text(this.font,
-			this.font.plainSubstrByWidth(line.getString(), COLUMN_WIDTH), 8, SECOND_LINE_Y, line.getStyle().getColor() != null ? 0xFF000000 | line.getStyle().getColor().getValue() : GuiPanels.MUTED_COLOR, false));
+		GuiPanels.scrollingText(graphics, this.font, worker.getString(), 8, 18, COLUMN_WIDTH - this.workerButtonWidth() - 4, GuiPanels.TEXT_COLOR);
+		this.menu.getStatus().ifPresent(status -> GuiPanels.scrollingText(graphics, this.font,
+			Component.translatable("gui.workingvillagers.status", status).getString(), 8, STATUS_Y, COLUMN_WIDTH, GuiPanels.STATUS_COLOR));
+		this.secondLine().ifPresent(line -> GuiPanels.scrollingText(graphics, this.font, line.getString(), 8, SECOND_LINE_Y, COLUMN_WIDTH,
+			line.getStyle().getColor() != null ? 0xFF000000 | line.getStyle().getColor().getValue() : GuiPanels.MUTED_COLOR));
 
 		this.menu.getSupplies().ifPresent(info -> {
 			int x = 7 + SuppliesRow.slotsWidth(info) + 4;
-			graphics.text(this.font, this.font.plainSubstrByWidth(SuppliesRow.line(info).getString(), COLUMN_WIDTH - x + 7),
-				x, SUPPLIES_Y + 5, SuppliesRow.color(info), false);
+			GuiPanels.scrollingText(graphics, this.font, SuppliesRow.line(info).getString(), x, SUPPLIES_Y + 5, COLUMN_WIDTH - x + 7, SuppliesRow.color(info));
 		});
 
 		if (this.isStonecutter()) {
-			graphics.text(this.font, this.font.plainSubstrByWidth(this.stoneLabel().getString(), COLUMN_WIDTH - 40), 8, SHAPES_Y - 10, GuiPanels.TEXT_COLOR, false);
+			GuiPanels.scrollingText(graphics, this.font, this.stoneLabel().getString(), 8, SHAPES_Y - 10, COLUMN_WIDTH - 40, GuiPanels.TEXT_COLOR);
 		} else if (this.orderColumn) {
 			graphics.text(this.font, Component.translatable("gui.workingvillagers.station.shape"), 8, SHAPES_Y - 10, GuiPanels.TEXT_COLOR, false);
 			graphics.text(this.font, Component.translatable(this.isBench() ? "gui.workingvillagers.station.woods.bench" : "gui.workingvillagers.station.woods"),
 				8, this.woodsLabelY, GuiPanels.TEXT_COLOR, false);
 		}
 		if (this.menu.type() == StationType.CHOPPING_BLOCK) {
-			graphics.text(this.font, this.font.plainSubstrByWidth(Component.translatable("gui.workingvillagers.chopping_block.strip").getString(),
-				COLUMN_WIDTH - this.stripButtonWidth() - 4), 8, STRIP_Y, GuiPanels.TEXT_COLOR, false);
+			GuiPanels.scrollingText(graphics, this.font, Component.translatable("gui.workingvillagers.chopping_block.strip").getString(), 8, STRIP_Y,
+				COLUMN_WIDTH - this.stripButtonWidth() - 4, GuiPanels.TEXT_COLOR);
 		}
 		if (this.isBench()) {
 			int stock = this.menu.getStock();
 			Component text = stock == 0
 				? Component.translatable("gui.workingvillagers.station.stock.none")
 				: Component.translatable("gui.workingvillagers.station.stock", stock);
-			graphics.text(this.font, this.font.plainSubstrByWidth(text.getString(), COLUMN_WIDTH - 2 * BUTTON_SIZE - 6), 8, this.stockY, GuiPanels.TEXT_COLOR, false);
+			GuiPanels.scrollingText(graphics, this.font, text.getString(), 8, this.stockY, COLUMN_WIDTH - 2 * BUTTON_SIZE - 6, GuiPanels.TEXT_COLOR);
 		}
 		Component chests = Component.translatable("gui.workingvillagers.station.chests", this.menu.getChests().size(), this.menu.getMaxChests());
 		graphics.text(this.font, chests, this.chestsX + 1, this.chestsY - 11, GuiPanels.TEXT_COLOR, false);

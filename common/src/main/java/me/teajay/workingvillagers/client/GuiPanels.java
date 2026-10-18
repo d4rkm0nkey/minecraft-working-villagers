@@ -3,8 +3,9 @@ package me.teajay.workingvillagers.client;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
+import net.minecraft.util.Util;
 
 /**
  * Drawing helpers for the screens without a texture of their own: the gray vanilla panel,
@@ -51,11 +52,35 @@ public final class GuiPanels {
 		graphics.centeredText(font, label, x + width / 2 + 1, y + (height - 8) / 2, hovered ? 0xFFFFFFA0 : 0xFFFFFFFF);
 	}
 
-	public static boolean isOver(double mouseX, double mouseY, int x, int y, int width, int height) {
-		return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height;
+	/**
+	 * A line of text in a space of the given width. If it is too long, it scrolls slowly back
+	 * and forth inside that space, like the labels of the vanilla buttons, instead of being cut
+	 * off.
+	 */
+	public static void scrollingText(GuiGraphicsExtractor graphics, Font font, String text, int x, int y, int width, int color) {
+		scrollingText(graphics, font, text, x, y, width, color, false);
 	}
 
-	public static String coordinates(BlockPos pos) {
-		return pos.getX() + " " + pos.getY() + " " + pos.getZ();
+	/** Like {@link #scrollingText(GuiGraphicsExtractor, Font, String, int, int, int, int)}; {@code right}: a text that fits is aligned right. */
+	public static void scrollingText(GuiGraphicsExtractor graphics, Font font, String text, int x, int y, int width, int color, boolean right) {
+		int textWidth = font.width(text);
+		if (textWidth <= width) {
+			graphics.text(font, text, right ? x + width - textWidth : x, y, color, false);
+			return;
+		}
+		if (width <= 0) {
+			return;
+		}
+		int overflow = textWidth - width;
+		double seconds = Util.getMillis() / 1000.0;
+		double period = Math.max(overflow * 0.5, 3.0);
+		double along = Math.sin(Math.PI / 2 * Math.cos(Math.PI * 2 * seconds / period)) / 2.0 + 0.5;
+		graphics.enableScissor(x, y - 1, x + width, y + font.lineHeight);
+		graphics.text(font, text, x - (int) Math.round(Mth.lerp(along, 0.0, overflow)), y, color, false);
+		graphics.disableScissor();
+	}
+
+	public static boolean isOver(double mouseX, double mouseY, int x, int y, int width, int height) {
+		return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height;
 	}
 }

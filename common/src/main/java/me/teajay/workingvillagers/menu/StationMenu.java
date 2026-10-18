@@ -16,6 +16,7 @@ import me.teajay.workingvillagers.job.ChopTrees;
 import me.teajay.workingvillagers.job.HiredVillager;
 import me.teajay.workingvillagers.job.WorkerJobs;
 import me.teajay.workingvillagers.job.WorkerStatus;
+import me.teajay.workingvillagers.station.ContainerNames;
 import me.teajay.workingvillagers.station.StationPicks;
 import me.teajay.workingvillagers.station.StationType;
 import me.teajay.workingvillagers.station.Workstations;
@@ -105,6 +106,8 @@ public class StationMenu extends AbstractContainerMenu {
 	/** Whether the worker is a hired villager (not a mason), so it can be taken away. */
 	private static final String TAG_HIRED_WORKER = "HiredWorker";
 	private static final String TAG_CHESTS = "Chests";
+	private static final String TAG_NAME = "Name";
+	private static final String TAG_NAMED = "Named";
 	private static final String TAG_POS = "Pos";
 	private static final String TAG_USED = "Used";
 	private static final String TAG_SIZE = "Size";
@@ -202,6 +205,8 @@ public class StationMenu extends AbstractContainerMenu {
 				Container container = Workstations.getContainer(serverLevel, chest);
 				CompoundTag entry = new CompoundTag();
 				entry.store(TAG_POS, BlockPos.CODEC, chest);
+				entry.store(TAG_NAME, ComponentSerialization.CODEC, ContainerNames.name(serverLevel, chest));
+				entry.putBoolean(TAG_NAMED, ContainerNames.customName(serverLevel, chest) != null);
 				entry.putInt(TAG_USED, container == null ? 0 : usedSlots(container));
 				entry.putInt(TAG_SIZE, container == null ? 0 : container.getContainerSize());
 				entry.putBoolean(TAG_INPUT, station.role(chest) == ChestRole.INPUT);
@@ -352,7 +357,8 @@ public class StationMenu extends AbstractContainerMenu {
 		List<Chest> chests = new ArrayList<>();
 		for (CompoundTag entry : this.info.info().getListOrEmpty(TAG_CHESTS).compoundStream().toList()) {
 			entry.read(TAG_POS, BlockPos.CODEC).ifPresent(pos -> chests.add(
-				new Chest(pos, entry.getIntOr(TAG_USED, 0), entry.getIntOr(TAG_SIZE, 0), entry.getBooleanOr(TAG_INPUT, false))
+				new Chest(pos, entry.read(TAG_NAME, ComponentSerialization.CODEC).orElse(Component.empty()), entry.getBooleanOr(TAG_NAMED, false),
+					entry.getIntOr(TAG_USED, 0), entry.getIntOr(TAG_SIZE, 0), entry.getBooleanOr(TAG_INPUT, false))
 			));
 		}
 		return chests;
@@ -571,7 +577,10 @@ public class StationMenu extends AbstractContainerMenu {
 		return stillValid(this.access, player, this.type.block());
 	}
 
-	/** A linked chest, with how many of its slots are used. */
-	public record Chest(BlockPos pos, int used, int size, boolean input) {
+	/**
+	 * A linked chest: its name (the block's name if the player gave it none) and how many of
+	 * its slots are used.
+	 */
+	public record Chest(BlockPos pos, Component name, boolean named, int used, int size, boolean input) {
 	}
 }

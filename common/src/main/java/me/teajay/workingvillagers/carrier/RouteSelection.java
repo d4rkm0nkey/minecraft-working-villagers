@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.UUID;
 import me.teajay.workingvillagers.item.WickerBasketItem;
 import me.teajay.workingvillagers.job.HiredVillager;
+import me.teajay.workingvillagers.station.ContainerNames;
 import me.teajay.workingvillagers.station.StationPicks;
 import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.core.BlockPos;
@@ -79,7 +80,7 @@ public final class RouteSelection {
 		if (pending.source() == null) {
 			PENDING.put(player.getUUID(), pending.withSource(pos));
 			mark(level, pos);
-			player.sendOverlayMessage(Component.translatable("message.workingvillagers.route.source_selected", pos.toShortString()));
+			player.sendOverlayMessage(Component.translatable("message.workingvillagers.route.source_selected", ContainerNames.name(level, pos)));
 			return true;
 		}
 		PENDING.remove(player.getUUID());
@@ -94,7 +95,7 @@ public final class RouteSelection {
 			return true;
 		}
 		Route route = new Route(pending.source(), pos.immutable());
-		Component problem = Route.checkNew(holder.routes(), route);
+		Component problem = Route.checkNew(level, holder.routes(), route);
 		if (problem != null) {
 			player.sendOverlayMessage(problem);
 			return true;
@@ -102,7 +103,7 @@ public final class RouteSelection {
 		holder.addRoute(route);
 		mark(level, pos);
 		int count = holder.routes().size();
-		player.sendOverlayMessage(Component.translatable("message.workingvillagers.route.added", route.describe(), count, Route.MAX_ROUTES));
+		player.sendOverlayMessage(Component.translatable("message.workingvillagers.route.added", route.describe(level), count, Route.MAX_ROUTES));
 		return true;
 	}
 

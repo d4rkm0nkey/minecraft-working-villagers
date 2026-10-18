@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "AbstractFurnaceMenuAccessor",
+    "BaseContainerBlockEntityAccessor",
     "BlastFurnaceMenuMixin",
     "BrainAccessor",
     "ComposterBlockMixin",
@@ -17,6 +18,8 @@
   ],
   "client": [
     "client.BlastFurnaceScreenMixin",
+    "client.ContainerScreenMixin",
+    "client.ScreenAccessor",
     "client.VillagerRendererMixin"
   ],
   "injectors": {

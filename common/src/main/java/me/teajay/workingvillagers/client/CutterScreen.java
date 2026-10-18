@@ -106,8 +106,7 @@ public class CutterScreen extends AbstractContainerScreen<CutterMenu> {
 		Component worker = this.menu.getWorker()
 			.map(name -> (Component) Component.translatable("gui.workingvillagers.worker", name))
 			.orElse(Component.translatable("gui.workingvillagers.worker.none"));
-		String text = this.font.plainSubstrByWidth(worker.getString(), 100);
-		graphics.text(this.font, text, STATION_X - 4 - this.font.width(text), this.titleLabelY, 0xFF707070, false);
+		GuiPanels.scrollingText(graphics, this.font, worker.getString(), STATION_X - 4 - 100, this.titleLabelY, 100, 0xFF707070, true);
 	}
 
 	@Override

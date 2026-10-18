@@ -14,6 +14,7 @@ import me.teajay.workingvillagers.menu.CarpenterMenu;
 import me.teajay.workingvillagers.menu.CarrierMenu;
 import me.teajay.workingvillagers.menu.CutterMenu;
 import me.teajay.workingvillagers.menu.StationMenu;
+import me.teajay.workingvillagers.network.RenameContainerPayload;
 import me.teajay.workingvillagers.network.RenameRoutePayload;
 import me.teajay.workingvillagers.station.StationType;
 import me.teajay.workingvillagers.platform.Platform;
@@ -119,6 +120,7 @@ public final class WorkingVillagers {
 		registerFarmer(platform);
 		registerSmith(platform);
 		platform.registerServerbound(RenameRoutePayload.TYPE, RenameRoutePayload.CODEC, RenameRoutePayload::handle);
+		platform.registerServerbound(RenameContainerPayload.TYPE, RenameContainerPayload.CODEC, RenameContainerPayload::handle);
 	}
 
 	private static void registerCarrier(Platform platform) {

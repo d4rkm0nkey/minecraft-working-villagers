@@ -1,11 +1,13 @@
 package me.teajay.workingvillagers.menu;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.carrier.CarrierData;
 import me.teajay.workingvillagers.carrier.Route;
 import me.teajay.workingvillagers.carrier.RouteHolder;
+import me.teajay.workingvillagers.station.ContainerNames;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
@@ -34,6 +36,8 @@ public class CarrierMenu extends AbstractContainerMenu {
 	/** Button of a free route slot: closes the menu and lets the player pick the containers. */
 	public static final int NEW_ROUTE_BUTTON = 60;
 	private static final String TAG_ROUTES = "Routes";
+	/** The names of the containers of the routes: source and target of the first route, then of the second, ... */
+	private static final String TAG_NAMES = "Names";
 	private static final String TAG_ACTIVE = "Active";
 	private static final String TAG_CAN_EDIT = "CanEdit";
 	private static final String TAG_CAN_TAKE = "CanTake";
@@ -80,6 +84,12 @@ public class CarrierMenu extends AbstractContainerMenu {
 		}
 		CompoundTag tag = new CompoundTag();
 		tag.store(TAG_ROUTES, Route.LIST_CODEC, List.copyOf(this.holder.routes()));
+		List<Component> names = new ArrayList<>();
+		for (Route route : this.holder.routes()) {
+			names.add(ContainerNames.name(this.player.level(), route.source()));
+			names.add(ContainerNames.name(this.player.level(), route.target()));
+		}
+		tag.store(TAG_NAMES, ComponentSerialization.CODEC.listOf(), names);
 		tag.putInt(TAG_ACTIVE, this.holder.activeRoute());
 		tag.putBoolean(TAG_CAN_EDIT, this.holder.canEdit(this.player));
 		tag.putBoolean(TAG_CAN_TAKE, this.holder.canTakeFromBasket());
@@ -101,6 +111,13 @@ public class CarrierMenu extends AbstractContainerMenu {
 
 	public List<Route> getRoutes() {
 		return this.info.info().read(TAG_ROUTES, Route.LIST_CODEC).orElse(List.of());
+	}
+
+	/** The name of the source or the target container of a route. */
+	public Component getContainerName(int route, boolean target) {
+		List<Component> names = this.info.info().read(TAG_NAMES, ComponentSerialization.CODEC.listOf()).orElse(List.of());
+		int index = route * 2 + (target ? 1 : 0);
+		return index < names.size() ? names.get(index) : Component.empty();
 	}
 
 	/** The route the carrier carries items for right now, -1 if none. */

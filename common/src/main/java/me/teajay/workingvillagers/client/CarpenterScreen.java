@@ -131,8 +131,7 @@ public class CarpenterScreen extends AbstractContainerScreen<CarpenterMenu> {
 			.map(name -> (Component) Component.translatable("gui.workingvillagers.worker", name))
 			.orElse(Component.translatable("gui.workingvillagers.worker.none"));
 		int room = STATION_X - 4 - (this.titleLabelX + this.font.width(this.title) + 6);
-		String text = this.font.plainSubstrByWidth(worker.getString(), Math.max(0, room));
-		graphics.text(this.font, text, STATION_X - 4 - this.font.width(text), this.titleLabelY, GuiPanels.MUTED_COLOR, false);
+		GuiPanels.scrollingText(graphics, this.font, worker.getString(), STATION_X - 4 - room, this.titleLabelY, room, GuiPanels.MUTED_COLOR, true);
 	}
 
 	@Override

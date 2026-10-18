@@ -16,7 +16,6 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import net.minecraft.resources.Identifier;
@@ -24,7 +23,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -113,11 +111,11 @@ public class CarrierScreen extends AbstractContainerScreen<CarrierMenu> {
 			GuiPanels.inset(graphics, x, y, ROW_WIDTH, ROW_HEIGHT - 2, active ? 0xFFA9C99F : 0xFFB4B4B4);
 			int textWidth = (canEdit ? this.renameX() - 3 : x + ROW_WIDTH - 3) - (x + TEXT_X);
 			if (i != this.renaming) {
-				graphics.text(this.font, this.font.plainSubstrByWidth(route.title(i).getString(), textWidth), x + TEXT_X, y + 3, 0xFF202020, false);
+				GuiPanels.scrollingText(graphics, this.font, route.title(i).getString(), x + TEXT_X, y + 3, textWidth, 0xFF202020);
 			}
 			graphics.text(this.font, String.valueOf(i + 1), x + 5, y + 10, GuiPanels.MUTED_COLOR, false);
-			this.line(graphics, Component.translatable("gui.workingvillagers.carrier.from", GuiPanels.coordinates(route.source())), x + TEXT_X, y + 12, ROW_WIDTH - TEXT_X - 3);
-			this.line(graphics, Component.translatable("gui.workingvillagers.carrier.to", GuiPanels.coordinates(route.target())), x + TEXT_X, y + 20, ROW_WIDTH - TEXT_X - 3);
+			this.line(graphics, Component.translatable("gui.workingvillagers.carrier.from", this.menu.getContainerName(i, false)), x + TEXT_X, y + 12, ROW_WIDTH - TEXT_X - 3);
+			this.line(graphics, Component.translatable("gui.workingvillagers.carrier.to", this.menu.getContainerName(i, true)), x + TEXT_X, y + 20, ROW_WIDTH - TEXT_X - 3);
 			if (canEdit && i != this.renaming) {
 				this.smallButton(graphics, mouseX, mouseY, this.renameX(), y + 1, "✎");
 				this.smallButton(graphics, mouseX, mouseY, this.deleteX(), y + 1, "×");
@@ -143,10 +141,10 @@ public class CarrierScreen extends AbstractContainerScreen<CarrierMenu> {
 			SuppliesRow.extractSlots(graphics, this.font, info, this.rowX(), y);
 			int x = this.rowX() + SuppliesRow.slotsWidth(info) + 4;
 			int width = ROW_WIDTH - SuppliesRow.slotsWidth(info) - 4;
-			graphics.text(this.font, this.font.plainSubstrByWidth(SuppliesRow.line(info).getString(), width), x, y + 1, SuppliesRow.color(info), false);
+			GuiPanels.scrollingText(graphics, this.font, SuppliesRow.line(info).getString(), x, y + 1, width, SuppliesRow.color(info));
 			if (!canEdit) {
-				graphics.text(this.font, this.font.plainSubstrByWidth(Component.translatable("gui.workingvillagers.carrier.hint_not_yours").getString(), width),
-					x, y + 10, GuiPanels.MUTED_COLOR, false);
+				GuiPanels.scrollingText(graphics, this.font, Component.translatable("gui.workingvillagers.carrier.hint_not_yours").getString(), x, y + 10, width,
+					GuiPanels.MUTED_COLOR);
 			}
 			return;
 		}
@@ -171,7 +169,7 @@ public class CarrierScreen extends AbstractContainerScreen<CarrierMenu> {
 	}
 
 	private void line(GuiGraphicsExtractor graphics, Component text, int x, int y, int width) {
-		graphics.text(this.font, this.font.plainSubstrByWidth(text.getString(), width), x, y, GuiPanels.TEXT_COLOR, false);
+		GuiPanels.scrollingText(graphics, this.font, text.getString(), x, y, width, GuiPanels.TEXT_COLOR);
 	}
 
 	private Component shareLabel() {
@@ -191,11 +189,11 @@ public class CarrierScreen extends AbstractContainerScreen<CarrierMenu> {
 	@Override
 	protected void extractLabels(GuiGraphicsExtractor graphics, int xm, int ym) {
 		int titleWidth = this.imageWidth - 16 - (this.menu.canChangeSharing() ? this.shareWidth() + 4 : 0);
-		graphics.text(this.font, this.font.plainSubstrByWidth(this.title.getString(), titleWidth), this.titleLabelX, this.titleLabelY, GuiPanels.TEXT_COLOR, false);
+		GuiPanels.scrollingText(graphics, this.font, this.title.getString(), this.titleLabelX, this.titleLabelY, titleWidth, GuiPanels.TEXT_COLOR);
 		graphics.text(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, GuiPanels.TEXT_COLOR, false);
 		graphics.text(this.font, Component.translatable("gui.workingvillagers.carrier.basket"), 8, CarrierMenu.BASKET_Y + 4, GuiPanels.TEXT_COLOR, false);
-		this.menu.getStatus().ifPresent(status -> graphics.text(this.font,
-			this.font.plainSubstrByWidth(Component.translatable("gui.workingvillagers.status", status).getString(), ROW_WIDTH), 8, STATUS_Y, GuiPanels.STATUS_COLOR, false));
+		this.menu.getStatus().ifPresent(status -> GuiPanels.scrollingText(graphics, this.font,
+			Component.translatable("gui.workingvillagers.status", status).getString(), 8, STATUS_Y, ROW_WIDTH, GuiPanels.STATUS_COLOR));
 	}
 
 	@Override
@@ -232,9 +230,9 @@ public class CarrierScreen extends AbstractContainerScreen<CarrierMenu> {
 	private List<FormattedCharSequence> routeTooltip(Route route, int index) {
 		List<Component> lines = new ArrayList<>();
 		lines.add(route.title(index));
-		lines.add(Component.translatable("gui.workingvillagers.carrier.tooltip.from", this.blockName(route.source()), GuiPanels.coordinates(route.source()))
+		lines.add(Component.translatable("gui.workingvillagers.carrier.tooltip.from", this.menu.getContainerName(index, false))
 			.withStyle(ChatFormatting.GRAY));
-		lines.add(Component.translatable("gui.workingvillagers.carrier.tooltip.to", this.blockName(route.target()), GuiPanels.coordinates(route.target()))
+		lines.add(Component.translatable("gui.workingvillagers.carrier.tooltip.to", this.menu.getContainerName(index, true))
 			.withStyle(ChatFormatting.GRAY));
 		lines.add(Component.translatable("gui.workingvillagers.distance", Math.round(Math.sqrt(route.source().distSqr(route.target()))))
 			.withStyle(ChatFormatting.GRAY));
@@ -249,11 +247,6 @@ public class CarrierScreen extends AbstractContainerScreen<CarrierMenu> {
 	}
 
 	/** The name of the container block, if the client knows it. */
-	private Component blockName(BlockPos pos) {
-		BlockState state = this.minecraft.level.getBlockState(pos);
-		return state.isAir() ? Component.translatable("gui.workingvillagers.unknown_block") : state.getBlock().getName();
-	}
-
 	private boolean isOverButton(double mouseX, double mouseY, int x, int index) {
 		return this.menu.canEdit() && index != this.renaming && GuiPanels.isOver(mouseX, mouseY, x, this.rowY(index) + 1, BUTTON_SIZE, BUTTON_SIZE);
 	}
