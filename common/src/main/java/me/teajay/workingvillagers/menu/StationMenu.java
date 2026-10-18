@@ -23,8 +23,8 @@ import me.teajay.workingvillagers.station.Pit;
 import me.teajay.workingvillagers.station.StationPicks;
 import me.teajay.workingvillagers.station.StationType;
 import me.teajay.workingvillagers.station.Tunnel;
-import me.teajay.workingvillagers.station.Workstations;
 import me.teajay.workingvillagers.station.Workstations.ChestRole;
+import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -169,6 +169,7 @@ public class StationMenu extends AbstractContainerMenu {
 	private static final String TAG_DEPTH = "Depth";
 	private static final String TAG_MAX_DEPTH = "MaxDepth";
 	private static final String TAG_HERD = "Herd";
+	private static final String TAG_TAB_FLAGS = "TabFlags";
 	private static final String TAG_SHEEP = "Sheep";
 
 	/** Wage tab: the slot of the wage box, and the top left of the player's inventory. */
@@ -344,6 +345,7 @@ public class StationMenu extends AbstractContainerMenu {
 			if (this.type == StationType.CHOPPING_BLOCK) {
 				tag.putBoolean(TAG_STRIP, station.strip());
 			}
+			tag.putInt(TAG_TAB_FLAGS, StationTabFlags.compute(serverLevel, pos, this.type));
 			if (this.type == StationType.LOOM) {
 				tag.putInt(TAG_HERD, station.herd());
 				tag.putInt(TAG_SHEEP, TendSheep.herd(serverLevel, pos).size());
@@ -613,6 +615,11 @@ public class StationMenu extends AbstractContainerMenu {
 	/** Carpenter's bench and kiln: how many products to keep in stock, 0 for no limit. */
 	public int getStock() {
 		return this.info.info().getIntOr(TAG_STOCK, 0);
+	}
+
+	/** What the tabs show, see {@link StationTabFlags}. */
+	public int getTabFlags() {
+		return this.info.info().getIntOr(TAG_TAB_FLAGS, 0);
 	}
 
 	/** Loom: up to how many sheep the shepherd breeds, 0 for none. */

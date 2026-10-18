@@ -60,7 +60,6 @@
   "gui.workingvillagers.carrier.share.tooltip": "Who may change the routes?",
   "gui.workingvillagers.carrier.share.click": "Click to switch",
   "message.workingvillagers.carrier.no_edit": "Only the employer may change the routes of this carrier.",
-  "gui.workingvillagers.station.open": "Overview: worker, chests and order",
   "gui.workingvillagers.station.back": "Back",
   "gui.workingvillagers.station.back.tooltip": "Back to the saw",
   "gui.workingvillagers.station.shape": "Product",
@@ -411,5 +410,6 @@
   "gui.workingvillagers.loom.herd.tooltip2": "Lambs count too. 0: no breeding, at most %s.",
   "gui.workingvillagers.loom.sheep": "Sheep near the loom: %s",
   "gui.workingvillagers.loom.herd.hint": "The shepherd shears every sheep around the loom, also over a fence. While there are fewer than set, it breeds them with wheat.",
-  "gui.workingvillagers.station.back.tooltip.loom": "Back to the loom"
+  "gui.workingvillagers.station.back.tooltip.loom": "Back to the loom",
+  "gui.workingvillagers.tab.problem": "Something is missing here"
 }

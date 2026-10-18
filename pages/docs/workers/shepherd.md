@@ -17,8 +17,7 @@ the wool to a chest.
 ## Setting it up
 
 1. Place a loom next to your sheep pen.
-2. Open the loom and click the button with the **shepherd's face** at the top right: it
-   opens the overview.
+2. Open the loom: the [tabs](basics.md#the-overview) above its screen lead to the overview.
 3. Link at least one **chest** (**+ Chest**). A hired villager without a job finds the
    loom by itself; **Assign** picks a specific one.
 4. Right-click the shepherd with its wage (emeralds), **shears** and some **wheat** for

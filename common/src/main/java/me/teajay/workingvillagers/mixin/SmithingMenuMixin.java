@@ -2,6 +2,7 @@ package me.teajay.workingvillagers.mixin;
 
 import me.teajay.workingvillagers.menu.CutterMenu;
 import me.teajay.workingvillagers.menu.StationMenu;
+import me.teajay.workingvillagers.menu.StationTabFlags;
 import me.teajay.workingvillagers.menu.StationWorker;
 import me.teajay.workingvillagers.station.StationType;
 import net.minecraft.server.level.ServerLevel;
@@ -39,15 +40,15 @@ public abstract class SmithingMenuMixin extends ItemCombinerMenu implements Stat
 	private void workingvillagers$worker(int containerId, Inventory inventory, ContainerLevelAccess access, Level level, CallbackInfo ci) {
 		access.execute((world, pos) -> {
 			if (world instanceof ServerLevel serverLevel) {
-				this.workingvillagers$worker = StationWorker.slot(serverLevel, pos);
+				this.workingvillagers$worker = StationTabFlags.slot(serverLevel, pos.immutable(), StationType.SMITHING_TABLE);
 			}
 		});
 		this.addDataSlot(this.workingvillagers$worker);
 	}
 
 	@Override
-	public boolean workingvillagers$hasWorker() {
-		return this.workingvillagers$worker.get() == 1;
+	public int workingvillagers$tabFlags() {
+		return this.workingvillagers$worker.get();
 	}
 
 	@Override

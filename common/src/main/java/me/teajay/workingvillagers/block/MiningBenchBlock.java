@@ -30,8 +30,8 @@ import org.jspecify.annotations.Nullable;
 /**
  * The mining bench, the workstation of the miner: a stone bench with a millstone. For
  * players it is a mill, used like a stonecutter (cobblestone to gravel, gravel to sand and
- * flint, see {@link me.teajay.workingvillagers.crafting.MillingRecipe}); the button with the worker's face in its
- * screen opens the overview with the miner and its tunnel.
+ * flint, see {@link me.teajay.workingvillagers.crafting.MillingRecipe}); the tabs above its
+ * screen lead to the overview with the miner and its tunnel.
  */
 public class MiningBenchBlock extends Block {
 	private static final Component CONTAINER_TITLE = Component.translatable("container.workingvillagers.mill");

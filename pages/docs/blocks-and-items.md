@@ -57,8 +57,8 @@ around it instead of climbing on it.
 :mc-kiln: A brick furnace for building materials and workstation of the
 [kiln operator](workers/kiln-operator.md). Works like a furnace, with its recipe book and
 at its speed, but fires no food and nothing the blast furnace can smelt: glass, stone,
-smooth stone, bricks, terracotta, charcoal, dyes, ... The button with the worker's face at the top right of
-its screen opens the overview.
+smooth stone, bricks, terracotta, charcoal, dyes, ... The [tabs](workers/basics.md#the-overview) above
+its screen lead to the overview.
 
 [[craft: _ brick _ / brick furnace brick / _ brick _ -> kiln]]
 
@@ -73,7 +73,7 @@ Right-click it to open its overview. Villagers walk around it instead of climbin
 
 :mc-mining_bench: Workstation of the [miner](workers/miner.md). For you it is a **mill**,
 used like a stonecutter: cobblestone and other stone to gravel, gravel to sand or flint,
-sandstone back to sand. The button with the worker's face at the top right of its screen opens the overview,
+sandstone back to sand. The [tabs](workers/basics.md#the-overview) above its screen lead to the overview,
 where you pick the miner's tunnel.
 
 [[craft: smooth_stone any_pickaxe smooth_stone / cobblestone iron_ingot cobblestone / cobblestone cobblestone cobblestone -> mining_bench]]
@@ -90,12 +90,12 @@ Use it like a chest: two village chests next to each other form a double chest (
 
 :mc-stonecutter: Workstation of the [stone sawyer](workers/sawyer.md). Every stonecutter
 opens the cutter menu of this mod, which looks and works like the vanilla one but
-has the order box and the button with the worker's face.
+has the order box and the [tabs](workers/basics.md#the-overview) of the station above it.
 
 ## Loom (vanilla)
 
-:mc-loom: Workstation of the [shepherd](workers/shepherd.md). The button with the shepherd's
-face at the top right of its screen opens the overview; the loom itself works as usual.
+:mc-loom: Workstation of the [shepherd](workers/shepherd.md). The [tabs](workers/basics.md#the-overview)
+above its screen lead to the overview; the loom itself works as usual.
 
 ## Composter (vanilla)
 
@@ -105,8 +105,8 @@ composts as usual.
 
 ## Blast furnace (vanilla)
 
-:mc-blast_furnace: Workstation of the [smith](workers/smith.md). It opens as usual; the button with the worker's face at
-the top right of its screen opens the overview.
+:mc-blast_furnace: Workstation of the [smith](workers/smith.md). It opens as usual; the
+[tabs](workers/basics.md#the-overview) above its screen lead to the overview.
 
 ## Professions
 

@@ -100,14 +100,14 @@ the status does not help, go through this list.
 
 ### Shepherd
 
-- [ ] At least one chest linked (the button with the worker's face in the loom screen).
+- [ ] At least one chest linked (the **Chests** tab above the loom screen).
 - [ ] It carries an emerald and shears.
 - [ ] Sheep within 12 blocks of the loom, close enough to the fence to reach them (3 blocks).
 - [ ] Wheat, if it should breed them.
 
 ### Smith
 
-- [ ] An input and an output chest linked (the button with the worker's face in the blast furnace screen).
+- [ ] An input and an output chest linked (the **Chests** tab above the blast furnace screen).
 - [ ] Something to smelt **and** fuel in the input chests.
 - [ ] At a smithing table: an input chest linked, with the repair material in it.
 
@@ -121,7 +121,7 @@ the status does not help, go through this list.
 
 ### Kiln operator
 
-- [ ] An input and an output chest linked (the button with the worker's face in the kiln screen).
+- [ ] An input and an output chest linked (the **Chests** tab above the kiln screen).
 - [ ] Something the kiln fires **and** fuel in the input chests. With a product picked,
   only what makes that product counts.
 

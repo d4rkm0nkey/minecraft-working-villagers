@@ -6,7 +6,7 @@ Der Hirte kümmert sich um die Schafe rund um seinen Webstuhl: scheren, züchten
 
 ## Workstation: Webstuhl
 
-- Der normale Vanilla-Webstuhl. Der Knopf mit dem Gesicht des Hirten oben rechts im Webstuhl-Menü öffnet die Stationsübersicht, wie beim Schmiedetisch. Er überdeckt den oberen Rand der Banner-Vorschau; der Webstuhl selbst funktioniert wie in Vanilla.
+- Der normale Vanilla-Webstuhl. Über dem Webstuhl-Menü stehen die Reiter der Station (siehe [Steuerung](../grundlagen/steuerung.md#stationsübersicht)); der Webstuhl selbst funktioniert wie in Vanilla.
 - Vanilla-Schäfer aus dem Dorf arbeiten weiter an Webstühlen. Ein angeheuerter Dorfbewohner wird dort Hirte dieses Mods. Einen eingerichteten Webstuhl (Kisten verknüpft) nehmen gewöhnliche Dorfbewohner nicht.
 - Kisten verknüpft man mit **„+ Kiste“**. Er braucht nur Zielkisten, keinen Eingang.
 

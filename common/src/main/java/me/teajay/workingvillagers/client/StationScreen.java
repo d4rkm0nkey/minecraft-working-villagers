@@ -5,10 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import me.teajay.workingvillagers.client.StationTabs.Tab;
 import me.teajay.workingvillagers.crafting.StoneFamilies;
 import me.teajay.workingvillagers.crafting.WoodTypes;
 import me.teajay.workingvillagers.menu.StationMenu;
-import me.teajay.workingvillagers.menu.SuppliesInfo;
 import me.teajay.workingvillagers.station.StationType;
 import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.ChatFormatting;
@@ -42,8 +42,11 @@ import org.jspecify.annotations.Nullable;
  * <li><b>Chests</b>: the linked chests (role, how full, unlink) and the buttons to link more.</li>
  * <li><b>Order</b> (woodcutter, stonecutter, carpenter's bench, kiln): the product, the wood
  *     types, the stock. <b>Settings</b> instead at the chopping block (strip logs), the pit
- *     stake (pit, ladder, depth) and the mining bench (tunnel).</li>
+ *     stake (pit, ladder, depth), the mining bench (tunnel) and the loom (herd size).</li>
  * </ul>
+ *
+ * <p>The same tabs stand above the screens of the blocks (see {@link StationTabs}), so the
+ * window stays where it is when switching.
  *
  * A tab with something missing (no wage or tool, no chest, no order) shows a red mark.
  */
@@ -75,8 +78,6 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	private static final int SETTING_STEP = 26;
 	private static final int LINE = 10;
 
-	private enum Tab { BLOCK, WORK, WAGE, CHESTS, ORDER }
-
 	private final List<Tab> tabs = new ArrayList<>();
 	private Tab tab = Tab.WORK;
 	/** Where the wood types start, below the products. */
@@ -100,14 +101,11 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	public StationScreen(StationMenu menu, Inventory inventory, Component title) {
 		super(menu, inventory, title, WIDTH, HEIGHT);
 		StationType type = menu.type();
-		if (type.hasOwnScreen()) {
-			this.tabs.add(Tab.BLOCK);
-		}
-		this.tabs.add(Tab.WORK);
-		this.tabs.add(Tab.WAGE);
-		this.tabs.add(Tab.CHESTS);
-		if (hasOrderTab(type)) {
-			this.tabs.add(Tab.ORDER);
+		this.tabs.addAll(StationTabs.tabs(type, 0, true));
+		// Opened from a tab above the block's screen
+		Tab asked = StationTabs.takePending();
+		if (asked != null && asked != Tab.BLOCK && this.tabs.contains(asked)) {
+			this.tab = asked;
 		}
 		int productRows = type == StationType.CARPENTER_BENCH ? 3 : 2;
 		this.woodsLabelY = SHAPES_Y + productRows * 18 + 5;
@@ -115,17 +113,9 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		this.stockY = type == StationType.KILN ? SHAPES_Y + KILN_ROWS * 18 + 8 : this.woodsY + 2 * 18 + 6;
 	}
 
-	/** Whether the station has a third tab: its order, or its settings. */
-	public static boolean hasOrderTab(StationType type) {
-		return type.hasOrder() || type == StationType.CHOPPING_BLOCK || type == StationType.PIT_STAKE || type == StationType.MINING_BENCH
-			|| type == StationType.LOOM;
-	}
-
-	@Override
-	protected void init() {
-		super.init();
-		// Centered with the tabs, which stick out above the window
-		this.topPos = (this.height - HEIGHT - GuiTabs.TOP_HEIGHT) / 2 + GuiTabs.TOP_HEIGHT;
+	/** The open tab, e.g. "wage" (for the tests of the menus). */
+	public String shownTab() {
+		return this.tab.name().toLowerCase(java.util.Locale.ROOT);
 	}
 
 	/** Shows a tab (also for the screenshots of the menus). */
@@ -200,17 +190,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		Tab shown = this.tabs.get(index);
 		int x = GuiTabs.topX(this.leftPos, index);
 		int y = this.topPos - GuiTabs.TOP_HEIGHT;
-		GuiTabs.top(graphics, this.leftPos, this.topPos, index, selected);
-		int iconX = x + 5;
-		int iconY = GuiTabs.topIconY(this.topPos, selected);
-		if (shown == Tab.WORK) {
-			WorkerButton.face(graphics, iconX, iconY, this.type().profession(), this.menu.getWorker().isPresent());
-		} else {
-			graphics.item(this.tabIcon(shown), iconX, iconY);
-		}
-		if (this.tabProblem(shown)) {
-			GuiTabs.problem(graphics, x + GuiTabs.TOP_WIDTH, y);
-		}
+		StationTabs.extract(graphics, this.leftPos, this.topPos, index, shown, this.type(), this.menu.getTabFlags(), selected, true);
 		if (!selected) {
 			this.hotspots.add(new Hotspot(x, y, GuiTabs.TOP_WIDTH, GuiTabs.TOP_HEIGHT, shown == Tab.BLOCK ? StationMenu.BACK_BUTTON : -1, this.tabTooltip(shown),
 				shown == Tab.BLOCK ? null : () -> this.tab = shown));
@@ -219,56 +199,17 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		}
 	}
 
-	private ItemStack tabIcon(Tab shown) {
-		return switch (shown) {
-			case BLOCK -> new ItemStack(this.type().block());
-			case WAGE -> new ItemStack(Items.EMERALD);
-			case CHESTS -> new ItemStack(Items.CHEST);
-			case ORDER -> {
-				ItemStack order = this.menu.getOrder();
-				if (!order.isEmpty()) {
-					yield order;
-				}
-				yield new ItemStack(switch (this.type()) {
-					case CHOPPING_BLOCK -> Items.STRIPPED_OAK_LOG;
-					case PIT_STAKE -> Items.STRING;
-					case MINING_BENCH -> Items.IRON_PICKAXE;
-					case LOOM -> Items.WOOL.white();
-					default -> Items.PAPER;
-				});
-			}
-			case WORK -> ItemStack.EMPTY;
-		};
-	}
-
 	private List<Component> tabTooltip(Tab shown) {
 		return switch (shown) {
 			case BLOCK -> List.of(Component.translatable(this.backTooltip()));
 			case WORK -> List.of(Component.translatable("gui.workingvillagers.tab.work"),
-				WorkerButton.workerLine(this.menu.getWorker()).copy().withStyle(ChatFormatting.GRAY));
+				WorkerFace.workerLine(this.menu.getWorker()).copy().withStyle(ChatFormatting.GRAY));
 			case WAGE -> List.of(Component.translatable("gui.workingvillagers.tab.wage"),
 				Component.translatable("gui.workingvillagers.wage.box", this.menu.getWageBox(), Workstations.MAX_WAGE).withStyle(ChatFormatting.GRAY),
 				Component.translatable("gui.workingvillagers.wage.kept").withStyle(ChatFormatting.DARK_GRAY));
 			case CHESTS -> List.of(Component.translatable("gui.workingvillagers.tab.chests"),
 				Component.translatable("gui.workingvillagers.station.chests", this.menu.getChests().size(), this.menu.getMaxChests()).withStyle(ChatFormatting.GRAY));
-			case ORDER -> List.of(Component.translatable(this.type().hasOrder() ? "gui.workingvillagers.tab.order" : "gui.workingvillagers.tab.settings"));
-		};
-	}
-
-	/** Whether the worker cannot work because of something on that tab. */
-	private boolean tabProblem(Tab shown) {
-		return switch (shown) {
-			case WORK -> this.menu.getWorker().isEmpty() || this.menu.getSupplies().flatMap(SuppliesInfo::firstMissing).isPresent();
-			case WAGE -> this.menu.getSupplies().map(info -> !info.paid() && info.emeralds() < info.wage()).orElse(false);
-			case CHESTS -> this.menu.getChests().isEmpty();
-			case ORDER -> switch (this.type()) {
-				case PIT_STAKE -> this.menu.getPit().isEmpty();
-				case MINING_BENCH -> this.menu.getTunnel().isEmpty();
-				case CHOPPING_BLOCK, KILN, LOOM -> false;
-				default -> this.type().hasOrder() && (this.menu.getOrder().isEmpty()
-					|| this.type().hasWoods() && this.menu.getShape() != null && this.menu.getWoods().isEmpty());
-			};
-			case BLOCK -> false;
+			case ORDER -> List.of(StationTabs.name(this.type(), Tab.ORDER));
 		};
 	}
 

@@ -1,10 +1,9 @@
 package me.teajay.workingvillagers.mixin.client;
 
-import java.util.Optional;
-import me.teajay.workingvillagers.WorkingVillagers;
-import me.teajay.workingvillagers.client.WorkerButton;
+import me.teajay.workingvillagers.client.StationTabs;
 import me.teajay.workingvillagers.menu.CutterMenu;
 import me.teajay.workingvillagers.menu.StationWorker;
+import me.teajay.workingvillagers.station.StationType;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.ItemCombinerScreen;
 import net.minecraft.client.gui.screens.inventory.SmithingScreen;
@@ -14,14 +13,13 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.SmithingMenu;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * The button with the smith's face at the top right of the smithing table screen, like at
- * the blast furnace: it opens the overview of the smith's station (worker, chests, wage).
+ * The tabs of the smith's station above the smithing table screen (see {@link StationTabs}):
+ * the smithing table is the open one, the others open the overview there.
  */
 @Mixin(SmithingScreen.class)
 public abstract class SmithingScreenMixin extends ItemCombinerScreen<SmithingMenu> {
@@ -31,30 +29,21 @@ public abstract class SmithingScreenMixin extends ItemCombinerScreen<SmithingMen
 
 	@Inject(method = "extractBackground", at = @At("TAIL"))
 	private void workingvillagers$stationButton(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
-		WorkerButton.extract(graphics, this.leftPos, this.topPos, mouseX, mouseY, WorkingVillagers.SMITH_PROFESSION,
-			((StationWorker) this.menu).workingvillagers$hasWorker());
+		StationTabs.extractAbove(graphics, this.leftPos, this.topPos, mouseX, mouseY, StationType.SMITHING_TABLE, ((StationWorker) this.menu).workingvillagers$tabFlags());
 	}
 
 	@Override
 	protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
 		super.extractTooltip(graphics, mouseX, mouseY);
-		if (this.workingvillagers$isOverStation(mouseX, mouseY)) {
-			graphics.setTooltipForNextFrame(WorkerButton.tooltip(((StationWorker) this.menu).workingvillagers$hasWorker()
-				? null : WorkerButton.workerLine(Optional.empty())), mouseX, mouseY);
-		}
+		StationTabs.tooltip(graphics, this.font, mouseX, mouseY, this.leftPos, this.topPos, StationType.SMITHING_TABLE, ((StationWorker) this.menu).workingvillagers$tabFlags());
 	}
 
 	@Override
 	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-		if (this.workingvillagers$isOverStation(event.x(), event.y())) {
-			WorkerButton.click(this.minecraft, this.menu.containerId, CutterMenu.STATION_BUTTON);
+		if (StationTabs.click(this.minecraft, this.menu.containerId, CutterMenu.STATION_BUTTON, event.x(), event.y(), this.leftPos, this.topPos,
+			StationType.SMITHING_TABLE, ((StationWorker) this.menu).workingvillagers$tabFlags())) {
 			return true;
 		}
 		return super.mouseClicked(event, doubleClick);
-	}
-
-	@Unique
-	private boolean workingvillagers$isOverStation(double mouseX, double mouseY) {
-		return WorkerButton.isOver(mouseX, mouseY, this.leftPos, this.topPos);
 	}
 }

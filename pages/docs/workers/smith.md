@@ -19,8 +19,8 @@ works; for both, hire two smiths.
 ## Setting it up
 
 1. Place a blast furnace.
-2. Open it and click the button with the worker's face at the top right of the furnace screen to open its
-   overview. (The first tab of the overview leads to the furnace again.)
+2. Open it and click the **Chests** tab above the furnace screen to open its overview
+   there. (The first tab leads to the furnace again.)
 3. Link chests with **+ Input** and **+ Output**. A hired villager without a job finds
    the blast furnace by itself; **Assign** picks a specific one.
 4. Right-click the smith with emeralds for its wage.
@@ -58,8 +58,7 @@ furnace). You can watch and use it at any time.
 
 At a **smithing table** the smith repairs the tools of the other workers, and yours.
 
-1. Place a smithing table and click the button with the worker's face at the top right of its screen to
-   open its overview.
+1. Place a smithing table and open it: the tabs above its screen lead to its overview.
 2. Link at least one **input chest** and put the repair material in: iron ingots for iron
    tools, diamonds for diamond tools, planks for wooden ones, the same as at an anvil.
 3. Assign a hired villager (or let one find the table) and give it its wage.

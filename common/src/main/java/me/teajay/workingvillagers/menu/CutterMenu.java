@@ -47,7 +47,7 @@ import net.minecraft.world.level.block.Block;
  * puts the possible results into hidden slots, which the menu synchronizes like any other
  * slot, and the screen draws the recipe buttons from them.
  */
-public class CutterMenu extends AbstractContainerMenu {
+public class CutterMenu extends AbstractContainerMenu implements StationWorker {
 	public static final int MAX_OPTIONS = 32;
 	/** Button that opens the overview of the workstation (worker, chests, order). */
 	public static final int STATION_BUTTON = 102;
@@ -63,6 +63,8 @@ public class CutterMenu extends AbstractContainerMenu {
 	private final DataSlot selectedRecipeIndex = DataSlot.standalone();
 	/** The item id of the order, 0 (air) for none. */
 	private final DataSlot order = DataSlot.standalone();
+	/** What the tabs above the screen show, see {@link StationTabFlags}. */
+	private final DataSlot tabFlags;
 	private final Level level;
 	/** Server only: the recipes for the current input, in the order of the option slots. */
 	private List<RecipeHolder<SingleItemRecipe>> recipesForInput = List.of();
@@ -126,6 +128,11 @@ public class CutterMenu extends AbstractContainerMenu {
 		this.addSlot(new OptionSlot(this.worker, 0));
 		this.addDataSlot(this.selectedRecipeIndex);
 		this.addDataSlot(this.order);
+		this.tabFlags = this.addDataSlot(access.evaluate((world, pos) -> world instanceof ServerLevel serverLevel
+				? Optional.of(StationTabFlags.slot(serverLevel, pos.immutable(), this.stationType()))
+				: Optional.<DataSlot>empty())
+			.flatMap(slot -> slot)
+			.orElseGet(DataSlot::standalone));
 		this.station().ifPresent(station -> {
 			if (station.order() != null) {
 				this.order.set(BuiltInRegistries.ITEM.getId(station.order()));
@@ -167,12 +174,22 @@ public class CutterMenu extends AbstractContainerMenu {
 		return this.kind != WorkingVillagers.MILL_KIND;
 	}
 
+	/** The station: woodcutter, stonecutter or (the mill) mining bench. */
+	public StationType stationType() {
+		if (this.kind == WorkingVillagers.WOODCUTTER_KIND) {
+			return StationType.WOODCUTTER;
+		}
+		return this.kind == WorkingVillagers.STONECUTTER_KIND ? StationType.STONECUTTER : StationType.MINING_BENCH;
+	}
+
 	/** The profession that works at the station: sawyer, stone sawyer or (at the mill) miner. */
 	public ResourceKey<VillagerProfession> profession() {
-		if (this.kind == WorkingVillagers.WOODCUTTER_KIND) {
-			return WorkingVillagers.WOODCUTTER_PROFESSION;
-		}
-		return this.kind == WorkingVillagers.STONECUTTER_KIND ? WorkingVillagers.STONECUTTER_PROFESSION : WorkingVillagers.MINER_PROFESSION;
+		return this.stationType().profession();
+	}
+
+	@Override
+	public int workingvillagers$tabFlags() {
+		return this.tabFlags.get();
 	}
 
 	/** Whether this is the woodcutter's menu, whose order can use several wood types. */

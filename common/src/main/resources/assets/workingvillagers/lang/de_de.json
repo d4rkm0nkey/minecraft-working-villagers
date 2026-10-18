@@ -60,7 +60,6 @@
   "gui.workingvillagers.carrier.share.tooltip": "Wer darf die Wege ändern?",
   "gui.workingvillagers.carrier.share.click": "Klicken zum Umschalten",
   "message.workingvillagers.carrier.no_edit": "Nur der Arbeitgeber darf die Wege dieses Trägers ändern.",
-  "gui.workingvillagers.station.open": "Übersicht: Arbeiter, Kisten und Auftrag",
   "gui.workingvillagers.station.back": "Zurück",
   "gui.workingvillagers.station.back.tooltip": "Zurück zur Säge",
   "gui.workingvillagers.station.shape": "Erzeugnis",
@@ -411,5 +410,6 @@
   "gui.workingvillagers.loom.herd.tooltip2": "Lämmer zählen mit. 0: nicht züchten, höchstens %s.",
   "gui.workingvillagers.loom.sheep": "Schafe am Webstuhl: %s",
   "gui.workingvillagers.loom.herd.hint": "Der Hirte schert alle Schafe um den Webstuhl, auch über den Zaun. Sind es weniger als eingestellt, züchtet er mit Weizen nach.",
-  "gui.workingvillagers.station.back.tooltip.loom": "Zurück zum Webstuhl"
+  "gui.workingvillagers.station.back.tooltip.loom": "Zurück zum Webstuhl",
+  "gui.workingvillagers.tab.problem": "Hier fehlt etwas"
 }

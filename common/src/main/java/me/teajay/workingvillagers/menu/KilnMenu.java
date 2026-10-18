@@ -17,8 +17,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The kiln's screen: the furnace screen with the furnace's recipe book. The button with the worker's face opens
- * the overview of the kiln operator's station.
+ * The kiln's menu: the furnace's, with the furnace's recipe book. The tabs above its screen
+ * lead to the overview of the kiln operator's station.
  */
 public class KilnMenu extends AbstractFurnaceMenu implements StationWorker {
 	private final @Nullable Container kiln;
@@ -35,12 +35,12 @@ public class KilnMenu extends AbstractFurnaceMenu implements StationWorker {
 		super(WorkingVillagers.KILN_MENU.get(), RecipePropertySet.FURNACE_INPUT, RecipeBookType.FURNACE, containerId, inventory, kiln, data);
 		this.kiln = kiln;
 		this.worker = this.addDataSlot(kiln instanceof BlockEntity entity && entity.getLevel() instanceof ServerLevel level
-			? StationWorker.slot(level, entity.getBlockPos()) : DataSlot.standalone());
+			? StationTabFlags.slot(level, entity.getBlockPos(), StationType.KILN) : DataSlot.standalone());
 	}
 
 	@Override
-	public boolean workingvillagers$hasWorker() {
-		return this.worker.get() == 1;
+	public int workingvillagers$tabFlags() {
+		return this.worker.get();
 	}
 
 	/** Shift-clicking only puts in what the kiln fires; the client only knows the furnace's inputs. */

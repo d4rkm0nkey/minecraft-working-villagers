@@ -24,17 +24,17 @@ Jede Station hat eine Übersicht in Vanilla-Größe (176×166, wie eine Kiste) m
 
 | Station | Öffnen |
 | --- | --- |
-| Hackklotz | Rechtsklick |
-| Holzsäge, Steinsäge, Hobelbank | Rechtsklick öffnet das Arbeitsmenü, der Knopf mit dem Gesicht des Arbeiters die Übersicht |
+| Hackklotz, Grubenpflock, Handelstresen | Rechtsklick |
 | Komposter | Rechtsklick mit leerer Hand |
-| Schmelzofen | Knopf mit dem Gesicht des Arbeiters im Ofenmenü |
-| Webstuhl | Knopf mit dem Gesicht des Hirten im Webstuhl-Menü |
+| Holzsäge, Steinsäge, Mühle, Hobelbank, Brennofen, Schmelzofen, Schmiedetisch, Webstuhl | Rechtsklick öffnet das Menü des Blocks; über ihm stehen dieselben Reiter wie über der Übersicht |
 
-Der Knopf sitzt oben rechts im Menü des Blocks (Holzsäge, Steinsäge, Mühle, Hobelbank, Schmelzofen, Brennofen, Schmiedetisch, Webstuhl), so groß wie der Rezeptbuch-Knopf. Er zeigt das Gesicht des Berufs, der dort arbeitet, gezeichnet aus der Villager-Textur und der Kleidung des Berufs; ohne angeheuerten Arbeiter ist es abgedunkelt. Der Tooltip nennt den Arbeiter. Die Titelzeile der Block-Menüs zeigt den Arbeiter nicht mehr.
+**Reiter über den Block-Menüs:** Der Reiter des Blocks ist dort der offene; ein Klick auf einen anderen öffnet die Übersicht gleich auf diesem Reiter, der Reiter des Blocks führt zurück. Beide Fenster stehen an derselben Stelle (normal zentriert, die Reiter ragen in den Rand darüber; bei 854×480 bleiben 37 px, die Hobelbank mit 184 px Höhe passt genau). Die roten Punkte stehen schon am Block-Menü. An einem **Vanilla-Block, den niemand eingerichtet hat** (Steinsäge, Schmelzofen, Schmiedetisch, Webstuhl ohne Arbeiter und Kisten), stehen nur die Reiter Block und Arbeiter, ohne rote Punkte: Spieler, die die Mod dort nicht nutzen, sehen wenig davon. Der Knopf mit dem Gesicht oben rechts entfällt; das Gesicht steht im Reiter Arbeiter. Wechselt man den Reiter, öffnet der Server das andere Menü; ein Item an der Maus wandert dabei ins Inventar.
+
+Was die Reiter zeigen (Arbeiter da, eingerichtet, rote Punkte), berechnet der Server an einer Stelle (`StationTabFlags`) und schickt es der Übersicht mit ihren Infos, den Block-Menüs in einem Datenslot, einmal pro Sekunde neu.
 
 Die Reiter (ein roter Punkt am Reiter zeigt, dass dort etwas fehlt):
 
-- **Block** (nur Stationen mit eigenem Menü): zurück zum Menü des Blocks; ersetzt den früheren Knopf „Zurück“.
+- **Block** (nur Stationen mit eigenem Menü): das Menü des Blocks; ersetzt den früheren Knopf „Zurück“.
 - **Arbeiter** (Symbol: Gesicht des Berufs, abgedunkelt ohne Arbeiter): Name, **„Zuweisen“** bzw. **„Abziehen“** als großer Knopf, der Status auf bis zu drei Zeilen umgebrochen, darunter das Tagespensum oder der Auftrag, die Versorgung als Slots („Lohn und Werkzeug“, Details im Tooltip) und unten, wie man dem Arbeiter etwas gibt. Roter Punkt: kein Arbeiter, oder ihm fehlt Lohn oder Werkzeug.
 - **Lohn** (Smaragd): die [Lohnkasse](../wirtschaft/anheuern-und-lohn.md#stand-der-umsetzung) der Station mit einem Slot und darunter das Spielerinventar, wie ein Container; Shift-Klick schiebt Emeralds hin und her. Roter Punkt: der Arbeiter hat heute keinen Lohn.
 - **Kisten**: höchstens 8, sechs sichtbar, dann scrollen (Mausrad). Pro Zeile Name, die Rolle als Knopf (**Eingang**/**Ausgang**, Klick schaltet um), Füllstand und ×; Art, Füllstand und Entfernung im Tooltip. Unten **„+ Eingang“** und **„+ Ausgang“** (an Stationen nur mit Ausgang **„+ Kiste“**). Roter Punkt: keine Kiste.

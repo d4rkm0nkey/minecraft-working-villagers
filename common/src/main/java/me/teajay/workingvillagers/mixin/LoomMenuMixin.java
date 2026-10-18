@@ -2,6 +2,7 @@ package me.teajay.workingvillagers.mixin;
 
 import me.teajay.workingvillagers.menu.CutterMenu;
 import me.teajay.workingvillagers.menu.StationMenu;
+import me.teajay.workingvillagers.menu.StationTabFlags;
 import me.teajay.workingvillagers.menu.StationWorker;
 import me.teajay.workingvillagers.station.StationType;
 import net.minecraft.server.level.ServerLevel;
@@ -44,15 +45,15 @@ public abstract class LoomMenuMixin extends AbstractContainerMenu implements Sta
 	private void workingvillagers$worker(int containerId, Inventory inventory, ContainerLevelAccess access, CallbackInfo ci) {
 		access.execute((world, pos) -> {
 			if (world instanceof ServerLevel serverLevel) {
-				this.workingvillagers$worker = StationWorker.slot(serverLevel, pos);
+				this.workingvillagers$worker = StationTabFlags.slot(serverLevel, pos.immutable(), StationType.LOOM);
 			}
 		});
 		this.addDataSlot(this.workingvillagers$worker);
 	}
 
 	@Override
-	public boolean workingvillagers$hasWorker() {
-		return this.workingvillagers$worker.get() == 1;
+	public int workingvillagers$tabFlags() {
+		return this.workingvillagers$worker.get();
 	}
 
 	/** The loom's own buttons pick banner patterns; this one is far past the last of them. */

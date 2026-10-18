@@ -8,17 +8,19 @@ import me.teajay.workingvillagers.carrier.Route;
 import me.teajay.workingvillagers.carrier.RouteHolder;
 import me.teajay.workingvillagers.client.CarrierScreen;
 import me.teajay.workingvillagers.client.StationScreen;
+import me.teajay.workingvillagers.client.StationTabs;
 import me.teajay.workingvillagers.client.VillageChestScreen;
 import me.teajay.workingvillagers.item.WorkContractItem;
 import me.teajay.workingvillagers.job.WorkerJobs;
 import me.teajay.workingvillagers.job.WorkerSupplies;
 import me.teajay.workingvillagers.menu.StationMenu;
 import me.teajay.workingvillagers.station.StationType;
-import me.teajay.workingvillagers.station.Workstations;
 import me.teajay.workingvillagers.station.Workstations.ChestRole;
+import me.teajay.workingvillagers.station.Workstations;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -71,6 +73,13 @@ public class MenuScreenshots implements FabricClientGameTest {
 						});
 					}
 				}
+				if (size[0] == 854) {
+					clickWageTab(context, world);
+				}
+				// A vanilla block nobody set up: only the block and the worker tab
+				BlockPos plain = stationPos(STATIONS.size() + 1);
+				shot(context, world, "stonecutter_plain" + suffix, plain, (server, player) ->
+					player.openMenu(player.level().getBlockState(plain).getMenuProvider(player.level(), plain)));
 				BlockPos empty = stationPos(STATIONS.size());
 				tabs(context, world, "chopping_block_empty", suffix, empty, StationType.CHOPPING_BLOCK, (server, player) ->
 					player.openMenu(StationMenu.provider(StationType.CHOPPING_BLOCK, player.level(), empty)));
@@ -97,7 +106,7 @@ public class MenuScreenshots implements FabricClientGameTest {
 	private static void tabs(ClientGameTestContext context, TestSingleplayerContext world, String name, String suffix, BlockPos near, StationType type,
 		BiConsumer<MinecraftServer, ServerPlayer> open) {
 		List<String> tabs = new java.util.ArrayList<>(List.of("work", "wage", "chests"));
-		if (StationScreen.hasOrderTab(type)) {
+		if (StationTabs.hasOrderTab(type)) {
 			tabs.add("order");
 		}
 		tabs(context, world, name, suffix, near, tabs, open);
@@ -119,6 +128,36 @@ public class MenuScreenshots implements FabricClientGameTest {
 			context.waitTicks(3);
 			context.takeScreenshot(name + "_" + tab + suffix);
 		}
+		context.setScreen(() -> null);
+		context.waitTicks(2);
+	}
+
+	/**
+	 * A click on the wage tab above the woodcutter's screen opens the overview on that tab, in
+	 * the same place.
+	 */
+	private static void clickWageTab(ClientGameTestContext context, TestSingleplayerContext world) {
+		BlockPos pos = stationPos(STATIONS.indexOf(StationType.WOODCUTTER));
+		open(context, world, pos, (server, player) -> player.openMenu(player.level().getBlockState(pos).getMenuProvider(player.level(), pos)));
+		double[] cursor = context.computeOnClient(minecraft -> {
+			Screen screen = minecraft.gui.screen();
+			double scale = minecraft.getWindow().getGuiScale();
+			// The third tab (block, worker, wage) above a 176 × 166 window
+			return new double[] {((screen.width - 176) / 2 + 2 * 27 + 13) * scale, ((screen.height - 166) / 2 - 14) * scale};
+		});
+		context.getInput().setCursorPos(cursor[0], cursor[1]);
+		context.waitTicks(2);
+		// 0: the left mouse button
+		context.getInput().pressMouse(0);
+		context.waitFor(minecraft -> minecraft.gui.screen() instanceof StationScreen);
+		context.waitTicks(5);
+		context.runOnClient(minecraft -> {
+			String tab = ((StationScreen) minecraft.gui.screen()).shownTab();
+			if (!tab.equals("wage")) {
+				throw new AssertionError("The overview opened on the tab " + tab + ", not on the wage tab");
+			}
+		});
+		context.takeScreenshot("woodcutter_wage_from_tab_854");
 		context.setScreen(() -> null);
 		context.waitTicks(2);
 	}
@@ -199,6 +238,7 @@ public class MenuScreenshots implements FabricClientGameTest {
 				new ItemStack(Items.OAK_SAPLING, 5), new ItemStack(Items.WHEAT_SEEDS, 12), new ItemStack(Items.LADDER, 30), new ItemStack(Items.TORCH, 3),
 				new ItemStack(Items.SHEARS), new ItemStack(Items.WHEAT, 10));
 		}
+		level.setBlockAndUpdate(stationPos(STATIONS.size() + 1), Blocks.STONECUTTER.defaultBlockState());
 		// A chopping block nobody works at, without chests
 		level.setBlockAndUpdate(stationPos(STATIONS.size()), StationType.CHOPPING_BLOCK.block().defaultBlockState());
 		// A village chest with a worker in reach that lacks something

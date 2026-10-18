@@ -44,7 +44,7 @@ import net.minecraft.world.level.Level;
  * hidden slots (with the ingredients as lore, and a mark if the player has them) and the
  * screen draws the recipe buttons from them.
  */
-public class CarpenterMenu extends AbstractContainerMenu {
+public class CarpenterMenu extends AbstractContainerMenu implements StationWorker {
 	public static final int MAX_OPTIONS = 128;
 	/** Button that opens the overview of the workstation (worker, chests, order). */
 	public static final int STATION_BUTTON = 202;
@@ -63,6 +63,8 @@ public class CarpenterMenu extends AbstractContainerMenu {
 	private final DataSlot selectedRecipeIndex = DataSlot.standalone();
 	/** The item id of the order, 0 (air) for none. */
 	private final DataSlot order = DataSlot.standalone();
+	/** What the tabs above the screen show, see {@link StationTabFlags}. */
+	private final DataSlot tabFlags;
 	/** Server only: the recipes, in the order of the option slots. */
 	private List<CraftingRecipe> recipes = List.of();
 	/** Server only: the player's inventory as the options were last marked, to notice changes. */
@@ -108,6 +110,11 @@ public class CarpenterMenu extends AbstractContainerMenu {
 		this.addSlot(new HiddenSlot(this.worker, 0));
 		this.addDataSlot(this.selectedRecipeIndex);
 		this.addDataSlot(this.order);
+		this.tabFlags = this.addDataSlot(access.evaluate((world, pos) -> world instanceof ServerLevel serverLevel
+				? Optional.of(StationTabFlags.slot(serverLevel, pos.immutable(), StationType.CARPENTER_BENCH))
+				: Optional.<DataSlot>empty())
+			.flatMap(slot -> slot)
+			.orElseGet(DataSlot::standalone));
 		this.selectedRecipeIndex.set(-1);
 
 		if (this.level instanceof ServerLevel serverLevel) {
@@ -132,6 +139,11 @@ public class CarpenterMenu extends AbstractContainerMenu {
 	private Optional<Workstations.Station> station() {
 		return this.access.evaluate((level, pos) -> level instanceof ServerLevel serverLevel ? Workstations.find(serverLevel, pos) : Optional.<Workstations.Station>empty())
 			.flatMap(station -> station);
+	}
+
+	@Override
+	public int workingvillagers$tabFlags() {
+		return this.tabFlags.get();
 	}
 
 	/** Who works at this station, empty if it is free. */

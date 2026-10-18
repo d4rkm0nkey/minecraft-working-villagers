@@ -2,6 +2,7 @@ package me.teajay.workingvillagers.mixin;
 
 import me.teajay.workingvillagers.menu.CutterMenu;
 import me.teajay.workingvillagers.menu.StationMenu;
+import me.teajay.workingvillagers.menu.StationTabFlags;
 import me.teajay.workingvillagers.menu.StationWorker;
 import me.teajay.workingvillagers.station.StationType;
 import net.minecraft.resources.ResourceKey;
@@ -45,14 +46,14 @@ public abstract class BlastFurnaceMenuMixin extends AbstractFurnaceMenu implemen
 	@Inject(method = "<init>(ILnet/minecraft/world/entity/player/Inventory;Lnet/minecraft/world/Container;Lnet/minecraft/world/inventory/ContainerData;)V", at = @At("TAIL"))
 	private void workingvillagers$serverWorker(int containerId, Inventory inventory, Container container, ContainerData data, CallbackInfo ci) {
 		if (container instanceof BlockEntity furnace && furnace.getLevel() instanceof ServerLevel level) {
-			this.workingvillagers$worker = StationWorker.slot(level, furnace.getBlockPos());
+			this.workingvillagers$worker = StationTabFlags.slot(level, furnace.getBlockPos(), StationType.BLAST_FURNACE);
 		}
 		this.addDataSlot(this.workingvillagers$worker);
 	}
 
 	@Override
-	public boolean workingvillagers$hasWorker() {
-		return this.workingvillagers$worker.get() == 1;
+	public int workingvillagers$tabFlags() {
+		return this.workingvillagers$worker.get();
 	}
 
 	@Override

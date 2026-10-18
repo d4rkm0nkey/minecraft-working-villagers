@@ -92,7 +92,7 @@ public class VillageChestScreen extends ContainerScreen {
 			graphics.item(new ItemStack(WorkingVillagers.VILLAGE_CHEST_ITEM.get()), iconX, y + 6);
 		} else {
 			List<VillageChestMenu.Worker> workers = this.villageChest.getWorkers();
-			WorkerButton.face(graphics, iconX, y + 6,
+			WorkerFace.face(graphics, iconX, y + 6,
 				workers.isEmpty() ? WorkingVillagers.LUMBERJACK_PROFESSION : workers.getFirst().profession(), !workers.isEmpty());
 			if (this.workersProblem()) {
 				GuiTabs.problem(graphics, this.leftPos - GuiTabs.SIDE_WIDTH + 26, y);
@@ -162,7 +162,7 @@ public class VillageChestScreen extends ContainerScreen {
 		int y = this.topPos + ROWS_Y;
 		for (int i = this.page * rows; i < Math.min(workers.size(), (this.page + 1) * rows); i++) {
 			VillageChestMenu.Worker worker = workers.get(i);
-			WorkerButton.face(graphics, x, y + 1, worker.profession(), true);
+			WorkerFace.face(graphics, x, y + 1, worker.profession(), true);
 			int width = textWidth - TEXT_X + 8;
 			// Without a name of its own the job is the name; the line below it then only says what it lacks
 			Component name = worker.name().orElse(worker.job());

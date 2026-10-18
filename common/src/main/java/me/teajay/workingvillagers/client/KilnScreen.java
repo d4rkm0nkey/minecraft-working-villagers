@@ -1,10 +1,9 @@
 package me.teajay.workingvillagers.client;
 
 import java.util.List;
-import java.util.Optional;
-import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.menu.CutterMenu;
 import me.teajay.workingvillagers.menu.KilnMenu;
+import me.teajay.workingvillagers.station.StationType;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractFurnaceScreen;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
@@ -17,9 +16,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeBookCategories;
 
 /**
- * The kiln's screen: the furnace screen and its recipe book without the food tab. The button
- * with the kiln operator's face at the top right opens the overview of the station, like in
- * the blast furnace.
+ * The kiln's screen: the furnace screen and its recipe book without the food tab, with the
+ * tabs of the station above it (see {@link StationTabs}).
  */
 public class KilnScreen extends AbstractFurnaceScreen<KilnMenu> {
 	private static final Identifier LIT_PROGRESS_SPRITE = Identifier.withDefaultNamespace("container/furnace/lit_progress");
@@ -39,27 +37,21 @@ public class KilnScreen extends AbstractFurnaceScreen<KilnMenu> {
 	@Override
 	public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
 		super.extractBackground(graphics, mouseX, mouseY, a);
-		WorkerButton.extract(graphics, this.leftPos, this.topPos, mouseX, mouseY, WorkingVillagers.KILN_OPERATOR_PROFESSION, this.menu.workingvillagers$hasWorker());
+		StationTabs.extractAbove(graphics, this.leftPos, this.topPos, mouseX, mouseY, StationType.KILN, this.menu.workingvillagers$tabFlags());
 	}
 
 	@Override
 	protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
 		super.extractTooltip(graphics, mouseX, mouseY);
-		if (this.isOverStation(mouseX, mouseY)) {
-			graphics.setTooltipForNextFrame(WorkerButton.tooltip(this.menu.workingvillagers$hasWorker() ? null : WorkerButton.workerLine(Optional.empty())), mouseX, mouseY);
-		}
+		StationTabs.tooltip(graphics, this.font, mouseX, mouseY, this.leftPos, this.topPos, StationType.KILN, this.menu.workingvillagers$tabFlags());
 	}
 
 	@Override
 	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-		if (this.isOverStation(event.x(), event.y())) {
-			WorkerButton.click(this.minecraft, this.menu.containerId, CutterMenu.STATION_BUTTON);
+		if (StationTabs.click(this.minecraft, this.menu.containerId, CutterMenu.STATION_BUTTON, event.x(), event.y(), this.leftPos, this.topPos,
+			StationType.KILN, this.menu.workingvillagers$tabFlags())) {
 			return true;
 		}
 		return super.mouseClicked(event, doubleClick);
-	}
-
-	private boolean isOverStation(double mouseX, double mouseY) {
-		return WorkerButton.isOver(mouseX, mouseY, this.leftPos, this.topPos);
 	}
 }

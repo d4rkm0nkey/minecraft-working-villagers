@@ -15,7 +15,7 @@ Aufgenommen mit `./gradlew :fabric:runClientGameTest` (siehe [Screenshots](#scre
 | 3 | **Text außerhalb des Menüs:** das Seitenfeld ragt über den rechten Rand, „Wages paid…“ ist angeschnitten | Dorftruhe | Feld (132 px) hängt rechts an der zentrierten Truhe |
 | 4 | **Texte überlagern sich:** Titel und „Worker: …“ in einer Zeile · *behoben*: die Titelzeile zeigt den Arbeiter nicht mehr | Holzsäge, Steinsäge, Mühle, Hobelbank | Arbeitername in der Titelzeile |
 | 5 | Titel „Carrier Carrier“ läuft in den Knopf „Employer only“ | Träger | Name und Knopf in einer Zeile |
-| 6 | **Knopf „i“ ist nicht zu verstehen**; zurück geht es mit „Back“ oben rechts · *teilweise behoben*: statt „i“ ein Knopf mit dem Gesicht des Berufs (siehe [Steuerung](../grundlagen/steuerung.md#stationsübersicht)) | Holzsäge, Steinsäge, Hobelbank, Schmelzofen, Brennofen, Mühle, Schmiedetisch | zwei getrennte Menüs, verbunden über ein Symbol ohne Text |
+| 6 | **Knopf „i“ ist nicht zu verstehen**; zurück geht es mit „Back“ oben rechts · *behoben*: Reiter über den Block-Menüs, das Gesicht des Berufs im Reiter Arbeiter (siehe [Steuerung](../grundlagen/steuerung.md#stationsübersicht)) | Holzsäge, Steinsäge, Hobelbank, Schmelzofen, Brennofen, Mühle, Schmiedetisch | zwei getrennte Menüs, verbunden über ein Symbol ohne Text |
 | 7 | Abgeschnittene Zeilen und Lauftext: „Doing: Cannot work (chest or or…“, „aid for 2 more days“ hinter den Slots, „No tunnel picked ye“ · *in der Übersicht behoben*: Status und Versorgung werden umgebrochen | fast alle Übersichten | 162 px Breite für lange Sätze |
 | 8 | Viel leere Fläche, dafür alles andere gedrängt · *behoben* | einspaltige Übersichten | siehe 1 |
 | 9 | Alle unbenannten Kisten heißen „Chest“ und sind nicht zu unterscheiden | Übersichten, Träger | Hinweis zum Benennen nur im Tooltip |
@@ -128,7 +128,7 @@ Bleibt wie heute (✎ oben rechts). Unbenannte Kisten erscheinen in Stationen un
 
 - **Stationsübersicht mit Reitern** (Schritte 1 und 2): Fenster 176×166, Reiter wie im Kreativinventar (Vanilla-Grafiken), Knöpfe 16 bis 20 px hoch. Abweichungen:
   - Bis zu fünf Reiter statt drei: **Block** · **Arbeiter** · **Lohn** · **Kisten** · **Auftrag**/**Einstellungen**. Der Reiter **Lohn** (Lohnkasse der Station mit Spielerinventar) kam mit der Lohnkasse dazu. Die Kisten bekommen einen eigenen Reiter, damit der Arbeiter-Reiter Platz für umgebrochenen Status, Tagespensum, Versorgung und einen Hinweis zum Geben hat. Sechs Kisten sind sichtbar, mehr per Mausrad.
-  - Der Reiter **Block** ersetzt „Back“. Über den Block-Menüs gibt es keine Reiter; dort führt der Knopf mit dem Gesicht in die Übersicht.
+  - Der Reiter **Block** ersetzt „Back“. Die Reiter stehen auch über den Block-Menüs (umgesetzt nach dem Hirten), dort ist der Block-Reiter offen; der Knopf mit dem Gesicht entfällt. Vanilla-Blöcke, die niemand eingerichtet hat, zeigen nur Block und Arbeiter.
   - Statt eines Ausrufezeichens ein roter Punkt am Reiter.
   - Keine Figur des Arbeiters; das Gesicht steht im Reiter. Der Status bleibt blau.
   - Grubenpflock und Grubenwerkbank: der Zustand (gewählte Grube, gewählter Stollen) als eigene Zeile, darunter der Wahl-Knopf über die ganze Breite und eine Erklärung.
@@ -152,7 +152,7 @@ Nach jedem Schritt laufen die Screenshots erneut; alle Menüs in 854×480 vollst
 - **Reiter oben oder Knopf links?** Alternative zu den Reitern: ein Buch-Knopf links wie beim Rezeptbuch, der die Arbeitsseite neben dem Block-Menü aufklappt. Spart Wechsel, braucht aber Breite (176 + 147 px passt gerade noch in 427). Empfehlung: Reiter, weil sie für Stationen ohne Block-Menü genauso funktionieren.
 - **Welcher Reiter beim Öffnen?** Empfehlung: das Block-Menü, wie Vanilla. Alternative: den zuletzt benutzten merken (pro Spieler und Station).
 - **Figur oder Kopf?** Die Figur wie beim Pferd ist anschaulich, kostet aber 50 px Breite. Empfehlung: Figur; reicht der Platz nicht, der Kopf.
-- **Vanilla-Blöcke ohne Einrichtung:** Reicht ein einzelner Reiter „Arbeit“ über der Vanilla-Steinsäge, oder stört er Spieler, die die Mod gar nicht nutzen?
+- ~~**Vanilla-Blöcke ohne Einrichtung**~~ *entschieden:* Über einem nicht eingerichteten Vanilla-Block stehen nur Block und Arbeiter, ohne rote Punkte; alle Reiter erst, wenn ein Arbeiter oder eine Kiste dazukommt.
 
 ## Siehe auch
 

@@ -42,7 +42,7 @@ Jeder neue Beruf bekommt sein Buch mit der Umsetzung. Er wird dem Vanilla-Beruf 
 Jedes Berufsbuch hat dieselbe Gliederung, damit man sich schnell zurechtfindet. Etwa 6–8 Seiten:
 
 1. **Titelseite:** Name des Berufs, ein Satz, was er tut.
-2. **Station:** welcher Block, wie man ihn bekommt (Rezept in Worten) und wie man die Übersicht öffnet; bei Vanilla-Stationen anders als gewohnt: Komposter mit leerer Hand rechtsklicken, beim Schmelzofen und bei der Steinsäge der Knopf mit dem Gesicht des Arbeiters im Menü.
+2. **Station:** welcher Block, wie man ihn bekommt (Rezept in Worten) und wie man die Übersicht öffnet; bei Vanilla-Stationen anders als gewohnt: Komposter mit leerer Hand rechtsklicken, beim Schmelzofen und bei der Steinsäge die Reiter über dem Menü.
 3. **Einrichten:** die Schritte von der Station bis zum ersten Arbeitstag.
 4. **Lohn, Werkzeug und Kisten:** was man dem Arbeiter gibt und was in die Eingangs- und die Ausgangskiste gehört.
 5. **Ablauf:** was der Arbeiter über den Tag tut, Tagespensum.

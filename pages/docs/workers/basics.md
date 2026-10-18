@@ -44,9 +44,9 @@ traded keeps its job.
 
 ## Assigning and removing
 
-To pick a specific worker yourself, open the workstation menu (at the woodcutter,
-stonecutter, carpenter's bench, loom, blast furnace, smithing table and kiln: the button with the worker's face at the top right of
-its screen; at the composter: right-click it with an empty hand) and click **Assign**. The menu closes; right-click a hired villager. It becomes the
+To pick a specific worker yourself, open the workstation's overview (at the woodcutter,
+stonecutter, carpenter's bench, loom, blast furnace, smithing table and kiln: the worker tab
+above its screen; at the composter: right-click it with an empty hand) and click **Assign**. The menu closes; right-click a hired villager. It becomes the
 worker of this station. A villager that already works somewhere else moves to the new
 station.
 
@@ -57,9 +57,11 @@ The menu of every workstation shows its worker, or *Free* if nobody works there.
 
 ### The overview
 
-The overview of a workstation has tabs at the top, like the creative inventory:
+The overview of a workstation has tabs at the top, like the creative inventory. The same
+tabs stand above the screen of the block itself (woodcutter, furnace, loom, ...): click one
+to get to that part of the overview, and the block's tab to get back.
 
-- The block itself, if it has a screen of its own (woodcutter, furnace, ...): back there.
+- The block itself, if it has a screen of its own (woodcutter, furnace, ...).
 - The worker's face: who works here, **Assign** / **Remove**, what it is doing, what it
   did today and what it carries.
 - :mc-emerald: **Wage**: the station's [wage box](#the-wage-box) and your inventory.
@@ -69,6 +71,10 @@ The overview of a workstation has tabs at the top, like the creative inventory:
 
 A red dot on a tab means something is missing there: no worker, no wage or tool, no
 chest, no order.
+
+A vanilla block nobody has set up yet (stonecutter, loom, blast furnace,
+smithing table) shows only its own tab and the worker tab, so players who do not use the
+mod there see little of it. Once a worker or a chest is added, all tabs appear.
 
 ## Linking chests
 
