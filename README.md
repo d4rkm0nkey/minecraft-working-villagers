@@ -22,7 +22,7 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
    vanilla job stays at its block and becomes the worker of this mod there (a farmer at
    its composter, a mason as stone sawyer at its stonecutter, a shepherd at its loom, a
    butcher at its smoker, a fisherman at its barrel, an armorer or toolsmith as smith), keeping its trades and level,
-   unless its job has no work in this mod (librarian, ...). These workers trade like their
+   unless its job has no work in this mod (the cartographer). These workers trade like their
    vanilla counterparts (the smith like an armorer at a blast furnace, like a toolsmith at a
    smithing table), level up by trading and restock at their workstation; right-click with
    an empty hand, or sneak, to trade. It gets no
@@ -73,11 +73,12 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
   name on the front of the stations; notes left in a world remove themselves when they are
   loaded.)
 - Hired villagers never take vanilla jobs (lectern etc.). At a stonecutter, composter,
-  loom, smoker, barrel, fletching table, brewing stand, cauldron, grindstone, blast furnace
-  or smithing table a hired villager becomes the stone sawyer, farmer, shepherd, butcher,
-  fisher, fletcher, apothecary, tanner, weaponsmith or smith of this mod; unhired villagers
-  still become masons, farmers, shepherds, butchers, fishermen, fletchers, clerics,
-  leatherworkers, weaponsmiths, armorers and toolsmiths, except at one that is set
+  loom, smoker, barrel, fletching table, brewing stand, cauldron, grindstone, lectern, blast
+  furnace or smithing table a hired villager becomes the stone sawyer, farmer, shepherd,
+  butcher, fisher, fletcher, apothecary, tanner, weaponsmith, librarian or smith of this
+  mod; unhired villagers still become masons, farmers, shepherds, butchers, fishermen,
+  fletchers, clerics, leatherworkers, weaponsmiths, librarians, armorers and toolsmiths,
+  except at one that is set
   up (chests, order or worker): vanilla job acquisition skips it. *Assign* there makes an
   ordinary villager that works there and has never traded (villager XP 0) unemployed;
   one that has traded keeps its job.
@@ -391,6 +392,20 @@ grindstone gives, which it fills into bottles o' enchanting (`guard.experiencePe
 with its glass bottles. At the grindstone one picks both, one of them or only the order.
 It trades like a vanilla weaponsmith.
 
+## Librarian
+
+A hired villager at a vanilla **lectern** becomes a **librarian** (ordinary villagers still
+become vanilla librarians there) and enchants at the closest **enchanting table** within 6
+blocks of the lectern (`librarian.tableRadius`). A right-click with an empty hand on a
+lectern without a book opens the overview. It enchants everything enchantable in its input
+chests (tools, weapons, armor, books), up to 3 per trip, one every three seconds, like a
+player taking the best offer of the table (`EnchantmentHelper.enchantItem` with the
+enchantments of `in_enchanting_table`): the level is two per bookshelf counted like for a
+player, at least 8, at most 30, or lower as set at the lectern. It pays one bottle o'
+enchanting per 3 levels (`librarian.levelsPerBottle`, 10 at level 30) and 1 to 3 lapis
+lazuli, from its input chests or a village chest in reach. It trades like a vanilla
+librarian.
+
 ## Fisher
 
 A hired villager at a vanilla **barrel** becomes a **fisher** (ordinary villagers still
@@ -614,13 +629,14 @@ injured worker with a potion from its output chest and harvests and replants rip
 wart, the tanner makes books, leather from rabbit hide, tans rotten flesh in the cauldron,
 fills an empty cauldron with its bucket, makes a red leather chestplate and dyes blue boots
 red, a guard puts on a chestplate it is given and boots from a village chest, the
-weaponsmith forges two iron axes, grinds two worn iron pickaxes from a village chest into
+librarian enchants a book at a bare table and an iron pickaxe at level 30 for 10 bottles,
+the weaponsmith forges two iron axes, grinds two worn iron pickaxes from a village chest into
 one and disenchants a sword into bottles o' enchanting, the
 fisher fishes at a pond and rows out on a lake with its boat and takes it back, uses up a
 plain rod but gives back an enchanted one, the
 butcher slaughters cows down to the herd size, breeds a piglet and smokes chicken, a
 vanilla farmer is hired and stays at its composter and gets farmer trades, one that has
-traded keeps its trades and experience, a librarian is not hired, hired villagers do not trample farmland, the smith smelts raw iron, the kiln operator
+traded keeps its trades and experience, a cartographer is not hired, hired villagers do not trample farmland, the smith smelts raw iron, the kiln operator
 fires glass but leaves meat and raw iron alone and fires cobblestone twice for smooth stone,
 the pit digger digs a pit with a ladder down to its bottom without touching the ring, the
 shop assistant sells wheat to a farmer until its trade is sold out, ordinary villagers do

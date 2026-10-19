@@ -568,5 +568,21 @@
   "gui.workingvillagers.weaponsmith.grind.3": "Only the order",
   "gui.workingvillagers.weaponsmith.grind.tooltip": "What the weaponsmith does besides its order, first.",
   "gui.workingvillagers.weaponsmith.grind.tooltip2": "Grind together: two worn tools of a kind from the village chests or the input chests become one (not enchanted or renamed ones). Disenchant: everything enchanted in the input chests; the experience goes into bottles o' enchanting.",
-  "gui.workingvillagers.station.back.tooltip.grindstone": "Back to the grindstone"
+  "gui.workingvillagers.station.back.tooltip.grindstone": "Back to the grindstone",
+  "entity.workingvillagers.villager.librarian": "Librarian",
+  "status.workingvillagers.librarian.plan": "Looking for something to enchant",
+  "status.workingvillagers.librarian.fetch": "Fetching things to enchant",
+  "status.workingvillagers.librarian.enchant": "Enchanting",
+  "status.workingvillagers.librarian.no_items": "Waiting for something to enchant",
+  "status.workingvillagers.librarian.no_bottles": "Waiting for bottles o' enchanting (%s per piece)",
+  "status.workingvillagers.librarian.no_lapis": "Waiting for lapis lazuli (%s per piece)",
+  "status.workingvillagers.librarian.no_table": "No enchanting table near the lectern",
+  "status.workingvillagers.librarian.table_unreachable": "Cannot get to the enchanting table",
+  "gui.workingvillagers.librarian.level": "Level: %s",
+  "gui.workingvillagers.librarian.level.highest": "Level: highest (%s)",
+  "gui.workingvillagers.librarian.level.tooltip": "The level the librarian enchants at, like the offers of an enchanting table: the higher, the better the enchantments, and the more it costs.",
+  "gui.workingvillagers.librarian.level.tooltip2": "\"Highest\" is what the bookshelves around the table allow: 30 with 15 bookshelves.",
+  "gui.workingvillagers.librarian.hint": "%s bookshelves: up to level %s. Each piece costs %s bottles o' enchanting and %s lapis lazuli. It enchants what lies in its input chests, books too.",
+  "gui.workingvillagers.librarian.hint.no_table": "Place an enchanting table near the lectern (within 6 blocks), with bookshelves around it for higher levels.",
+  "gui.workingvillagers.librarian.today": "Enchanted today: %s"
 }

@@ -50,6 +50,7 @@ VANILLA_ITEMS = [
     "gravel:block", "copper_nugget", "iron_nugget", "spectral_arrow",
     "glass_bottle", "nether_wart", "blaze_powder", "glistering_melon_slice",
     "enchanted_book", "iron_hoe", "stone_sword",
+    "lapis_lazuli",
     "rabbit_hide", "rotten_flesh", "bundle", "saddle", "leather_chestplate", "leather_horse_armor", "red_dye", "water_bucket",
 ]
 MOD_ITEMS = ["work_contract", "wicker_basket"]
@@ -91,6 +92,7 @@ BLOCKS = {
     "target": "minecraft:block/target",
     "soul_sand": "minecraft:block/soul_sand",
     "grindstone": "minecraft:block/grindstone",
+    "enchanting_table": "minecraft:block/enchanting_table",
     "cartography_table": "minecraft:block/cartography_table",
     "smithing_table": "minecraft:block/smithing_table",
     "chopping_block": "workingvillagers:block/chopping_block",
@@ -112,7 +114,7 @@ BLOCKS = {
 
 LEATHER_TINT = (0xA0, 0x65, 0x40)
 
-PROFESSIONS = ["lumberjack", "woodcutter", "stonecutter", "carpenter", "carrier", "farmer", "smith", "pit_digger", "kiln_operator", "shop_assistant", "miner", "shepherd", "butcher", "fisher", "fletcher", "guard", "apothecary", "tanner", "weaponsmith"]
+PROFESSIONS = ["lumberjack", "woodcutter", "stonecutter", "carpenter", "carrier", "farmer", "smith", "pit_digger", "kiln_operator", "shop_assistant", "miner", "shepherd", "butcher", "fisher", "fletcher", "guard", "apothecary", "tanner", "weaponsmith", "librarian"]
 
 # Navigation icons (pixel SVGs) made from item textures.
 NAV_ICONS = ["spyglass", "emerald", "work_contract", "book", "writable_book", "map", "filled_map", "clock", "barrier", "oak_sapling"]

@@ -6,6 +6,7 @@ import me.teajay.workingvillagers.station.StationPicks;
 import me.teajay.workingvillagers.station.StationType;
 import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.block.LecternBlock;
 import net.minecraft.server.level.ServerPlayerGameMode;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -21,7 +22,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * While a player picks the containers of a new route or the chests of a workstation,
  * right-clicking a container selects it instead of opening it. Right-clicking a workstation
  * with emeralds puts them into its wage box instead of opening it. Blocks without a screen of
- * their own (the fletching table, the target, the cauldron) open their overview on a right-click with an
+ * their own (the fletching table, the target, the cauldron, a lectern without a book) open their overview on a right-click with an
  * empty hand.
  */
 @Mixin(ServerPlayerGameMode.class)
@@ -38,7 +39,9 @@ public class ServerPlayerGameModeMixin {
 		}
 		if (hand == InteractionHand.MAIN_HAND && stack.isEmpty() && !player.isSecondaryUseActive()) {
 			StationType type = StationType.of(level.getBlockState(hit.getBlockPos()));
-			if (type == StationType.FLETCHING_TABLE || type == StationType.TARGET || type == StationType.CAULDRON) {
+			// A lectern with a book opens the book, as in vanilla
+			boolean emptyLectern = type == StationType.LECTERN && !level.getBlockState(hit.getBlockPos()).getValue(LecternBlock.HAS_BOOK);
+			if (type == StationType.FLETCHING_TABLE || type == StationType.TARGET || type == StationType.CAULDRON || emptyLectern) {
 				player.openMenu(StationMenu.provider(type, level, hit.getBlockPos()));
 				cir.setReturnValue(InteractionResult.SUCCESS_SERVER);
 			}

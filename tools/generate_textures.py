@@ -567,6 +567,40 @@ def weaponsmith():
     return image
 
 
+def librarian():
+    """Villager profession overlay: a deep purple scholar's robe with a gold trim and small
+    gold stars, a lapis blue sash, round spectacles and a purple cap with a gold band."""
+    image = blank(64)
+    p = image.load()
+    purple, purple_dark, gold, lapis = (75, 40, 110, 255), (55, 28, 85, 255), (215, 175, 60, 255), (40, 70, 160, 255)
+    glass, frame = (190, 215, 230, 255), (60, 50, 40, 255)
+
+    def fill(x0, y0, x1, y1, color):
+        for y in range(y0, y1):
+            for x in range(x0, x1):
+                p[x, y] = color(x, y)
+
+    robe = lambda x, y: gold if (x * 5 + y * 3) % 17 == 0 else purple_dark if y % 6 == 5 else purple
+    fill(16, 20, 44, 38, robe)  # body
+    fill(23, 20, 25, 38, lambda x, y: gold)  # gold trim down the front
+    for y in range(22, 30):
+        p[19 + (y - 22) // 2, y] = lapis  # sash across the chest
+    fill(44, 22, 60, 34, robe)  # crossed arms
+    fill(44, 33, 60, 34, lambda x, y: gold)  # gold cuffs
+    fill(40, 38, 64, 46, robe)  # crossed arms, middle part
+    fill(6, 38, 14, 44, robe)  # robe top
+    fill(0, 44, 28, 64, robe)  # robe
+    fill(0, 63, 28, 64, lambda x, y: gold)  # gold hem
+    fill(8, 44, 10, 64, lambda x, y: gold)  # trim down the front of the robe
+    fill(0, 22, 16, 38, lambda x, y: purple_dark)  # legs
+    fill(40, 0, 48, 8, lambda x, y: purple)  # cap top
+    fill(32, 8, 64, 10, lambda x, y: gold if y == 9 else purple)  # cap sides with a gold band
+    # Round spectacles on the face (front of the head: x 8..16, y 8..16)
+    for x, color in ((9, frame), (10, glass), (11, frame), (12, frame), (13, frame), (14, glass), (15, frame)):
+        p[x, 12] = color
+    return image
+
+
 def apothecary():
     """Villager profession overlay: a cream long coat with a bottle green apron, a leather belt
     with three small potion vials (red, blue, green), and a round bottle green cap."""
@@ -1081,6 +1115,8 @@ def main():
         "entity/zombie_villager/profession/tanner.png": tanner(),
         "entity/villager/profession/weaponsmith.png": weaponsmith(),
         "entity/zombie_villager/profession/weaponsmith.png": weaponsmith(),
+        "entity/villager/profession/librarian.png": librarian(),
+        "entity/zombie_villager/profession/librarian.png": librarian(),
         "entity/villager/profession/apothecary.png": apothecary(),
         "entity/zombie_villager/profession/apothecary.png": apothecary(),
         "entity/villager/profession/fletcher.png": fletcher(),

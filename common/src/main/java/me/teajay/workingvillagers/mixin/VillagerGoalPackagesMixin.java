@@ -15,6 +15,7 @@ import me.teajay.workingvillagers.job.TanLeather;
 import me.teajay.workingvillagers.job.DigPit;
 import me.teajay.workingvillagers.job.DigTunnel;
 import me.teajay.workingvillagers.job.FarmFields;
+import me.teajay.workingvillagers.job.EnchantItems;
 import me.teajay.workingvillagers.job.FletchArrows;
 import me.teajay.workingvillagers.job.ForgeAtGrindstone;
 import me.teajay.workingvillagers.job.GoFishing;
@@ -95,6 +96,8 @@ public abstract class VillagerGoalPackagesMixin {
 			work = new TanLeather();
 		} else if (profession.is(WorkingVillagers.WEAPONSMITH_PROFESSION)) {
 			work = new ForgeAtGrindstone();
+		} else if (profession.is(WorkingVillagers.LIBRARIAN_PROFESSION)) {
+			work = new EnchantItems();
 		} else if (profession.is(WorkingVillagers.GUARD_PROFESSION)) {
 			work = new GuardPost();
 		} else if (profession.is(WorkingVillagers.KILN_OPERATOR_PROFESSION)) {

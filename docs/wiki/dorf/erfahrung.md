@@ -15,6 +15,7 @@ Pfeilmacher ──Pfeile──► Wachen jagen ──Erfahrung──► Fläschc
 Umgesetzt wie unten beschrieben, mit diesen Abweichungen und Einzelheiten:
 
 - **Zweite Quelle:** Der [Waffenschmied](../berufe/waffenschmied.md) entzaubert Beute aus seinen Eingangskisten am Schleifstein und füllt die Erfahrung ebenso in Fläschchen.
+- **Zweiter Verbraucher:** Der [Bibliothekar](../berufe/bibliothekar.md) verzaubert mit den Fläschchen am Zaubertisch (eins je 3 Stufen).
 
 - **Jagen:** Schalter „Nachts: Bewachen / Jagen“ an der Zielscheibe (gespeichert im Feld `strip` der Station). Die jagende Wache läuft zu zufälligen Punkten im Jagdradius (Config `guard.huntRadius`, 32) und schießt auf Monster bis 24 Blöcke um sich. Mit 8 Pfeilen oder weniger oder unter halber Gesundheit kehrt sie für den Rest der Nacht zum Posten zurück. Eine Fackel nimmt sie nicht mit.
 - **Erfahrung:** Ein Mixin auf `LivingEntity.die` erkennt Monster, die ein Pfeil einer Wache tötet; die Wache bekommt `getBaseExperienceReward` gutgeschrieben (am Dorfbewohner gespeichert), zählt die Tötung und merkt sich den Ort für die Beute. Kugeln fallen keine. Config `guard.experience` schaltet das ab.

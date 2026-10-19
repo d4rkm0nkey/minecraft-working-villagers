@@ -121,6 +121,11 @@ public final class Config {
 	public static final IntOption TANNER_WATER_RADIUS = intOption("tanner", "waterRadius", 16, 2, 32,
 		"How far from the cauldron (in blocks, sideways) the tanner fetches water with its bucket.");
 
+	public static final IntOption TABLE_RADIUS = intOption("librarian", "tableRadius", 6, 1, 16,
+		"How far from the lectern the librarian looks for an enchanting table.");
+	public static final IntOption LEVELS_PER_BOTTLE = intOption("librarian", "levelsPerBottle", 3, 1, 30,
+		"How many levels of an enchantment one bottle o' enchanting pays for (level 30: 10 bottles).");
+
 	public static final IntOption WATER_RADIUS = intOption("fisher", "waterRadius", 16, 4, 32,
 		"How far from the barrel (in blocks, sideways) the fisher looks for water to fish from the shore.");
 	public static final IntOption SEA_RADIUS = intOption("fisher", "seaRadius", 32, 8, 64,

@@ -80,6 +80,8 @@ public final class WorkingVillagers {
 	/** Works at the vanilla target, which no vanilla profession uses: guards the village at night. */
 	public static final ResourceKey<PoiType> GUARD_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("guard"));
 	public static final ResourceKey<VillagerProfession> GUARD_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("guard"));
+	/** Works at the vanilla lectern, the job site of the vanilla librarian: enchants at an enchanting table nearby. */
+	public static final ResourceKey<VillagerProfession> LIBRARIAN_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("librarian"));
 	/** Works at the vanilla grindstone, the job site of the vanilla weaponsmith. */
 	public static final ResourceKey<VillagerProfession> WEAPONSMITH_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("weaponsmith"));
 	/** Works at the vanilla cauldron, the job site of the vanilla leatherworker. */
@@ -135,6 +137,7 @@ public final class WorkingVillagers {
 	public static Supplier<MenuType<StationMenu>> BREWING_STAND_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> CAULDRON_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> GRINDSTONE_STATION_MENU;
+	public static Supplier<MenuType<StationMenu>> LECTERN_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> TARGET_STATION_MENU;
 	public static Supplier<MenuType<CutterMenu>> WOODCUTTER_MENU;
 	public static Supplier<RecipeType<WoodcuttingRecipe>> WOODCUTTING;
@@ -224,6 +227,7 @@ public final class WorkingVillagers {
 		registerApothecary(platform);
 		registerTanner(platform);
 		registerWeaponsmith(platform);
+		registerLibrarian(platform);
 		registerPitDigger(platform);
 		registerKilnOperator(platform);
 		registerShopAssistant(platform);
@@ -394,6 +398,16 @@ public final class WorkingVillagers {
 		TARGET_STATION_MENU = platform.registerMenu("target_station", (containerId, inventory) -> new StationMenu(StationType.TARGET, containerId, inventory));
 		platform.registerPoi("guard", () -> Blocks.TARGET, 1, 1);
 		registerProfession(platform, "guard", GUARD_POI, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_WEAPONSMITH);
+	}
+
+	/**
+	 * The librarian works at the vanilla lectern and enchants at an enchanting table nearby. A
+	 * right-click with an empty hand on a lectern without a book opens the overview. Ordinary
+	 * villagers still become (vanilla) librarians there.
+	 */
+	private static void registerLibrarian(Platform platform) {
+		LECTERN_STATION_MENU = platform.registerMenu("lectern_station", (containerId, inventory) -> new StationMenu(StationType.LECTERN, containerId, inventory));
+		registerProfession(platform, "librarian", PoiTypes.LIBRARIAN, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_LIBRARIAN, VillagerProfession.LIBRARIAN);
 	}
 
 	/**

@@ -15,6 +15,7 @@ import me.teajay.workingvillagers.crafting.KilnRecipes;
 import me.teajay.workingvillagers.crafting.StoneFamilies;
 import me.teajay.workingvillagers.crafting.WoodTypes;
 import me.teajay.workingvillagers.job.ChopTrees;
+import me.teajay.workingvillagers.job.EnchantItems;
 import me.teajay.workingvillagers.job.FletchArrows;
 import me.teajay.workingvillagers.job.TanLeather;
 import me.teajay.workingvillagers.job.GuardPost;
@@ -131,6 +132,9 @@ public class StationMenu extends AbstractContainerMenu {
 	/** Grindstone: the previous and next of what the weaponsmith does besides its order. */
 	public static final int GRIND_LESS_BUTTON = 327;
 	public static final int GRIND_MORE_BUTTON = 328;
+	/** Lectern: the level the librarian enchants at, lower and higher (0 is the highest the table offers). */
+	public static final int ENCHANT_LESS_BUTTON = 329;
+	public static final int ENCHANT_MORE_BUTTON = 330;
 	/** The steps of the side tunnel length the buttons go through. */
 	private static final int BRANCH_STEP = 4;
 	/**
@@ -191,6 +195,12 @@ public class StationMenu extends AbstractContainerMenu {
 	private static final String TAG_EXPERIENCE = "Experience";
 	private static final String TAG_DYE = "Dye";
 	private static final String TAG_GRIND = "Grind";
+	private static final String TAG_ENCHANT_LEVEL = "EnchantLevel";
+	private static final String TAG_BOOKSHELVES = "Bookshelves";
+	/** Lectern: the level it enchants at now, and what one piece costs. */
+	private static final String TAG_LEVEL_NOW = "LevelNow";
+	private static final String TAG_BOTTLES = "Bottles";
+	private static final String TAG_LAPIS = "Lapis";
 	private static final String TAG_TANNING = "Tanning";
 	private static final String TAG_TANNED_IN = "TannedIn";
 	private static final String TAG_SHEEP = "Sheep";
@@ -303,6 +313,7 @@ public class StationMenu extends AbstractContainerMenu {
 			case BREWING_STAND -> WorkingVillagers.BREWING_STAND_STATION_MENU;
 			case CAULDRON -> WorkingVillagers.CAULDRON_STATION_MENU;
 			case GRINDSTONE -> WorkingVillagers.GRINDSTONE_STATION_MENU;
+			case LECTERN -> WorkingVillagers.LECTERN_STATION_MENU;
 			case TARGET -> WorkingVillagers.TARGET_STATION_MENU;
 			case PIT_STAKE -> WorkingVillagers.PIT_STAKE_MENU;
 			case KILN -> WorkingVillagers.KILN_STATION_MENU;
@@ -352,7 +363,7 @@ public class StationMenu extends AbstractContainerMenu {
 						|| this.type == StationType.TRADING_COUNTER || this.type == StationType.MINING_BENCH || this.type == StationType.LOOM
 						|| this.type == StationType.SMOKER || this.type == StationType.BARREL || this.type == StationType.FLETCHING_TABLE
 						|| this.type == StationType.BREWING_STAND || this.type == StationType.CAULDRON
-						|| this.type == StationType.GRINDSTONE
+						|| this.type == StationType.GRINDSTONE || this.type == StationType.LECTERN
 						|| this.type == StationType.TARGET) {
 						tag.putInt(TAG_LOGS, ((HiredVillager) villager).workingvillagers$getWorkDone(
 							this.type == StationType.TARGET ? GuardPost.night(serverLevel) : ChopTrees.today(serverLevel)));
@@ -471,6 +482,17 @@ public class StationMenu extends AbstractContainerMenu {
 			}
 			if (this.type == StationType.GRINDSTONE) {
 				tag.putInt(TAG_GRIND, station.grindMode());
+			}
+			if (this.type == StationType.LECTERN) {
+				tag.putInt(TAG_ENCHANT_LEVEL, station.enchantLevel());
+				BlockPos table = EnchantItems.table(serverLevel, pos);
+				int shelves = table == null ? -1 : EnchantItems.bookshelves(serverLevel, table);
+				int highest = EnchantItems.highestLevel(Math.max(0, shelves));
+				int now = station.enchantLevel() == 0 ? highest : Math.min(station.enchantLevel(), highest);
+				tag.putInt(TAG_BOOKSHELVES, shelves);
+				tag.putInt(TAG_LEVEL_NOW, now);
+				tag.putInt(TAG_BOTTLES, EnchantItems.bottlesFor(now));
+				tag.putInt(TAG_LAPIS, EnchantItems.lapisFor(now));
 			}
 			if (this.type == StationType.KILN || this.type == StationType.FLETCHING_TABLE || this.type == StationType.CAULDRON
 				|| this.type == StationType.GRINDSTONE) {
@@ -705,6 +727,29 @@ public class StationMenu extends AbstractContainerMenu {
 		return this.info.info().getString(TAG_DYE).map(name -> DyeColor.byName(name, null)).orElse(null);
 	}
 
+	/** Lectern: the level the librarian enchants at, 0 for the highest the table offers. */
+	public int getEnchantLevel() {
+		return this.info.info().getIntOr(TAG_ENCHANT_LEVEL, 0);
+	}
+
+	/** Lectern: the level it enchants at now (the set one, at most what the table offers), and what a piece costs. */
+	public int getLevelNow() {
+		return this.info.info().getIntOr(TAG_LEVEL_NOW, 0);
+	}
+
+	public int getBottles() {
+		return this.info.info().getIntOr(TAG_BOTTLES, 0);
+	}
+
+	public int getLapis() {
+		return this.info.info().getIntOr(TAG_LAPIS, 0);
+	}
+
+	/** Lectern: the bookshelves around the enchanting table, -1 if there is no table. */
+	public int getBookshelves() {
+		return this.info.info().getIntOr(TAG_BOOKSHELVES, -1);
+	}
+
 	/** Grindstone: what the weaponsmith does besides its order, see {@link Workstations.Station#grindMode}. */
 	public int getGrindMode() {
 		return this.info.info().getIntOr(TAG_GRIND, Workstations.GRIND_BOTH);
@@ -904,6 +949,12 @@ public class StationMenu extends AbstractContainerMenu {
 			int now = station.dye() == null ? 0 : station.dye().ordinal() + 1;
 			int next = Math.floorMod(now + (buttonId == DYE_MORE_BUTTON ? 1 : -1), colors);
 			station.setDye(next == 0 ? null : DyeColor.values()[next - 1]);
+			return true;
+		}
+		if (this.type == StationType.LECTERN && (buttonId == ENCHANT_LESS_BUTTON || buttonId == ENCHANT_MORE_BUTTON)) {
+			// Round: highest (0), then 1 to 30
+			int next = Math.floorMod(station.enchantLevel() + (buttonId == ENCHANT_MORE_BUTTON ? 1 : -1), Workstations.MAX_ENCHANT_LEVEL + 1);
+			station.setEnchantLevel(next);
 			return true;
 		}
 		if (this.type == StationType.GRINDSTONE && (buttonId == GRIND_LESS_BUTTON || buttonId == GRIND_MORE_BUTTON)) {

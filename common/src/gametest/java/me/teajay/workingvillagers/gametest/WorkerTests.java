@@ -144,6 +144,8 @@ public final class WorkerTests {
 		registry.accept("apothecary_makes_bottles", WorkerTests::apothecaryMakesBottles);
 		registry.accept("tanner_makes_books", WorkerTests::tannerMakesBooks);
 		registry.accept("weaponsmith_forges_axes", WorkerTests::weaponsmithForgesAxes);
+		registry.accept("librarian_enchants_book", WorkerTests::librarianEnchantsBook);
+		registry.accept("librarian_enchants_at_level_30", WorkerTests::librarianEnchantsAtLevel30);
 		registry.accept("weaponsmith_grinds_worn_tools_together", WorkerTests::weaponsmithGrindsWornToolsTogether);
 		registry.accept("weaponsmith_disenchants", WorkerTests::weaponsmithDisenchants);
 		registry.accept("tanner_makes_leather_from_hides", WorkerTests::tannerMakesLeatherFromHides);
@@ -225,15 +227,15 @@ public final class WorkerTests {
 		helper.succeed();
 	}
 
-	/** Not hired: a farmer without a job site, a baby and a librarian (no job of this mod at a lectern). */
+	/** Not hired: a farmer without a job site, a baby and a cartographer (no job of this mod at a cartography table). */
 	private static void contractRejectsEmployed(GameTestHelper helper) {
 		Villager farmer = helper.spawn(EntityTypes.VILLAGER, WORKER);
 		farmer.setVillagerData(farmer.getVillagerData().withProfession(helper.getLevel().registryAccess(), VillagerProfession.FARMER));
 		Villager baby = helper.spawn(EntityTypes.VILLAGER, WORKER.east(2));
 		baby.setAge(-24000);
-		Villager librarian = vanillaWorker(helper, new BlockPos(9, 0, 2), Blocks.LECTERN, VillagerProfession.LIBRARIAN);
+		Villager cartographer = vanillaWorker(helper, new BlockPos(9, 0, 2), Blocks.CARTOGRAPHY_TABLE, VillagerProfession.CARTOGRAPHER);
 		Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-		for (Villager villager : new Villager[] {farmer, baby, librarian}) {
+		for (Villager villager : new Villager[] {farmer, baby, cartographer}) {
 			ItemStack contract = new ItemStack(WorkingVillagers.WORK_CONTRACT.get());
 			WorkContractItem.hire(villager, player, contract, InteractionHand.MAIN_HAND);
 			helper.assertFalse(((HiredVillager) villager).workingvillagers$isHired(), "Hired although it must not be: " + villager.getVillagerData().profession().getRegisteredName());
@@ -522,6 +524,52 @@ public final class WorkerTests {
 			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.DIAMOND)) == 3, "The smith used diamonds without bottles: " + TestWorld.describe(worker));
 			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.DIAMOND_PICKAXE) && stack.getDamageValue() == 500) == 1, "The pickaxe was repaired");
 			helper.succeed();
+		});
+	}
+
+	private static final BlockPos ENCHANTING_TABLE = new BlockPos(12, 0, 12);
+
+	/** A lectern with an enchanting table nearby, an input chest holding {@code material} and an output chest. */
+	private static Villager librarian(GameTestHelper helper, ItemStack... material) {
+		BlockPos lectern = STATION.below();
+		helper.setBlock(lectern, Blocks.LECTERN);
+		helper.setBlock(ENCHANTING_TABLE, Blocks.ENCHANTING_TABLE);
+		TestWorld.chest(helper, INPUT, material);
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, lectern, INPUT, ChestRole.INPUT);
+		TestWorld.link(helper, lectern, OUTPUT, ChestRole.OUTPUT);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, lectern);
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2));
+		return worker;
+	}
+
+	/** A bare table (level 8): a book, 3 bottles o' enchanting and a lapis lazuli make an enchanted book. */
+	private static void librarianEnchantsBook(GameTestHelper helper) {
+		Villager worker = librarian(helper, new ItemStack(Items.BOOK), new ItemStack(Items.EXPERIENCE_BOTTLE, 3), new ItemStack(Items.LAPIS_LAZULI));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.ENCHANTED_BOOK), 1, "an enchanted book in the output chest");
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.EXPERIENCE_BOTTLE)) == 0
+				&& worker.getInventory().countItem(Items.EXPERIENCE_BOTTLE) == 0, "The bottles were not used");
+		});
+	}
+
+	/** 15 bookshelves around the table: level 30, 10 bottles and 3 lapis lazuli for an iron pickaxe. */
+	private static void librarianEnchantsAtLevel30(GameTestHelper helper) {
+		for (int x = -2; x <= 2; x++) {
+			for (int z = -2; z <= 2; z++) {
+				// A ring two blocks off the table, open at the front to get in
+				if ((Math.abs(x) == 2 || Math.abs(z) == 2) && !(x == 0 && z == -2)) {
+					helper.setBlock(ENCHANTING_TABLE.offset(x, 0, z), Blocks.BOOKSHELF);
+				}
+			}
+		}
+		Villager worker = librarian(helper, new ItemStack(Items.IRON_PICKAXE), new ItemStack(Items.EXPERIENCE_BOTTLE, 12), new ItemStack(Items.LAPIS_LAZULI, 3));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.IRON_PICKAXE) && stack.isEnchanted(), 1, "an enchanted pickaxe in the output chest");
+			int left = TestWorld.count(helper, INPUT, stack -> stack.is(Items.EXPERIENCE_BOTTLE)) + worker.getInventory().countItem(Items.EXPERIENCE_BOTTLE)
+				+ TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.EXPERIENCE_BOTTLE));
+			helper.assertTrue(left == 2, "Bottles left: " + left + " (12 - 10 for level 30)");
 		});
 	}
 

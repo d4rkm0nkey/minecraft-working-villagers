@@ -31,10 +31,10 @@ Alle Berufe folgen dem [Kernloop](../grundlagen/kernloop.md) und den [Lohnstufen
 | [Pfeilmacher](pfeilmacher.md) | Bognertisch | Pfeile aus Feuerstein (aus Kies) oder Metall-Nuggets, Bögen, Spektralpfeile; versorgt die Wachen | nein | umgesetzt |
 | [Kartograf](kartograf.md) | Cartography Table | Gebiete und Dörfer erkunden | nein | später |
 | [Apotheker](apotheker.md) (Vanilla: Kleriker) | Braustand | Glasflaschen, Wasser, Tränke nach Rezeptweg brauen; Arbeiter heilen, Netherwarzen anbauen | nein | umgesetzt (ohne Zombie-Heilung) |
-| [Bibliothekar](bibliothekar.md) | Lectern | Lagerverwaltung, Inventarliste | nein | später |
+| [Bibliothekar](bibliothekar.md) | Lesepult (mit Zaubertisch) | Verzaubern mit Erfahrungsfläschchen und Lapis; später Lagerverwaltung | nein | umgesetzt (Verzaubern) |
 | [Wache](wache.md) | Zielscheibe | Nachtschicht: Monster mit Pfeil und Bogen abwehren, Fehlschüsse einsammeln | nein | umgesetzt |
 
-Umgesetzt sind: Holzfäller, Holzsäger, Steinsäger, Tischler, Bauer, Hirte, Metzger, Fischer, Pfeilmacher, Wache, Apotheker, Gerber, Waffenschmied, Schmied (Schmelzen und Reparieren), Grubenarbeiter, Minenarbeiter, Brenner, Handelsangestellter (Verkauf) und Träger. Damit läuft die Holzkette Holzfäller → Holzsäger → Tischler, verbunden durch Träger (siehe [Logistik](../grundlagen/logistik.md)), und Erz kommt aus der Mine zum Schmied.
+Umgesetzt sind: Holzfäller, Holzsäger, Steinsäger, Tischler, Bauer, Hirte, Metzger, Fischer, Pfeilmacher, Wache, Apotheker, Gerber, Waffenschmied, Bibliothekar, Schmied (Schmelzen und Reparieren), Grubenarbeiter, Minenarbeiter, Brenner, Handelsangestellter (Verkauf) und Träger. Damit läuft die Holzkette Holzfäller → Holzsäger → Tischler, verbunden durch Träger (siehe [Logistik](../grundlagen/logistik.md)), und Erz kommt aus der Mine zum Schmied.
 
 Als Nächstes stehen auf der [Roadmap](../planung/roadmap.md): Wirtschaft und Dorf (M2) und der [Crafter-Bediener](crafter-bediener.md) (M4). Mit ihm ist die Kette Erz → Barren → Crafter geschlossen.
 

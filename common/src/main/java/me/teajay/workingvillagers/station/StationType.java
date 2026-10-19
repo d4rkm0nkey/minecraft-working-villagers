@@ -68,7 +68,12 @@ public enum StationType {
 	 * The weaponsmith forges tools and weapons from its input chests, as ordered, grinds two
 	 * worn tools into one and disenchants what lies in its input chests.
 	 */
-	GRINDSTONE(true);
+	GRINDSTONE(true),
+	/**
+	 * The librarian enchants what lies in the input chests at an enchanting table near the
+	 * lectern, with bottles o' enchanting and lapis lazuli.
+	 */
+	LECTERN(true);
 
 	private final boolean processing;
 
@@ -103,7 +108,7 @@ public enum StationType {
 	 */
 	public boolean isVanilla() {
 		return this == STONECUTTER || this == COMPOSTER || this == BLAST_FURNACE || this == SMITHING_TABLE || this == LOOM || this == SMOKER || this == BARREL
-			|| this == FLETCHING_TABLE || this == BREWING_STAND || this == CAULDRON || this == GRINDSTONE;
+			|| this == FLETCHING_TABLE || this == BREWING_STAND || this == CAULDRON || this == GRINDSTONE || this == LECTERN;
 	}
 
 	/**
@@ -144,6 +149,7 @@ public enum StationType {
 			case BREWING_STAND -> WorkingVillagers.APOTHECARY_PROFESSION;
 			case CAULDRON -> WorkingVillagers.TANNER_PROFESSION;
 			case GRINDSTONE -> WorkingVillagers.WEAPONSMITH_PROFESSION;
+			case LECTERN -> WorkingVillagers.LIBRARIAN_PROFESSION;
 		};
 	}
 
@@ -168,6 +174,7 @@ public enum StationType {
 			case BREWING_STAND -> Blocks.BREWING_STAND.getName();
 			case CAULDRON -> Blocks.CAULDRON.getName();
 			case GRINDSTONE -> Blocks.GRINDSTONE.getName();
+			case LECTERN -> Blocks.LECTERN.getName();
 		};
 	}
 
@@ -192,6 +199,7 @@ public enum StationType {
 			case BREWING_STAND -> Blocks.BREWING_STAND;
 			case CAULDRON -> Blocks.CAULDRON;
 			case GRINDSTONE -> Blocks.GRINDSTONE;
+			case LECTERN -> Blocks.LECTERN;
 		};
 	}
 
@@ -232,6 +240,8 @@ public enum StationType {
 			return BREWING_STAND;
 		} else if (state.is(Blocks.GRINDSTONE)) {
 			return GRINDSTONE;
+		} else if (state.is(Blocks.LECTERN)) {
+			return LECTERN;
 		} else if (state.getBlock() instanceof AbstractCauldronBlock) {
 			// Filling or emptying it makes another block of it
 			return CAULDRON;

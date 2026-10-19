@@ -203,6 +203,8 @@ public class Workstations extends SavedData {
 	public static final int GRIND_DISENCHANT = 2;
 	public static final int GRIND_NONE = 3;
 	public static final int GRIND_MODES = 4;
+	/** Lectern: the highest level of an enchanting table (15 bookshelves). */
+	public static final int MAX_ENCHANT_LEVEL = 30;
 	public static final int MAX_HERD = 32;
 	public static final int MIN_GUARD_RADIUS = 8;
 	public static final int MAX_GUARD_RADIUS = 32;
@@ -230,15 +232,16 @@ public class Workstations extends SavedData {
 		 * The settings of a few kinds of station, in the same map as the other fields (the
 		 * codec of a record takes at most 16 fields).
 		 */
-		private record Settings(int herd, boolean boat, Optional<DyeColor> dye, int tanning, long tannedAt, int grind) {
-			static final Settings DEFAULT = new Settings(DEFAULT_HERD, true, Optional.empty(), 0, 0L, GRIND_BOTH);
+		private record Settings(int herd, boolean boat, Optional<DyeColor> dye, int tanning, long tannedAt, int grind, int enchantLevel) {
+			static final Settings DEFAULT = new Settings(DEFAULT_HERD, true, Optional.empty(), 0, 0L, GRIND_BOTH, 0);
 			static final MapCodec<Settings> MAP_CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
 				Codec.intRange(0, MAX_HERD).optionalFieldOf("herd", DEFAULT_HERD).forGetter(Settings::herd),
 				Codec.BOOL.optionalFieldOf("boat", true).forGetter(Settings::boat),
 				DyeColor.CODEC.optionalFieldOf("dye").forGetter(Settings::dye),
 				Codec.intRange(0, MAX_TANNING).optionalFieldOf("tanning", 0).forGetter(Settings::tanning),
 				Codec.LONG.optionalFieldOf("tanned_at", 0L).forGetter(Settings::tannedAt),
-				Codec.intRange(0, GRIND_MODES - 1).optionalFieldOf("grind", GRIND_BOTH).forGetter(Settings::grind)
+				Codec.intRange(0, GRIND_MODES - 1).optionalFieldOf("grind", GRIND_BOTH).forGetter(Settings::grind),
+				Codec.intRange(0, MAX_ENCHANT_LEVEL).optionalFieldOf("enchant_level", 0).forGetter(Settings::enchantLevel)
 			).apply(i, Settings::new));
 		}
 
@@ -276,6 +279,8 @@ public class Workstations extends SavedData {
 		private long tannedAt;
 		/** Grindstone: what the weaponsmith does besides its order, see {@link #grindMode}. */
 		private int grind;
+		/** Lectern: the level the librarian enchants at, 0 for the highest the bookshelves allow. */
+		private int enchantLevel;
 		private @Nullable Workstations owner;
 		/** The kind of station the settings belong to, unknown for entries saved before it was stored. */
 		private @Nullable StationType type;
@@ -291,6 +296,7 @@ public class Workstations extends SavedData {
 			this.tanning = settings.tanning();
 			this.tannedAt = settings.tannedAt();
 			this.grind = settings.grind();
+			this.enchantLevel = settings.enchantLevel();
 			this.pit = pit.orElse(null);
 			this.tunnel = tunnel.orElse(null);
 			this.depth = depth;
@@ -441,7 +447,20 @@ public class Workstations extends SavedData {
 		}
 
 		private Settings settings() {
-			return new Settings(this.herd, this.boat, Optional.ofNullable(this.dye), this.tanning, this.tannedAt, this.grind);
+			return new Settings(this.herd, this.boat, Optional.ofNullable(this.dye), this.tanning, this.tannedAt, this.grind, this.enchantLevel);
+		}
+
+		/** Lectern: the level the librarian enchants at, 0 for the highest the bookshelves allow. */
+		public int enchantLevel() {
+			return this.enchantLevel;
+		}
+
+		public void setEnchantLevel(int level) {
+			int clamped = Math.clamp(level, 0, MAX_ENCHANT_LEVEL);
+			if (this.enchantLevel != clamped) {
+				this.enchantLevel = clamped;
+				this.setDirty();
+			}
 		}
 
 		/**
@@ -720,7 +739,7 @@ public class Workstations extends SavedData {
 			return this.inputs.isEmpty() && this.outputs.isEmpty() && this.order == null && this.worker == null && this.woods.isEmpty() && this.stock == 0
 				&& !this.strip && this.pit == null && this.depth == Pit.DEFAULT_DEPTH && this.tunnel == null && this.wage == 0
 				&& this.herd == DEFAULT_HERD && this.boat && this.dye == null && this.tanning == 0
-				&& this.grind == GRIND_BOTH;
+				&& this.grind == GRIND_BOTH && this.enchantLevel == 0;
 		}
 
 		/**

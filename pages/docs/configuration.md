@@ -95,6 +95,15 @@ Its order and stock are set at the brewing stand.
 
 Its order, stock and color are set at the cauldron.
 
+## Librarian (`librarian`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `tableRadius` | 6 | 1–16 | How far from the lectern it looks for an enchanting table. |
+| `levelsPerBottle` | 3 | 1–30 | How many levels one bottle o' enchanting pays for (level 30: 10 bottles). |
+
+The level is set at the lectern.
+
 ## Weaponsmith
 
 The weaponsmith has no config options of its own; its order, stock and what it grinds are

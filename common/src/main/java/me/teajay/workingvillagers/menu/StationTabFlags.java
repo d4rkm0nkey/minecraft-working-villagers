@@ -1,6 +1,7 @@
 package me.teajay.workingvillagers.menu;
 
 import java.util.Optional;
+import me.teajay.workingvillagers.job.EnchantItems;
 import me.teajay.workingvillagers.station.StationType;
 import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.core.BlockPos;
@@ -66,6 +67,9 @@ public final class StationTabFlags {
 			case PIT_STAKE -> station.pit() == null;
 			case MINING_BENCH -> station.tunnel() == null;
 			case KILN -> false;
+			// The weaponsmith also grinds and disenchants without an order
+			case GRINDSTONE -> station.order() == null && station.grindMode() == Workstations.GRIND_NONE;
+			case LECTERN -> EnchantItems.table(level, pos) == null;
 			default -> type.hasOrder() && (station.order() == null || type.hasWoods() && station.shape() != null && station.woods().isEmpty());
 		};
 		return noOrder ? flags | ORDER_PROBLEM : flags;

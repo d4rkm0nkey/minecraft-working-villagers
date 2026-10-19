@@ -104,6 +104,18 @@ fletcher:
     Takes: ":mc-gravel: Gravel or nuggets, :mc-stick: sticks, :mc-feather: feathers"
     Makes: ":mc-arrow: Arrows, :mc-spectral_arrow: spectral arrows, :mc-bow: bows"
 
+librarian:
+  name: Librarian
+  page: workers/librarian.md
+  head: librarian
+  workstation: lectern
+  summary: Enchants tools, weapons, armor and books at an enchanting table, paid with bottles o' enchanting.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-lectern: Lectern, with an :mc-enchanting_table: enchanting table nearby"
+    Takes: ":mc-experience_bottle: Bottles o' enchanting, :mc-lapis_lazuli: lapis lazuli"
+    Makes: ":mc-enchanted_book: Enchanted books, tools, weapons and armor"
+
 weaponsmith:
   name: Weaponsmith
   page: workers/weaponsmith.md

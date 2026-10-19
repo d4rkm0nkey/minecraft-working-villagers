@@ -310,6 +310,9 @@ public class MenuScreenshots implements FabricClientGameTest {
 				station.setOrder(Items.ARROW);
 				station.setStock(64);
 			}
+			if (type == StationType.LECTERN) {
+				level.setBlockAndUpdate(pos.west(), net.minecraft.world.level.block.Blocks.ENCHANTING_TABLE.defaultBlockState());
+			}
 			if (type == StationType.GRINDSTONE) {
 				station.setOrder(Items.IRON_AXE);
 				station.setStock(4);

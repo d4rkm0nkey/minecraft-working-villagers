@@ -12,7 +12,7 @@ These rules apply to every worker.
 
 ## Hiring
 
-- **Lumberjack, sawyer, stone sawyer, carpenter, farmer, shepherd, butcher, fisher, fletcher, guard, apothecary, tanner, weaponsmith, smith, pit digger, kiln operator, shop assistant:** right-click an adult
+- **Lumberjack, sawyer, stone sawyer, carpenter, farmer, shepherd, butcher, fisher, fletcher, guard, apothecary, tanner, weaponsmith, librarian, smith, pit digger, kiln operator, shop assistant:** right-click an adult
   villager with a [work contract](../blocks-and-items.md#work-contract). An unemployed one
   then looks for a free workstation by itself.
 - **Carrier:** right-click an unemployed adult villager with a
@@ -33,17 +33,18 @@ mod there:
 | Cleric | :mc-brewing_stand: Brewing stand | [Apothecary](apothecary.md) |
 | Leatherworker | :mc-cauldron: Cauldron | [Tanner](tanner.md) |
 | Weaponsmith | :mc-grindstone: Grindstone | [Weaponsmith](weaponsmith.md) |
+| Librarian | :mc-lectern: Lectern | [Librarian](librarian.md) |
 | Armorer, toolsmith | :mc-blast_furnace: Blast furnace, :mc-smithing_table: smithing table | [Smith](smith.md) |
 
-Not hired are nitwits, babies and villagers whose job has no work in this mod yet (librarian,
-cartographer, ...). Hired villagers get no name, just like vanilla villagers. Use a
+Not hired are nitwits, babies and villagers whose job has no work in this mod yet (the
+cartographer). Hired villagers get no name, just like vanilla villagers. Use a
 name tag to tell them apart. (The config option `randomNames` gives them a random name
 like Anton or Berta.)
 
 ### Trading with workers
 
 The workers in the table above **trade like their vanilla counterparts**: the farmer like a
-farmer, the stone sawyer like a mason, the shepherd, the butcher, the fisher and the fletcher like theirs, the apothecary like a cleric, the tanner like a leatherworker, the weaponsmith like a weaponsmith, the smith
+farmer, the stone sawyer like a mason, the shepherd, the butcher, the fisher and the fletcher like theirs, the apothecary like a cleric, the tanner like a leatherworker, the weaponsmith like a weaponsmith, the librarian like a librarian, the smith
 like an armorer (at a blast furnace) or a toolsmith (at a smithing table). A villager you
 traded with **keeps its trades and its level** when you hire it. They level up by trading
 like vanilla villagers and restock their trades at their workstation during work hours.

@@ -78,7 +78,7 @@ the workers again.
 ### Bottles o' enchanting
 
 With :mc-experience_bottle: **bottles o' enchanting** (the [guards](guard.md#experience) and the [weaponsmith](weaponsmith.md#disenchanting)
-fill them) the smith repairs more:
+fill them, the [librarian](librarian.md) enchants with them) the smith repairs more:
 
 - **Things without a repair material** (bows, crossbows, fishing rods, shears): one bottle
   repairs a **tenth** of the durability. So the guards' bows and the fisher's enchanted rods

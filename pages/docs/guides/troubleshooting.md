@@ -34,6 +34,10 @@ the status does not help, go through this list.
 | *Waiting: needs a bow (give them one)* | Give the guard a bow. |
 | *Waiting: no order* | Pick a product at the fletching table (right-click it with an empty hand, tab **Order**). |
 | *Waiting for Feather* (or another material) | The fletcher's input chests lack it. Arrows need a head (flint, gravel, copper or iron), a stick and a feather. |
+| *No enchanting table near the lectern* | Place an enchanting table within 6 blocks of the librarian's lectern. |
+| *Waiting for bottles o' enchanting (10 per piece)* | The librarian pays with bottles o' enchanting: put some into its input chest or a village chest, or set a lower level at the lectern. |
+| *Waiting for lapis lazuli (3 per piece)* | Put lapis lazuli into its input chest or a village chest. |
+| *Waiting for something to enchant* | Its input chests hold nothing enchantable (enchanted things it leaves alone). |
 | *Waiting for Iron Ingot* (or Stick, ...) | The weaponsmith's input chests lack material for one piece of its order. |
 | *Waiting: no recipe for the order* (weaponsmith) | No crafting recipe makes the ordered tool (a data pack removed it). Pick another order. |
 | *Waiting for Leather* (or Paper, Red Dye, ...) | The tanner's input chests lack it. Leather can also be rabbit hide or rotten flesh; dyed armor needs the dye of the color set at the cauldron. |

@@ -568,5 +568,21 @@
   "gui.workingvillagers.weaponsmith.grind.3": "Nur der Auftrag",
   "gui.workingvillagers.weaponsmith.grind.tooltip": "Was der Waffenschmied außer seinem Auftrag macht, und zwar zuerst.",
   "gui.workingvillagers.weaponsmith.grind.tooltip2": "Zusammenschleifen: Zwei abgenutzte Werkzeuge einer Art aus den Dorftruhen oder Eingangskisten werden eins (keine verzauberten oder umbenannten). Entzaubern: alles Verzauberte aus den Eingangskisten; die Erfahrung kommt in Erfahrungsfläschchen.",
-  "gui.workingvillagers.station.back.tooltip.grindstone": "Zurück zum Schleifstein"
+  "gui.workingvillagers.station.back.tooltip.grindstone": "Zurück zum Schleifstein",
+  "entity.workingvillagers.villager.librarian": "Bibliothekar",
+  "status.workingvillagers.librarian.plan": "Sucht etwas zum Verzaubern",
+  "status.workingvillagers.librarian.fetch": "Holt etwas zum Verzaubern",
+  "status.workingvillagers.librarian.enchant": "Verzaubert",
+  "status.workingvillagers.librarian.no_items": "Wartet auf etwas zum Verzaubern",
+  "status.workingvillagers.librarian.no_bottles": "Wartet auf Erfahrungsfläschchen (%s pro Stück)",
+  "status.workingvillagers.librarian.no_lapis": "Wartet auf Lapislazuli (%s pro Stück)",
+  "status.workingvillagers.librarian.no_table": "Kein Zaubertisch beim Lesepult",
+  "status.workingvillagers.librarian.table_unreachable": "Kommt nicht an den Zaubertisch",
+  "gui.workingvillagers.librarian.level": "Stufe: %s",
+  "gui.workingvillagers.librarian.level.highest": "Stufe: höchste (%s)",
+  "gui.workingvillagers.librarian.level.tooltip": "Auf welcher Stufe der Bibliothekar verzaubert, wie die Angebote eines Zaubertischs: je höher, desto besser die Verzauberungen und desto teurer.",
+  "gui.workingvillagers.librarian.level.tooltip2": "„Höchste“ ist, was die Bücherregale um den Tisch erlauben: 30 mit 15 Regalen.",
+  "gui.workingvillagers.librarian.hint": "%s Bücherregale: bis Stufe %s. Jedes Stück kostet %s Erfahrungsfläschchen und %s Lapislazuli. Er verzaubert, was in seinen Eingangskisten liegt, auch Bücher.",
+  "gui.workingvillagers.librarian.hint.no_table": "Stell einen Zaubertisch in die Nähe des Lesepults (bis 6 Blöcke), mit Bücherregalen drumherum für höhere Stufen.",
+  "gui.workingvillagers.librarian.today": "Heute verzaubert: %s"
 }

@@ -501,6 +501,10 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			}
 			case CHOPPING_BLOCK -> this.extractStrip(graphics, mouseX, mouseY);
 			case BARREL -> this.extractBoat(graphics, mouseX, mouseY);
+			case LECTERN -> this.plusMinus(graphics, mouseX, mouseY, this.settingY(0), BIG, StationMenu.ENCHANT_LESS_BUTTON, StationMenu.ENCHANT_MORE_BUTTON, List.of(
+				Component.translatable("gui.workingvillagers.librarian.level.tooltip"),
+				Component.translatable("gui.workingvillagers.librarian.level.tooltip2").withStyle(ChatFormatting.GRAY)
+			));
 			case TARGET -> {
 				this.plusMinus(graphics, mouseX, mouseY, this.settingY(0), BIG, StationMenu.HERD_LESS_BUTTON, StationMenu.HERD_MORE_BUTTON, List.of(
 					Component.translatable("gui.workingvillagers.target.radius.tooltip"),
@@ -887,6 +891,16 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 				graphics.text(this.font, Component.translatable(this.isBench() ? "gui.workingvillagers.station.woods.bench" : "gui.workingvillagers.station.woods"),
 					8, this.woodsLabelY, GuiPanels.TEXT_COLOR, false);
 			}
+			case LECTERN -> {
+				Component level = this.menu.getEnchantLevel() == 0
+					? Component.translatable("gui.workingvillagers.librarian.level.highest", this.menu.getLevelNow())
+					: Component.translatable("gui.workingvillagers.librarian.level", this.menu.getEnchantLevel());
+				GuiPanels.scrollingText(graphics, this.font, level.getString(), 8, this.settingRowY(0) + textY, COLUMN_WIDTH - 2 * BIG - 6, GuiPanels.TEXT_COLOR);
+				this.hint(graphics, this.menu.getBookshelves() < 0
+					? Component.translatable("gui.workingvillagers.librarian.hint.no_table")
+					: Component.translatable("gui.workingvillagers.librarian.hint", this.menu.getBookshelves(), this.menu.getLevelNow(), this.menu.getBottles(),
+						this.menu.getLapis()), this.settingRowY(1));
+			}
 			case TARGET -> {
 				GuiPanels.scrollingText(graphics, this.font, Component.translatable("gui.workingvillagers.target.radius", this.menu.getHerd()).getString(),
 					8, this.settingRowY(0) + textY, COLUMN_WIDTH - 2 * BIG - 6, GuiPanels.TEXT_COLOR);
@@ -1088,6 +1102,9 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			return Optional.of(this.menu.getTannedIn() > 0
 				? Component.translatable("gui.workingvillagers.tanner.tanning", this.menu.getTanning(), minutes)
 				: Component.translatable("gui.workingvillagers.tanner.tanned", this.menu.getTanning()));
+		}
+		if (this.type() == StationType.LECTERN && this.menu.getLogsToday() >= 0) {
+			return Optional.of(Component.translatable("gui.workingvillagers.librarian.today", this.menu.getLogsToday()));
 		}
 		if ((this.type() == StationType.FLETCHING_TABLE || this.type() == StationType.BREWING_STAND || this.type() == StationType.CAULDRON
 			|| this.type() == StationType.GRINDSTONE)

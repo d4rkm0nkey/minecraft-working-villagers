@@ -107,6 +107,12 @@ to open its overview. No vanilla villager takes it as a job site.
 :mc-fletching_table: Workstation of the [fletcher](workers/fletcher.md). It has no screen in
 vanilla; right-click it with an empty hand to open its overview.
 
+## Lectern (vanilla)
+
+:mc-lectern: Workstation of the [librarian](workers/librarian.md), who enchants at an
+:mc-enchanting_table: enchanting table within 6 blocks. Right-click a lectern without a book
+with an empty hand to open its overview; with a book on it, it opens the book as usual.
+
 ## Grindstone (vanilla)
 
 :mc-grindstone: Workstation of the [weaponsmith](workers/weaponsmith.md). The [tabs](workers/basics.md#the-overview)
@@ -160,6 +166,7 @@ composts as usual.
 | :mc-head_fisher: Fisher | :mc-barrel: Barrel | :mc-work_contract: Work contract |
 | :mc-head_fletcher: Fletcher | :mc-fletching_table: Fletching table | :mc-work_contract: Work contract |
 | :mc-head_guard: Guard | :mc-target: Target | :mc-work_contract: Work contract |
+| :mc-head_librarian: Librarian | :mc-lectern: Lectern | :mc-work_contract: Work contract |
 | :mc-head_weaponsmith: Weaponsmith | :mc-grindstone: Grindstone | :mc-work_contract: Work contract |
 | :mc-head_tanner: Tanner | :mc-cauldron: Cauldron | :mc-work_contract: Work contract |
 | :mc-head_apothecary: Apothecary | :mc-brewing_stand: Brewing stand | :mc-work_contract: Work contract |
