@@ -1,6 +1,7 @@
 package me.teajay.workingvillagers.carrier;
 
 import me.teajay.workingvillagers.WorkingVillagers;
+import me.teajay.workingvillagers.job.ChopTrees;
 import me.teajay.workingvillagers.job.HiredVillager;
 import me.teajay.workingvillagers.job.WorkerJobs;
 import me.teajay.workingvillagers.job.WorkerNames;
@@ -48,6 +49,7 @@ public final class Carriers {
 		}
 
 		hired.workingvillagers$setEmployer(player.getUUID());
+		hired.workingvillagers$markHired(ChopTrees.today(level));
 		hired.workingvillagers$setCarrier(CarrierData.fromBasket(basket));
 		WorkerNames.ensureName(villager);
 		basket.consume(1, player);

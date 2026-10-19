@@ -181,10 +181,12 @@ public final class WorkerSupplies {
 		int wage = Config.DAILY_WAGE.get();
 		SimpleContainer inventory = villager.getInventory();
 		Workstations.Station box = wageBox(level, villager);
-		if (wage > 0 && !isPaid(level, villager) && isLateInWorkDay(level)) {
-			// Too little of the work hours left for a day's wage, e.g. hired in the afternoon:
-			// the rest of the day is free
-			((HiredVillager) villager).workingvillagers$setPaidDay(ChopTrees.today(level));
+		HiredVillager hired = (HiredVillager) villager;
+		if (wage > 0 && !isPaid(level, villager) && isLateInWorkDay(level) && hired.workingvillagers$getHiredDay() == ChopTrees.today(level)) {
+			// Hired in the afternoon, too little of the work hours is left for a day's wage: the
+			// rest of the day is free. Only on the day of the first hiring, so holding back the
+			// wage (or hiring again) gives no free work.
+			hired.workingvillagers$setPaidDay(ChopTrees.today(level));
 		}
 		if (wage > 0 && !isPaid(level, villager)) {
 			if (emeralds(level, villager) < wage) {
