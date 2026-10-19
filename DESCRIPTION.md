@@ -59,13 +59,14 @@ Hired villagers never take vanilla jobs and never quit by themselves. A worker t
 ## 🌾 Farmer, shepherd, butcher, fisher, fletcher, guard and smith
 
 - A hired villager at a vanilla **composter** becomes a farmer: it harvests the ripe crops around it, replants them and brings the harvest to a chest. It needs a hoe you give it, never tills, never tramples the fields and touches nothing but crops.
-- A hired villager at a vanilla **target** becomes a guard: at night it shoots the monsters around it with bow and arrows and picks up its arrows in the morning. Every shot costs an arrow, so the village needs a fletcher.
+- A hired villager at a vanilla **target** becomes a guard: at night it shoots the monsters around it with bow and arrows, or goes hunting, and picks up its arrows in the morning. Every shot costs an arrow, so the village needs a fletcher. Guards fight raids instead of hiding and ring the bell when they see a raider.
+- Guards fill the experience of their kills into **bottles o' enchanting**. The smith uses them to repair bows, fishing rods and enchanted gear.
 - A hired villager at a vanilla **fletching table** becomes a fletcher: it makes arrows, bows and crossbows and keeps a stock of them. It knaps the flint from gravel itself, or makes arrowheads from copper and iron nuggets.
 - A hired villager at a vanilla **barrel** becomes a fisher: it fishes at the water nearby, and with a boat it rows out onto a lake or the sea, fishes there (treasure included, like a player on open water) and rows back with its catch.
 - A hired villager at a vanilla **smoker** becomes a butcher: it keeps the cows, pigs, chickens and rabbits around it at the herd size you set, breeding below it and slaughtering above it (never named or leashed animals), and smokes the meat if you give it coal.
 - A hired villager at a vanilla **loom** becomes a shepherd: it shears the sheep around it, even over the fence of a pen without a gate, and breeds them with wheat up to the herd size you set. The wool goes to a chest.
 - A hired villager at a vanilla **blast furnace** becomes a smith: it loads the furnace with ore and fuel from its input chests and brings the ingots to its output chests.
-- At a vanilla **smithing table** the smith repairs instead: the worn tools the workers give back into the village chests, and anything damaged in its input chests, with ingots, diamonds or planks like at an anvil, but without experience costs.
+- At a vanilla **smithing table** the smith repairs instead: the worn tools the workers give back into the village chests, and anything damaged in its input chests, with ingots, diamonds or planks like at an anvil, but never "too expensive".
 - Right-click the composter with an empty hand, or use the tabs above the loom or blast furnace screen, to set them up. Ordinary villagers still become vanilla farmers, shepherds and armorers there, but not at one you have set up.
 
 ## ⛏️ Pit digger and kiln operator

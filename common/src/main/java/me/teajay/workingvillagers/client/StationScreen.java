@@ -481,11 +481,20 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			}
 			case CHOPPING_BLOCK -> this.extractStrip(graphics, mouseX, mouseY);
 			case BARREL -> this.extractBoat(graphics, mouseX, mouseY);
-			case TARGET -> this.plusMinus(graphics, mouseX, mouseY, this.settingY(0), BIG, StationMenu.HERD_LESS_BUTTON, StationMenu.HERD_MORE_BUTTON, List.of(
-				Component.translatable("gui.workingvillagers.target.radius.tooltip"),
-				Component.translatable("gui.workingvillagers.target.radius.tooltip2", Workstations.MIN_GUARD_RADIUS, Workstations.MAX_GUARD_RADIUS)
-					.withStyle(ChatFormatting.GRAY)
-			));
+			case TARGET -> {
+				this.plusMinus(graphics, mouseX, mouseY, this.settingY(0), BIG, StationMenu.HERD_LESS_BUTTON, StationMenu.HERD_MORE_BUTTON, List.of(
+					Component.translatable("gui.workingvillagers.target.radius.tooltip"),
+					Component.translatable("gui.workingvillagers.target.radius.tooltip2", Workstations.MIN_GUARD_RADIUS, Workstations.MAX_GUARD_RADIUS)
+						.withStyle(ChatFormatting.GRAY)
+				));
+				int width = this.toggleWidth("gui.workingvillagers.target.mode.watch", "gui.workingvillagers.target.mode.hunt");
+				this.button(graphics, mouseX, mouseY, this.leftPos + COLUMN_X + COLUMN_WIDTH - width, this.settingY(1), width, BIG,
+					Component.translatable(this.menu.getHunting() ? "gui.workingvillagers.target.mode.hunt" : "gui.workingvillagers.target.mode.watch").getString(),
+					StationMenu.HUNT_BUTTON, List.of(
+						Component.translatable("gui.workingvillagers.target.mode.tooltip"),
+						Component.translatable("gui.workingvillagers.station.click_toggle").withStyle(ChatFormatting.DARK_GRAY)
+					));
+			}
 			case PIT_STAKE -> this.extractPit(graphics, mouseX, mouseY);
 			case MINING_BENCH -> this.extractTunnel(graphics, mouseX, mouseY);
 			case LOOM, SMOKER -> this.plusMinus(graphics, mouseX, mouseY, this.settingY(0), BIG, StationMenu.HERD_LESS_BUTTON, StationMenu.HERD_MORE_BUTTON, List.of(
@@ -830,7 +839,11 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			case TARGET -> {
 				GuiPanels.scrollingText(graphics, this.font, Component.translatable("gui.workingvillagers.target.radius", this.menu.getHerd()).getString(),
 					8, this.settingRowY(0) + textY, COLUMN_WIDTH - 2 * BIG - 6, GuiPanels.TEXT_COLOR);
-				this.hint(graphics, Component.translatable("gui.workingvillagers.target.hint"), this.settingRowY(1));
+				int width = this.toggleWidth("gui.workingvillagers.target.mode.watch", "gui.workingvillagers.target.mode.hunt");
+				GuiPanels.scrollingText(graphics, this.font, Component.translatable("gui.workingvillagers.target.mode").getString(),
+					8, this.settingRowY(1) + textY, COLUMN_WIDTH - width - 4, GuiPanels.TEXT_COLOR);
+				this.hint(graphics, Component.translatable(this.menu.getHunting() ? "gui.workingvillagers.target.hint.hunt" : "gui.workingvillagers.target.hint"),
+					this.settingRowY(2));
 			}
 			case BARREL -> {
 				int width = this.toggleWidth("gui.workingvillagers.barrel.boat.on", "gui.workingvillagers.barrel.boat.off");
@@ -1009,7 +1022,13 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			if (this.menu.getWorker().isEmpty()) {
 				return Optional.of(Component.translatable("gui.workingvillagers.chopping_block.hire"));
 			}
-			return kills < 0 ? Optional.empty() : Optional.of(Component.translatable("gui.workingvillagers.target.kills", kills));
+			if (kills < 0) {
+				return Optional.empty();
+			}
+			int experience = this.menu.getExperience();
+			return Optional.of(experience > 0
+				? Component.translatable("gui.workingvillagers.target.kills_experience", kills, experience)
+				: Component.translatable("gui.workingvillagers.target.kills", kills));
 		}
 		if (this.type() == StationType.BARREL) {
 			int catches = this.menu.getLogsToday();

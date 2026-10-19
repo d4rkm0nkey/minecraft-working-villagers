@@ -20,7 +20,7 @@ public abstract class UpdateActivityFromScheduleMixin {
 	@Inject(method = "lambda$create$1", at = @At("HEAD"), cancellable = true)
 	private static void workingvillagers$guardSchedule(ServerLevel level, LivingEntity entity, long timestamp, CallbackInfoReturnable<Boolean> cir) {
 		if (entity instanceof Villager villager && GuardPost.isGuard(villager)) {
-			villager.getBrain().setActiveActivityIfPossible(GuardPost.activity(level));
+			villager.getBrain().setActiveActivityIfPossible(GuardPost.activity(level, villager));
 			cir.setReturnValue(true);
 		}
 	}

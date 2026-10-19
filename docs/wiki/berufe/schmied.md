@@ -19,12 +19,12 @@ Der Schmied schmilzt Erz zu Barren und repariert die Werkzeuge der anderen Anges
   - Eine Ausgangskiste braucht er nicht, nur eine Eingangskiste. Pro Material 2 Sekunden am Tisch; Material holt er höchstens 16 auf einmal.
   - Keine Emeralds als Bezahlung, kein Erfahrungs- oder Kostenzuwachs; Verzauberungen und Namen bleiben.
   - Status: „Holt Werkzeug zum Reparieren“, „Holt Material zum Reparieren“, „Repariert Werkzeug“, „Bringt repariertes Werkzeug zurück“, „Wartet auf Werkzeug zum Reparieren“, „Wartet auf Eisenbarren zum Reparieren“, „Wartet: kommt nicht an den Schmiedetisch“.
-  - Tests: eine abgenutzte Eisenaxt aus der Dorftruhe wird mit 4 Eisenbarren repariert und zurückgelegt; eine verzauberte, beschädigte Diamantspitzhacke aus der Eingangskiste mit 2 Diamanten, Stein bleibt liegen.
+  - Tests: eine abgenutzte Eisenaxt aus der Dorftruhe wird mit 4 Eisenbarren repariert und zurückgelegt; eine verzauberte, beschädigte Diamantspitzhacke aus der Eingangskiste mit 2 Diamanten und 2 Erfahrungsfläschchen, Stein bleibt liegen; ohne Fläschchen repariert er sie nicht; ein Bogen wird mit 8 Fläschchen repariert.
 - **Nicht umgesetzt:** Master-Fähigkeit.
 
-## Konzept: Reparatur mit Erfahrung
+## Reparatur mit Erfahrung (umgesetzt)
 
-Mit Erfahrungsfläschchen der [Wachen](wache.md) soll der Schmied auch reparieren, was kein Reparaturmaterial hat (Bögen, Angeln, Scheren), und für Verzaubertes Fläschchen verlangen. Siehe [Jagd und Erfahrung](../dorf/erfahrung.md).
+Mit Erfahrungsfläschchen der [Wachen](wache.md) repariert der Schmied auch, was kein Reparaturmaterial hat (Bögen, Angeln, Scheren: 10 % je Fläschchen), und verlangt für Verzaubertes ein Fläschchen je Schritt. Siehe [Jagd und Erfahrung](../dorf/erfahrung.md#stand-der-umsetzung).
 
 ## Modi
 

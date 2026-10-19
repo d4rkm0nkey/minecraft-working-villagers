@@ -1,6 +1,6 @@
 # Jagd und Erfahrung (Konzept)
 
-[← Wiki-Start](../README.md) · Phase: **Konzept** (Stand 18.10.2026) · baut auf [Wache](../berufe/wache.md), [Pfeilmacher](../berufe/pfeilmacher.md) und [Schmied](../berufe/schmied.md) auf
+[← Wiki-Start](../README.md) · Phase: **umgesetzt** (19.10.2026) · baut auf [Wache](../berufe/wache.md), [Pfeilmacher](../berufe/pfeilmacher.md) und [Schmied](../berufe/schmied.md) auf
 
 Wachen jagen nachts aktiv Monster. Die Erfahrung der erlegten Monster füllen sie in **Erfahrungsfläschchen**. Der Schmied braucht diese Fläschchen, um **verzauberte** Ausrüstung zu reparieren und Dinge, für die es kein Reparaturmaterial gibt (Bögen, Angeln, Scheren). So schließt sich ein zweiter Kreislauf:
 
@@ -9,6 +9,17 @@ Pfeilmacher ──Pfeile──► Wachen jagen ──Erfahrung──► Fläschc
      ▲                                                                                        │
      └────────────────────────────────── zurück an die Arbeiter ◄─────────────────────────────┘
 ```
+
+## Stand der Umsetzung
+
+Umgesetzt wie unten beschrieben, mit diesen Abweichungen und Einzelheiten:
+
+- **Jagen:** Schalter „Nachts: Bewachen / Jagen“ an der Zielscheibe (gespeichert im Feld `strip` der Station). Die jagende Wache läuft zu zufälligen Punkten im Jagdradius (Config `guard.huntRadius`, 32) und schießt auf Monster bis 24 Blöcke um sich. Mit 8 Pfeilen oder weniger oder unter halber Gesundheit kehrt sie für den Rest der Nacht zum Posten zurück. Eine Fackel nimmt sie nicht mit.
+- **Erfahrung:** Ein Mixin auf `LivingEntity.die` erkennt Monster, die ein Pfeil einer Wache tötet; die Wache bekommt `getBaseExperienceReward` gutgeschrieben (am Dorfbewohner gespeichert), zählt die Tötung und merkt sich den Ort für die Beute. Kugeln fallen keine. Config `guard.experience` schaltet das ab.
+- **Abfüllen:** am Ende der Morgenrunde, 7 Punkte pro Fläschchen (Config `guard.experiencePerBottle`), so viele wie Glasflaschen da sind, optional begrenzt (Config `guard.bottlesPerNight`, 0 = unbegrenzt). Glasflaschen sind ein Vorrat der Wache (bis 16): aus Eingangskisten, Dorftruhe oder vom Spieler. Die Fläschchen gehen mit der Beute in die Ausgangskiste.
+- **Schmied:** Was keine `repairable`-Komponente hat (Bogen, Armbrust, Angel, Schere, Dreizack …), repariert er mit Fläschchen allein, 10 % je Fläschchen (Config `smith.experienceRepairPercent`). Verzaubertes kostet je Schritt ein Fläschchen zusätzlich zum Material (Config `smith.enchantedNeedsExperience`); ohne Fläschchen wartet er („Wartet auf Erfahrungsfläschchen“). Die Fläschchen holt er aus Eingangskisten und Dorftruhen in Reichweite.
+- **Tests:** Die Wache bekommt die Erfahrung des erlegten Wüstenzombies; aus 20 Erfahrung und 3 Glasflaschen werden 2 Fläschchen in der Kiste, 6 Erfahrung bleiben; eine jagende Wache erlegt einen Wüstenzombie weit außerhalb ihres Wachradius; der Schmied repariert einen Bogen mit 8 Fläschchen, eine verzauberte Diamantspitzhacke mit 2 Diamanten und 2 Fläschchen, ohne Fläschchen gar nicht.
+- **Nicht umgesetzt:** Glasflaschen herstellen (vorerst der Spieler).
 
 ## Jagen statt Bewachen
 

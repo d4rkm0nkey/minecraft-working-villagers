@@ -307,6 +307,20 @@ up its arrows that missed and what the monsters it killed dropped, and brings th
 its output chest. It carries up to 64 arrows (`guard.keepArrows`) and fetches more from its
 input chests or a village chest. The menu shows the monsters of last night.
 
+At the target the guard can be set to **hunt**: at night it roams up to 32 blocks around
+(`guard.huntRadius`) looking for monsters and goes back to its post with 8 arrows or less or
+below half health. **Raids:** guards do not hide or flee; during a raid they work also in
+the daytime, guard at least 24 blocks, shoot raiders first and ring the closest bell (within
+48 blocks) when they see one, so the raiders glow. **Experience:** a guard gets the
+experience of the monsters its arrows kill (players only in vanilla, `guard.experience`) and
+fills it into bottles o' enchanting in the morning, 7 per bottle
+(`guard.experiencePerBottle`), using its glass bottles (it keeps 16).
+
+At a smithing table the smith repairs with these **bottles o' enchanting** what has no repair
+material (bows, fishing rods, shears: a tenth per bottle, `smith.experienceRepairPercent`),
+and enchanted items cost a bottle per step on top of the material
+(`smith.enchantedNeedsExperience`).
+
 ## Fletcher
 
 A hired villager at a vanilla **fletching table** becomes a **fletcher** (ordinary villagers
@@ -369,8 +383,9 @@ smith **repairs** instead; the tabs above the smithing screen open its overview.
 takes up to 4 items at a time: the worn tools the workers gave back into the village
 chests in reach of the table, and anything damaged in its input chests. It repairs them
 with the material of their `repairable` component from the input chests, a quarter of
-the durability per material like an anvil, without experience costs (enchantments and
-names stay), and puts them back where they came from.
+the durability per material like an anvil, never "too expensive" (enchantments and
+names stay; enchanted items cost a bottle o' enchanting per step, see the guard), and puts
+them back where they came from.
 
 ## Pit digger
 
@@ -530,8 +545,10 @@ emeralds, a station put where another kind stood starts fresh, the lumberjack fe
 sawyer only cuts allowed wood, the stone sawyer cuts bricks, the carpenter stops at its
 stock, the carrier empties its source, the farmer harvests and replants (also a raised
 bed), the shepherd shears sheep over the fence of a pen and breeds a lamb with wheat, the
-guard shoots a zombie at night without hitting the cow next to it and picks up its own
-arrows in the morning, the
+guard shoots a husk at night without hitting the cow next to it, gets its experience,
+picks up its own arrows in the morning and bottles 20 experience into 2 bottles, a hunting
+guard kills a husk far outside its radius, a guard works during a raid in the daytime, the
+smith repairs a bow with bottles and waits for bottles for an enchanted pickaxe, the
 fletcher makes 24 arrows from gravel and 36 from an iron ingot and stops at its stock, the
 fisher fishes at a pond and rows out on a lake with its boat and takes it back, uses up a
 plain rod but gives back an enchanted one, the

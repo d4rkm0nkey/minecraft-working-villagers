@@ -237,7 +237,9 @@ back ("Giving back a worn tool"):
 
 Then it works on with its spare tool, or waits for a new one ("needs an axe"). A
 [smith at a smithing table](smith.md#repairing-tools) repairs the worn tools in the
-village chests; or repair them yourself at an anvil and put them back. Workers
+village chests (bows, fishing rods and shears, which have no repair material, and enchanted
+tools with [bottles o' enchanting](smith.md#bottles-o-enchanting)); or repair them yourself
+at an anvil and put them back. Workers
 never take a worn tool, and you cannot give them one.
 
 **Wooden and stone tools**, **shears** and **fishing rods** are cheap: they are used until they break, unless

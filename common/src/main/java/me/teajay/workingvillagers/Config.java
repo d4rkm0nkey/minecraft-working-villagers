@@ -92,6 +92,19 @@ public final class Config {
 	public static final IntOption GUARD_RANGE = intOption("guard", "range", 24, 8, 48,
 		"How far a guard shoots.");
 
+	public static final IntOption HUNT_RADIUS = intOption("guard", "huntRadius", 32, 16, 64,
+		"How far from its target a hunting guard roams at night.");
+	public static final BoolOption GUARD_EXPERIENCE = boolOption("guard", "experience", true,
+		"Whether guards get the experience of the monsters they kill and bottle it (players only get it in vanilla).");
+	public static final IntOption EXPERIENCE_PER_BOTTLE = intOption("guard", "experiencePerBottle", 7, 1, 50,
+		"How much experience goes into one bottle o' enchanting (vanilla bottles give 3 to 11, 7 on average).");
+	public static final IntOption BOTTLES_PER_NIGHT = intOption("guard", "bottlesPerNight", 0, 0, 64,
+		"At most this many bottles a guard fills per morning, 0 for no limit.");
+	public static final BoolOption ENCHANTED_NEEDS_EXPERIENCE = boolOption("smith", "enchantedNeedsExperience", true,
+		"Whether the smith needs a bottle o' enchanting per repair step for enchanted items, like the experience an anvil costs.");
+	public static final IntOption EXPERIENCE_REPAIR_PERCENT = intOption("smith", "experienceRepairPercent", 10, 1, 100,
+		"How much of the durability one bottle o' enchanting repairs of an item without repair material (bow, fishing rod, shears).");
+
 	public static final IntOption WATER_RADIUS = intOption("fisher", "waterRadius", 16, 4, 32,
 		"How far from the barrel (in blocks, sideways) the fisher looks for water to fish from the shore.");
 	public static final IntOption SEA_RADIUS = intOption("fisher", "seaRadius", 32, 8, 64,

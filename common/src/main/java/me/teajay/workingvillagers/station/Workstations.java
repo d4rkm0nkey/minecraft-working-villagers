@@ -367,6 +367,18 @@ public class Workstations extends SavedData {
 			this.setHerd(Math.clamp(radius, MIN_GUARD_RADIUS, MAX_GUARD_RADIUS) / 2);
 		}
 
+		/**
+		 * Target: whether the guard hunts (roams around at night) instead of standing watch.
+		 * Kept in the strip field of the chopping block, which the target has no use for.
+		 */
+		public boolean hunting() {
+			return this.strip;
+		}
+
+		public void setHunting(boolean hunting) {
+			this.setStrip(hunting);
+		}
+
 		/** Barrel: whether the fisher rows out in a boat when there is open water nearby. */
 		public boolean boat() {
 			return this.boat;

@@ -67,6 +67,10 @@ default and its allowed range, so you can edit it with any text editor.
 | `keepArrows` | 64 | 8–256 | Arrows a guard carries. |
 | `secondsPerShot` | 1.5 | 0.25–10.0 | Time to draw the bow again. |
 | `range` | 24 | 8–48 | How far a guard shoots. |
+| `huntRadius` | 32 | 16–64 | How far from its target a hunting guard roams. |
+| `experience` | true | | Whether guards get the experience of their kills and bottle it. |
+| `experiencePerBottle` | 7 | 1–50 | Experience in one bottle o' enchanting. |
+| `bottlesPerNight` | 0 | 0–64 | At most this many bottles per morning, 0 for no limit. |
 
 The radius it guards is set at each target (tab **Settings**).
 
@@ -113,6 +117,8 @@ The herd size is no config option: set it at each loom (tab **Settings**).
 | --- | --- | --- | --- |
 | `batchSize` | 16 | 1–64 | Items to smelt fetched from an input chest at once. |
 | `fuelPerTrip` | 8 | 1–64 | Fuel fetched at once. |
+| `enchantedNeedsExperience` | true | | Whether repairing an enchanted item costs a bottle o' enchanting per step. |
+| `experienceRepairPercent` | 10 | 1–100 | How much one bottle repairs of an item without repair material (bow, fishing rod, shears). |
 
 ## Kiln operator (`kilnOperator`)
 

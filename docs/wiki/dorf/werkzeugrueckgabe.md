@@ -64,7 +64,7 @@ Das ändert die Werkzeugwahl der [Dorftruhen](dorftruhen.md#was-sich-ein-arbeite
 - Er holt bis zu 4 auf einmal, repariert sie am Schmiedetisch und legt sie in die Dorftruhe zurück, aus der er sie genommen hat (ist sie voll: die nächste Dorftruhe).
 - **Material** nach Vanilla-Regeln (`repairable`-Komponente): Eisenbarren für Eisen, Diamant für Diamant, Bruchstein für Stein, Bretter für Holz. Er nimmt es aus der Eingangskiste des Schmiedetischs.
 - **Menge:** ein Material repariert 25 % der Haltbarkeit, wie am Amboss. Er repariert bis voll, sofern Material reicht.
-- **Keine Erfahrungskosten** und keine „Zu teuer!“-Grenze. Verzauberungen bleiben erhalten.
+- Keine „Zu teuer!“-Grenze. Verzauberungen bleiben erhalten. Verzaubertes kostet seit der [Jagd und Erfahrung](erfahrung.md) ein Erfahrungsfläschchen je Schritt; Bögen, Angeln und Scheren repariert er mit Fläschchen allein.
 - Status: „Holt Werkzeug zum Reparieren“, „Repariert eine Axt“, „Wartet auf Eisenbarren“.
 
 ## Holz und Stein

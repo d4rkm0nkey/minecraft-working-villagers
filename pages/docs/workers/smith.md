@@ -71,9 +71,22 @@ It repairs:
 
 It takes up to **4** of them at a time, only those whose material is in an input chest,
 repairs them at the smithing table and puts them back into the chest they came from. One
-material repairs a quarter of the durability, like at an anvil, but it costs no
-experience and never gets "too expensive". Enchantments and names stay. Repaired tools in
-a village chest are taken by the workers again.
+material repairs a quarter of the durability, like at an anvil, and it never gets "too
+expensive". Enchantments and names stay. Repaired tools in a village chest are taken by
+the workers again.
+
+### Bottles o' enchanting
+
+With :mc-experience_bottle: **bottles o' enchanting** (the [guards](guard.md#experience)
+fill them) the smith repairs more:
+
+- **Things without a repair material** (bows, crossbows, fishing rods, shears): one bottle
+  repairs a **tenth** of the durability. So the guards' bows and the fisher's enchanted rods
+  come back.
+- **Enchanted items** cost a bottle per step on top of the material, as an anvil costs
+  experience. Without bottles it does not repair them ("Waiting for bottles o' enchanting").
+
+It takes the bottles from its input chests and the village chests within 48 blocks.
 
 Without material it waits ("Waiting for Iron Ingot to repair with"). An output chest is
 not needed; if the chest a tool came from is full, it puts it into another village chest

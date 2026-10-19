@@ -493,5 +493,15 @@
   "gui.workingvillagers.target.radius.tooltip": "Wie weit um die Zielscheibe die Wache auf Monster schießt",
   "gui.workingvillagers.target.radius.tooltip2": "Von %s bis %s Blöcke; sie schießt höchstens 24 Blöcke weit.",
   "gui.workingvillagers.target.hint": "Nachts steht die Wache an der Zielscheibe, wenn Platz ist oben drauf, und schießt auf Monster in der Nähe. Morgens sammelt sie ihre Fehlschüsse und die Beute der Monster ein.",
-  "gui.workingvillagers.fletcher.today": "Auftrag: %s, heute %s"
+  "gui.workingvillagers.fletcher.today": "Auftrag: %s, heute %s",
+  "status.workingvillagers.guard.hunt": "Jagt Monster",
+  "gui.workingvillagers.target.mode": "Nachts",
+  "gui.workingvillagers.target.mode.watch": "Bewachen",
+  "gui.workingvillagers.target.mode.hunt": "Jagen",
+  "gui.workingvillagers.target.mode.tooltip": "Bewachen: bleibt an der Zielscheibe. Jagen: zieht nachts umher und sucht Monster; mehr Erfahrung, mehr Pfeile, mehr Gefahr.",
+  "gui.workingvillagers.target.hint.hunt": "Nachts zieht die Wache bis 32 Blöcke um die Zielscheibe umher und jagt Monster. Mit wenig Pfeilen oder verwundet kehrt sie zum Posten zurück. Morgens sammelt sie Pfeile und Beute und füllt die Erfahrung ab.",
+  "gui.workingvillagers.target.kills_experience": "Monster letzte Nacht: %s, Erfahrung: %s",
+  "gui.workingvillagers.supplies.no_bottles": "Keine Glasflaschen",
+  "gui.workingvillagers.supplies.bottles": "Glasflaschen: %s",
+  "status.workingvillagers.smith.no_experience": "Wartet auf Erfahrungsfläschchen"
 }

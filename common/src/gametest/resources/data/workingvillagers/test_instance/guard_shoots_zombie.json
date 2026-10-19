@@ -1,6 +1,6 @@
 {
   "type": "minecraft:function",
-  "environment": "workingvillagers:night",
+  "environment": "workingvillagers:work_hours",
   "function": "workingvillagers:guard_shoots_zombie",
   "max_ticks": 3000,
   "setup_ticks": 1,

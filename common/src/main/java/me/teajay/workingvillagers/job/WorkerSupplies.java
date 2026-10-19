@@ -131,6 +131,8 @@ public final class WorkerSupplies {
 	public static final Stock BOAT = new Stock("boat", stack -> stack.is(ItemTags.BOATS), () -> 1, "", false);
 	/** The guard's arrows: without them it cannot do its work. */
 	public static final Stock ARROWS = new Stock("arrows", stack -> stack.is(Items.ARROW), Config.KEEP_ARROWS::get, "guard.no_arrows", true);
+	/** The guard's glass bottles, to bottle the experience of its kills. */
+	public static final Stock BOTTLES = new Stock("bottles", stack -> stack.is(Items.GLASS_BOTTLE), () -> 16, "", false);
 	public static final Stock LADDERS = new Stock("ladders", stack -> stack.is(Items.LADDER), Config.KEEP_LADDERS::get, "pit_digger.no_ladders", true);
 	public static final Stock TORCHES = new Stock("torches", WorkerSupplies::isTorch, Config.KEEP_TORCHES::get, "", false);
 	public static final Stock MINER_TORCHES = new Stock("torches", WorkerSupplies::isTorch, Config.MINER_KEEP_TORCHES::get, "", false);
@@ -478,7 +480,7 @@ public final class WorkerSupplies {
 			return List.of(BOAT);
 		}
 		if (profession.is(WorkingVillagers.GUARD_PROFESSION)) {
-			return List.of(ARROWS);
+			return Config.GUARD_EXPERIENCE.get() ? List.of(ARROWS, BOTTLES) : List.of(ARROWS);
 		}
 		if (profession.is(WorkingVillagers.PIT_DIGGER_PROFESSION)) {
 			return Config.KEEP_TORCHES.get() > 0 ? List.of(LADDERS, TORCHES) : List.of(LADDERS);

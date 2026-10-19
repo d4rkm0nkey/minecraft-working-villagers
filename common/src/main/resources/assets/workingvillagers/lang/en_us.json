@@ -493,5 +493,15 @@
   "gui.workingvillagers.target.radius.tooltip": "How far around the target the guard shoots at monsters",
   "gui.workingvillagers.target.radius.tooltip2": "From %s to %s blocks; it shoots at most 24 blocks far.",
   "gui.workingvillagers.target.hint": "At night the guard stands at the target, on top of it if there is room, and shoots the monsters around it. In the morning it picks up its arrows that missed and what the monsters dropped.",
-  "gui.workingvillagers.fletcher.today": "Order: %s, today %s"
+  "gui.workingvillagers.fletcher.today": "Order: %s, today %s",
+  "status.workingvillagers.guard.hunt": "Hunting monsters",
+  "gui.workingvillagers.target.mode": "At night",
+  "gui.workingvillagers.target.mode.watch": "Guard",
+  "gui.workingvillagers.target.mode.hunt": "Hunt",
+  "gui.workingvillagers.target.mode.tooltip": "Guard: stays at the target. Hunt: roams around at night looking for monsters; more experience, more arrows, more danger.",
+  "gui.workingvillagers.target.hint.hunt": "At night the guard roams up to 32 blocks around the target and hunts monsters. With few arrows or wounded it goes back to its post. In the morning it picks up arrows and loot and bottles the experience.",
+  "gui.workingvillagers.target.kills_experience": "Monsters last night: %s, experience: %s",
+  "gui.workingvillagers.supplies.no_bottles": "No glass bottles",
+  "gui.workingvillagers.supplies.bottles": "Glass bottles: %s",
+  "status.workingvillagers.smith.no_experience": "Waiting for bottles o' enchanting"
 }

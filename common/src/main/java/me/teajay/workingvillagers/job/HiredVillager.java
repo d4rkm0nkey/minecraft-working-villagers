@@ -49,6 +49,11 @@ public interface HiredVillager {
 	void workingvillagers$setProblem(boolean problem);
 
 	/** The last day the worker took its wage, -1 if never. */
+	/** A guard: the experience of the monsters it killed that it has not bottled yet. */
+	int workingvillagers$getExperience();
+
+	void workingvillagers$setExperience(int experience);
+
 	long workingvillagers$getPaidDay();
 
 	void workingvillagers$setPaidDay(long day);

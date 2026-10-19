@@ -1,6 +1,6 @@
 # Beruf: Wache
 
-[← Berufe](README.md) · Station: **Zielscheibe** (Vanilla) · Phase: **umgesetzt** (Bewachen mit Bogen; ohne Glocke, Rückzug und Pfeil-Anzeige in der Dorftruhe)
+[← Berufe](README.md) · Station: **Zielscheibe** (Vanilla) · Phase: **umgesetzt** (Bewachen, Jagen, Überfälle, Erfahrung; ohne Rückzug vor Monstern und Pfeil-Anzeige in der Dorftruhe)
 
 Die Wache schützt das Dorf nachts mit Pfeil und Bogen vor Monstern. Sie ist der Grund, warum das Dorf eine dauernde **Pfeilversorgung** braucht: Jeder Schuss kostet einen Pfeil, und ohne Pfeile ist die Wache wehrlos. Die Pfeile macht der [Pfeilmacher](pfeilmacher.md).
 
@@ -17,7 +17,10 @@ Vanilla-Dorfbewohner kämpfen nicht; die Wache ist eine bewusste Abweichung. Sie
 - **Menü:** „Monster letzte Nacht: x“ (gezählt pro Nacht von Dämmerung bis Dämmerung).
 - **Kleidung:** Kettenhemd unter blauem Wappenrock, Eisenhelm mit Nasenschutz.
 - **Tests:** Nachts erlegt die Wache einen Zombie, ohne die Kuh daneben zu treffen; morgens sammelt sie ihre drei Fehlschüsse ein, einen fremden Pfeil nicht.
-- **Nicht umgesetzt:** Glocke läuten, Zurückweichen, „Pfeile reichen für ~N Nächte“ in der Dorftruhe, Rüstung tragen, Armbrust, Jagen und Erfahrung ([Konzept](../dorf/erfahrung.md)).
+- **Überfälle:** Wachen machen beim Vanilla-Überfallverhalten nicht mit (Mixins auf `SetRaidStatus` und `ReactToBell`): Sie verstecken sich nicht und fliehen nicht. Läuft ein Überfall, wo die Wache ist, arbeitet sie auch tagsüber, bewacht mindestens 24 Blöcke um ihren Posten und schießt zuerst auf Plünderer. Sieht sie einen, läutet sie die nächste Glocke im Umkreis von 48 Blöcken (Vanilla-`attemptToRing`), höchstens alle 30 Sekunden: Die Plünderer leuchten, die Dorfbewohner verstecken sich. Vorher gab es hier eine Lücke: Vanilla schaltete die Wache bei Überfällen auf „Überfall“ oder „Verstecken“, ihr Tagesplan nachts zurück auf „Arbeit“, tagsüber versteckte sie sich.
+- **Jagen und Erfahrung:** siehe [Jagd und Erfahrung](../dorf/erfahrung.md#stand-der-umsetzung).
+- **Tests unabhängig von der Uhr:** Die Gametests laufen nebeneinander, und Fabric startet Testgruppen mit verschiedenen Uhrzeiten teils gleichzeitig. Die Wachen-Tests geben der Wache deshalb eine eigene Uhrzeit vor (`GuardPost.setTimeForTests`) und nehmen Wüstenzombies, die im Tageslicht nicht brennen. Der Überfall-Test prüft nur, dass die Wache bei einem Überfall am Tag arbeitet, und beendet ihn sofort, damit sich die Dorfbewohner der anderen Tests nicht verstecken.
+- **Nicht umgesetzt:** Zurückweichen vor nahen Monstern, „Pfeile reichen für ~N Nächte“ in der Dorftruhe, Rüstung tragen, Armbrust.
 
 ## Station: Zielscheibe
 

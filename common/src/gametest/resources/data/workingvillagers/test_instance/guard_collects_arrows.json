@@ -1,6 +1,6 @@
 {
   "type": "minecraft:function",
-  "environment": "workingvillagers:morning",
+  "environment": "workingvillagers:work_hours",
   "function": "workingvillagers:guard_collects_arrows",
   "max_ticks": 3000,
   "setup_ticks": 1,

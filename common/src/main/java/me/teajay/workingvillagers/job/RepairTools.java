@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import me.teajay.workingvillagers.Config;
 import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.station.StationType;
 import me.teajay.workingvillagers.station.Workstations;
@@ -30,6 +31,7 @@ import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Repairable;
 import org.jspecify.annotations.Nullable;
 
@@ -45,6 +47,13 @@ import org.jspecify.annotations.Nullable;
  * tools, diamonds for diamond tools, planks for wooden ones, ... One material repairs a
  * quarter of the durability, as at an anvil, but it costs no experience and does not get
  * more expensive; enchantments and names stay.
+ *
+ * <p>With bottles o' enchanting (the guards fill them, see {@link GuardPost}) it also repairs
+ * what has no repair material (bows, crossbows, fishing rods, shears): one bottle repairs
+ * {@link Config#EXPERIENCE_REPAIR_PERCENT} % of the durability. An enchanted item costs a
+ * bottle per step on top of the material ({@link Config#ENCHANTED_NEEDS_EXPERIENCE}), as an
+ * anvil costs experience. It takes the bottles from its input chests or the village chests in
+ * reach.
  *
  * <p>Without an input chest the smith does not work at the smithing table. If the chest the
  * tools came from is full by the time they are done, they go into another village chest, an
@@ -163,9 +172,30 @@ public class RepairTools extends Behavior<Villager> {
 		}
 	}
 
-	/** Whether the item can be repaired at all: damaged and with a material for it. */
+	/** Whether the item can be repaired at all: damaged, with a material for it or with bottles o' enchanting. */
 	static boolean isRepairable(ItemStack stack) {
-		return !stack.isEmpty() && stack.isDamageableItem() && stack.isDamaged() && stack.has(DataComponents.REPAIRABLE);
+		return !stack.isEmpty() && stack.isDamageableItem() && stack.isDamaged();
+	}
+
+	/** Items without a repair material (bow, fishing rod, shears) are repaired with bottles o' enchanting alone. */
+	static boolean usesExperience(ItemStack tool) {
+		return !tool.has(DataComponents.REPAIRABLE);
+	}
+
+	/** Whether a repair step costs a bottle o' enchanting. */
+	static boolean needsBottle(ItemStack tool) {
+		return usesExperience(tool) || tool.isEnchanted() && Config.ENCHANTED_NEEDS_EXPERIENCE.get();
+	}
+
+	static boolean isBottle(ItemStack stack) {
+		return stack.is(Items.EXPERIENCE_BOTTLE);
+	}
+
+	/** How much one step repairs: a quarter with material, a share with a bottle alone. */
+	private static int stepSize(ItemStack tool) {
+		return usesExperience(tool)
+			? Math.max(1, tool.getMaxDamage() * Config.EXPERIENCE_REPAIR_PERCENT.get() / 100)
+			: Math.max(1, tool.getMaxDamage() / 4);
 	}
 
 	/** Whether the material repairs the tool. */
@@ -174,15 +204,26 @@ public class RepairTools extends Behavior<Villager> {
 		return repairable != null && !material.isEmpty() && repairable.isValidRepairItem(material);
 	}
 
-	/** A tool (or armor) the smith carries to repair: everything with durability and a repair material. */
+	/** A tool (or armor) the smith carries to repair: everything with durability. */
 	private static boolean isCarriedTool(ItemStack stack) {
-		return !stack.isEmpty() && stack.isDamageableItem() && stack.has(DataComponents.REPAIRABLE);
+		return !stack.isEmpty() && stack.isDamageableItem();
 	}
 
-	/** How many materials repair the tool fully, a quarter of its durability each. */
+	/** How many steps repair the tool fully: materials, or bottles for an item without material. */
 	private static int materialsFor(ItemStack tool) {
-		int quarter = Math.max(1, tool.getMaxDamage() / 4);
-		return (tool.getDamageValue() + quarter - 1) / quarter;
+		int step = stepSize(tool);
+		return (tool.getDamageValue() + step - 1) / step;
+	}
+
+	/** How many bottles the carried tools still need. */
+	private static int bottlesNeeded(SimpleContainer inventory) {
+		int needed = 0;
+		for (ItemStack tool : stacks(inventory, RepairTools::isRepairable)) {
+			if (needsBottle(tool)) {
+				needed += materialsFor(tool);
+			}
+		}
+		return needed - WorkerSupplies.count(inventory, RepairTools::isBottle);
 	}
 
 	private static int materialCarried(SimpleContainer inventory) {
@@ -197,14 +238,18 @@ public class RepairTools extends Behavior<Villager> {
 				this.origin = this.closest(villager, station.validInputs(level).stream()).orElse(null);
 			}
 			List<ItemStack> damaged = carried.stream().filter(RepairTools::isRepairable).toList();
-			if (damaged.stream().anyMatch(tool -> inventory.hasAnyMatching(material -> repairs(tool, material)))) {
+			if (damaged.stream().anyMatch(tool -> canRepairNow(inventory, tool))) {
 				this.tableSpot = StandSpots.find(level, station.pos(), villager).orElse(null);
 				this.setState(State.WALK_TO_TABLE);
 				return;
 			}
+			boolean wantBottles = bottlesNeeded(inventory) > 0;
 			Optional<BlockPos> materialChest = materialCarried(inventory) >= MAX_MATERIAL ? Optional.empty()
-				: this.closest(villager, station.validInputs(level).stream()
-					.filter(pos -> damaged.stream().anyMatch(tool -> Chests.contains(level, pos, material -> repairs(tool, material)))));
+				: this.closest(villager, Stream.concat(station.validInputs(level).stream(), wantBottles ? this.bottleChests(level, station) : Stream.empty())
+					.distinct()
+					.filter(pos -> !this.unreachable.containsKey(pos))
+					.filter(pos -> damaged.stream().anyMatch(tool -> !usesExperience(tool) && Chests.contains(level, pos, material -> repairs(tool, material)))
+						|| wantBottles && Chests.contains(level, pos, RepairTools::isBottle)));
 			if (materialChest.isPresent()) {
 				this.startTrip(level, villager, materialChest.get(), false);
 				return;
@@ -235,6 +280,8 @@ public class RepairTools extends Behavior<Villager> {
 		}
 		if (lacking.isEmpty()) {
 			this.idle(villager, station, "smith.no_repairs");
+		} else if (usesExperience(lacking) || needsBottle(lacking) && hasMaterialOnly(level, station, inventory, lacking)) {
+			this.idle(villager, station, "smith.no_experience");
 		} else {
 			this.idle(villager, station, "smith.no_material", materialName(lacking));
 		}
@@ -263,9 +310,28 @@ public class RepairTools extends Behavior<Villager> {
 		return sources;
 	}
 
-	private static boolean hasMaterial(ServerLevel level, Workstations.Station station, SimpleContainer inventory, ItemStack tool) {
+	/** Material for the item, and a bottle if a step needs one, in the inventory or a chest the smith takes it from. */
+	private boolean hasMaterial(ServerLevel level, Workstations.Station station, SimpleContainer inventory, ItemStack tool) {
+		boolean bottle = !needsBottle(tool) || inventory.hasAnyMatching(RepairTools::isBottle)
+			|| this.bottleChests(level, station).anyMatch(pos -> Chests.contains(level, pos, RepairTools::isBottle));
+		return bottle && (usesExperience(tool) || hasMaterialOnly(level, station, inventory, tool));
+	}
+
+	private static boolean hasMaterialOnly(ServerLevel level, Workstations.Station station, SimpleContainer inventory, ItemStack tool) {
 		Predicate<ItemStack> material = stack -> repairs(tool, stack);
 		return inventory.hasAnyMatching(material) || station.validInputs(level).stream().anyMatch(pos -> Chests.contains(level, pos, material));
+	}
+
+	/** Where the smith takes bottles o' enchanting from: its input chests and the village chests in reach. */
+	private Stream<BlockPos> bottleChests(ServerLevel level, Workstations.Station station) {
+		return Stream.concat(station.validInputs(level).stream(), VillageChests.inReach(level, station.pos()).stream())
+			.filter(pos -> !this.unreachable.containsKey(pos));
+	}
+
+	/** Whether the carried tool can get a repair step from what the smith carries. */
+	private static boolean canRepairNow(SimpleContainer inventory, ItemStack tool) {
+		boolean bottle = !needsBottle(tool) || inventory.hasAnyMatching(RepairTools::isBottle);
+		return bottle && (usesExperience(tool) || inventory.hasAnyMatching(material -> repairs(tool, material)));
 	}
 
 	/** The name of the first material that repairs the item, e.g. "Iron Ingot". */
@@ -325,14 +391,21 @@ public class RepairTools extends Behavior<Villager> {
 		}
 	}
 
-	/** Material for the carried tools, as much as repairs them fully, at most {@link #MAX_MATERIAL}. */
+	/** Material and bottles for the carried tools, as much as repairs them fully, at most {@link #MAX_MATERIAL}. */
 	private void takeMaterial(SimpleContainer inventory, Container container) {
 		for (ItemStack tool : stacks(inventory, RepairTools::isRepairable)) {
+			if (usesExperience(tool)) {
+				continue;
+			}
 			int room = MAX_MATERIAL - materialCarried(inventory);
 			int missing = Math.min(room, materialsFor(tool) - WorkerSupplies.count(inventory, material -> repairs(tool, material)));
 			if (missing > 0) {
 				Chests.take(container, inventory, material -> repairs(tool, material), missing);
 			}
+		}
+		int bottles = Math.min(MAX_MATERIAL - materialCarried(inventory), bottlesNeeded(inventory));
+		if (bottles > 0) {
+			Chests.take(container, inventory, RepairTools::isBottle, bottles);
 		}
 		container.setChanged();
 	}
@@ -361,20 +434,33 @@ public class RepairTools extends Behavior<Villager> {
 		}
 		SimpleContainer inventory = villager.getInventory();
 		for (ItemStack tool : stacks(inventory, RepairTools::isRepairable)) {
-			for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
-				ItemStack material = inventory.getItem(slot);
-				if (repairs(tool, material)) {
-					material.shrink(1);
-					inventory.setItem(slot, material.isEmpty() ? ItemStack.EMPTY : material);
-					tool.setDamageValue(Math.max(0, tool.getDamageValue() - Math.max(1, tool.getMaxDamage() / 4)));
-					inventory.setChanged();
-					villager.swingForAttack(InteractionHand.MAIN_HAND);
-					level.playSound(null, station.pos(), SoundEvents.SMITHING_TABLE_USE, SoundSource.BLOCKS, 0.8F, 1.0F);
-					return;
-				}
+			if (!canRepairNow(inventory, tool)) {
+				continue;
 			}
+			if (!usesExperience(tool)) {
+				useUp(inventory, material -> repairs(tool, material));
+			}
+			if (needsBottle(tool)) {
+				useUp(inventory, RepairTools::isBottle);
+			}
+			tool.setDamageValue(Math.max(0, tool.getDamageValue() - stepSize(tool)));
+			inventory.setChanged();
+			villager.swingForAttack(InteractionHand.MAIN_HAND);
+			level.playSound(null, station.pos(), needsBottle(tool) ? SoundEvents.ENCHANTMENT_TABLE_USE : SoundEvents.SMITHING_TABLE_USE, SoundSource.BLOCKS, 0.8F, 1.0F);
+			return;
 		}
 		this.setState(State.PLAN);
+	}
+
+	private static void useUp(SimpleContainer inventory, Predicate<ItemStack> filter) {
+		for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+			ItemStack stack = inventory.getItem(slot);
+			if (!stack.isEmpty() && filter.test(stack)) {
+				stack.shrink(1);
+				inventory.setItem(slot, stack.isEmpty() ? ItemStack.EMPTY : stack);
+				return;
+			}
+		}
 	}
 
 	/** Puts the tools back into the chest they came from, or else into another one with room. */

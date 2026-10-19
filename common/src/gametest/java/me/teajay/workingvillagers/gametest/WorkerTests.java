@@ -10,6 +10,7 @@ import me.teajay.workingvillagers.carrier.CarrierData;
 import me.teajay.workingvillagers.carrier.Carriers;
 import me.teajay.workingvillagers.carrier.Route;
 import me.teajay.workingvillagers.item.WorkContractItem;
+import me.teajay.workingvillagers.job.GuardPost;
 import me.teajay.workingvillagers.job.HiredVillager;
 import me.teajay.workingvillagers.job.TendAnimals;
 import me.teajay.workingvillagers.job.TendSheep;
@@ -130,6 +131,11 @@ public final class WorkerTests {
 		registry.accept("fletcher_keeps_stock", WorkerTests::fletcherKeepsStock);
 		registry.accept("guard_shoots_zombie", WorkerTests::guardShootsZombie);
 		registry.accept("guard_collects_arrows", WorkerTests::guardCollectsArrows);
+		registry.accept("guard_bottles_experience", WorkerTests::guardBottlesExperience);
+		registry.accept("guard_hunts", WorkerTests::guardHunts);
+		registry.accept("guard_fights_raid_by_day", WorkerTests::guardFightsRaidByDay);
+		registry.accept("smith_repairs_bow_with_experience", WorkerTests::smithRepairsBowWithExperience);
+		registry.accept("smith_waits_for_experience", WorkerTests::smithWaitsForExperience);
 		registry.accept("fisher_gives_back_enchanted_rod", WorkerTests::fisherGivesBackEnchantedRod);
 		registry.accept("butcher_breeds_pigs", WorkerTests::butcherBreedsPigs);
 		registry.accept("butcher_smokes_meat", WorkerTests::butcherSmokesMeat);
@@ -363,7 +369,9 @@ public final class WorkerTests {
 		Villager guard = TestWorld.hireVillager(helper, WORKER);
 		TestWorld.assign(helper, guard, target);
 		TestWorld.give(helper, guard, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.BOW), new ItemStack(Items.ARROW, 32));
-		net.minecraft.world.entity.monster.zombie.Zombie zombie = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(18, 0, 18));
+		GuardPost.setTimeForTests(guard, 14000);
+		// A husk does not burn in the daylight of the other tests
+		net.minecraft.world.entity.monster.zombie.Husk zombie = helper.spawn(EntityTypes.HUSK, new BlockPos(18, 0, 18));
 		net.minecraft.world.entity.animal.cow.Cow cow = helper.spawn(EntityTypes.COW, new BlockPos(13, 0, 13));
 		cow.setNoAi(true);
 		helper.succeedWhen(() -> {
@@ -371,6 +379,7 @@ public final class WorkerTests {
 			helper.assertTrue(zombie.getLastHurtByMob() == guard, "Not the guard killed the zombie");
 			helper.assertTrue(guard.getInventory().countItem(Items.ARROW) < 32, "The guard used no arrows");
 			helper.assertTrue(cow.getHealth() == cow.getMaxHealth(), "The guard hit the cow");
+			helper.assertTrue(((HiredVillager) guard).workingvillagers$getExperience() >= 5, "The guard did not get the zombie's experience");
 		});
 	}
 
@@ -381,6 +390,7 @@ public final class WorkerTests {
 		Villager guard = TestWorld.hireVillager(helper, WORKER);
 		TestWorld.assign(helper, guard, target);
 		TestWorld.give(helper, guard, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.BOW), new ItemStack(Items.ARROW, 10));
+		GuardPost.setTimeForTests(guard, 200);
 		List<net.minecraft.world.entity.projectile.arrow.Arrow> missed = new java.util.ArrayList<>();
 		for (BlockPos pos : List.of(new BlockPos(14, 0, 14), new BlockPos(4, 0, 15), new BlockPos(15, 0, 3))) {
 			net.minecraft.world.entity.projectile.arrow.Arrow arrow = helper.spawn(EntityTypes.ARROW, pos);
@@ -394,6 +404,94 @@ public final class WorkerTests {
 			helper.assertTrue(missed.stream().noneMatch(arrow -> arrow.isAlive()), "Arrows left: " + TestWorld.describe(guard));
 			helper.assertTrue(guard.getInventory().countItem(Items.ARROW) == 13, "Arrows carried: " + guard.getInventory().countItem(Items.ARROW));
 			helper.assertTrue(other.isAlive(), "The guard picked up somebody else's arrow");
+		});
+	}
+
+	/**
+	 * A guard set to hunt shoots a zombie far outside its radius of 8 (the zombie stands
+	 * still); standing watch it would leave it alone.
+	 */
+	private static void guardHunts(GameTestHelper helper) {
+		BlockPos target = STATION.below();
+		helper.setBlock(target, Blocks.TARGET);
+		TestWorld.station(helper, target).setGuardRadius(8);
+		TestWorld.station(helper, target).setHunting(true);
+		Villager guard = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, guard, target);
+		TestWorld.give(helper, guard, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.BOW), new ItemStack(Items.ARROW, 32));
+		GuardPost.setTimeForTests(guard, 14000);
+		net.minecraft.world.entity.monster.zombie.Husk zombie = helper.spawn(EntityTypes.HUSK, new BlockPos(22, 0, 22));
+		zombie.setNoAi(true);
+		helper.succeedWhen(() -> helper.assertTrue(!zombie.isAlive() && zombie.getLastHurtByMob() == guard, "The hunting guard did not kill the zombie: "
+			+ TestWorld.describe(guard)));
+	}
+
+	/**
+	 * A raid in the daytime, when guards sleep: the guard works anyway. The raid ends right
+	 * away again, the other tests run side by side and their villagers would hide.
+	 */
+	@SuppressWarnings("removal")
+	private static void guardFightsRaidByDay(GameTestHelper helper) {
+		BlockPos target = STATION.below();
+		helper.setBlock(target, Blocks.TARGET);
+		helper.setBlock(new BlockPos(4, 0, 4), Blocks.BELL);
+		Villager guard = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, guard, target);
+		GuardPost.setTimeForTests(guard, 6000);
+		helper.assertTrue(GuardPost.activity(helper.getLevel(), guard) == net.minecraft.world.entity.schedule.Activity.REST, "At noon a guard sleeps");
+		net.minecraft.server.level.ServerPlayer player = helper.makeMockServerPlayerInLevel();
+		player.setPos(helper.absoluteVec(new net.minecraft.world.phys.Vec3(8, 0, 4)));
+		net.minecraft.world.entity.raid.Raid raid = helper.getLevel().getRaids().createOrExtendRaid(player, helper.absolutePos(target));
+		helper.assertTrue(raid != null, "No raid started");
+		boolean works = GuardPost.activity(helper.getLevel(), guard) == net.minecraft.world.entity.schedule.Activity.WORK;
+		raid.stop();
+		helper.assertTrue(works, "The guard does not work in a raid");
+		helper.succeed();
+	}
+
+	/** In the morning a guard fills the experience of its kills into its glass bottles and brings them to its output chest. */
+	private static void guardBottlesExperience(GameTestHelper helper) {
+		BlockPos target = STATION.below();
+		helper.setBlock(target, Blocks.TARGET);
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, target, OUTPUT, ChestRole.OUTPUT);
+		Villager guard = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, guard, target);
+		TestWorld.give(helper, guard, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.BOW), new ItemStack(Items.ARROW, 10), new ItemStack(Items.GLASS_BOTTLE, 3));
+		((HiredVillager) guard).workingvillagers$setExperience(20);
+		GuardPost.setTimeForTests(guard, 200);
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, guard, OUTPUT, stack -> stack.is(Items.EXPERIENCE_BOTTLE), 2, "2 bottles o' enchanting in the output chest");
+			helper.assertTrue(((HiredVillager) guard).workingvillagers$getExperience() == 6, "Experience left: " + ((HiredVillager) guard).workingvillagers$getExperience());
+			helper.assertTrue(guard.getInventory().countItem(Items.GLASS_BOTTLE) == 1, "The guard did not keep its last glass bottle");
+		});
+	}
+
+	/** A bow has no repair material: the smith repairs it with bottles o' enchanting, a tenth of the durability each. */
+	private static void smithRepairsBowWithExperience(GameTestHelper helper) {
+		helper.setBlock(STATION, Blocks.SMITHING_TABLE);
+		ItemStack bow = new ItemStack(Items.BOW);
+		bow.setDamageValue(300);
+		Villager worker = processingStation(helper, bow, new ItemStack(Items.EXPERIENCE_BOTTLE, 10));
+		helper.succeedWhen(() -> {
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.BOW) && !stack.isDamaged()) == 1,
+				"The bow is not repaired in the input chest: " + TestWorld.describe(worker));
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.EXPERIENCE_BOTTLE)) == 2, "The smith did not use 8 bottles");
+		});
+	}
+
+	/** An enchanted pickaxe and diamonds, but no bottles o' enchanting: the smith does not repair it. */
+	private static void smithWaitsForExperience(GameTestHelper helper) {
+		helper.setBlock(STATION, Blocks.SMITHING_TABLE);
+		ItemStack pickaxe = new ItemStack(Items.DIAMOND_PICKAXE);
+		pickaxe.setDamageValue(500);
+		pickaxe.enchant(helper.getLevel().registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
+			.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.EFFICIENCY), 3);
+		Villager worker = processingStation(helper, pickaxe, new ItemStack(Items.DIAMOND, 3));
+		helper.runAfterDelay(800, () -> {
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.DIAMOND)) == 3, "The smith used diamonds without bottles: " + TestWorld.describe(worker));
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.DIAMOND_PICKAXE) && stack.getDamageValue() == 500) == 1, "The pickaxe was repaired");
+			helper.succeed();
 		});
 	}
 
@@ -699,11 +797,12 @@ public final class WorkerTests {
 		pickaxe.setDamageValue(500);
 		pickaxe.enchant(helper.getLevel().registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
 			.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.EFFICIENCY), 3);
-		Villager worker = processingStation(helper, pickaxe, new ItemStack(Items.DIAMOND, 3), new ItemStack(Items.STONE, 4));
+		Villager worker = processingStation(helper, pickaxe, new ItemStack(Items.DIAMOND, 3), new ItemStack(Items.STONE, 4), new ItemStack(Items.EXPERIENCE_BOTTLE, 3));
 		helper.succeedWhen(() -> {
 			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.DIAMOND_PICKAXE) && !stack.isDamaged() && stack.isEnchanted()) == 1,
 				"The pickaxe is not repaired in the input chest: " + TestWorld.describe(worker));
 			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.DIAMOND)) == 1, "The smith did not use 2 diamonds");
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.EXPERIENCE_BOTTLE)) == 1, "The smith did not use 2 bottles o' enchanting");
 			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.STONE)) == 4, "The smith took the stone");
 		});
 	}

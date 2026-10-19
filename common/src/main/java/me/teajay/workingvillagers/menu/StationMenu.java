@@ -120,6 +120,8 @@ public class StationMenu extends AbstractContainerMenu {
 	public static final int HERD_MORE_BUTTON = 322;
 	/** Barrel: turns rowing out in a boat on or off. */
 	public static final int BOAT_BUTTON = 323;
+	/** Target: switches between standing watch and hunting. */
+	public static final int HUNT_BUTTON = 324;
 	/** The steps of the side tunnel length the buttons go through. */
 	private static final int BRANCH_STEP = 4;
 	/**
@@ -176,6 +178,8 @@ public class StationMenu extends AbstractContainerMenu {
 	private static final String TAG_HERD = "Herd";
 	private static final String TAG_TAB_FLAGS = "TabFlags";
 	private static final String TAG_BOAT = "Boat";
+	private static final String TAG_HUNT = "Hunt";
+	private static final String TAG_EXPERIENCE = "Experience";
 	private static final String TAG_SHEEP = "Sheep";
 
 	/** Wage tab: the slot of the wage box, and the top left of the player's inventory. */
@@ -363,6 +367,10 @@ public class StationMenu extends AbstractContainerMenu {
 			}
 			if (this.type == StationType.TARGET) {
 				tag.putInt(TAG_HERD, station.guardRadius());
+				tag.putBoolean(TAG_HUNT, station.hunting());
+				if (station.worker() != null && serverLevel.getEntity(station.worker()) instanceof HiredVillager guard) {
+					tag.putInt(TAG_EXPERIENCE, guard.workingvillagers$getExperience());
+				}
 			}
 			tag.putInt(TAG_TAB_FLAGS, StationTabFlags.compute(serverLevel, pos, this.type));
 			if (this.type == StationType.LOOM || this.type == StationType.SMOKER) {
@@ -651,6 +659,16 @@ public class StationMenu extends AbstractContainerMenu {
 		return this.info.info().getIntOr(TAG_SHEEP, 0);
 	}
 
+	/** Target: whether the guard hunts instead of standing watch. */
+	public boolean getHunting() {
+		return this.info.info().getBooleanOr(TAG_HUNT, false);
+	}
+
+	/** Target: the experience the guard has not bottled yet, -1 if unknown. */
+	public int getExperience() {
+		return this.info.info().getIntOr(TAG_EXPERIENCE, -1);
+	}
+
 	/** Barrel: whether the fisher rows out in a boat. */
 	public boolean getBoat() {
 		return this.info.info().getBooleanOr(TAG_BOAT, true);
@@ -771,6 +789,10 @@ public class StationMenu extends AbstractContainerMenu {
 		}
 		if (this.type == StationType.BARREL && buttonId == BOAT_BUTTON) {
 			station.setBoat(!station.boat());
+			return true;
+		}
+		if (this.type == StationType.TARGET && buttonId == HUNT_BUTTON) {
+			station.setHunting(!station.hunting());
 			return true;
 		}
 		if (this.type == StationType.TARGET && (buttonId == HERD_LESS_BUTTON || buttonId == HERD_MORE_BUTTON)) {
