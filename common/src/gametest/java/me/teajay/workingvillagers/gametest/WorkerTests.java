@@ -97,6 +97,8 @@ public final class WorkerTests {
 		registry.accept("lumberjack_fells_tree", WorkerTests::lumberjackFellsTree);
 		registry.accept("lumberjack_fells_tree_on_mud", WorkerTests::lumberjackFellsTreeOnMud);
 		registry.accept("lumberjack_fells_tree_on_grass", WorkerTests::lumberjackFellsTreeOnGrass);
+		registry.accept("lumberjack_hired_late_works_for_free", WorkerTests::lumberjackHiredLateWorksForFree);
+		registry.accept("lumberjack_stands_at_trunk_on_path", WorkerTests::lumberjackStandsAtTrunkOnPath);
 		registry.accept("lumberjack_spares_builds", WorkerTests::lumberjackSparesBuilds);
 		registry.accept("no_wage_no_work", WorkerTests::noWageNoWork);
 		registry.accept("stuck_worker_is_brought_back", WorkerTests::stuckWorkerIsBroughtBack);
@@ -961,6 +963,45 @@ public final class WorkerTests {
 				"The wage was not taken from the wage box: " + TestWorld.station(helper, STATION).wage());
 			helper.assertTrue(TestWorld.count(helper, OUTPUT, WorkerSupplies::isWage) == 0, "The lumberjack delivered its emeralds");
 			helper.assertBlockPresent(Blocks.OAK_SAPLING, tree);
+		});
+	}
+
+	/** Hired late in the afternoon, the lumberjack works the rest of the day without a wage. */
+	private static void lumberjackHiredLateWorksForFree(GameTestHelper helper) {
+		BlockPos tree = new BlockPos(15, 1, 15);
+		TestWorld.oakTree(helper, tree, 5, true, Blocks.DIRT);
+		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_AXE));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_LOG), 5, "oak logs in the output chest");
+			int left = TestWorld.station(helper, STATION).wage() + WorkerSupplies.count(worker.getInventory(), WorkerSupplies::isWage);
+			helper.assertTrue(left == 2, "The lumberjack took a wage late in the day: " + left + " of 2 emeralds left");
+		});
+	}
+
+	/**
+	 * A tree on a dirt path, which is not a full block: the lumberjack still finds a spot
+	 * right next to the trunk instead of chopping from a few blocks away.
+	 */
+	private static void lumberjackStandsAtTrunkOnPath(GameTestHelper helper) {
+		BlockPos tree = new BlockPos(15, 1, 15);
+		for (int x = 12; x <= 18; x++) {
+			for (int z = 12; z <= 18; z++) {
+				helper.setBlock(new BlockPos(x, 0, z), Blocks.DIRT_PATH);
+			}
+		}
+		TestWorld.oakTree(helper, tree, 5, true, Blocks.DIRT);
+		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_AXE));
+		BlockPos top = tree.above(4);
+		double[] distance = {-1};
+		helper.onEachTick(() -> {
+			if (distance[0] < 0 && !helper.getBlockState(top).is(Blocks.OAK_LOG)) {
+				// the tree comes down from the top: where the lumberjack stood while chopping
+				distance[0] = Math.sqrt(helper.absolutePos(tree).distToCenterSqr(worker.getX(), helper.absolutePos(tree).getY() + 0.5, worker.getZ()));
+			}
+		});
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_LOG), 5, "oak logs in the output chest");
+			helper.assertTrue(distance[0] >= 0 && distance[0] < 1.6, "The lumberjack chopped from " + distance[0] + " blocks away");
 		});
 	}
 
