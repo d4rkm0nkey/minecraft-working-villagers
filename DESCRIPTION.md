@@ -53,7 +53,7 @@ Hired villagers never take vanilla jobs and never quit by themselves. A worker t
 
 ## 🔨 Carpenter
 
-- The **carpenter's bench** is a crafting table for wooden things only: chests, barrels, ladders, bookshelves, wooden tools, boats, shields, bows, torches and more. Its menu lists everything and shows what you're missing.
+- The **carpenter's bench** is a crafting table for wooden things only: chests, barrels, ladders, bookshelves, wooden tools, boats, shields, torches and more. Its menu lists everything and shows what you're missing.
 - The carpenter crafts your order from its input chests and keeps a **stock** you choose, e.g. "always keep 16 chests ready".
 
 ## 🌾 Farmer, shepherd, butcher, fisher, fletcher, guard, apothecary, tanner, weaponsmith, librarian and smith

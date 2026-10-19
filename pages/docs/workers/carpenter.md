@@ -18,8 +18,9 @@ made from the ingredients in your inventory. Shift-click makes as many as possib
 
 It makes: chests, trapped chests, barrels, crafting tables, ladders, bowls, composters,
 bookshelves, chiseled bookshelves, wooden tools, boats and boats with chest, shelves, hanging signs, item
-frames, paintings, armor stands, bows, crossbows, fishing rods, shields, torches,
+frames, paintings, armor stands, fishing rods, shields, torches,
 tripwire hooks and campfires.
+Bows and crossbows come from the [fletcher](fletcher.md).
 
 ## Setting the order
 

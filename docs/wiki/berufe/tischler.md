@@ -17,7 +17,7 @@ Der Tischler stellt aus Planks, Sticks und Slabs alle Holzgegenstände her, die 
 | Stufe | Produkte | Zusätzliche Zutaten |
 | --- | --- | --- |
 | 1 – nur Holz | Kiste, Fass, Werkbank, Leiter, Schüssel, Boot/Floß, Composter, Shelf, Holzwerkzeuge | – |
-| 2 – Holz + Zusatz | Truhenboot, Bücherregal, Hängeschild, Bett, Item Frame, Armor Stand, Bogen, Angel, Schild, Fackel, Tripwire Hook | Bücher, Ketten, Wolle, Leder, Stein-Slab, Schnur, Eisen, Kohle |
+| 2 – Holz + Zusatz | Truhenboot, Bücherregal, Hängeschild, Bett, Item Frame, Armor Stand, Angel, Schild, Fackel, Tripwire Hook | Bücher, Ketten, Wolle, Leder, Stein-Slab, Schnur, Eisen, Kohle |
 | 3 – Workstations | Lectern, Loom, Fletching Table, Cartography Table, Smithing Table, Note Block, Jukebox | Bücherregal, Schnur, Feuerstein, Papier, Eisen, Redstone, Diamant |
 
 Mit Stufe 3 baut der Tischler die Arbeitsplätze für die anderen Berufe und wird so zum Ausbauberuf des Dorfs. Die Stufen hängen an den [Lohnstufen](../wirtschaft/anheuern-und-lohn.md#lohnstufen): Novice kann Stufe 1, ab Journeyman Stufe 2, Master Stufe 3 (Startwerte für Playtests).
@@ -68,7 +68,7 @@ Stellt Zwischenprodukte selbst her: Fehlen Sticks oder Slabs, macht er sie aus P
 ## Sonderfälle & offene Fragen
 
 - **Werkzeug:** Braucht der Tischler eine Axt, die man ihm gibt und die je Werkstück abnutzt? Das wäre konsistent mit dem Holzfäller, ist aber vielleicht unnötige Pflege. Vorschlag: zunächst ohne Werkzeug.
-- **Mehrere Aufträge:** Eine Auftragsliste („erst 200 Leitern, dann 50 Kisten“) wäre praktisch, kommt aber erst nach dem MVP.
+- **Mehrere Aufträge:** siehe [Konzept: Mehrere Produkte](#konzept-mehrere-produkte). Eine Auftragsliste nacheinander („erst 200 Leitern, dann 50 Kisten“) bleibt eine Idee für später.
 - **Shulker-Kisten, Lectern mit Buch usw.:** Alles mit Komponenten oder Nicht-Holz-Kern bleibt draußen. Im Zweifel entscheidet der Tag.
 - **Abgrenzung zum Crafter-Bediener:** Der Tischler ist früh verfügbar, schnell und billig, kann aber nur Holz. Der [Crafter-Bediener](crafter-bediener.md) kann später jedes Rezept, ist dafür langsamer und braucht Redstone-Technik.
 
@@ -85,6 +85,56 @@ Stand der Umsetzung:
 - Statt einer Axt als Werkzeug braucht er vorerst nichts.
 
 Später: Stufe 3, *Stückzahl*, Auftragsliste, Master-Fähigkeit.
+
+## Konzept: Mehrere Produkte
+
+Bisher hat die Hobelbank genau ein Produkt. Wer Kisten, Fässer und Leitern braucht, braucht drei Tischler oder stellt den Auftrag ständig um. Künftig wählt man **mehrere Produkte**, und der Tischler stellt sie **möglichst zu gleichen Teilen** her.
+
+### Bedienung
+
+- Im Reiter **Auftrag** schaltet ein Klick auf ein Produkt im Raster es **an oder aus**, statt das bisherige zu ersetzen. Gewählte Produkte haben einen hellen Rahmen und einen Haken.
+- Höchstens **8 Produkte** (Config `carpenter.maxProducts`). Beim neunten kommt die Meldung „Höchstens 8 Produkte“.
+- **Holzarten** gelten für alle Produkte gemeinsam, wie heute. Ein holzartgebundenes Produkt (Boot, Hängeschild, Shelf) zählt im Raster als ein Eintrag; jede erlaubte Holzart davon ist beim Verteilen aber ein eigenes Produkt (Eichenboot und Fichtenboot wechseln sich also auch ab).
+- Das Auftragsfeld in der Hobelbank zeigt die gewählten Produkte nacheinander (Wechsel jede Sekunde) mit einer kleinen Zahl „×3“. Der Tooltip listet alle mit ihrem Bestand.
+- Der **Vorrat** gilt **je Produkt**: „Vorrat 8“ heißt 8 Kisten *und* 8 Fässer *und* 8 Leitern. Das ist die naheliegende Lesart und macht gleiche Teile einfach.
+
+### Was „gleiche Teile“ heißt
+
+Gezählt werden **Stück**, nicht Arbeitsgänge, weil der Spieler Stück in der Kiste sieht (eine Leiter-Runde ergibt 3 Leitern, eine Kiste-Runde 1 Kiste).
+
+1. **Mit Vorrat:** Der Tischler zählt jedes Produkt in den Ausgangskisten. Er macht das Produkt, von dem **am wenigsten da ist** (im Verhältnis zum Vorrat), aber nur, wenn er Material dafür hat. Sind alle voll: „Vorrat voll“.
+2. **Ohne Vorrat (Dauerauftrag):** Den Bestand in der Kiste kann man nicht nehmen, weil Träger ihn wegbringen. Stattdessen führt die Station einen **Zähler je Produkt** („gemacht seit Auftragsänderung“). Er macht das Produkt mit dem kleinsten Zähler. Ändert sich die Auswahl, starten alle Zähler bei 0; ein neu dazugenommenes Produkt startet beim kleinsten Zähler der anderen, damit es nicht alles andere aufholt.
+3. **Gleichstand:** Reihenfolge im Raster.
+
+### Material und Gänge
+
+- **Ein Produkt ohne Material blockiert die anderen nicht.** Es wird übersprungen, bis wieder Material da ist. Erst wenn für *kein* Produkt Material da ist, wartet er („wartet auf Sticks“). Der Tooltip zeigt pro Produkt, was fehlt.
+- Damit der Tischler nicht für jedes Stück zur Kiste läuft, bleibt es bei **einem Satz pro Gang** (bis zu 32 Zutaten). Der Satz wird aber auf den **Rückstand** des Produkts begrenzt: Fehlen nur 2 Kisten bis zum Gleichstand, holt er Material für 2 Kisten und plant danach neu.
+- Teilen sich Produkte ein Material (Kisten und Fässer brauchen beide Planks), regelt das der Zähler von selbst: Er wechselt ab, statt alle Planks in Kisten zu stecken.
+- Material, das kein gewähltes Produkt mehr braucht, bringt er wie heute zurück in die Eingangskiste.
+
+### Status
+
+- „Baut Fässer · Kiste 4 · Fass 3 · Leiter 3“ (Zähler bzw. Bestand/Vorrat).
+- „Vorrat voll (8/8 je Produkt)“, „Wartet auf Sticks (Leiter, Fass)“.
+
+### Daten und Umstieg
+
+- `order` (ein Item) wird zu `orders` (Liste). Alte Welten: ein vorhandenes `order` wird beim Laden zu einer Liste mit einem Eintrag.
+- Die Zähler liegen in der Station (gespeichert), nicht im Arbeiter: Ein neuer Tischler macht dort weiter.
+- Die Verteilung (`nextProduct(station, verfügbar)`) wird allgemein gebaut, so dass [Brenner](brenner.md), [Pfeilmacher](pfeilmacher.md) und Holz-/Steinsäger sie später übernehmen können.
+
+### Tests
+
+- Kisten + Fässer, Vorrat 2, genug Planks → je 2 in der Ausgangskiste.
+- Kisten + Leitern, keine Sticks → er macht nur Kisten und meldet nicht „wartet“.
+- Dauerauftrag Kisten + Fässer mit 64 Planks → Unterschied der beiden Zähler höchstens ein Satz.
+- Alte Station mit `order` lädt als Auftrag mit einem Produkt.
+
+### Offene Fragen
+
+- **Gewichte** („doppelt so viele Kisten wie Fässer“)? Empfehlung: nicht im ersten Schritt; ein Vorrat je Produkt wäre die spätere Erweiterung.
+- **8 als Grenze?** Mehr ist technisch kein Problem, aber die Status-Zeile und der Tooltip werden unübersichtlich.
 
 ## Siehe auch
 
