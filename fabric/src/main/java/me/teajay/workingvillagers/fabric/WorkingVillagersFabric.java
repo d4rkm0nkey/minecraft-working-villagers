@@ -23,6 +23,7 @@ import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 
 public class WorkingVillagersFabric implements ModInitializer {
@@ -30,20 +31,18 @@ public class WorkingVillagersFabric implements ModInitializer {
 	public void onInitialize() {
 		WorkingVillagers.init(new FabricPlatform());
 
-		CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS)
-			.register(output -> {
-				output.accept(WorkingVillagers.CHOPPING_BLOCK_ITEM.get());
-				output.accept(WorkingVillagers.WOODCUTTER_ITEM.get());
-				output.accept(WorkingVillagers.CARPENTER_BENCH_ITEM.get());
-				output.accept(WorkingVillagers.PIT_STAKE_ITEM.get());
-				output.accept(WorkingVillagers.KILN_ITEM.get());
-				output.accept(WorkingVillagers.TRADING_COUNTER_ITEM.get());
-				output.accept(WorkingVillagers.MINING_BENCH_ITEM.get());
-				output.accept(WorkingVillagers.VILLAGE_CHEST_ITEM.get());
-			});
+		// Next to the vanilla blocks they belong to
+		CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register(output -> {
+			output.insertAfter(Items.CRAFTING_TABLE, WorkingVillagers.CARPENTER_BENCH_ITEM.get());
+			output.insertAfter(Items.STONECUTTER, WorkingVillagers.WOODCUTTER_ITEM.get(), WorkingVillagers.CHOPPING_BLOCK_ITEM.get());
+			output.insertAfter(Items.GRINDSTONE, WorkingVillagers.MINING_BENCH_ITEM.get(), WorkingVillagers.PIT_STAKE_ITEM.get());
+			output.insertAfter(Items.BLAST_FURNACE, WorkingVillagers.KILN_ITEM.get());
+			output.insertAfter(Items.BELL, WorkingVillagers.TRADING_COUNTER_ITEM.get());
+			output.insertBefore(Items.BARREL, WorkingVillagers.VILLAGE_CHEST_ITEM.get());
+		});
 		CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.TOOLS_AND_UTILITIES).register(output -> {
-			output.accept(WorkingVillagers.WORK_CONTRACT.get());
-			output.accept(WorkingVillagers.WICKER_BASKET.get());
+			output.insertBefore(Items.COMPASS, WorkingVillagers.WICKER_BASKET.get());
+			output.insertAfter(Items.WRITABLE_BOOK, WorkingVillagers.WORK_CONTRACT.get());
 		});
 	}
 
