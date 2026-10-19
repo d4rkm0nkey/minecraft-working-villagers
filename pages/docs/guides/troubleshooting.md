@@ -34,6 +34,8 @@ the status does not help, go through this list.
 | *Waiting: needs a bow (give them one)* | Give the guard a bow. |
 | *Waiting: no order* | Pick a product at the fletching table (right-click it with an empty hand, tab **Order**). |
 | *Waiting for Feather* (or another material) | The fletcher's input chests lack it. Arrows need a head (flint, gravel, copper or iron), a stick and a feather. |
+| *Waiting for Iron Ingot* (or Stick, ...) | The weaponsmith's input chests lack material for one piece of its order. |
+| *Waiting: no recipe for the order* (weaponsmith) | No crafting recipe makes the ordered tool (a data pack removed it). Pick another order. |
 | *Waiting for Leather* (or Paper, Red Dye, ...) | The tanner's input chests lack it. Leather can also be rabbit hide or rotten flesh; dyed armor needs the dye of the color set at the cauldron. |
 | *No water in the cauldron (needs a bucket and water nearby)* | Give the tanner a bucket, with water within 16 blocks of the cauldron, or fill the cauldron yourself. |
 | *Tanning, done in 3 min* | Rotten flesh is tanning in the cauldron and nothing else is left to do. |

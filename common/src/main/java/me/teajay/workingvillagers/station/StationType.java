@@ -63,7 +63,12 @@ public enum StationType {
 	 * The tanner makes leather (from rabbit hide, and tans rotten flesh in the cauldron) and
 	 * leather goods from its input chests, as ordered, and dyes leather armor.
 	 */
-	CAULDRON(true);
+	CAULDRON(true),
+	/**
+	 * The weaponsmith forges tools and weapons from its input chests, as ordered, grinds two
+	 * worn tools into one and disenchants what lies in its input chests.
+	 */
+	GRINDSTONE(true);
 
 	private final boolean processing;
 
@@ -82,12 +87,14 @@ public enum StationType {
 	/** Whether the block has a screen of its own, which the overview leads back to. */
 	public boolean hasOwnScreen() {
 		return this == WOODCUTTER || this == STONECUTTER || this == CARPENTER_BENCH || this == BLAST_FURNACE || this == KILN || this == MINING_BENCH
-			|| this == SMITHING_TABLE || this == LOOM || this == SMOKER || this == BARREL || this == BREWING_STAND;
+			|| this == SMITHING_TABLE || this == LOOM || this == SMOKER || this == BARREL || this == BREWING_STAND
+			|| this == GRINDSTONE;
 	}
 
 	/** Whether the worker needs an order, set in the order column of the overview. */
 	public boolean hasOrder() {
-		return this == WOODCUTTER || this == STONECUTTER || this == CARPENTER_BENCH || this == KILN || this == FLETCHING_TABLE || this == BREWING_STAND || this == CAULDRON;
+		return this == WOODCUTTER || this == STONECUTTER || this == CARPENTER_BENCH || this == KILN || this == FLETCHING_TABLE || this == BREWING_STAND || this == CAULDRON
+			|| this == GRINDSTONE;
 	}
 
 	/**
@@ -96,7 +103,7 @@ public enum StationType {
 	 */
 	public boolean isVanilla() {
 		return this == STONECUTTER || this == COMPOSTER || this == BLAST_FURNACE || this == SMITHING_TABLE || this == LOOM || this == SMOKER || this == BARREL
-			|| this == FLETCHING_TABLE || this == BREWING_STAND || this == CAULDRON;
+			|| this == FLETCHING_TABLE || this == BREWING_STAND || this == CAULDRON || this == GRINDSTONE;
 	}
 
 	/**
@@ -136,6 +143,7 @@ public enum StationType {
 			case TARGET -> WorkingVillagers.GUARD_PROFESSION;
 			case BREWING_STAND -> WorkingVillagers.APOTHECARY_PROFESSION;
 			case CAULDRON -> WorkingVillagers.TANNER_PROFESSION;
+			case GRINDSTONE -> WorkingVillagers.WEAPONSMITH_PROFESSION;
 		};
 	}
 
@@ -159,6 +167,7 @@ public enum StationType {
 			case TARGET -> Blocks.TARGET.getName();
 			case BREWING_STAND -> Blocks.BREWING_STAND.getName();
 			case CAULDRON -> Blocks.CAULDRON.getName();
+			case GRINDSTONE -> Blocks.GRINDSTONE.getName();
 		};
 	}
 
@@ -182,6 +191,7 @@ public enum StationType {
 			case TARGET -> Blocks.TARGET;
 			case BREWING_STAND -> Blocks.BREWING_STAND;
 			case CAULDRON -> Blocks.CAULDRON;
+			case GRINDSTONE -> Blocks.GRINDSTONE;
 		};
 	}
 
@@ -220,6 +230,8 @@ public enum StationType {
 			return TARGET;
 		} else if (state.is(Blocks.BREWING_STAND)) {
 			return BREWING_STAND;
+		} else if (state.is(Blocks.GRINDSTONE)) {
+			return GRINDSTONE;
 		} else if (state.getBlock() instanceof AbstractCauldronBlock) {
 			// Filling or emptying it makes another block of it
 			return CAULDRON;

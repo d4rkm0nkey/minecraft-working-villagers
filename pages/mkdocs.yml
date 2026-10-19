@@ -107,6 +107,7 @@ nav:
       - Guard: workers/guard.md
       - Apothecary: workers/apothecary.md
       - Tanner: workers/tanner.md
+      - Weaponsmith: workers/weaponsmith.md
       - Smith: workers/smith.md
       - Pit digger: workers/pit-digger.md
       - Miner: workers/miner.md

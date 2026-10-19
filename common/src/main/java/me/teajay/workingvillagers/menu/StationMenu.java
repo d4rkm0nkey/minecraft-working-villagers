@@ -10,6 +10,7 @@ import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.crafting.CarpenterRecipes;
 import me.teajay.workingvillagers.crafting.CuttingRecipes;
 import me.teajay.workingvillagers.crafting.BrewingPaths;
+import me.teajay.workingvillagers.crafting.ForgeRecipes;
 import me.teajay.workingvillagers.crafting.KilnRecipes;
 import me.teajay.workingvillagers.crafting.StoneFamilies;
 import me.teajay.workingvillagers.crafting.WoodTypes;
@@ -127,6 +128,9 @@ public class StationMenu extends AbstractContainerMenu {
 	/** Cauldron: the previous and next color for leather armor (none, then the 16 dyes). */
 	public static final int DYE_LESS_BUTTON = 325;
 	public static final int DYE_MORE_BUTTON = 326;
+	/** Grindstone: the previous and next of what the weaponsmith does besides its order. */
+	public static final int GRIND_LESS_BUTTON = 327;
+	public static final int GRIND_MORE_BUTTON = 328;
 	/** The steps of the side tunnel length the buttons go through. */
 	private static final int BRANCH_STEP = 4;
 	/**
@@ -186,6 +190,7 @@ public class StationMenu extends AbstractContainerMenu {
 	private static final String TAG_HUNT = "Hunt";
 	private static final String TAG_EXPERIENCE = "Experience";
 	private static final String TAG_DYE = "Dye";
+	private static final String TAG_GRIND = "Grind";
 	private static final String TAG_TANNING = "Tanning";
 	private static final String TAG_TANNED_IN = "TannedIn";
 	private static final String TAG_SHEEP = "Sheep";
@@ -297,6 +302,7 @@ public class StationMenu extends AbstractContainerMenu {
 			case FLETCHING_TABLE -> WorkingVillagers.FLETCHING_TABLE_STATION_MENU;
 			case BREWING_STAND -> WorkingVillagers.BREWING_STAND_STATION_MENU;
 			case CAULDRON -> WorkingVillagers.CAULDRON_STATION_MENU;
+			case GRINDSTONE -> WorkingVillagers.GRINDSTONE_STATION_MENU;
 			case TARGET -> WorkingVillagers.TARGET_STATION_MENU;
 			case PIT_STAKE -> WorkingVillagers.PIT_STAKE_MENU;
 			case KILN -> WorkingVillagers.KILN_STATION_MENU;
@@ -346,6 +352,7 @@ public class StationMenu extends AbstractContainerMenu {
 						|| this.type == StationType.TRADING_COUNTER || this.type == StationType.MINING_BENCH || this.type == StationType.LOOM
 						|| this.type == StationType.SMOKER || this.type == StationType.BARREL || this.type == StationType.FLETCHING_TABLE
 						|| this.type == StationType.BREWING_STAND || this.type == StationType.CAULDRON
+						|| this.type == StationType.GRINDSTONE
 						|| this.type == StationType.TARGET) {
 						tag.putInt(TAG_LOGS, ((HiredVillager) villager).workingvillagers$getWorkDone(
 							this.type == StationType.TARGET ? GuardPost.night(serverLevel) : ChopTrees.today(serverLevel)));
@@ -462,10 +469,15 @@ public class StationMenu extends AbstractContainerMenu {
 				tag.putInt(TAG_TANNING, station.tanning());
 				tag.putInt(TAG_TANNED_IN, (int) Math.max(0L, station.tannedAt() - serverLevel.getGameTime()));
 			}
-			if (this.type == StationType.KILN || this.type == StationType.FLETCHING_TABLE || this.type == StationType.CAULDRON) {
+			if (this.type == StationType.GRINDSTONE) {
+				tag.putInt(TAG_GRIND, station.grindMode());
+			}
+			if (this.type == StationType.KILN || this.type == StationType.FLETCHING_TABLE || this.type == StationType.CAULDRON
+				|| this.type == StationType.GRINDSTONE) {
 				this.shownProducts = switch (this.type) {
 					case KILN -> KilnRecipes.products(serverLevel);
 					case CAULDRON -> TanLeather.PRODUCTS;
+					case GRINDSTONE -> ForgeRecipes.products(serverLevel);
 					default -> FletchArrows.PRODUCTS;
 				};
 				ListTag products = new ListTag();
@@ -693,6 +705,11 @@ public class StationMenu extends AbstractContainerMenu {
 		return this.info.info().getString(TAG_DYE).map(name -> DyeColor.byName(name, null)).orElse(null);
 	}
 
+	/** Grindstone: what the weaponsmith does besides its order, see {@link Workstations.Station#grindMode}. */
+	public int getGrindMode() {
+		return this.info.info().getIntOr(TAG_GRIND, Workstations.GRIND_BOTH);
+	}
+
 	/** Cauldron: how much rotten flesh tans in it, and in how many ticks it is done. */
 	public int getTanning() {
 		return this.info.info().getIntOr(TAG_TANNING, 0);
@@ -889,7 +906,12 @@ public class StationMenu extends AbstractContainerMenu {
 			station.setDye(next == 0 ? null : DyeColor.values()[next - 1]);
 			return true;
 		}
-		if (this.type == StationType.KILN || this.type == StationType.FLETCHING_TABLE || this.type == StationType.CAULDRON) {
+		if (this.type == StationType.GRINDSTONE && (buttonId == GRIND_LESS_BUTTON || buttonId == GRIND_MORE_BUTTON)) {
+			station.setGrindMode(station.grindMode() + (buttonId == GRIND_MORE_BUTTON ? 1 : -1));
+			return true;
+		}
+		if (this.type == StationType.KILN || this.type == StationType.FLETCHING_TABLE || this.type == StationType.CAULDRON
+			|| this.type == StationType.GRINDSTONE) {
 			if (buttonId >= KILN_PRODUCT_BUTTON && buttonId < KILN_PRODUCT_BUTTON + this.shownProducts.size()) {
 				Item product = this.shownProducts.get(buttonId - KILN_PRODUCT_BUTTON);
 				station.setOrder(station.order() == product ? null : product);

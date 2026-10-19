@@ -95,6 +95,11 @@ Its order and stock are set at the brewing stand.
 
 Its order, stock and color are set at the cauldron.
 
+## Weaponsmith
+
+The weaponsmith has no config options of its own; its order, stock and what it grinds are
+set at the grindstone. Bottles o' enchanting hold `guard.experiencePerBottle` experience.
+
 ## Fletcher
 
 The fletcher has no config options; its order and stock are set at the fletching table.

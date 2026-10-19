@@ -32,6 +32,7 @@ public class WorkingVillagersFabricClient implements ClientModInitializer {
 		MenuScreens.register(WorkingVillagers.FLETCHING_TABLE_STATION_MENU.get(), StationScreen::new);
 		MenuScreens.register(WorkingVillagers.BREWING_STAND_STATION_MENU.get(), StationScreen::new);
 		MenuScreens.register(WorkingVillagers.CAULDRON_STATION_MENU.get(), StationScreen::new);
+		MenuScreens.register(WorkingVillagers.GRINDSTONE_STATION_MENU.get(), StationScreen::new);
 		MenuScreens.register(WorkingVillagers.TARGET_STATION_MENU.get(), StationScreen::new);
 		MenuScreens.register(WorkingVillagers.PIT_STAKE_MENU.get(), StationScreen::new);
 		MenuScreens.register(WorkingVillagers.KILN_STATION_MENU.get(), StationScreen::new);

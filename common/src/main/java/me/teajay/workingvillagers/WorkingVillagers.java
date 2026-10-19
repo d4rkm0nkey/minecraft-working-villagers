@@ -80,6 +80,8 @@ public final class WorkingVillagers {
 	/** Works at the vanilla target, which no vanilla profession uses: guards the village at night. */
 	public static final ResourceKey<PoiType> GUARD_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("guard"));
 	public static final ResourceKey<VillagerProfession> GUARD_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("guard"));
+	/** Works at the vanilla grindstone, the job site of the vanilla weaponsmith. */
+	public static final ResourceKey<VillagerProfession> WEAPONSMITH_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("weaponsmith"));
 	/** Works at the vanilla cauldron, the job site of the vanilla leatherworker. */
 	public static final ResourceKey<VillagerProfession> TANNER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("tanner"));
 	/** Works at the vanilla brewing stand, the job site of the vanilla cleric. */
@@ -108,6 +110,8 @@ public final class WorkingVillagers {
 
 	/** What the carpenter's bench makes: crafting recipes with a result in this tag. */
 	public static final TagKey<Item> JOINERY = TagKey.create(Registries.ITEM, id("joinery"));
+	/** What the weaponsmith makes at the grindstone (see {@code ForgeRecipes}). */
+	public static final TagKey<Item> FORGEABLE = TagKey.create(Registries.ITEM, id("forgeable"));
 	public static Supplier<Block> CARPENTER_BENCH;
 	public static Supplier<Item> CARPENTER_BENCH_ITEM;
 	public static Supplier<MenuType<CarpenterMenu>> CARPENTER_BENCH_MENU;
@@ -130,6 +134,7 @@ public final class WorkingVillagers {
 	public static Supplier<MenuType<StationMenu>> FLETCHING_TABLE_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> BREWING_STAND_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> CAULDRON_STATION_MENU;
+	public static Supplier<MenuType<StationMenu>> GRINDSTONE_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> TARGET_STATION_MENU;
 	public static Supplier<MenuType<CutterMenu>> WOODCUTTER_MENU;
 	public static Supplier<RecipeType<WoodcuttingRecipe>> WOODCUTTING;
@@ -218,6 +223,7 @@ public final class WorkingVillagers {
 		registerGuard(platform);
 		registerApothecary(platform);
 		registerTanner(platform);
+		registerWeaponsmith(platform);
 		registerPitDigger(platform);
 		registerKilnOperator(platform);
 		registerShopAssistant(platform);
@@ -388,6 +394,17 @@ public final class WorkingVillagers {
 		TARGET_STATION_MENU = platform.registerMenu("target_station", (containerId, inventory) -> new StationMenu(StationType.TARGET, containerId, inventory));
 		platform.registerPoi("guard", () -> Blocks.TARGET, 1, 1);
 		registerProfession(platform, "guard", GUARD_POI, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_WEAPONSMITH);
+	}
+
+	/**
+	 * The weaponsmith works at the vanilla grindstone: it forges tools and weapons, grinds two
+	 * worn tools into one and disenchants. Ordinary villagers still become (vanilla)
+	 * weaponsmiths there; the tabs above the grindstone's screen open the overview.
+	 */
+	private static void registerWeaponsmith(Platform platform) {
+		GRINDSTONE_STATION_MENU = platform.registerMenu("grindstone_station",
+			(containerId, inventory) -> new StationMenu(StationType.GRINDSTONE, containerId, inventory));
+		registerProfession(platform, "weaponsmith", PoiTypes.WEAPONSMITH, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_WEAPONSMITH, VillagerProfession.WEAPONSMITH);
 	}
 
 	/**

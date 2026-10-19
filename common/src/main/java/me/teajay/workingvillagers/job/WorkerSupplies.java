@@ -131,7 +131,7 @@ public final class WorkerSupplies {
 	public static final Stock BOAT = new Stock("boat", stack -> stack.is(ItemTags.BOATS), () -> 1, "", false);
 	/** The guard's arrows: without them it cannot do its work. */
 	public static final Stock ARROWS = new Stock("arrows", stack -> stack.is(Items.ARROW), Config.KEEP_ARROWS::get, "guard.no_arrows", true);
-	/** The guard's glass bottles, to bottle the experience of its kills. */
+	/** The glass bottles of the guard and the weaponsmith, to bottle experience. */
 	public static final Stock BOTTLES = new Stock("bottles", stack -> stack.is(Items.GLASS_BOTTLE), () -> 16, "", false);
 	/** The tanner's bucket, to fill its cauldron. */
 	public static final Stock BUCKET = new Stock("bucket", stack -> stack.is(Items.BUCKET) || stack.is(Items.WATER_BUCKET), () -> 1, "", false);
@@ -486,6 +486,9 @@ public final class WorkerSupplies {
 		}
 		if (profession.is(WorkingVillagers.TANNER_PROFESSION)) {
 			return List.of(BUCKET);
+		}
+		if (profession.is(WorkingVillagers.WEAPONSMITH_PROFESSION)) {
+			return List.of(BOTTLES);
 		}
 		if (profession.is(WorkingVillagers.PIT_DIGGER_PROFESSION)) {
 			return Config.KEEP_TORCHES.get() > 0 ? List.of(LADDERS, TORCHES) : List.of(LADDERS);

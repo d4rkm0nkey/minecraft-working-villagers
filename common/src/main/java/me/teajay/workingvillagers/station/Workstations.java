@@ -197,6 +197,12 @@ public class Workstations extends SavedData {
 	public static final int DEFAULT_HERD = 8;
 	/** Cauldron: the most rotten flesh that tans at once. */
 	public static final int MAX_TANNING = 64;
+	/** Grindstone: the modes of {@link Station#grindMode}. */
+	public static final int GRIND_BOTH = 0;
+	public static final int GRIND_MERGE = 1;
+	public static final int GRIND_DISENCHANT = 2;
+	public static final int GRIND_NONE = 3;
+	public static final int GRIND_MODES = 4;
 	public static final int MAX_HERD = 32;
 	public static final int MIN_GUARD_RADIUS = 8;
 	public static final int MAX_GUARD_RADIUS = 32;
@@ -224,14 +230,15 @@ public class Workstations extends SavedData {
 		 * The settings of a few kinds of station, in the same map as the other fields (the
 		 * codec of a record takes at most 16 fields).
 		 */
-		private record Settings(int herd, boolean boat, Optional<DyeColor> dye, int tanning, long tannedAt) {
-			static final Settings DEFAULT = new Settings(DEFAULT_HERD, true, Optional.empty(), 0, 0L);
+		private record Settings(int herd, boolean boat, Optional<DyeColor> dye, int tanning, long tannedAt, int grind) {
+			static final Settings DEFAULT = new Settings(DEFAULT_HERD, true, Optional.empty(), 0, 0L, GRIND_BOTH);
 			static final MapCodec<Settings> MAP_CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
 				Codec.intRange(0, MAX_HERD).optionalFieldOf("herd", DEFAULT_HERD).forGetter(Settings::herd),
 				Codec.BOOL.optionalFieldOf("boat", true).forGetter(Settings::boat),
 				DyeColor.CODEC.optionalFieldOf("dye").forGetter(Settings::dye),
 				Codec.intRange(0, MAX_TANNING).optionalFieldOf("tanning", 0).forGetter(Settings::tanning),
-				Codec.LONG.optionalFieldOf("tanned_at", 0L).forGetter(Settings::tannedAt)
+				Codec.LONG.optionalFieldOf("tanned_at", 0L).forGetter(Settings::tannedAt),
+				Codec.intRange(0, GRIND_MODES - 1).optionalFieldOf("grind", GRIND_BOTH).forGetter(Settings::grind)
 			).apply(i, Settings::new));
 		}
 
@@ -267,6 +274,8 @@ public class Workstations extends SavedData {
 		/** Cauldron: how much rotten flesh the tanner has put in to tan, and when it is done (game time). */
 		private int tanning;
 		private long tannedAt;
+		/** Grindstone: what the weaponsmith does besides its order, see {@link #grindMode}. */
+		private int grind;
 		private @Nullable Workstations owner;
 		/** The kind of station the settings belong to, unknown for entries saved before it was stored. */
 		private @Nullable StationType type;
@@ -281,6 +290,7 @@ public class Workstations extends SavedData {
 			this.dye = settings.dye().orElse(null);
 			this.tanning = settings.tanning();
 			this.tannedAt = settings.tannedAt();
+			this.grind = settings.grind();
 			this.pit = pit.orElse(null);
 			this.tunnel = tunnel.orElse(null);
 			this.depth = depth;
@@ -431,7 +441,33 @@ public class Workstations extends SavedData {
 		}
 
 		private Settings settings() {
-			return new Settings(this.herd, this.boat, Optional.ofNullable(this.dye), this.tanning, this.tannedAt);
+			return new Settings(this.herd, this.boat, Optional.ofNullable(this.dye), this.tanning, this.tannedAt, this.grind);
+		}
+
+		/**
+		 * Grindstone: what the weaponsmith does besides its order: grind worn tools together and
+		 * disenchant ({@link #GRIND_BOTH}), only one of them, or neither.
+		 */
+		public int grindMode() {
+			return this.grind;
+		}
+
+		public void setGrindMode(int mode) {
+			int wrapped = Math.floorMod(mode, GRIND_MODES);
+			if (this.grind != wrapped) {
+				this.grind = wrapped;
+				this.setDirty();
+			}
+		}
+
+		/** Grindstone: whether the weaponsmith grinds two worn tools into one. */
+		public boolean merges() {
+			return this.grind == GRIND_BOTH || this.grind == GRIND_MERGE;
+		}
+
+		/** Grindstone: whether the weaponsmith disenchants what lies in its input chests. */
+		public boolean disenchants() {
+			return this.grind == GRIND_BOTH || this.grind == GRIND_DISENCHANT;
 		}
 
 		/** Cauldron: the color the tanner dyes leather armor, null for none. */
@@ -683,7 +719,8 @@ public class Workstations extends SavedData {
 		private boolean isEmpty() {
 			return this.inputs.isEmpty() && this.outputs.isEmpty() && this.order == null && this.worker == null && this.woods.isEmpty() && this.stock == 0
 				&& !this.strip && this.pit == null && this.depth == Pit.DEFAULT_DEPTH && this.tunnel == null && this.wage == 0
-				&& this.herd == DEFAULT_HERD && this.boat && this.dye == null && this.tanning == 0;
+				&& this.herd == DEFAULT_HERD && this.boat && this.dye == null && this.tanning == 0
+				&& this.grind == GRIND_BOTH;
 		}
 
 		/**

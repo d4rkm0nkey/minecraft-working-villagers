@@ -35,6 +35,7 @@ public class WorkingVillagersNeoForgeClient {
 			event.register(WorkingVillagers.FLETCHING_TABLE_STATION_MENU.get(), StationScreen::new);
 			event.register(WorkingVillagers.BREWING_STAND_STATION_MENU.get(), StationScreen::new);
 			event.register(WorkingVillagers.CAULDRON_STATION_MENU.get(), StationScreen::new);
+			event.register(WorkingVillagers.GRINDSTONE_STATION_MENU.get(), StationScreen::new);
 			event.register(WorkingVillagers.TARGET_STATION_MENU.get(), StationScreen::new);
 			event.register(WorkingVillagers.PIT_STAKE_MENU.get(), StationScreen::new);
 			event.register(WorkingVillagers.KILN_STATION_MENU.get(), StationScreen::new);

@@ -1,8 +1,21 @@
 # Beruf: Waffenschmied
 
-[← Berufe](README.md) · Station: **Schleifstein** (Vanilla, Waffenschmied) · Phase: **Konzept**
+[← Berufe](README.md) · Station: **Schleifstein** (Vanilla, Waffenschmied) · Phase: **umgesetzt** (Schmieden, Zusammenschleifen, Entzaubern; ohne Nahkampfwachen und Meisterfähigkeit)
 
 Der Waffenschmied macht neues Werkzeug und neue Waffen und holt aus Altem heraus, was noch drinsteckt. Der [Schmied](schmied.md) schmilzt Erz und repariert mit Material. Neues Werkzeug macht bisher niemand: Jede Axt, jede Hacke, jede Spitzhacke kommt vom Spieler. Der Waffenschmied schließt diese Lücke und hat dazu zwei Arbeiten, die nur der Schleifstein kann.
+
+## Stand der Umsetzung
+
+- **Station:** Vanilla-Schleifstein (POI `weaponsmith`); die Reiter über dem Schleifstein-Menü führen zur Übersicht (Mixins auf `GrindstoneMenu` und `GrindstoneScreen`). Vanilla-Waffenschmiede lassen sich anheuern, behalten ihre Angebote und handeln wie Waffenschmiede (Handelsfamilie `weaponsmith`).
+- **Rezepte** (`ForgeRecipes`): die Crafting-Rezepte, deren Ergebnis im Item-Tag `workingvillagers:forgeable` steht (Äxte, Spitzhacken, Schaufeln, Hacken, Schwerter, Speere, Schere, Streitkolben), ohne die mit Brettern (Holzwerkzeug macht der Tischler). Statt der Komponenten `tool`/`weapon` ein Tag wie beim Tischler (`joinery`): Datapacks können ergänzen. Gefertigt wird mit den Helfern des Tischlers (`CarpenterRecipes.account/pick/craft`), also mit Tag-Zutaten wie am Werkbank.
+- **Auftrag** im Raster mit Seiten, **Vorrat**, darunter die Wahl, was er außerdem macht (`<` `>`): zusammenschleifen und entzaubern, nur eins davon, nur der Auftrag (Feld `grind` der Station). Bis zu 4 Stück pro Gang, ein Stück alle 2 Sekunden, Funken und Schleifstein-Geräusch.
+- **Zusammenschleifen:** zwei beschädigte Teile derselben Art (unverzaubert, nicht umbenannt, ohne eigene Daten) aus einer Kiste: aus Dorftruhen in Reichweite nur abgenutzte (`tools.returnBelow`), aus den Eingangskisten jedes beschädigte. Ergebnis: Haltbarkeit beider plus 5 % wie in Vanilla, zurück in dieselbe Kiste (sonst Dorftruhe, dann Ausgangskiste). Bis zur Rückgabe trägt das Teil eine Markierung in `custom_data`.
+- **Entzaubern:** Verzaubertes aus den Eingangskisten (nicht umbenannt), bis zu 4 auf einmal, mit Glasflaschen. Wie der Schleifstein: Flüche bleiben, verzauberte Bücher ohne Rest werden Bücher, Reparaturkosten neu. Erfahrung wie der Schleifstein (die Hälfte der Mindestkosten der Verzauberungen, aufgerundet, plus Zufall bis zur selben Menge), gesammelt wie bei den Wachen und in Fläschchen zu 7 (`guard.experiencePerBottle`) gefüllt. Glasflaschen hält er wie die Wachen vorrätig (bis 16, Dorftruhe).
+- **Reihenfolge:** Zusammengeschliffenes zurückbringen, Paare schleifen, Verzaubertes entzaubern, abliefern, neue Paare holen, Verzaubertes holen, dann der Auftrag.
+- **Status:** „Sieht nach dem Auftrag“, „Holt Material“, „Schmiedet“, „Schleift zwei Werkzeuge zusammen“, „Entzaubert“, „Bringt geschliffenes Werkzeug zurück“, „Wartet auf %s“, „Wartet: kein Auftrag“, „Wartet: kein Rezept für den Auftrag“, „Vorrat ist voll“; „Auftrag: x, heute y“ zählt Geschmiedetes und Entzaubertes.
+- **Kleidung:** rußige Lederschürze über rostrotem Hemd, Lederhandschuhe, Schutzbrille auf der Stirn.
+- **Tests:** 6 Eisenbarren und 4 Stöcke werden 2 Eisenäxte; zwei abgenutzte Eisenspitzhacken aus der Dorftruhe werden eine und liegen wieder dort; ein Schwert mit Schärfe III wird entzaubert, dazu mindestens ein Erfahrungsfläschchen.
+- **Nicht umgesetzt:** Nahkampfwachen, „Geschliffen“, Meisterfähigkeit, Anzeige der nicht abgefüllten Erfahrung im Menü.
 
 ## Der Kreislauf
 

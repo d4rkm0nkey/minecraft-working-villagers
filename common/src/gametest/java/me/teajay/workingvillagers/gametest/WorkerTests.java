@@ -21,6 +21,8 @@ import me.teajay.workingvillagers.station.StationType;
 import me.teajay.workingvillagers.station.Workstations.ChestRole;
 import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.core.registries.Registries;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.item.component.DyedItemColor;
@@ -141,6 +143,9 @@ public final class WorkerTests {
 		registry.accept("fletcher_keeps_stock", WorkerTests::fletcherKeepsStock);
 		registry.accept("apothecary_makes_bottles", WorkerTests::apothecaryMakesBottles);
 		registry.accept("tanner_makes_books", WorkerTests::tannerMakesBooks);
+		registry.accept("weaponsmith_forges_axes", WorkerTests::weaponsmithForgesAxes);
+		registry.accept("weaponsmith_grinds_worn_tools_together", WorkerTests::weaponsmithGrindsWornToolsTogether);
+		registry.accept("weaponsmith_disenchants", WorkerTests::weaponsmithDisenchants);
 		registry.accept("tanner_makes_leather_from_hides", WorkerTests::tannerMakesLeatherFromHides);
 		registry.accept("tanner_tans_rotten_flesh", WorkerTests::tannerTansRottenFlesh);
 		registry.accept("tanner_fills_cauldron", WorkerTests::tannerFillsCauldron);
@@ -517,6 +522,54 @@ public final class WorkerTests {
 			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.DIAMOND)) == 3, "The smith used diamonds without bottles: " + TestWorld.describe(worker));
 			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.DIAMOND_PICKAXE) && stack.getDamageValue() == 500) == 1, "The pickaxe was repaired");
 			helper.succeed();
+		});
+	}
+
+	/** A grindstone with an input chest holding {@code material}, an output chest and the order (null for none). */
+	private static Villager weaponsmith(GameTestHelper helper, @Nullable Item order, ItemStack... material) {
+		BlockPos grindstone = STATION.below();
+		helper.setBlock(grindstone, Blocks.GRINDSTONE);
+		TestWorld.chest(helper, INPUT, material);
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, grindstone, INPUT, ChestRole.INPUT);
+		TestWorld.link(helper, grindstone, OUTPUT, ChestRole.OUTPUT);
+		TestWorld.station(helper, grindstone).setOrder(order);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, grindstone);
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2));
+		return worker;
+	}
+
+	/** 6 iron ingots and 4 sticks: 2 iron axes. */
+	private static void weaponsmithForgesAxes(GameTestHelper helper) {
+		Villager worker = weaponsmith(helper, Items.IRON_AXE, new ItemStack(Items.IRON_INGOT, 6), new ItemStack(Items.STICK, 4));
+		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.IRON_AXE), 2, "2 iron axes in the output chest"));
+	}
+
+	/** Two worn iron pickaxes in a village chest become one, back in the village chest. */
+	private static void weaponsmithGrindsWornToolsTogether(GameTestHelper helper) {
+		ItemStack worn = new ItemStack(Items.IRON_PICKAXE);
+		worn.setDamageValue(worn.getMaxDamage() - 20);
+		TestWorld.villageChest(helper, VILLAGE_CHEST, worn.copy(), worn.copy());
+		Villager worker = weaponsmith(helper, null);
+		helper.succeedWhen(() -> {
+			int pickaxes = TestWorld.count(helper, VILLAGE_CHEST, stack -> stack.is(Items.IRON_PICKAXE));
+			helper.assertTrue(pickaxes == 1, "Pickaxes in the village chest: " + pickaxes + ", " + TestWorld.describe(worker));
+			// 20 + 20 left, plus 5%
+			helper.assertTrue(TestWorld.count(helper, VILLAGE_CHEST,
+				stack -> stack.is(Items.IRON_PICKAXE) && stack.getMaxDamage() - stack.getDamageValue() >= 40 && !stack.has(DataComponents.CUSTOM_DATA)) == 1,
+				"The pickaxe is not ground together");
+		});
+	}
+
+	/** An enchanted sword and glass bottles: the sword without enchantments and bottles o' enchanting. */
+	private static void weaponsmithDisenchants(GameTestHelper helper) {
+		ItemStack sword = new ItemStack(Items.IRON_SWORD);
+		sword.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SHARPNESS), 3);
+		Villager worker = weaponsmith(helper, null, sword, new ItemStack(Items.GLASS_BOTTLE, 4));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.IRON_SWORD) && !stack.isEnchanted(), 1, "the sword without enchantments");
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.EXPERIENCE_BOTTLE), 1, "a bottle o' enchanting");
 		});
 	}
 

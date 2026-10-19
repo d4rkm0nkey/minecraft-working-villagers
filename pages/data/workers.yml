@@ -104,6 +104,18 @@ fletcher:
     Takes: ":mc-gravel: Gravel or nuggets, :mc-stick: sticks, :mc-feather: feathers"
     Makes: ":mc-arrow: Arrows, :mc-spectral_arrow: spectral arrows, :mc-bow: bows"
 
+weaponsmith:
+  name: Weaponsmith
+  page: workers/weaponsmith.md
+  head: weaponsmith
+  workstation: grindstone
+  summary: Forges tools and weapons, grinds two worn tools into one and disenchants loot for bottles o' enchanting.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-grindstone: Grindstone"
+    Takes: ":mc-iron_ingot: Ingots or cobblestone, :mc-stick: sticks, worn tools, enchanted loot"
+    Makes: ":mc-iron_axe: Tools, :mc-stone_sword: weapons, :mc-experience_bottle: bottles o' enchanting"
+
 tanner:
   name: Tanner
   page: workers/tanner.md

@@ -114,6 +114,7 @@ public final class StationTabs {
 				case FLETCHING_TABLE -> Items.ARROW;
 				case BREWING_STAND -> Items.GLASS_BOTTLE;
 				case CAULDRON -> Items.LEATHER;
+				case GRINDSTONE -> Items.IRON_SWORD;
 				case TARGET -> Items.BOW;
 				default -> Items.PAPER;
 			};

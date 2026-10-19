@@ -64,7 +64,7 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
   the station.
 - The overview of a workstation and the screen of the block itself (woodcutter,
   stonecutter, mill, carpenter's bench, kiln, blast furnace, smithing table, loom, smoker,
-  barrel, brewing stand) have the
+  barrel, brewing stand, grindstone) have the
   same tabs above them, like the creative inventory: the block, the worker, the wage, the
   chests and the order or settings. A red dot marks the tab where something is missing. A
   vanilla block nobody has set up shows only its own tab and the worker tab.
@@ -73,11 +73,11 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
   name on the front of the stations; notes left in a world remove themselves when they are
   loaded.)
 - Hired villagers never take vanilla jobs (lectern etc.). At a stonecutter, composter,
-  loom, smoker, barrel, fletching table, brewing stand, cauldron, blast furnace or smithing
-  table a hired villager becomes the stone sawyer, farmer, shepherd, butcher, fisher,
-  fletcher, apothecary, tanner or smith of this mod; unhired villagers still become masons,
-  farmers, shepherds, butchers, fishermen, fletchers, clerics, leatherworkers, armorers and
-  toolsmiths, except at one that is set
+  loom, smoker, barrel, fletching table, brewing stand, cauldron, grindstone, blast furnace
+  or smithing table a hired villager becomes the stone sawyer, farmer, shepherd, butcher,
+  fisher, fletcher, apothecary, tanner, weaponsmith or smith of this mod; unhired villagers
+  still become masons, farmers, shepherds, butchers, fishermen, fletchers, clerics,
+  leatherworkers, weaponsmiths, armorers and toolsmiths, except at one that is set
   up (chests, order or worker): vanilla job acquisition skips it. *Assign* there makes an
   ordinary villager that works there and has never traded (villager XP 0) unemployed;
   one that has traded keeps its job.
@@ -375,6 +375,22 @@ in vanilla), and a piece about to break they give back like a worn tool. Village
 armor, but a guard in a leather chestplate wears its tabard in the chestplate's color (a
 render layer over the guard's clothes): the uniform of the village.
 
+## Weaponsmith
+
+A hired villager at a vanilla **grindstone** becomes a **weaponsmith** (ordinary villagers
+still become vanilla weaponsmiths there). The tabs above the grindstone screen open the
+overview. It **forges** the ordered tool or weapon from its input chests and keeps a stock
+of it: the crafting recipes whose result is in the item tag `workingvillagers:forgeable`
+(axes, pickaxes, shovels, hoes, swords, spears, shears, the mace), except wooden ones, up
+to 4 per trip, one every two seconds. Before its order it **grinds together** two damaged
+tools of a kind, like a grindstone (both durabilities plus 5%; not enchanted or renamed
+ones): worn ones from the village chests in reach and damaged ones from its input chests,
+and brings the result back to the chest it came from. And it **disenchants** everything
+enchanted in its input chests (not curses, not renamed things), with the experience a
+grindstone gives, which it fills into bottles o' enchanting (`guard.experiencePerBottle`)
+with its glass bottles. At the grindstone one picks both, one of them or only the order.
+It trades like a vanilla weaponsmith.
+
 ## Fisher
 
 A hired villager at a vanilla **barrel** becomes a **fisher** (ordinary villagers still
@@ -598,6 +614,8 @@ injured worker with a potion from its output chest and harvests and replants rip
 wart, the tanner makes books, leather from rabbit hide, tans rotten flesh in the cauldron,
 fills an empty cauldron with its bucket, makes a red leather chestplate and dyes blue boots
 red, a guard puts on a chestplate it is given and boots from a village chest, the
+weaponsmith forges two iron axes, grinds two worn iron pickaxes from a village chest into
+one and disenchants a sword into bottles o' enchanting, the
 fisher fishes at a pond and rows out on a lake with its boat and takes it back, uses up a
 plain rod but gives back an enchanted one, the
 butcher slaughters cows down to the herd size, breeds a piglet and smokes chicken, a

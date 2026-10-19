@@ -532,6 +532,41 @@ def tanner():
     return image
 
 
+def weaponsmith():
+    """Villager profession overlay: a soot-blackened leather apron over a rust red shirt,
+    leather gloves, dark trousers, and goggles pushed up on the forehead."""
+    image = blank(64)
+    p = image.load()
+    shirt, shirt_dark = (150, 60, 40, 255), (120, 45, 30, 255)
+    apron, apron_dark, soot = (70, 55, 45, 255), (50, 40, 32, 255), (35, 32, 30, 255)
+    glove, trousers = (110, 75, 45, 255), (55, 50, 50, 255)
+    strap, lens, rim = (60, 45, 35, 255), (120, 170, 190, 255), (90, 90, 95, 255)
+
+    def fill(x0, y0, x1, y1, color):
+        for y in range(y0, y1):
+            for x in range(x0, x1):
+                p[x, y] = color(x, y)
+
+    cloth = lambda x, y: shirt_dark if (x + y) % 6 == 0 else shirt
+    leather = lambda x, y: soot if (x * 7 + y * 3) % 11 == 0 else apron_dark if x in (21, 26) else apron
+    fill(16, 20, 44, 38, cloth)  # body
+    fill(21, 21, 27, 38, leather)  # apron on the front
+    fill(20, 20, 22, 22, lambda x, y: strap)  # apron straps
+    fill(26, 20, 28, 22, lambda x, y: strap)
+    fill(44, 22, 60, 34, lambda x, y: glove if x < 48 or x >= 56 else cloth(x, y))  # crossed arms, gloved hands
+    fill(40, 38, 64, 46, cloth)  # crossed arms, middle part
+    fill(6, 38, 14, 44, cloth)  # robe top
+    fill(0, 44, 28, 64, cloth)  # robe
+    fill(5, 44, 11, 62, lambda x, y: leather(x + 16, y))  # apron on the robe
+    fill(0, 52, 28, 53, lambda x, y: strap)  # belt
+    fill(0, 22, 16, 38, lambda x, y: trousers)  # legs
+    fill(32, 9, 64, 10, lambda x, y: strap)  # goggle strap around the head
+    for x in (41, 42, 45, 46):
+        p[x, 9] = lens  # the goggles on the forehead
+    p[40, 9] = p[43, 9] = p[44, 9] = p[47, 9] = rim
+    return image
+
+
 def apothecary():
     """Villager profession overlay: a cream long coat with a bottle green apron, a leather belt
     with three small potion vials (red, blue, green), and a round bottle green cap."""
@@ -1044,6 +1079,8 @@ def main():
         "entity/villager/guard_tabard.png": guard_tabard(),
         "entity/villager/profession/tanner.png": tanner(),
         "entity/zombie_villager/profession/tanner.png": tanner(),
+        "entity/villager/profession/weaponsmith.png": weaponsmith(),
+        "entity/zombie_villager/profession/weaponsmith.png": weaponsmith(),
         "entity/villager/profession/apothecary.png": apothecary(),
         "entity/zombie_villager/profession/apothecary.png": apothecary(),
         "entity/villager/profession/fletcher.png": fletcher(),

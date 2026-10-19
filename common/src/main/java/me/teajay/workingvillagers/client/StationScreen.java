@@ -113,7 +113,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		this.woodsLabelY = SHAPES_Y + productRows * 18 + 5;
 		this.woodsY = this.woodsLabelY + 11;
 		this.stockY = type == StationType.KILN || type == StationType.FLETCHING_TABLE || type == StationType.BREWING_STAND
-			|| type == StationType.CAULDRON ? SHAPES_Y + KILN_ROWS * 18 + 8 : this.woodsY + 2 * 18 + 6;
+			|| type == StationType.CAULDRON || type == StationType.GRINDSTONE ? SHAPES_Y + KILN_ROWS * 18 + 8 : this.woodsY + 2 * 18 + 6;
 	}
 
 	/** The open tab, e.g. "wage" (for the tests of the menus). */
@@ -148,7 +148,8 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 
 	/** Kiln, fletching table and brewing stand: the order is picked from a grid of products, with a stock. */
 	private boolean hasProductGrid() {
-		return this.isKiln() || this.type() == StationType.FLETCHING_TABLE || this.type() == StationType.BREWING_STAND || this.type() == StationType.CAULDRON;
+		return this.isKiln() || this.type() == StationType.FLETCHING_TABLE || this.type() == StationType.BREWING_STAND || this.type() == StationType.CAULDRON
+			|| this.type() == StationType.GRINDSTONE;
 	}
 
 	/** The start of the translation keys of the product grid: the kiln's, the fletcher's or the apothecary's. */
@@ -157,6 +158,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			case KILN -> "gui.workingvillagers.kiln";
 			case BREWING_STAND -> "gui.workingvillagers.apothecary";
 			case CAULDRON -> "gui.workingvillagers.tanner";
+			case GRINDSTONE -> "gui.workingvillagers.weaponsmith";
 			default -> "gui.workingvillagers.fletcher";
 		};
 	}
@@ -483,6 +485,11 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 				this.extractStock(graphics, mouseX, mouseY);
 				this.extractDye(graphics, mouseX, mouseY);
 			}
+			case GRINDSTONE -> {
+				this.extractKilnOrder(graphics, mouseX, mouseY);
+				this.extractStock(graphics, mouseX, mouseY);
+				this.extractGrind(graphics, mouseX, mouseY);
+			}
 			case CARPENTER_BENCH -> {
 				this.extractProducts(graphics, this.leftPos + 8, this.menu.getShape());
 				this.extractStock(graphics, mouseX, mouseY);
@@ -740,7 +747,20 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		this.hotspots.add(new Hotspot(this.leftPos + COLUMN_X, y, COLUMN_WIDTH - 2 * SMALL - 4, SMALL, -1, tooltip));
 	}
 
-	/** Cauldron: the row of the color, below the stock. */
+	/** Grindstone: what the weaponsmith does besides its order, with buttons to the previous and next choice. */
+	private void extractGrind(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+		int y = this.topPos + this.dyeY() - 4;
+		List<Component> tooltip = List.of(
+			Component.translatable("gui.workingvillagers.weaponsmith.grind.tooltip"),
+			Component.translatable("gui.workingvillagers.weaponsmith.grind.tooltip2").withStyle(ChatFormatting.GRAY)
+		);
+		int right = this.leftPos + COLUMN_X + COLUMN_WIDTH;
+		this.button(graphics, mouseX, mouseY, right - SMALL, y, SMALL, SMALL, ">", StationMenu.GRIND_MORE_BUTTON, tooltip);
+		this.button(graphics, mouseX, mouseY, right - 2 * SMALL - 2, y, SMALL, SMALL, "<", StationMenu.GRIND_LESS_BUTTON, tooltip);
+		this.hotspots.add(new Hotspot(this.leftPos + COLUMN_X, y, COLUMN_WIDTH - 2 * SMALL - 4, SMALL, -1, tooltip));
+	}
+
+	/** Cauldron and grindstone: the row below the stock (the color, what the weaponsmith grinds). */
 	private int dyeY() {
 		return this.stockY + SMALL + 8;
 	}
@@ -861,7 +881,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		int textY = (BIG - 8) / 2 + 1;
 		switch (this.type()) {
 			case STONECUTTER -> GuiPanels.scrollingText(graphics, this.font, this.stoneLabel().getString(), 8, SHAPES_Y - 11, COLUMN_WIDTH - 40, GuiPanels.TEXT_COLOR);
-			case KILN, FLETCHING_TABLE, BREWING_STAND, CAULDRON -> graphics.text(this.font, Component.translatable("gui.workingvillagers.station.shape"), 8, SHAPES_Y - 11, GuiPanels.TEXT_COLOR, false);
+			case KILN, FLETCHING_TABLE, BREWING_STAND, CAULDRON, GRINDSTONE -> graphics.text(this.font, Component.translatable("gui.workingvillagers.station.shape"), 8, SHAPES_Y - 11, GuiPanels.TEXT_COLOR, false);
 			case WOODCUTTER, CARPENTER_BENCH -> {
 				graphics.text(this.font, Component.translatable("gui.workingvillagers.station.shape"), 8, SHAPES_Y - 11, GuiPanels.TEXT_COLOR, false);
 				graphics.text(this.font, Component.translatable(this.isBench() ? "gui.workingvillagers.station.woods.bench" : "gui.workingvillagers.station.woods"),
@@ -947,6 +967,10 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 				: Component.translatable("gui.workingvillagers.station.stock", stock);
 			GuiPanels.scrollingText(graphics, this.font, text.getString(), 8, this.stockY, COLUMN_WIDTH - 2 * SMALL - 6, GuiPanels.TEXT_COLOR);
 		}
+		if (this.type() == StationType.GRINDSTONE) {
+			Component text = Component.translatable("gui.workingvillagers.weaponsmith.grind." + this.menu.getGrindMode());
+			GuiPanels.scrollingText(graphics, this.font, text.getString(), 8, this.dyeY(), COLUMN_WIDTH - 2 * SMALL - 6, GuiPanels.TEXT_COLOR);
+		}
 		if (this.type() == StationType.CAULDRON) {
 			DyeColor dye = this.menu.getDye();
 			ItemStack armor = new ItemStack(Items.LEATHER_CHESTPLATE);
@@ -996,6 +1020,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			case BARREL -> "gui.workingvillagers.station.back.tooltip.barrel";
 			case KILN -> "gui.workingvillagers.station.back.tooltip.kiln";
 			case BREWING_STAND -> "gui.workingvillagers.station.back.tooltip.brewing_stand";
+			case GRINDSTONE -> "gui.workingvillagers.station.back.tooltip.grindstone";
 			case MINING_BENCH -> "gui.workingvillagers.station.back.tooltip.mill";
 			default -> "gui.workingvillagers.station.back.tooltip";
 		};
@@ -1064,7 +1089,8 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 				? Component.translatable("gui.workingvillagers.tanner.tanning", this.menu.getTanning(), minutes)
 				: Component.translatable("gui.workingvillagers.tanner.tanned", this.menu.getTanning()));
 		}
-		if ((this.type() == StationType.FLETCHING_TABLE || this.type() == StationType.BREWING_STAND || this.type() == StationType.CAULDRON)
+		if ((this.type() == StationType.FLETCHING_TABLE || this.type() == StationType.BREWING_STAND || this.type() == StationType.CAULDRON
+			|| this.type() == StationType.GRINDSTONE)
 			&& !this.menu.getOrder().isEmpty()
 			&& this.menu.getLogsToday() >= 0) {
 			return Optional.of(Component.translatable(this.gridKeys() + ".today", this.menu.getOrder().getHoverName(), this.menu.getLogsToday()));

@@ -310,6 +310,10 @@ public class MenuScreenshots implements FabricClientGameTest {
 				station.setOrder(Items.ARROW);
 				station.setStock(64);
 			}
+			if (type == StationType.GRINDSTONE) {
+				station.setOrder(Items.IRON_AXE);
+				station.setStock(4);
+			}
 			if (type == StationType.CAULDRON) {
 				station.setOrder(Items.LEATHER_CHESTPLATE);
 				station.setDye(net.minecraft.world.item.DyeColor.RED);

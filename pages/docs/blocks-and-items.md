@@ -107,6 +107,11 @@ to open its overview. No vanilla villager takes it as a job site.
 :mc-fletching_table: Workstation of the [fletcher](workers/fletcher.md). It has no screen in
 vanilla; right-click it with an empty hand to open its overview.
 
+## Grindstone (vanilla)
+
+:mc-grindstone: Workstation of the [weaponsmith](workers/weaponsmith.md). The [tabs](workers/basics.md#the-overview)
+above its screen lead to the overview; the grindstone itself works as usual.
+
 ## Cauldron (vanilla)
 
 :mc-cauldron: Workstation of the [tanner](workers/tanner.md). Right-click it with an empty
@@ -155,6 +160,7 @@ composts as usual.
 | :mc-head_fisher: Fisher | :mc-barrel: Barrel | :mc-work_contract: Work contract |
 | :mc-head_fletcher: Fletcher | :mc-fletching_table: Fletching table | :mc-work_contract: Work contract |
 | :mc-head_guard: Guard | :mc-target: Target | :mc-work_contract: Work contract |
+| :mc-head_weaponsmith: Weaponsmith | :mc-grindstone: Grindstone | :mc-work_contract: Work contract |
 | :mc-head_tanner: Tanner | :mc-cauldron: Cauldron | :mc-work_contract: Work contract |
 | :mc-head_apothecary: Apothecary | :mc-brewing_stand: Brewing stand | :mc-work_contract: Work contract |
 | :mc-head_smith: Smith | :mc-blast_furnace: Blast furnace | :mc-work_contract: Work contract |
