@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "workingvillagers:work_hours",
+  "function": "workingvillagers:sawyer_cuts_several_shapes",
+  "max_ticks": 2400,
+  "setup_ticks": 1,
+  "structure": "workingvillagers:platform"
+}

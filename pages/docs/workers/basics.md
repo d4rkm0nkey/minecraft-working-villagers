@@ -119,7 +119,8 @@ other mods):
 
 Click **+ Chest** (lumberjack, farmer, shepherd and pit digger) or **+ Input** / **+ Output** (the others). The menu
 closes; right-click the chests you want to link. Right-click a linked chest again to
-unlink it. Right-click the workstation to finish; its menu opens again.
+unlink it. Right-click the workstation to finish; its menu opens again. A double chest
+counts as one chest, whichever half you click.
 
 The menu lists the linked chests with a bar showing how full each one is. The **×**
 unlinks a chest. At the stations with input and output chests, one click on *Input* /
@@ -131,6 +132,27 @@ The menus list chests by name. To name one, open the chest (or barrel), click **
 top right, type the name (up to 24 characters) and press Enter. The name is the same as one
 given with an anvil: it also shows as the chest's title. A chest without a name is listed
 by its kind (*Chest*, *Barrel*) in gray.
+
+## Several products
+
+The [sawyers](sawyer.md), the [carpenter](carpenter.md), the [kiln operator](kiln-operator.md),
+the [fletcher](fletcher.md), the [tanner](tanner.md) and the [weaponsmith](weaponsmith.md)
+take up to **8 products** in one order. In the **Order** tab a click on a product adds it, another
+click takes it out; the label above the grid shows how many are picked.
+
+They make them **in equal parts**, one batch at a time, always the most needed one they have
+material for:
+
+- **With a stock** it counts for each product: "keep 8" means 8 chests *and* 8 barrels. The
+  worker makes the product of which the output chests hold the fewest and leaves out the
+  ones whose stock is full.
+- **Without a stock** the station counts what the worker made of each product, and it makes
+  the one it made the fewest of. A product you add later starts level with the others.
+- A product without material does not hold up the others. The worker only waits when there
+  is material for none of them.
+
+The order box below the result slot of the carpenter's bench and the cutters shows the
+products one after another, with their number in the corner.
 
 ## The wage box
 

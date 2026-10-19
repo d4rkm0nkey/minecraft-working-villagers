@@ -6,6 +6,7 @@ Der Waffenschmied macht neues Werkzeug und neue Waffen und holt aus Altem heraus
 
 ## Stand der Umsetzung
 
+- **Mehrere Produkte** (0.5.0): bis zu 8 Produkte je Auftrag, zu gleichen Teilen, Vorrat je Produkt; siehe [Tischler](tischler.md#mehrere-produkte-umgesetzt-in-050).
 - **Station:** Vanilla-Schleifstein (POI `weaponsmith`); die Reiter über dem Schleifstein-Menü führen zur Übersicht (Mixins auf `GrindstoneMenu` und `GrindstoneScreen`). Vanilla-Waffenschmiede lassen sich anheuern, behalten ihre Angebote und handeln wie Waffenschmiede (Handelsfamilie `weaponsmith`).
 - **Rezepte** (`ForgeRecipes`): die Crafting-Rezepte, deren Ergebnis im Item-Tag `workingvillagers:forgeable` steht (Äxte, Spitzhacken, Schaufeln, Hacken, Schwerter, Speere, Schere, Streitkolben), ohne die mit Brettern (Holzwerkzeug macht der Tischler). Statt der Komponenten `tool`/`weapon` ein Tag wie beim Tischler (`joinery`): Datapacks können ergänzen. Gefertigt wird mit den Helfern des Tischlers (`CarpenterRecipes.account/pick/craft`), also mit Tag-Zutaten wie am Werkbank.
 - **Auftrag** im Raster mit Seiten, **Vorrat**, darunter die Wahl, was er außerdem macht (`<` `>`): zusammenschleifen und entzaubern, nur eins davon, nur der Auftrag (Feld `grind` der Station). Bis zu 4 Stück pro Gang, ein Stück alle 2 Sekunden, Funken und Schleifstein-Geräusch.

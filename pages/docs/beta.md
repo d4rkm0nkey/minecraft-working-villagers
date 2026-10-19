@@ -26,9 +26,11 @@ Working Villagers is in an early beta. Thanks for testing!
   copper and iron nuggets, and the [guards](workers/guard.md#experience) get the experience
   of the monsters they kill.
 - The cartographer has no job in this mod yet: cartographers cannot be hired.
-- Saves from 0.3.0 should load, but this has not been tested in many worlds. **Back up
-  first.** The wage of workers is now kept in their workstation; workers from 0.3.0 put the
-  emeralds they carry into it by themselves.
+- Saves from 0.4.0 should load, but this has not been tested in many worlds. **Back up
+  first.** An order now holds several products; a station from 0.4.0 keeps its one product.
+  A world saved with 0.5.0 cannot go back to 0.4.0: the workstations would lose their settings.
+- The [apothecary](workers/apothecary.md) still brews one potion at a time; the other
+  workers with an order take [several products](workers/basics.md#several-products).
 
 What comes next is on [Planned features](planned.md).
 

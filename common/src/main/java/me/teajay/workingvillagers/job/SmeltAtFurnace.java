@@ -3,6 +3,7 @@ package me.teajay.workingvillagers.job;
 import com.google.common.collect.ImmutableMap;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -44,9 +45,10 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>The smith at the blast furnace has no order: it smelts everything the blast furnace
  * accepts. The kiln operator fires everything the kiln accepts (see {@link KilnRecipes}),
- * or only what makes the order of the kiln; it fires that again until it is the order
- * (cobblestone to stone to smooth stone), and stops while the output chests hold the stock
- * set in the overview.
+ * or only what makes the products of the kiln's order; it fires that again until it is the
+ * product (cobblestone to stone to smooth stone), and stops making a product while the
+ * output chests hold the stock set in the overview. With several products it loads the kiln
+ * for the most needed one there is material for ({@link Workstations.Station#ordersByNeed}).
  *
  * <p>Fuel is everything that burns (coal, charcoal, blocks of coal, ...) but nothing the
  * worker would rather smelt: with the order "charcoal" logs are material, not fuel. What
@@ -110,8 +112,10 @@ public class SmeltAtFurnace extends Behavior<Villager> {
 	/** Whether the blast furnace can smelt an item, looked up once per item. */
 	private final Map<Item, Boolean> smeltable = new HashMap<>();
 	private long smeltableTime;
-	/** The kiln's order while the worker is at work, null for everything. */
-	private @Nullable Item order;
+	/** The products of the kiln's order while the worker is at work, empty for everything. */
+	private List<Item> orders = List.of();
+	/** The product the material in the kiln is fired for, null if none or unknown. */
+	private @Nullable Item target;
 	/**
 	 * How many of each item the worker took out of the furnace as products and still has to
 	 * deliver. Not saved: after a restart they count as material again if they can be smelted.
@@ -181,10 +185,13 @@ public class SmeltAtFurnace extends Behavior<Villager> {
 			this.smeltable.clear();
 			this.smeltableTime = timestamp;
 		}
-		Item order = this.kind == Kind.KILN ? station.order() : null;
-		if (order != this.order) {
-			this.order = order;
+		List<Item> orders = this.kind == Kind.KILN ? station.orders() : List.of();
+		if (!orders.equals(this.orders)) {
+			this.orders = List.copyOf(orders);
 			this.smeltable.clear();
+			if (this.target != null && !orders.contains(this.target)) {
+				this.target = null;
+			}
 		}
 		this.products.entrySet().removeIf(entry -> {
 			entry.setValue(Math.min(entry.getValue(), villager.getInventory().countItem(entry.getKey())));
@@ -217,7 +224,7 @@ public class SmeltAtFurnace extends Behavior<Villager> {
 
 	/**
 	 * Whether the worker puts the item into the furnace: the blast furnace can smelt it, or
-	 * the kiln can fire it and that makes the order (at once or after more firing).
+	 * the kiln can fire it and that makes a product of the order (at once or after more firing).
 	 */
 	private boolean isSmeltable(ServerLevel level, ItemStack stack) {
 		if (stack.isEmpty()) {
@@ -225,7 +232,7 @@ public class SmeltAtFurnace extends Behavior<Villager> {
 		}
 		return this.smeltable.computeIfAbsent(stack.getItem(), item -> switch (this.kind) {
 			case SMITH -> level.recipeAccess().getRecipeFor(RecipeType.BLASTING, new SingleRecipeInput(stack), level).isPresent();
-			case KILN -> KilnRecipes.accepts(level, stack) && (this.order == null || KilnRecipes.leadsTo(level, stack, this.order));
+			case KILN -> KilnRecipes.accepts(level, stack) && (this.orders.isEmpty() || this.orders.stream().anyMatch(order -> KilnRecipes.leadsTo(level, stack, order)));
 		});
 	}
 
@@ -303,12 +310,28 @@ public class SmeltAtFurnace extends Behavior<Villager> {
 			return;
 		}
 
-		int stocked = this.stocked(level, station);
+		List<Item> byNeed = this.orders.isEmpty() ? List.of() : station.ordersByNeed(order -> station.inOutputs(level, order));
+		boolean stockFull = !this.orders.isEmpty() && byNeed.isEmpty();
 		ItemStack input = furnace.getItem(SLOT_INPUT);
 		boolean carriesOre = this.carries(inventory, stack -> this.isSmeltable(level, stack));
-		boolean wantOre = !carriesOre && input.getCount() < input.getMaxStackSize() && stocked < 0;
+		boolean wantOre = !carriesOre && input.getCount() < input.getMaxStackSize() && !stockFull;
 		Predicate<ItemStack> isOre = stack -> this.isSmeltable(level, stack) && (input.isEmpty() || ItemStack.isSameItemSameComponents(stack, input));
-		Optional<BlockPos> oreChest = wantOre ? this.closestInput(level, villager, station, isOre) : Optional.empty();
+		Optional<BlockPos> oreChest = Optional.empty();
+		Item oreFor = null;
+		if (wantOre && !input.isEmpty() || wantOre && this.orders.isEmpty()) {
+			oreChest = this.closestInput(level, villager, station, isOre);
+		} else if (wantOre) {
+			// An empty kiln: material for the most needed product there is some for
+			for (Item order : byNeed) {
+				Predicate<ItemStack> leads = stack -> this.isSmeltable(level, stack) && KilnRecipes.leadsTo(level, stack, order);
+				oreChest = this.closestInput(level, villager, station, leads);
+				if (oreChest.isPresent()) {
+					isOre = leads;
+					oreFor = order;
+					break;
+				}
+			}
+		}
 		boolean smelting = !input.isEmpty() || carriesOre || oreChest.isPresent();
 		boolean wantFuel = smelting && this.countSpare(inventory, stack -> this.isFuel(level, stack)) < this.kind.fuelBatch()
 			&& furnace.getItem(SLOT_FUEL).getCount() < this.kind.fuelBatch();
@@ -318,34 +341,20 @@ public class SmeltAtFurnace extends Behavior<Villager> {
 		if (chest.isPresent()) {
 			this.trip = ChestTrip.to(level, villager, chest.get());
 			this.fetchOre = oreChest.isPresent() ? isOre : null;
+			if (oreFor != null) {
+				this.target = oreFor;
+			}
 			this.fetchFuel = wantFuel;
 			this.setState(State.FETCH);
 		} else if (products > 0) {
 			this.setState(State.DELIVER);
-		} else if (stocked >= 0 && input.isEmpty()) {
+		} else if (stockFull && input.isEmpty()) {
+			int stocked = this.orders.stream().mapToInt(order -> station.inOutputs(level, order)).min().orElse(0);
 			this.idle(villager, station, this.kind.status + ".stock_full", stocked, station.stock());
 		} else {
 			boolean lit = level.getBlockState(station.pos()).getOptionalValue(AbstractFurnaceBlock.LIT).orElse(false);
 			this.idle(villager, station, this.kind.status + (input.isEmpty() ? ".no_ore" : lit ? ".smelting" : ".no_fuel"));
 		}
-	}
-
-	/**
-	 * Kiln with an order and a stock: how many of the order the output chests hold once
-	 * they hold enough, -1 while the worker should make more.
-	 */
-	private int stocked(ServerLevel level, Workstations.Station station) {
-		if (this.order == null || station.stock() <= 0) {
-			return -1;
-		}
-		int stocked = 0;
-		for (BlockPos pos : station.validOutputs(level)) {
-			Container container = Workstations.getContainer(level, pos);
-			if (container != null) {
-				stocked += container.countItem(this.order);
-			}
-		}
-		return stocked >= station.stock() ? stocked : -1;
 	}
 
 	/**
@@ -424,10 +433,13 @@ public class SmeltAtFurnace extends Behavior<Villager> {
 		SimpleContainer inventory = villager.getInventory();
 		ItemStack result = furnace.getItem(SLOT_RESULT).copy();
 		int taken = takeOut(furnace, SLOT_RESULT, inventory);
-		// Fired once more on the way to the order (stone for smooth stone): material, not a product
-		boolean again = this.order != null && !result.is(this.order) && KilnRecipes.leadsTo(level, result, this.order);
+		// Fired once more on the way to the product (stone for smooth stone): material, not a product
+		boolean again = !result.isEmpty() && (this.target != null
+			? !result.is(this.target) && KilnRecipes.leadsTo(level, result, this.target)
+			: !this.orders.contains(result.getItem()) && this.orders.stream().anyMatch(order -> KilnRecipes.leadsTo(level, result, order)));
 		if (taken > 0 && !again) {
 			this.products.merge(result.getItem(), taken, Integer::sum);
+			station.addMade(result.getItem(), taken);
 		}
 		ItemStack fuel = furnace.getItem(SLOT_FUEL);
 		if (!fuel.isEmpty() && !this.isFuel(level, fuel)) {

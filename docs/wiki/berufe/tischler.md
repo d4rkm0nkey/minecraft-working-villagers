@@ -68,7 +68,7 @@ Stellt Zwischenprodukte selbst her: Fehlen Sticks oder Slabs, macht er sie aus P
 ## Sonderfälle & offene Fragen
 
 - **Werkzeug:** Braucht der Tischler eine Axt, die man ihm gibt und die je Werkstück abnutzt? Das wäre konsistent mit dem Holzfäller, ist aber vielleicht unnötige Pflege. Vorschlag: zunächst ohne Werkzeug.
-- **Mehrere Aufträge:** siehe [Konzept: Mehrere Produkte](#konzept-mehrere-produkte). Eine Auftragsliste nacheinander („erst 200 Leitern, dann 50 Kisten“) bleibt eine Idee für später.
+- **Mehrere Aufträge:** siehe [Mehrere Produkte](#mehrere-produkte-umgesetzt-in-050). Eine Auftragsliste nacheinander („erst 200 Leitern, dann 50 Kisten“) bleibt eine Idee für später.
 - **Shulker-Kisten, Lectern mit Buch usw.:** Alles mit Komponenten oder Nicht-Holz-Kern bleibt draußen. Im Zweifel entscheidet der Tag.
 - **Abgrenzung zum Crafter-Bediener:** Der Tischler ist früh verfügbar, schnell und billig, kann aber nur Holz. Der [Crafter-Bediener](crafter-bediener.md) kann später jedes Rezept, ist dafür langsamer und braucht Redstone-Technik.
 
@@ -86,55 +86,42 @@ Stand der Umsetzung:
 
 Später: Stufe 3, *Stückzahl*, Auftragsliste, Master-Fähigkeit.
 
-## Konzept: Mehrere Produkte
+## Mehrere Produkte (umgesetzt in 0.5.0)
 
-Bisher hat die Hobelbank genau ein Produkt. Wer Kisten, Fässer und Leitern braucht, braucht drei Tischler oder stellt den Auftrag ständig um. Künftig wählt man **mehrere Produkte**, und der Tischler stellt sie **möglichst zu gleichen Teilen** her.
+Ein Auftrag hat bis zu **8 Produkte** (`Workstations.MAX_ORDERS`), und der Tischler stellt sie **zu gleichen Teilen** her. Dasselbe gilt für [Holzsäger und Steinsäger](holzsaeger.md), [Brenner](brenner.md), [Pfeilmacher](pfeilmacher.md), [Gerber](gerber.md) und [Waffenschmied](waffenschmied.md). Nur der [Apotheker](apotheker.md) braut weiter einen Trank nach dem anderen (seine Brauwege laufen über Zwischentränke am Braustand).
 
 ### Bedienung
 
-- Im Reiter **Auftrag** schaltet ein Klick auf ein Produkt im Raster es **an oder aus**, statt das bisherige zu ersetzen. Gewählte Produkte haben einen hellen Rahmen und einen Haken.
-- Höchstens **8 Produkte** (Config `carpenter.maxProducts`). Beim neunten kommt die Meldung „Höchstens 8 Produkte“.
-- **Holzarten** gelten für alle Produkte gemeinsam, wie heute. Ein holzartgebundenes Produkt (Boot, Hängeschild, Shelf) zählt im Raster als ein Eintrag; jede erlaubte Holzart davon ist beim Verteilen aber ein eigenes Produkt (Eichenboot und Fichtenboot wechseln sich also auch ab).
-- Das Auftragsfeld in der Hobelbank zeigt die gewählten Produkte nacheinander (Wechsel jede Sekunde) mit einer kleinen Zahl „×3“. Der Tooltip listet alle mit ihrem Bestand.
-- Der **Vorrat** gilt **je Produkt**: „Vorrat 8“ heißt 8 Kisten *und* 8 Fässer *und* 8 Leitern. Das ist die naheliegende Lesart und macht gleiche Teile einfach.
+- Im Reiter **Auftrag** schaltet ein Klick ein Produkt an oder aus. Über dem Raster steht „Erzeugnisse (2/8)“. Ist der Auftrag voll, sagt der Tooltip das, und ein Klick meldet „Der Auftrag ist voll“.
+- **Holzarten** gelten für alle Produkte gemeinsam. Ein holzartgebundenes Produkt (Treppe an der Holzsäge, Boot an der Hobelbank) ist **ein** Produkt in allen erlaubten Holzarten: Bestand und Zähler zählen alle Holzarten zusammen, wie bisher beim einzelnen Auftrag. (Abweichung vom Konzept, das jede Holzart einzeln verteilen wollte: so bleibt das Verhalten alter Stationen gleich.)
+- Das Auftragsfeld an Hobelbank und Säge zeigt die Produkte nacheinander (eine Sekunde je Produkt) mit „×3“ in der Ecke, der Tooltip listet alle.
+- Der **Vorrat** gilt **je Produkt**.
 
-### Was „gleiche Teile“ heißt
+### Verteilung
 
-Gezählt werden **Stück**, nicht Arbeitsgänge, weil der Spieler Stück in der Kiste sieht (eine Leiter-Runde ergibt 3 Leitern, eine Kiste-Runde 1 Kiste).
+`Station.ordersByNeed` sortiert die Produkte nach Bedarf:
 
-1. **Mit Vorrat:** Der Tischler zählt jedes Produkt in den Ausgangskisten. Er macht das Produkt, von dem **am wenigsten da ist** (im Verhältnis zum Vorrat), aber nur, wenn er Material dafür hat. Sind alle voll: „Vorrat voll“.
-2. **Ohne Vorrat (Dauerauftrag):** Den Bestand in der Kiste kann man nicht nehmen, weil Träger ihn wegbringen. Stattdessen führt die Station einen **Zähler je Produkt** („gemacht seit Auftragsänderung“). Er macht das Produkt mit dem kleinsten Zähler. Ändert sich die Auswahl, starten alle Zähler bei 0; ein neu dazugenommenes Produkt startet beim kleinsten Zähler der anderen, damit es nicht alles andere aufholt.
-3. **Gleichstand:** Reihenfolge im Raster.
+1. **Mit Vorrat:** wenigster Bestand in den Ausgangskisten zuerst; volle fallen heraus.
+2. **Ohne Vorrat:** die Station zählt je Produkt, was gemacht wurde (`made`, gespeichert). Es gewinnt der kleinste Zähler. Ein neu dazugenommenes Produkt startet beim kleinsten Zähler der anderen. Gespeichert werden nur die Abstände (der kleinste Zähler wird immer auf 0 gezogen).
+3. **Gleichstand:** Reihenfolge der Auswahl.
 
-### Material und Gänge
+Jeder Beruf nimmt davon das erste Produkt, für das er Material hat, und macht **einen Satz** davon; danach plant er neu. Fehlt für ein Produkt Material, kommt das nächste dran. Die Säger holen bei mehreren Produkten nur ihren Anteil am Satz (`sawyer.batchSize` geteilt durch die Zahl der Produkte), sonst würde das erste Produkt das ganze Holz verbrauchen. Der Brenner wählt das Produkt beim Füllen eines leeren Ofens.
 
-- **Ein Produkt ohne Material blockiert die anderen nicht.** Es wird übersprungen, bis wieder Material da ist. Erst wenn für *kein* Produkt Material da ist, wartet er („wartet auf Sticks“). Der Tooltip zeigt pro Produkt, was fehlt.
-- Damit der Tischler nicht für jedes Stück zur Kiste läuft, bleibt es bei **einem Satz pro Gang** (bis zu 32 Zutaten). Der Satz wird aber auf den **Rückstand** des Produkts begrenzt: Fehlen nur 2 Kisten bis zum Gleichstand, holt er Material für 2 Kisten und plant danach neu.
-- Teilen sich Produkte ein Material (Kisten und Fässer brauchen beide Planks), regelt das der Zähler von selbst: Er wechselt ab, statt alle Planks in Kisten zu stecken.
-- Material, das kein gewähltes Produkt mehr braucht, bringt er wie heute zurück in die Eingangskiste.
+Ist ein Produkt Material eines anderen (Kisten für Truhenboote, Steinziegel für Steinziegeltreppen), liefert der Arbeiter es trotzdem ab, statt es weiterzuverarbeiten.
 
-### Status
+### Daten
 
-- „Baut Fässer · Kiste 4 · Fass 3 · Leiter 3“ (Zähler bzw. Bestand/Vorrat).
-- „Vorrat voll (8/8 je Produkt)“, „Wartet auf Sticks (Leiter, Fass)“.
-
-### Daten und Umstieg
-
-- `order` (ein Item) wird zu `orders` (Liste). Alte Welten: ein vorhandenes `order` wird beim Laden zu einer Liste mit einem Eintrag.
-- Die Zähler liegen in der Station (gespeichert), nicht im Arbeiter: Ein neuer Tischler macht dort weiter.
-- Die Verteilung (`nextProduct(station, verfügbar)`) wird allgemein gebaut, so dass [Brenner](brenner.md), [Pfeilmacher](pfeilmacher.md) und Holz-/Steinsäger sie später übernehmen können.
+Das Feld `order` der Station ist jetzt eine Liste; ein einzelnes Item aus 0.4.0 wird beim Laden zu einer Liste mit einem Eintrag. Zurück zu 0.4.0 geht nicht.
 
 ### Tests
 
-- Kisten + Fässer, Vorrat 2, genug Planks → je 2 in der Ausgangskiste.
-- Kisten + Leitern, keine Sticks → er macht nur Kisten und meldet nicht „wartet“.
-- Dauerauftrag Kisten + Fässer mit 64 Planks → Unterschied der beiden Zähler höchstens ein Satz.
-- Alte Station mit `order` lädt als Auftrag mit einem Produkt.
+Kisten + Fässer mit Vorrat 2; Kisten + Leitern ohne Sticks (die Kisten kommen trotzdem); Bretter + Treppen an der Holzsäge; Glas + Stein im Brennofen; Pfeile + Bögen; Eisenaxt + Eisenspitzhacke; Bücher + Bündel.
 
-### Offene Fragen
+### Offen
 
-- **Gewichte** („doppelt so viele Kisten wie Fässer“)? Empfehlung: nicht im ersten Schritt; ein Vorrat je Produkt wäre die spätere Erweiterung.
-- **8 als Grenze?** Mehr ist technisch kein Problem, aber die Status-Zeile und der Tooltip werden unübersichtlich.
+- **Gewichte** („doppelt so viele Kisten wie Fässer“) oder ein Vorrat je Produkt.
+- Mehrere Tränke beim Apotheker.
+- Eine Auftragsliste nacheinander („erst 200 Leitern, dann 50 Kisten“).
 
 ## Siehe auch
 

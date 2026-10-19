@@ -44,6 +44,7 @@ Er braucht mindestens einen Eingang und einen Ausgang. Ein [Träger](traeger.md)
 
 ## Stand der Umsetzung
 
+- **Mehrere Produkte** (0.5.0): bis zu 8 Produkte je Auftrag, zu gleichen Teilen (die Säger haben keinen Vorrat und zählen, was sie gemacht haben); siehe [Tischler](tischler.md#mehrere-produkte-umgesetzt-in-050).
 - Umgesetzt wie oben beschrieben. Werkzeug braucht der Holzsäger nicht.
 - Alle Arbeiter sind vorerst Novizen. Level und Master-Fähigkeit fehlen.
 

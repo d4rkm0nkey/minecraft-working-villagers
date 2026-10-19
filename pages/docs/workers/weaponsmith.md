@@ -18,7 +18,8 @@ one and takes the enchantments off loot, for the experience.
 
 1. Place a grindstone and open it: the [tabs](basics.md#the-overview) above its screen lead
    to the overview. Link an **input chest** with the material and an **output chest**.
-2. Tab :mc-stone_sword: **Order**: click the product, set the **stock**, and below it what
+2. Tab :mc-stone_sword: **Order**: click the products (up to 8, made in
+   [equal parts](basics.md#several-products)), set the **stock**, and below it what
    it does besides (< and >).
 3. Give it its wage.
 
@@ -27,7 +28,7 @@ one and takes the enchantments off loot, for the experience.
 It makes **axes, pickaxes, shovels, hoes, swords, spears, shears** and the **mace** after the
 vanilla crafting recipes, of cobblestone, copper, iron, gold or diamond, with sticks.
 Wooden tools are the [carpenter](carpenter.md)'s. It fetches material for up to 4 pieces at
-once and keeps the stock in its output chests. With a [village chest](basics.md#village-chests)
+once and keeps the stock of each in its output chests. With a [village chest](basics.md#village-chests)
 as output chest your workers take their new tools from there by themselves:
 ore from the [miner](miner.md), ingots from the [smith](smith.md), sticks from the
 [sawyer](sawyer.md), tools from the weaponsmith.

@@ -6,6 +6,7 @@ Der Brenner bedient den Brennofen: Er brennt Baustoffe wie Glas, Stein, Terrakot
 
 ## Stand der Umsetzung
 
+- **Mehrere Produkte** (0.5.0): bis zu 8 Produkte je Auftrag, zu gleichen Teilen, Vorrat je Produkt; siehe [Tischler](tischler.md#mehrere-produkte-umgesetzt-in-050).
 - **Brennofen:** eigener Block mit Block-Entity, Rezept 1 Ofen + 4 Ziegel (Kreuz). Für Spieler wie ein Ofen: Ofen-Rezeptbuch (ohne Essen-Reiter), Brennstoff, Erfahrung, Hopper. Normales Ofentempo, Licht beim Brennen, Rauch auch oben aus dem „Kamin“. Texturen: die Ofen-Texturen mit Ziegeln statt Bruchstein (`tools/generate_textures.py`).
 - **Was er brennt** steht in `KilnRecipes`: alle Zutaten von `minecraft:smelting`-Rezepten, außer solchen mit einem Essen-Rezept (Buch-Kategorie `food`) oder einem `minecraft:blasting`-Rezept und außer dem Item-Tag `workingvillagers:kiln_excluded` (leer). Liegt etwas anderes im Eingangsslot, tickt der Ofen wie ohne Zutat (Brennstoff brennt weiter herunter), es wird nicht gebrannt. Hopper und Shift-Klick legen nur Brennbares hinein.
 - Die Reiter über dem Ofen-Fenster führen in die Stationsübersicht, der Reiter des Brennofens wieder zum Ofen.

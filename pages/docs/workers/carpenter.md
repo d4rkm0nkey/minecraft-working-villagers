@@ -24,7 +24,8 @@ Bows and crossbows come from the [fletcher](fletcher.md).
 
 ## Setting the order
 
-Pick the product in the overview (**i**, or click the order box below the result slot).
+Pick the products in the overview (**i**, or click the order box below the result slot):
+up to 8, made in [equal parts](basics.md#several-products).
 
 - **Boats, boats with chest, hanging signs and shelves** are ordered as a shape with
   wood types, like at the woodcutter.
@@ -33,9 +34,9 @@ Pick the product in the overview (**i**, or click the order box below the result
 
 ## Stock
 
-With **-** / **+** in the overview you set how many products the carpenter keeps in its
+With **-** / **+** in the overview you set how many of each product the carpenter keeps in its
 output chests: no limit, 1, 2, 4, ... up to 256. It stops at that many and goes on as
-soon as some are taken out. Handy for "always keep 16 chests ready".
+soon as some are taken out. Handy for "always keep 16 chests and 16 barrels ready".
 
 ## How it works
 

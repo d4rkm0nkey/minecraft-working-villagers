@@ -45,8 +45,10 @@ import org.jspecify.annotations.Nullable;
  * The work of the carpenter: fetch the ingredients for the order of the carpenter's bench
  * from the input chests, make the products at the bench and bring them to an output chest.
  * Ingredients may come from several input chests; the worker only sets off when all of
- * them together are enough for at least one piece. With a stock set, it only works while
- * the output chests hold fewer products than that.
+ * them together are enough for at least one piece. With several products it makes them in
+ * equal parts, one batch at a time, the most needed first ({@link Workstations.Station#ordersByNeed});
+ * a product without material does not hold up the others. With a stock set, it only works
+ * while the output chests hold fewer of a product than that.
  *
  * <p>Without an order, input chest or output chest the worker does not work, nor before it
  * took its wage (see {@link WorkerSupplies}). Material and products are kept in the
@@ -100,7 +102,7 @@ public class CraftAtBench extends Behavior<Villager> {
 		}
 		Workstations.Station station = this.getWorkplace(level, villager);
 		return station != null
-			&& station.order() != null
+			&& station.hasOrder()
 			&& !station.validInputs(level).isEmpty()
 			&& !station.validOutputs(level).isEmpty();
 	}
@@ -135,7 +137,7 @@ public class CraftAtBench extends Behavior<Villager> {
 	@Override
 	protected void tick(ServerLevel level, Villager villager, long timestamp) {
 		Workstations.Station station = this.getWorkplace(level, villager);
-		if (station == null || station.order() == null) {
+		if (station == null || !station.hasOrder()) {
 			return;
 		}
 		this.stateTicks++;
@@ -176,26 +178,28 @@ public class CraftAtBench extends Behavior<Villager> {
 
 	private void plan(ServerLevel level, Villager villager, Workstations.Station station, List<CraftingRecipe> recipes, Predicate<ItemStack> isMaterial) {
 		SimpleContainer inventory = villager.getInventory();
-		if (inventory.hasAnyMatching(isProduct(isMaterial))) {
+		if (inventory.hasAnyMatching(isProduct(station, isMaterial))) {
 			this.setState(State.DELIVER);
 			return;
 		}
 		if (this.planned != null && !recipes.contains(this.planned)) {
 			this.planned = null; // the order changed
 		}
-		int wanted = Integer.MAX_VALUE;
-		if (station.stock() > 0) {
-			int stocked = this.countStock(level, station);
-			if (stocked >= station.stock()) {
-				this.idle(villager, station, isMaterial, WorkerStatus.component("carpenter.stock_full", stocked, station.stock()));
-				return;
-			}
-			wanted = station.stock() - stocked;
+		List<Item> byNeed = station.ordersByNeed(order -> station.inOutputs(level, order));
+		if (byNeed.isEmpty()) {
+			int stocked = station.orders().stream().mapToInt(order -> station.inOutputs(level, order)).min().orElse(0);
+			this.idle(villager, station, isMaterial, WorkerStatus.component("carpenter.stock_full", stocked, station.stock()));
+			return;
 		}
+		// The recipes of the products that are not in stock yet, the most needed first
+		List<CraftingRecipe> open = byNeed.stream()
+			.flatMap(order -> station.productsOf(order).stream())
+			.flatMap(product -> recipes.stream().filter(recipe -> CarpenterRecipes.resultOf(recipe) == product))
+			.toList();
 
 		StackedItemContents carried = new StackedItemContents();
 		CarpenterRecipes.account(carried, inventory, inventory.getContainerSize(), isMaterial);
-		if (this.planned != null && carried.canCraft(this.planned, null) || CarpenterRecipes.firstCraftable(carried, recipes) != null) {
+		if (this.planned != null && open.contains(this.planned) && carried.canCraft(this.planned, null) || CarpenterRecipes.firstCraftable(carried, open) != null) {
 			this.goToStation(level, villager, station);
 			return;
 		}
@@ -209,11 +213,22 @@ public class CraftAtBench extends Behavior<Villager> {
 				CarpenterRecipes.account(available, container, container.getContainerSize(), isMaterial);
 			}
 		}
-		if (this.planned == null || !available.canCraft(this.planned, null)) {
-			this.planned = CarpenterRecipes.firstCraftable(available, recipes);
+		// The most needed product there is material for; one batch of it, then plan again
+		this.planned = null;
+		int wanted = Integer.MAX_VALUE;
+		for (Item order : byNeed) {
+			List<CraftingRecipe> orderRecipes = open.stream().filter(recipe -> station.productsOf(order).contains(CarpenterRecipes.resultOf(recipe))).toList();
+			CraftingRecipe recipe = CarpenterRecipes.firstCraftable(available, orderRecipes);
+			if (recipe != null) {
+				this.planned = recipe;
+				if (station.stock() > 0) {
+					wanted = station.stock() - station.inOutputs(level, order);
+				}
+				break;
+			}
 		}
 		if (this.planned == null) {
-			this.idle(villager, station, isMaterial, this.missingMaterial(level, villager, station, recipes, isMaterial));
+			this.idle(villager, station, isMaterial, this.missingMaterial(level, villager, station, open, isMaterial));
 			return;
 		}
 
@@ -294,10 +309,17 @@ public class CraftAtBench extends Behavior<Villager> {
 		SimpleContainer inventory = villager.getInventory();
 		StackedItemContents carried = new StackedItemContents();
 		CarpenterRecipes.account(carried, inventory, inventory.getContainerSize(), isMaterial);
-		CraftingRecipe recipe = this.planned != null && recipes.contains(this.planned) && carried.canCraft(this.planned, null)
+		// The planned batch first, then what else the worker carries material for
+		List<CraftingRecipe> open = this.craftTicks == 0 && station.stock() > 0
+			? recipes.stream().filter(candidate -> {
+				Item order = station.orderOf(CarpenterRecipes.resultOf(candidate));
+				return order != null && station.inOutputs(level, order) < station.stock();
+			}).toList()
+			: recipes;
+		CraftingRecipe recipe = this.planned != null && open.contains(this.planned) && carried.canCraft(this.planned, null)
 			? this.planned
-			: CarpenterRecipes.firstCraftable(carried, recipes);
-		if (recipe == null || station.stock() > 0 && this.craftTicks == 0 && this.countStock(level, station) >= station.stock()) {
+			: CarpenterRecipes.firstCraftable(carried, open);
+		if (recipe == null) {
 			this.finishCrafting(villager);
 			return;
 		}
@@ -305,7 +327,7 @@ public class CraftAtBench extends Behavior<Villager> {
 		this.crafting = result;
 		if (this.craftTicks == 0) {
 			// Start the next piece
-			if (!inventory.canAddItem(result) && inventory.hasAnyMatching(isProduct(isMaterial))) {
+			if (!inventory.canAddItem(result) && inventory.hasAnyMatching(isProduct(station, isMaterial))) {
 				this.finishCrafting(villager); // no room for the product, deliver first
 				return;
 			}
@@ -332,6 +354,7 @@ public class CraftAtBench extends Behavior<Villager> {
 				villager.spawnAtLocation(level, rest);
 			}
 		}
+		station.addMade(result.getItem(), result.getCount());
 		level.playSound(null, station.pos(), SoundEvents.AXE_STRIP.value(), SoundSource.BLOCKS, 0.6F, 1.1F);
 		this.craftTicks = 0;
 	}
@@ -366,7 +389,7 @@ public class CraftAtBench extends Behavior<Villager> {
 	}
 
 	private void deliver(ServerLevel level, Villager villager, Workstations.Station station, Predicate<ItemStack> isMaterial) {
-		Predicate<ItemStack> isProduct = isProduct(isMaterial);
+		Predicate<ItemStack> isProduct = isProduct(station, isMaterial);
 		if (this.trip == null) {
 			if (!villager.getInventory().hasAnyMatching(isProduct)) {
 				this.setState(State.PLAN);
@@ -461,20 +484,6 @@ public class CraftAtBench extends Behavior<Villager> {
 		return WorkerStatus.component("saw.no_material");
 	}
 
-	/** How many of the ordered products the output chests hold. */
-	private int countStock(ServerLevel level, Workstations.Station station) {
-		List<Item> products = station.products();
-		Predicate<ItemStack> isProduct = stack -> products.contains(stack.getItem());
-		int stocked = 0;
-		for (BlockPos pos : station.validOutputs(level)) {
-			Container container = Workstations.getContainer(level, pos);
-			if (container != null) {
-				stocked += countIn(container, isProduct);
-			}
-		}
-		return stocked;
-	}
-
 	private static void addCounts(Container container, Predicate<ItemStack> filter, Map<Item, Integer> counts) {
 		for (int slot = 0; slot < container.getContainerSize(); slot++) {
 			ItemStack stack = container.getItem(slot);
@@ -506,11 +515,13 @@ public class CraftAtBench extends Behavior<Villager> {
 	}
 
 	/**
-	 * Everything the worker hands in: all but food and the material for the current order.
-	 * Material of an earlier order is handed in as well.
+	 * Everything the worker hands in: all but food and the material for the current order,
+	 * but the products of the order even if they are material of another one (chests for
+	 * boats with chest). Material of an earlier order is handed in as well.
 	 */
-	private static Predicate<ItemStack> isProduct(Predicate<ItemStack> isMaterial) {
-		return stack -> Chests.isHandedIn(stack) && !isMaterial.test(stack);
+	private static Predicate<ItemStack> isProduct(Workstations.Station station, Predicate<ItemStack> isMaterial) {
+		List<Item> products = station.products();
+		return stack -> Chests.isHandedIn(stack) && (!isMaterial.test(stack) || products.contains(stack.getItem()));
 	}
 
 	private void setState(State state) {

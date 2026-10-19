@@ -73,10 +73,7 @@ public class CutterScreen extends AbstractContainerScreen<CutterMenu> {
 			int orderX = xo + ORDER_X;
 			int orderY = yo + ORDER_Y;
 			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SLOT_SPRITE, orderX - 1, orderY - 1, 18, 18);
-			ItemStack order = this.menu.getOrder();
-			if (!order.isEmpty()) {
-				graphics.item(order, orderX, orderY);
-			}
+			OrderBox.extract(graphics, this.font, this.menu.getOrders(), orderX, orderY);
 			if (this.isOverOrder(mouseX, mouseY)) {
 				graphics.fill(orderX, orderY, orderX + 16, orderY + 16, 0x80FFFFFF);
 				graphics.requestCursor(CursorTypes.POINTING_HAND);
@@ -161,11 +158,7 @@ public class CutterScreen extends AbstractContainerScreen<CutterMenu> {
 	}
 
 	private List<FormattedCharSequence> orderTooltip() {
-		List<Component> lines = new ArrayList<>();
-		ItemStack order = this.menu.getOrder();
-		lines.add(order.isEmpty()
-			? Component.translatable("gui.workingvillagers.order.none")
-			: Component.translatable("gui.workingvillagers.order", order.getHoverName()));
+		List<Component> lines = new ArrayList<>(OrderBox.describe(this.menu.getOrders()));
 		lines.add(Component.translatable("gui.workingvillagers.order.change").withStyle(ChatFormatting.GRAY));
 		lines.add(Component.translatable("gui.workingvillagers.order.chests").withStyle(ChatFormatting.DARK_GRAY));
 		List<FormattedCharSequence> result = new ArrayList<>();

@@ -101,6 +101,13 @@ public final class WorkerTests {
 		registry.accept("sawyer_cuts_planks", WorkerTests::sawyerCutsPlanks);
 		registry.accept("stone_sawyer_cuts_bricks", WorkerTests::stoneSawyerCutsBricks);
 		registry.accept("carpenter_makes_chests", WorkerTests::carpenterMakesChests);
+		registry.accept("carpenter_makes_several_products", WorkerTests::carpenterMakesSeveralProducts);
+		registry.accept("carpenter_skips_product_without_material", WorkerTests::carpenterSkipsProductWithoutMaterial);
+		registry.accept("sawyer_cuts_several_shapes", WorkerTests::sawyerCutsSeveralShapes);
+		registry.accept("kiln_operator_fires_several_products", WorkerTests::kilnOperatorFiresSeveralProducts);
+		registry.accept("fletcher_makes_several_products", WorkerTests::fletcherMakesSeveralProducts);
+		registry.accept("weaponsmith_forges_several_products", WorkerTests::weaponsmithForgesSeveralProducts);
+		registry.accept("tanner_makes_several_products", WorkerTests::tannerMakesSeveralProducts);
 		registry.accept("carrier_moves_items", WorkerTests::carrierMovesItems);
 		registry.accept("farmer_harvests_and_replants", WorkerTests::farmerHarvestsAndReplants);
 		registry.accept("workers_do_not_trample_farmland", WorkerTests::workersDoNotTrampleFarmland);
@@ -1213,6 +1220,95 @@ public final class WorkerTests {
 	}
 
 	/** A processing station with an input and an output chest and a paid worker. */
+	/** Chests and barrels with a stock of 2: two of each, from the same planks. */
+	private static void carpenterMakesSeveralProducts(GameTestHelper helper) {
+		helper.setBlock(STATION, WorkingVillagers.CARPENTER_BENCH.get());
+		Workstations.Station bench = TestWorld.station(helper, STATION);
+		bench.orderProduct(Items.CHEST);
+		bench.orderProduct(Items.BARREL);
+		bench.setStock(2);
+		Villager worker = processingStation(helper, new ItemStack(Items.OAK_PLANKS, 32), new ItemStack(Items.OAK_SLAB, 8));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.CHEST), 2, "chests in the output chest");
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.BARREL), 2, "barrels in the output chest");
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.CHEST)) == 2, "The carpenter made more chests than the stock");
+		});
+	}
+
+	/** Chests and ladders, but no sticks: the ladders do not hold up the chests. */
+	private static void carpenterSkipsProductWithoutMaterial(GameTestHelper helper) {
+		helper.setBlock(STATION, WorkingVillagers.CARPENTER_BENCH.get());
+		Workstations.Station bench = TestWorld.station(helper, STATION);
+		bench.orderProduct(Items.LADDER);
+		bench.orderProduct(Items.CHEST);
+		bench.setStock(2);
+		Villager worker = processingStation(helper, new ItemStack(Items.OAK_PLANKS, 16));
+		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.CHEST), 2, "chests in the output chest"));
+	}
+
+	/** Planks and stairs from the same logs: the sawyer cuts both. */
+	private static void sawyerCutsSeveralShapes(GameTestHelper helper) {
+		helper.setBlock(STATION, WorkingVillagers.WOODCUTTER_BLOCK.get());
+		Workstations.Station saw = TestWorld.station(helper, STATION);
+		saw.setWood("oak", true);
+		saw.toggleShape("planks");
+		saw.toggleShape("stairs");
+		Villager worker = processingStation(helper, new ItemStack(Items.OAK_LOG, 16));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_PLANKS), 8, "oak planks in the output chest");
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_STAIRS), 8, "oak stairs in the output chest");
+		});
+	}
+
+	/** Glass and stone with a stock of 2: the kiln operator fires both. */
+	private static void kilnOperatorFiresSeveralProducts(GameTestHelper helper) {
+		helper.setBlock(STATION, WorkingVillagers.KILN.get());
+		Workstations.Station kiln = TestWorld.station(helper, STATION);
+		kiln.toggleOrder(Items.GLASS);
+		kiln.toggleOrder(Items.STONE);
+		kiln.setStock(2);
+		Villager worker = processingStation(helper, new ItemStack(Items.SAND, 4), new ItemStack(Items.COBBLESTONE, 4), new ItemStack(Items.COAL, 4));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.GLASS), 2, "glass in the output chest");
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.STONE), 2, "stone in the output chest");
+		});
+	}
+
+	/** Arrows and bows with a stock of 4: four of each. */
+	private static void fletcherMakesSeveralProducts(GameTestHelper helper) {
+		Villager worker = fletcher(helper, Items.ARROW, 4, new ItemStack(Items.FLINT, 4), new ItemStack(Items.STICK, 16), new ItemStack(Items.FEATHER, 4),
+			new ItemStack(Items.STRING, 12));
+		TestWorld.station(helper, STATION.below()).toggleOrder(Items.BOW);
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.ARROW), 4, "arrows in the output chest");
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.BOW), 4, "bows in the output chest");
+		});
+	}
+
+	/** An iron axe and an iron pickaxe with a stock of 1, from 6 ingots: one of each. */
+	private static void weaponsmithForgesSeveralProducts(GameTestHelper helper) {
+		Villager worker = weaponsmith(helper, Items.IRON_AXE, new ItemStack(Items.IRON_INGOT, 6), new ItemStack(Items.STICK, 4));
+		Workstations.Station grindstone = TestWorld.station(helper, STATION.below());
+		grindstone.toggleOrder(Items.IRON_PICKAXE);
+		grindstone.setStock(1);
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.IRON_AXE), 1, "an iron axe in the output chest");
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.IRON_PICKAXE), 1, "an iron pickaxe in the output chest");
+		});
+	}
+
+	/** Books and bundles with a stock of 1: one of each. */
+	private static void tannerMakesSeveralProducts(GameTestHelper helper) {
+		Villager worker = tanner(helper, 0, Items.BOOK, null, new ItemStack(Items.PAPER, 6), new ItemStack(Items.LEATHER, 4), new ItemStack(Items.STRING, 2));
+		Workstations.Station cauldron = TestWorld.station(helper, STATION.below());
+		cauldron.toggleOrder(Items.BUNDLE);
+		cauldron.setStock(1);
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.BOOK), 1, "a book in the output chest");
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.BUNDLE), 1, "a bundle in the output chest");
+		});
+	}
+
 	private static Villager processingStation(GameTestHelper helper, ItemStack... input) {
 		TestWorld.chest(helper, INPUT, input);
 		TestWorld.chest(helper, OUTPUT);

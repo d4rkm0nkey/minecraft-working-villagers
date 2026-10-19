@@ -3,6 +3,7 @@ package me.teajay.workingvillagers.job;
 import com.google.common.collect.ImmutableMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -40,8 +41,9 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * The work of the tanner at the cauldron: it makes the ordered leather goods (books, leather
- * armor, bundles, saddles, ...) from its input chests and keeps a stock of them in its output
- * chests. Leather armor it dyes in the color set at the cauldron.
+ * armor, bundles, saddles, ...) from its input chests and keeps a stock of each in its output
+ * chests; with several, a batch of the most needed one there is material for
+ * ({@link Workstations.Station#ordersByNeed}). Leather armor it dyes in the color set at the cauldron.
  *
  * <p>Leather it takes from the input chests, makes of rabbit hide (4 hides, 1 leather, like the
  * vanilla recipe), or tans of rotten flesh: up to 16 go into the water of the cauldron (one
@@ -99,6 +101,8 @@ public class TanLeather extends Behavior<Villager> {
 	private @Nullable BlockPos fetchFrom;
 	private long fetchFailedAt = Long.MIN_VALUE / 2;
 	private @Nullable BlockPos waterSpot;
+	/** The product it makes right now, null before it picked one. */
+	private @Nullable Item current;
 	private final WorkerSupplies supplies = new WorkerSupplies();
 
 	public TanLeather() {
@@ -155,6 +159,9 @@ public class TanLeather extends Behavior<Villager> {
 			return;
 		}
 		this.stateTicks++;
+		if (this.current != null && !workplace.orders().contains(this.current)) {
+			this.current = null; // the order changed
+		}
 		if (workplace.tanning() > 0 && level.getGameTime() < workplace.tannedAt() && villager.tickCount % 40 == 0) {
 			BlockPos pos = workplace.pos();
 			level.sendParticles(ParticleTypes.BUBBLE_POP, pos.getX() + 0.5, pos.getY() + 0.95, pos.getZ() + 0.5, 3, 0.2, 0.0, 0.2, 0.0);
@@ -180,12 +187,14 @@ public class TanLeather extends Behavior<Villager> {
 
 	// --- What it has and needs ---
 
-	private static @Nullable Recipe recipe(Workstations.Station workplace) {
-		return workplace.order() == null ? null : RECIPES.get(workplace.order());
+	/** The recipe of the product it makes right now, null for none or leather. */
+	private @Nullable Recipe recipe() {
+		return this.current == null ? null : RECIPES.get(this.current);
 	}
 
-	private static boolean leatherOrder(Workstations.Station workplace) {
-		return workplace.order() == Items.LEATHER;
+	/** Whether it makes leather itself right now. */
+	private boolean leatherOrder() {
+		return this.current == Items.LEATHER;
 	}
 
 	private static int count(SimpleContainer inventory, Predicate<ItemStack> filter) {
@@ -226,7 +235,7 @@ public class TanLeather extends Behavior<Villager> {
 			return false;
 		}
 		if (stack.is(Items.LEATHER)) {
-			return workplace.order() == null || leatherOrder(workplace);
+			return !workplace.hasOrder() || workplace.orders().contains(Items.LEATHER);
 		}
 		if (DYEABLE.contains(stack.getItem())) {
 			return !toRecolor(stack, workplace.dye());
@@ -240,18 +249,19 @@ public class TanLeather extends Behavior<Villager> {
 
 	/** What it keeps for its work; the rest goes back into an input chest. */
 	private static boolean isNeeded(ItemStack stack, Workstations.Station workplace) {
+		// Leather and parts of every product of the order, so switching between them does not carry things back
 		if (WorkerSupplies.isWage(stack) || stack.is(Items.BUCKET) || stack.is(Items.WATER_BUCKET) || isProduct(stack, workplace)
 			|| toRecolor(stack, workplace.dye())) {
 			return true;
 		}
 		if (stack.is(Items.LEATHER) || stack.is(Items.RABBIT_HIDE) || stack.is(Items.ROTTEN_FLESH) && isTanningOn()) {
-			return workplace.order() != null;
+			return workplace.hasOrder();
 		}
 		if (workplace.dye() != null && stack.is(Items.DYE.pick(workplace.dye()))) {
 			return true;
 		}
-		Recipe recipe = recipe(workplace);
-		return recipe != null && recipe.parts().stream().anyMatch(part -> stack.is(part.item()));
+		return workplace.orders().stream().map(RECIPES::get).filter(Objects::nonNull)
+			.anyMatch(recipe -> recipe.parts().stream().anyMatch(part -> stack.is(part.item())));
 	}
 
 	/** The water in the cauldron, 0 to 3; -1 if it holds lava or powder snow. */
@@ -266,10 +276,10 @@ public class TanLeather extends Behavior<Villager> {
 		return water(level.getBlockState(workplace.pos()));
 	}
 
-	/** How much leather one piece of the order takes, 0 for none. */
-	private static int leatherFor(Workstations.Station workplace) {
-		Recipe recipe = recipe(workplace);
-		return leatherOrder(workplace) ? 1 : recipe == null ? 0 : recipe.leather();
+	/** How much leather one piece of the product takes, 0 for none. */
+	private int leatherFor() {
+		Recipe recipe = this.recipe();
+		return this.leatherOrder() ? 1 : recipe == null ? 0 : recipe.leather();
 	}
 
 	private static boolean hasParts(SimpleContainer inventory, Recipe recipe, @Nullable DyeColor dye) {
@@ -311,17 +321,22 @@ public class TanLeather extends Behavior<Villager> {
 		if (dye != null && this.fetchFromInputs(level, villager, workplace, stack -> toRecolor(stack, dye), timestamp)) {
 			return;
 		}
-		Item order = workplace.order();
-		if (order == null) {
+		if (!workplace.hasOrder()) {
 			this.idle(villager, workplace, "tanner.no_order");
 			return;
 		}
 		int stock = workplace.stock();
-		int have = inOutputs(level, workplace, order);
-		if (stock > 0 && have >= stock) {
+		List<Item> byNeed = workplace.ordersByNeed(product -> inOutputs(level, workplace, product));
+		if (byNeed.isEmpty()) {
+			int have = workplace.orders().stream().mapToInt(product -> inOutputs(level, workplace, product)).min().orElse(0);
 			this.idle(villager, workplace, "tanner.stock_full", have, stock);
 			return;
 		}
+		// The most needed product it carries enough for, or else finds material for
+		this.current = byNeed.stream().filter(product -> carriesEnough(inventory, product, dye)).findFirst()
+			.or(() -> byNeed.stream().filter(product -> workplace.validInputs(level).stream()
+				.anyMatch(pos -> Chests.contains(level, pos, lacking(inventory, workplace, product)))).findFirst())
+			.orElse(byNeed.getFirst());
 		// The cauldron needs water to tan
 		boolean flesh = isTanningOn() && workplace.tanning() == 0 && count(inventory, Items.ROTTEN_FLESH) >= Config.FLESH_PER_LEATHER.get();
 		if (flesh && water(level, workplace) == 0 && count(inventory, Items.WATER_BUCKET) == 0 && count(inventory, Items.BUCKET) > 0) {
@@ -329,12 +344,8 @@ public class TanLeather extends Behavior<Villager> {
 			this.setState(State.WATER);
 			return;
 		}
-		Recipe recipe = recipe(workplace);
-		Predicate<ItemStack> lacking = stack -> stack.is(Items.LEATHER) && !leatherOrder(workplace) || stack.is(Items.RABBIT_HIDE)
-			|| stack.is(Items.ROTTEN_FLESH) && isTanningOn() && workplace.tanning() == 0
-			|| recipe != null && recipe.parts().stream().anyMatch(part -> stack.is(part.item()) && count(inventory, part.item()) < part.amount())
-			|| recipe != null && recipe.dyed() && dye != null && stack.is(Items.DYE.pick(dye));
-		if (this.fetchFromInputs(level, villager, workplace, lacking, timestamp)) {
+		Recipe recipe = this.recipe();
+		if (this.fetchFromInputs(level, villager, workplace, lacking(inventory, workplace, this.current), timestamp)) {
 			return;
 		}
 		if (workplace.tanning() > 0) {
@@ -350,9 +361,29 @@ public class TanLeather extends Behavior<Villager> {
 		}
 	}
 
+	/** What it lacks for the product and takes from the input chests. */
+	private static Predicate<ItemStack> lacking(SimpleContainer inventory, Workstations.Station workplace, Item product) {
+		Recipe recipe = RECIPES.get(product);
+		DyeColor dye = workplace.dye();
+		return stack -> stack.is(Items.LEATHER) && product != Items.LEATHER || stack.is(Items.RABBIT_HIDE)
+			|| stack.is(Items.ROTTEN_FLESH) && isTanningOn() && workplace.tanning() == 0
+			|| recipe != null && recipe.parts().stream().anyMatch(part -> stack.is(part.item()) && count(inventory, part.item()) < part.amount())
+			|| recipe != null && recipe.dyed() && dye != null && stack.is(Items.DYE.pick(dye));
+	}
+
+	/** Whether it carries enough to make one piece of the product (leather: of hides). */
+	private static boolean carriesEnough(SimpleContainer inventory, Item product, @Nullable DyeColor dye) {
+		Recipe recipe = RECIPES.get(product);
+		if (recipe == null) {
+			return count(inventory, Items.RABBIT_HIDE) >= HIDES_PER_LEATHER;
+		}
+		int leather = count(inventory, Items.LEATHER) + count(inventory, Items.RABBIT_HIDE) / HIDES_PER_LEATHER;
+		return leather >= recipe.leather() && hasParts(inventory, recipe, dye);
+	}
+
 	/** Whether there is something to do at the cauldron with what it carries (see {@link #workOnce}). */
 	private boolean hasCauldronWork(ServerLevel level, SimpleContainer inventory, Workstations.Station workplace) {
-		return nextWork(level, inventory, workplace) != null;
+		return this.nextWork(level, inventory, workplace) != null;
 	}
 
 	private boolean fetchFromInputs(ServerLevel level, Villager villager, Workstations.Station workplace, Predicate<ItemStack> lacking, long timestamp) {
@@ -385,7 +416,7 @@ public class TanLeather extends Behavior<Villager> {
 					inventory.setItem(slot, HopperBlockEntity.addItem(null, container, stack, null));
 				}
 			}
-			taken[0] += take(container, inventory, workplace);
+			taken[0] += this.take(container, inventory, workplace);
 		});
 		if (result == ChestTrip.Result.RUNNING) {
 			return;
@@ -398,17 +429,17 @@ public class TanLeather extends Behavior<Villager> {
 	}
 
 	/** Takes what a batch of the order needs, and armor to dye again with its dye. */
-	private static int take(Container container, SimpleContainer inventory, Workstations.Station workplace) {
+	private int take(Container container, SimpleContainer inventory, Workstations.Station workplace) {
 		int taken = 0;
 		DyeColor dye = workplace.dye();
 		if (dye != null) {
 			int recolor = RECOLOR_BATCH - count(inventory, stack -> toRecolor(stack, dye));
 			taken += Chests.take(container, inventory, stack -> toRecolor(stack, dye), Math.max(0, recolor));
-			int dyes = count(inventory, stack -> toRecolor(stack, dye)) + (recipe(workplace) != null && recipe(workplace).dyed() ? 1 : 0);
+			int dyes = count(inventory, stack -> toRecolor(stack, dye)) + (this.recipe() != null && this.recipe().dyed() ? 1 : 0);
 			taken += Chests.take(container, inventory, stack -> stack.is(Items.DYE.pick(dye)), Math.max(0, dyes - count(inventory, Items.DYE.pick(dye))));
 		}
-		Recipe recipe = recipe(workplace);
-		if (workplace.order() == null) {
+		Recipe recipe = this.recipe();
+		if (this.current == null) {
 			return taken;
 		}
 		int batch = recipe == null ? TAN_BATCH / Config.FLESH_PER_LEATHER.get() : recipe.batch();
@@ -417,8 +448,8 @@ public class TanLeather extends Behavior<Villager> {
 				taken += Chests.take(container, inventory, stack -> stack.is(part.item()), Math.max(0, part.amount() * batch - count(inventory, part.item())));
 			}
 		}
-		int leather = leatherFor(workplace) * batch - (leatherOrder(workplace) ? 0 : count(inventory, Items.LEATHER));
-		if (!leatherOrder(workplace) && leather > 0) {
+		int leather = this.leatherFor() * batch - (this.leatherOrder() ? 0 : count(inventory, Items.LEATHER));
+		if (!this.leatherOrder() && leather > 0) {
 			int took = Chests.take(container, inventory, stack -> stack.is(Items.LEATHER), leather);
 			leather -= took;
 			taken += took;
@@ -454,7 +485,7 @@ public class TanLeather extends Behavior<Villager> {
 	/** What the tanner does next at the cauldron. */
 	private enum Work { COLLECT, POUR, TAN, RECOLOR, HIDES, CRAFT }
 
-	private static @Nullable Work nextWork(ServerLevel level, SimpleContainer inventory, Workstations.Station workplace) {
+	private @Nullable Work nextWork(ServerLevel level, SimpleContainer inventory, Workstations.Station workplace) {
 		long now = level.getGameTime();
 		int water = water(level, workplace);
 		DyeColor dye = workplace.dye();
@@ -464,7 +495,7 @@ public class TanLeather extends Behavior<Villager> {
 		if (count(inventory, Items.WATER_BUCKET) > 0 && water >= 0 && water < LayeredCauldronBlock.MAX_FILL_LEVEL) {
 			return Work.POUR;
 		}
-		if (isTanningOn() && workplace.tanning() == 0 && water > 0 && workplace.order() != null
+		if (isTanningOn() && workplace.tanning() == 0 && water > 0 && workplace.hasOrder()
 			&& count(inventory, Items.ROTTEN_FLESH) >= Config.FLESH_PER_LEATHER.get()) {
 			return Work.TAN;
 		}
@@ -476,15 +507,15 @@ public class TanLeather extends Behavior<Villager> {
 				}
 			}
 		}
-		Recipe recipe = recipe(workplace);
+		Recipe recipe = this.recipe();
 		int stock = workplace.stock();
-		Item order = workplace.order();
+		Item order = this.current;
 		boolean stockFull = order != null && stock > 0 && inOutputs(level, workplace, order) + count(inventory, order) >= stock;
 		if (order == null || stockFull) {
 			return null;
 		}
 		int leather = count(inventory, Items.LEATHER);
-		if (leather < leatherFor(workplace) && count(inventory, Items.RABBIT_HIDE) >= HIDES_PER_LEATHER) {
+		if (leather < this.leatherFor() && count(inventory, Items.RABBIT_HIDE) >= HIDES_PER_LEATHER) {
 			return Work.HIDES;
 		}
 		if (recipe != null && leather >= recipe.leather() && hasParts(inventory, recipe, dye) && inventory.canAddItem(new ItemStack(recipe.product()))) {
@@ -499,7 +530,7 @@ public class TanLeather extends Behavior<Villager> {
 		if (this.stateTicks % WORK_TICKS != 0) {
 			return;
 		}
-		Work work = nextWork(level, villager.getInventory(), workplace);
+		Work work = this.nextWork(level, villager.getInventory(), workplace);
 		if (work == null) {
 			this.setState(State.PLAN);
 			return;
@@ -517,8 +548,9 @@ public class TanLeather extends Behavior<Villager> {
 			case COLLECT -> {
 				ItemStack contents = workplace.tanningContents(level.getGameTime());
 				workplace.setTanning(0, 0L);
-				if (contents.is(Items.LEATHER) && leatherOrder(workplace)) {
+				if (contents.is(Items.LEATHER) && workplace.orders().contains(Items.LEATHER)) {
 					((HiredVillager) villager).workingvillagers$addWorkDone(ChopTrees.today(level), contents.getCount());
+					workplace.addMade(Items.LEATHER, contents.getCount());
 				}
 				addOrDrop(level, villager, contents);
 				level.playSound(null, pos, SoundEvents.VILLAGER_WORK_LEATHERWORKER, SoundSource.BLOCKS, 0.6F, 1.0F);
@@ -558,13 +590,14 @@ public class TanLeather extends Behavior<Villager> {
 			case HIDES -> {
 				take(inventory, Items.RABBIT_HIDE, HIDES_PER_LEATHER);
 				addOrDrop(level, villager, new ItemStack(Items.LEATHER));
-				if (leatherOrder(workplace)) {
+				if (this.leatherOrder()) {
 					((HiredVillager) villager).workingvillagers$addWorkDone(ChopTrees.today(level), 1);
+					workplace.addMade(Items.LEATHER, 1);
 				}
 				level.playSound(null, pos, SoundEvents.VILLAGER_WORK_LEATHERWORKER, SoundSource.BLOCKS, 0.6F, 1.0F);
 			}
 			case CRAFT -> {
-				Recipe recipe = recipe(workplace);
+				Recipe recipe = this.recipe();
 				if (recipe == null) {
 					return;
 				}
@@ -577,6 +610,7 @@ public class TanLeather extends Behavior<Villager> {
 				}
 				addOrDrop(level, villager, product);
 				((HiredVillager) villager).workingvillagers$addWorkDone(ChopTrees.today(level), 1);
+				workplace.addMade(recipe.product(), 1);
 				level.playSound(null, pos, SoundEvents.VILLAGER_WORK_LEATHERWORKER, SoundSource.BLOCKS, 0.6F, 1.0F);
 			}
 		}
