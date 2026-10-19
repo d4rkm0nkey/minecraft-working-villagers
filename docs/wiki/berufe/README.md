@@ -25,7 +25,7 @@ Alle Berufe folgen dem [Kernloop](../grundlagen/kernloop.md) und den [Lohnstufen
 | [Fischer](fischer.md) | Fass (Barrel) | Angeln vom Ufer oder im Boot auf offenem Wasser | nein | umgesetzt |
 | [Hirte](hirte.md) | Webstuhl (Loom) | Schafe scheren und züchten, Wolle abliefern | nein | umgesetzt (ohne Wolle sortieren) |
 | [Metzger](metzger.md) | Räucherofen (Smoker) | Tiere züchten, schlachten, räuchern | nein | umgesetzt |
-| [Gerber](gerber.md) | Cauldron | Leder verarbeiten | nein | später |
+| [Gerber](gerber.md) | Kessel | Leder aus Kaninchenfellen und gegerbtem verrottetem Fleisch; Bücher, Lederrüstung (Uniformen der Wachen), Sattel, Bündel | nein | Konzept |
 | [Maurer](maurer.md) | Steinsäge | Ausbau des Steinsägers (Glattstein, Master) | nein | später |
 | [Pfeilmacher](pfeilmacher.md) | Bognertisch | Pfeile aus Feuerstein (aus Kies) oder Metall-Nuggets, Bögen, Spektralpfeile; versorgt die Wachen | nein | umgesetzt |
 | [Kartograf](kartograf.md) | Cartography Table | Gebiete und Dörfer erkunden | nein | später |
