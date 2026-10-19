@@ -12,7 +12,7 @@ These rules apply to every worker.
 
 ## Hiring
 
-- **Lumberjack, sawyer, stone sawyer, carpenter, farmer, shepherd, butcher, fisher, fletcher, guard, apothecary, smith, pit digger, kiln operator, shop assistant:** right-click an adult
+- **Lumberjack, sawyer, stone sawyer, carpenter, farmer, shepherd, butcher, fisher, fletcher, guard, apothecary, tanner, smith, pit digger, kiln operator, shop assistant:** right-click an adult
   villager with a [work contract](../blocks-and-items.md#work-contract). An unemployed one
   then looks for a free workstation by itself.
 - **Carrier:** right-click an unemployed adult villager with a
@@ -31,6 +31,7 @@ mod there:
 | Fisherman | :mc-barrel: Barrel | [Fisher](fisher.md) |
 | Fletcher | :mc-fletching_table: Fletching table | [Fletcher](fletcher.md) |
 | Cleric | :mc-brewing_stand: Brewing stand | [Apothecary](apothecary.md) |
+| Leatherworker | :mc-cauldron: Cauldron | [Tanner](tanner.md) |
 | Armorer, toolsmith | :mc-blast_furnace: Blast furnace, :mc-smithing_table: smithing table | [Smith](smith.md) |
 
 Not hired are nitwits, babies and villagers whose job has no work in this mod yet (librarian,
@@ -41,7 +42,7 @@ like Anton or Berta.)
 ### Trading with workers
 
 The workers in the table above **trade like their vanilla counterparts**: the farmer like a
-farmer, the stone sawyer like a mason, the shepherd, the butcher, the fisher and the fletcher like theirs, the apothecary like a cleric, the smith
+farmer, the stone sawyer like a mason, the shepherd, the butcher, the fisher and the fletcher like theirs, the apothecary like a cleric, the tanner like a leatherworker, the smith
 like an armorer (at a blast furnace) or a toolsmith (at a smithing table). A villager you
 traded with **keeps its trades and its level** when you hire it. They level up by trading
 like vanilla villagers and restock their trades at their workstation during work hours.

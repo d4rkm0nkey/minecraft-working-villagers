@@ -1,8 +1,24 @@
 # Beruf: Gerber
 
-[← Berufe](README.md) · Station: **Kessel** (Vanilla, Lederer) · Phase: **Konzept**
+[← Berufe](README.md) · Station: **Kessel** (Vanilla, Lederer) · Phase: **umgesetzt** (Leder, Gerben, Lederwaren, Färben, Uniformen der Wachen; ohne Meisterfähigkeit)
 
 Der Gerber macht aus den Resten anderer Betriebe Leder und aus Leder Waren. Allein wäre „Leder zu Rüstung craften“ zu wenig. Spannend wird er als Verwerter: Er nimmt, was sonst im Müll landet (Kaninchenfelle des [Metzgers](metzger.md), verrottetes Fleisch aus der Beute der [Wachen](wache.md)), und beliefert damit den [Bibliothekar](bibliothekar.md) mit Büchern, die Wachen mit Uniformen und den Spieler mit Sätteln und Bündeln.
+
+## Stand der Umsetzung
+
+- **Station:** Jeder Kessel (`AbstractCauldronBlock`: leer, Wasser, Lava, Pulverschnee) ist dieselbe Station `CAULDRON`; der Vanilla-POI `leatherworker` umfasst alle vier. Rechtsklick mit leerer Hand öffnet die Übersicht, mit Eimer oder Rüstung in der Hand bleibt es Vanilla. Vanilla-Lederer lassen sich anheuern und handeln weiter wie Lederer (Handelsfamilie `leatherworker`).
+- **Auftrag** im Raster wie beim Pfeilmacher: Leder, Buch, Lederkappe, -jacke, -hose, -stiefel, Lederpferderüstung, Bündel, Sattel; dazu ein **Vorrat**. Bücher, Bündel und Sättel in Sätzen von 4 bzw. 1, Rüstung einzeln (Tränke und Rüstung stapeln nicht, 8 Inventarplätze).
+- **Leder:** zuerst aus den Eingangskisten, dann aus Kaninchenfell (4 → 1), dann gegerbt.
+- **Gerben:** bis zu 16 verrottetes Fleisch in den Wasserkessel (eine Stufe Wasser), nach 300 Sekunden (Config `tanner.tanningSeconds`) 4 → 1 Leder (`tanner.fleshPerLeather`, abschaltbar mit `tanner.tanRottenFlesh`). Inhalt und Fertigzeit stehen in der Station (Felder `tanning`, `tanned_at`); Blasen über dem Kessel, solange der Gerber arbeitet. Wird der Kessel abgebaut, fällt Fleisch bzw. das fertige Leder heraus. Leeren und Füllen des Kessels wechselt den Block, die Station bleibt.
+- **Wasser:** Mit einem Eimer (Vorrat 1, auch aus der Dorftruhe) holt er Wasser an einer Quelle bis 16 Blöcke entfernt (`tanner.waterRadius`) und füllt den Kessel. Die Quelle bleibt (wie eine endlose Quelle). Regen füllt wie in Vanilla.
+- **Farbe:** im Reiter Auftrag unter dem Vorrat (`<` `>`, ungefärbt und die 16 Farben), gespeichert im Feld `dye`. Rüstung färbt er mit einem Farbstoff pro Teil (`DyedItemColor.applyDyes`, also derselbe Farbton wie beim Spieler).
+- **Umfärben:** Lederrüstung (auch Pferde- und Wolfsrüstung) in anderer Farbe aus den Eingangskisten holt er, bis zu 3 auf einmal, wäscht sie im Kessel aus (eine Stufe) und färbt sie neu, auch ohne Auftrag.
+- **Speicherformat:** Die Station hatte die 16 Felder des Record-Codecs voll; `herd`, `boat`, `dye`, `tanning` und `tanned_at` stehen jetzt in einem eingebetteten `MapCodec` (gleiche Feldnamen, alte Welten laden unverändert).
+- **Status:** „Sieht nach dem Auftrag“, „Holt Material“, „Arbeitet am Kessel“, „Holt Wasser für den Kessel“, „Gerbt, fertig in x min“, „Wartet auf %s“, „Kein Wasser im Kessel (braucht Eimer und Wasser in der Nähe)“, „Vorrat ist voll“; im Menü „Im Kessel: 16 verrottetes Fleisch, fertig in x min“ oder „Auftrag: x, heute y“.
+- **Kleidung:** dunkelbraune Lederschürze mit Farbflecken über einem Leinenhemd mit hochgekrempelten Ärmeln, braune Lederkappe.
+- **Uniformen:** siehe [Wache](wache.md#stand-der-umsetzung). Die Rüstung zeigt sich nicht als Rüstung (Dorfbewohner haben keine Rüstungsebene), sondern färbt den Wappenrock: Ebene `UniformLayer` mit einer grauen Maske des Wappenrocks (`guard_tabard.png`), getönt mit der Farbe des Lederharnischs.
+- **Tests:** Bücher aus Papier und Leder; Leder aus 8 Fellen; 8 Fleisch gerbt im Wasserkessel zu 2 Leder; leerer Kessel, Eimer, Pfütze: er holt Wasser und gerbt; roter Lederharnisch; blaue Stiefel werden ausgewaschen und rot; eine Wache zieht einen gegebenen Harnisch an und holt Stiefel aus der Dorftruhe.
+- **Nicht umgesetzt:** Meisterfähigkeit (Farben mischen), Rüstung für andere Arbeiter, Eisenrüstung als eigene Uniform.
 
 ## Der Kreislauf
 

@@ -112,6 +112,15 @@ public final class Config {
 	public static final IntOption WART_RADIUS = intOption("apothecary", "wartRadius", 6, 2, 12,
 		"How far from the brewing stand the apothecary tends nether wart on soul sand.");
 
+	public static final BoolOption TAN_ROTTEN_FLESH = boolOption("tanner", "tanRottenFlesh", true,
+		"Whether the tanner tans rotten flesh into leather in its cauldron (not in vanilla).");
+	public static final IntOption FLESH_PER_LEATHER = intOption("tanner", "fleshPerLeather", 4, 1, 16,
+		"How much rotten flesh makes one leather.");
+	public static final IntOption TANNING_SECONDS = intOption("tanner", "tanningSeconds", 300, 5, 3600,
+		"How long rotten flesh tans in the cauldron (300 seconds: half a Minecraft day).");
+	public static final IntOption TANNER_WATER_RADIUS = intOption("tanner", "waterRadius", 16, 2, 32,
+		"How far from the cauldron (in blocks, sideways) the tanner fetches water with its bucket.");
+
 	public static final IntOption WATER_RADIUS = intOption("fisher", "waterRadius", 16, 4, 32,
 		"How far from the barrel (in blocks, sideways) the fisher looks for water to fish from the shore.");
 	public static final IntOption SEA_RADIUS = intOption("fisher", "seaRadius", 32, 8, 64,

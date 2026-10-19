@@ -107,6 +107,12 @@ to open its overview. No vanilla villager takes it as a job site.
 :mc-fletching_table: Workstation of the [fletcher](workers/fletcher.md). It has no screen in
 vanilla; right-click it with an empty hand to open its overview.
 
+## Cauldron (vanilla)
+
+:mc-cauldron: Workstation of the [tanner](workers/tanner.md). Right-click it with an empty
+hand to open its overview; with a bucket, a bottle or leather armor in your hand it works as
+usual. An empty cauldron and one with water, lava or powder snow are the same station.
+
 ## Brewing stand (vanilla)
 
 :mc-brewing_stand: Workstation of the [apothecary](workers/apothecary.md). The [tabs](workers/basics.md#the-overview)
@@ -149,6 +155,7 @@ composts as usual.
 | :mc-head_fisher: Fisher | :mc-barrel: Barrel | :mc-work_contract: Work contract |
 | :mc-head_fletcher: Fletcher | :mc-fletching_table: Fletching table | :mc-work_contract: Work contract |
 | :mc-head_guard: Guard | :mc-target: Target | :mc-work_contract: Work contract |
+| :mc-head_tanner: Tanner | :mc-cauldron: Cauldron | :mc-work_contract: Work contract |
 | :mc-head_apothecary: Apothecary | :mc-brewing_stand: Brewing stand | :mc-work_contract: Work contract |
 | :mc-head_smith: Smith | :mc-blast_furnace: Blast furnace | :mc-work_contract: Work contract |
 | :mc-head_pit_digger: Pit digger | :mc-pit_stake: Pit stake | :mc-work_contract: Work contract |

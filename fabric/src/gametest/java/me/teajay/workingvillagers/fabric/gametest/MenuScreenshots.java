@@ -57,6 +57,7 @@ public class MenuScreenshots implements FabricClientGameTest {
 			world.getServer().runOnServer(MenuScreenshots::setUp);
 			context.waitTicks(40);
 			fisherInBoat(context, world);
+			guardsInUniform(context, world);
 			for (int[] size : new int[][] {{854, 480}, {1920, 1080}}) {
 				context.getInput().resizeWindow(size[0], size[1]);
 				context.waitTicks(5);
@@ -236,6 +237,43 @@ public class MenuScreenshots implements FabricClientGameTest {
 		context.takeScreenshot("fisher_in_boat");
 	}
 
+	/** Three guards side by side: in a red and in an undyed leather chestplate, and without one. */
+	private static void guardsInUniform(ClientGameTestContext context, TestSingleplayerContext world) {
+		BlockPos center = uniformPos();
+		world.getServer().runOnServer(server -> server.getPlayerList().getPlayers().getFirst()
+			.teleportTo(center.getX() + 0.5, center.getY(), center.getZ() - 3.5));
+		context.waitTicks(5);
+		context.getInput().lookAt(center.above());
+		context.runOnClient(minecraft -> {
+			minecraft.gui.toastManager().clear();
+			minecraft.gui.hud.getChat().clearMessages(false);
+		});
+		context.waitTicks(10);
+		context.takeScreenshot("guards_in_uniform");
+	}
+
+	private static BlockPos uniformPos() {
+		return origin().offset(24, 0, -10);
+	}
+
+	private static void uniforms(ServerLevel level, ServerPlayer player) {
+		ItemStack[] chests = {
+			net.minecraft.world.item.component.DyedItemColor.applyDyes(new ItemStack(Items.LEATHER_CHESTPLATE), List.of(net.minecraft.world.item.DyeColor.RED)),
+			new ItemStack(Items.LEATHER_CHESTPLATE), ItemStack.EMPTY
+		};
+		for (int i = 0; i < chests.length; i++) {
+			BlockPos target = uniformPos().offset(-2 + 2 * i, 0, 2);
+			level.setBlockAndUpdate(target, net.minecraft.world.level.block.Blocks.TARGET.defaultBlockState());
+			Villager guard = hire(level, player, target.north(2));
+			WorkerJobs.assign(level, guard, target);
+			guard.setItemSlot(net.minecraft.world.entity.EquipmentSlot.CHEST, chests[i]);
+			guard.setNoAi(true);
+			guard.snapTo(target.getX() + 0.5, target.getY(), target.getZ() - 1.5, 180.0F, 0.0F);
+			guard.setYHeadRot(180.0F);
+			guard.setYBodyRot(180.0F);
+		}
+	}
+
 	private static BlockPos origin() {
 		return new BlockPos(0, -60, 0);
 	}
@@ -272,6 +310,11 @@ public class MenuScreenshots implements FabricClientGameTest {
 				station.setOrder(Items.ARROW);
 				station.setStock(64);
 			}
+			if (type == StationType.CAULDRON) {
+				station.setOrder(Items.LEATHER_CHESTPLATE);
+				station.setDye(net.minecraft.world.item.DyeColor.RED);
+				station.setStock(4);
+			}
 			if (type == StationType.BREWING_STAND) {
 				station.setOrder(Items.POTION, "minecraft:healing");
 				station.setStock(6);
@@ -294,6 +337,7 @@ public class MenuScreenshots implements FabricClientGameTest {
 				new ItemStack(Items.COAL, 5), new ItemStack(Items.FISHING_ROD), new ItemStack(Items.BOW), new ItemStack(Items.ARROW, 48));
 		}
 		level.setBlockAndUpdate(stationPos(STATIONS.size() + 1), Blocks.STONECUTTER.defaultBlockState());
+		uniforms(level, player);
 		// A fisher with a boat at a lake
 		lake(level);
 		Villager fisher = hire(level, player, barrelPos().offset(1, 0, 1));

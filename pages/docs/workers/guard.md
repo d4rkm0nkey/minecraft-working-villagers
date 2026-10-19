@@ -67,6 +67,17 @@ average, so no experience comes out of nothing. It needs a glass bottle for each
 16) and brings the full bottles to its output chest. Throw them for experience yourself, or
 leave them to the smith. The menu shows the experience it has not bottled yet.
 
+## Armor
+
+A guard puts on **armor** you give it or it finds in a village chest, one piece for each
+slot (any armor: leather, chain mail, iron, ...). The armor protects it like a player and
+wears out like a player's; shortly before a piece breaks it takes it off and gives it back,
+so the [smith](smith.md) can repair it. Villagers show no armor, with one exception:
+
+**Uniforms.** A guard in a **leather tunic** wears its tabard in the color of the tunic. Let
+the [tanner](tanner.md) dye the tunics in the color of your village, and all your guards
+look alike.
+
 ## Supplies
 
 - **Bow:** wears out one use per shot. Shortly before it breaks the guard gives it back (see

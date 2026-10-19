@@ -39,7 +39,8 @@
     "client.ScreenAccessor",
     "client.SmithingScreenMixin",
     "client.SmokerScreenMixin",
-    "client.VillagerRendererMixin"
+    "client.VillagerRendererMixin",
+    "client.VillagerRenderStateMixin"
   ],
   "injectors": {
     "defaultRequire": 1

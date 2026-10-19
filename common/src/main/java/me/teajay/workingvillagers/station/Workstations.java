@@ -1,6 +1,7 @@
 package me.teajay.workingvillagers.station;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,6 +31,7 @@ import net.minecraft.world.Containers;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.village.poi.PoiManager;
 import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -98,7 +100,7 @@ public class Workstations extends SavedData {
 		if (station == null) {
 			station = new Station(
 				pos.immutable(), Optional.empty(), List.of(), List.of(), Optional.empty(), Optional.empty(), Optional.empty(), List.of(), 0, false,
-				Optional.empty(), Pit.DEFAULT_DEPTH, Optional.empty(), 0, DEFAULT_HERD, true
+				Optional.empty(), Pit.DEFAULT_DEPTH, Optional.empty(), 0, Station.Settings.DEFAULT
 			);
 			workstations.stations.put(station.pos, station);
 		}
@@ -121,7 +123,8 @@ public class Workstations extends SavedData {
 
 	/**
 	 * Called whenever a block changes (see {@code ServerLevelMixin}): if a workstation is gone
-	 * or became another kind, the emeralds of its wage box drop where it stood.
+	 * or became another kind, the emeralds of its wage box drop where it stood, and at a
+	 * cauldron what was tanning in it (rotten flesh, or the leather if it is done).
 	 */
 	public static void onBlockChanged(ServerLevel level, BlockPos pos, BlockState before, BlockState after) {
 		StationType old = StationType.of(before);
@@ -130,7 +133,14 @@ public class Workstations extends SavedData {
 		}
 		Workstations workstations = level.getDataStorage().computeIfAbsent(TYPE);
 		Station station = workstations.stations.get(pos);
-		if (station == null || station.wage == 0) {
+		if (station == null) {
+			return;
+		}
+		if (station.tanning > 0) {
+			Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), station.tanningContents(level.getGameTime()));
+			station.setTanning(0, 0L);
+		}
+		if (station.wage == 0) {
 			return;
 		}
 		int wage = station.wage;
@@ -185,6 +195,8 @@ public class Workstations extends SavedData {
 	public static final int MAX_WAGE = 64;
 	/** Loom: how many sheep the shepherd keeps around it unless set otherwise, and at most. */
 	public static final int DEFAULT_HERD = 8;
+	/** Cauldron: the most rotten flesh that tans at once. */
+	public static final int MAX_TANNING = 64;
 	public static final int MAX_HERD = 32;
 	public static final int MIN_GUARD_RADIUS = 8;
 	public static final int MAX_GUARD_RADIUS = 32;
@@ -205,9 +217,23 @@ public class Workstations extends SavedData {
 			Codec.INT.optionalFieldOf("depth", Pit.DEFAULT_DEPTH).forGetter(station -> station.depth),
 			Tunnel.CODEC.optionalFieldOf("tunnel").forGetter(station -> Optional.ofNullable(station.tunnel)),
 			Codec.intRange(0, MAX_WAGE).optionalFieldOf("wage", 0).forGetter(station -> station.wage),
-			Codec.intRange(0, MAX_HERD).optionalFieldOf("herd", DEFAULT_HERD).forGetter(station -> station.herd),
-			Codec.BOOL.optionalFieldOf("boat", true).forGetter(station -> station.boat)
+			Settings.MAP_CODEC.forGetter(Station::settings)
 		).apply(i, Station::new));
+
+		/**
+		 * The settings of a few kinds of station, in the same map as the other fields (the
+		 * codec of a record takes at most 16 fields).
+		 */
+		private record Settings(int herd, boolean boat, Optional<DyeColor> dye, int tanning, long tannedAt) {
+			static final Settings DEFAULT = new Settings(DEFAULT_HERD, true, Optional.empty(), 0, 0L);
+			static final MapCodec<Settings> MAP_CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
+				Codec.intRange(0, MAX_HERD).optionalFieldOf("herd", DEFAULT_HERD).forGetter(Settings::herd),
+				Codec.BOOL.optionalFieldOf("boat", true).forGetter(Settings::boat),
+				DyeColor.CODEC.optionalFieldOf("dye").forGetter(Settings::dye),
+				Codec.intRange(0, MAX_TANNING).optionalFieldOf("tanning", 0).forGetter(Settings::tanning),
+				Codec.LONG.optionalFieldOf("tanned_at", 0L).forGetter(Settings::tannedAt)
+			).apply(i, Settings::new));
+		}
 
 		private final BlockPos pos;
 		private final List<BlockPos> inputs;
@@ -236,17 +262,25 @@ public class Workstations extends SavedData {
 		private int herd;
 		/** Barrel: whether the fisher rows out in a boat. */
 		private boolean boat;
+		/** Cauldron: the color the tanner dyes leather armor, null for none. */
+		private @Nullable DyeColor dye;
+		/** Cauldron: how much rotten flesh the tanner has put in to tan, and when it is done (game time). */
+		private int tanning;
+		private long tannedAt;
 		private @Nullable Workstations owner;
 		/** The kind of station the settings belong to, unknown for entries saved before it was stored. */
 		private @Nullable StationType type;
 
 		private Station(
 			BlockPos pos, Optional<String> type, List<BlockPos> inputs, List<BlockPos> outputs, Optional<Item> order, Optional<UUID> worker, Optional<String> workerName,
-			List<String> woods, int stock, boolean strip, Optional<Pit> pit, int depth, Optional<Tunnel> tunnel, int wage, int herd, boolean boat
+			List<String> woods, int stock, boolean strip, Optional<Pit> pit, int depth, Optional<Tunnel> tunnel, int wage, Settings settings
 		) {
 			this.wage = wage;
-			this.herd = herd;
-			this.boat = boat;
+			this.herd = settings.herd();
+			this.boat = settings.boat();
+			this.dye = settings.dye().orElse(null);
+			this.tanning = settings.tanning();
+			this.tannedAt = settings.tannedAt();
 			this.pit = pit.orElse(null);
 			this.tunnel = tunnel.orElse(null);
 			this.depth = depth;
@@ -394,6 +428,47 @@ public class Workstations extends SavedData {
 				this.woods.add(potion);
 			}
 			this.setOrder(order);
+		}
+
+		private Settings settings() {
+			return new Settings(this.herd, this.boat, Optional.ofNullable(this.dye), this.tanning, this.tannedAt);
+		}
+
+		/** Cauldron: the color the tanner dyes leather armor, null for none. */
+		public @Nullable DyeColor dye() {
+			return this.dye;
+		}
+
+		public void setDye(@Nullable DyeColor dye) {
+			if (this.dye != dye) {
+				this.dye = dye;
+				this.setDirty();
+			}
+		}
+
+		/** Cauldron: how much rotten flesh is tanning in it, 0 for none. */
+		public int tanning() {
+			return this.tanning;
+		}
+
+		/** Cauldron: when the rotten flesh in it is tanned (game time). */
+		public long tannedAt() {
+			return this.tannedAt;
+		}
+
+		/** Cauldron: what is in it, rotten flesh or (once done) the leather made of it. */
+		public ItemStack tanningContents(long now) {
+			if (now < this.tannedAt) {
+				return new ItemStack(Items.ROTTEN_FLESH, this.tanning);
+			}
+			return new ItemStack(Items.LEATHER, this.tanning / Math.max(1, Config.FLESH_PER_LEATHER.get()));
+		}
+
+		/** Cauldron: puts rotten flesh in to tan until the given time; 0 takes it out. */
+		public void setTanning(int flesh, long until) {
+			this.tanning = Math.clamp(flesh, 0, MAX_TANNING);
+			this.tannedAt = this.tanning == 0 ? 0L : until;
+			this.setDirty();
 		}
 
 		/** Barrel: whether the fisher rows out in a boat when there is open water nearby. */
@@ -608,7 +683,7 @@ public class Workstations extends SavedData {
 		private boolean isEmpty() {
 			return this.inputs.isEmpty() && this.outputs.isEmpty() && this.order == null && this.worker == null && this.woods.isEmpty() && this.stock == 0
 				&& !this.strip && this.pit == null && this.depth == Pit.DEFAULT_DEPTH && this.tunnel == null && this.wage == 0
-				&& this.herd == DEFAULT_HERD && this.boat;
+				&& this.herd == DEFAULT_HERD && this.boat && this.dye == null && this.tanning == 0;
 		}
 
 		/**

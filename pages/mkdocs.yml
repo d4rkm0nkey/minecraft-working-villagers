@@ -106,6 +106,7 @@ nav:
       - Fletcher: workers/fletcher.md
       - Guard: workers/guard.md
       - Apothecary: workers/apothecary.md
+      - Tanner: workers/tanner.md
       - Smith: workers/smith.md
       - Pit digger: workers/pit-digger.md
       - Miner: workers/miner.md

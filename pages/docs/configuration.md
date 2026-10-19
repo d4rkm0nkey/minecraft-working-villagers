@@ -84,6 +84,17 @@ The radius it guards is set at each target (tab **Settings**).
 
 Its order and stock are set at the brewing stand.
 
+## Tanner (`tanner`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `tanRottenFlesh` | true | | Whether it tans rotten flesh into leather (not in vanilla). |
+| `fleshPerLeather` | 4 | 1–16 | Rotten flesh for one leather. |
+| `tanningSeconds` | 300 | 5–3600 | How long rotten flesh tans in the cauldron. |
+| `waterRadius` | 16 | 2–32 | How far from the cauldron it fetches water with its bucket. |
+
+Its order, stock and color are set at the cauldron.
+
 ## Fletcher
 
 The fletcher has no config options; its order and stock are set at the fletching table.

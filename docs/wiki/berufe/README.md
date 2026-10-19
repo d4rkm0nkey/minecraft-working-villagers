@@ -25,7 +25,7 @@ Alle Berufe folgen dem [Kernloop](../grundlagen/kernloop.md) und den [Lohnstufen
 | [Fischer](fischer.md) | Fass (Barrel) | Angeln vom Ufer oder im Boot auf offenem Wasser | nein | umgesetzt |
 | [Hirte](hirte.md) | Webstuhl (Loom) | Schafe scheren und züchten, Wolle abliefern | nein | umgesetzt (ohne Wolle sortieren) |
 | [Metzger](metzger.md) | Räucherofen (Smoker) | Tiere züchten, schlachten, räuchern | nein | umgesetzt |
-| [Gerber](gerber.md) | Kessel | Leder aus Kaninchenfellen und gegerbtem verrottetem Fleisch; Bücher, Lederrüstung (Uniformen der Wachen), Sattel, Bündel | nein | Konzept |
+| [Gerber](gerber.md) | Kessel | Leder aus Kaninchenfellen und gegerbtem verrottetem Fleisch; Bücher, Lederrüstung (Uniformen der Wachen), Sattel, Bündel | nein | umgesetzt |
 | [Maurer](maurer.md) | Steinsäge | Ausbau des Steinsägers (Glattstein, Master) | nein | später |
 | [Pfeilmacher](pfeilmacher.md) | Bognertisch | Pfeile aus Feuerstein (aus Kies) oder Metall-Nuggets, Bögen, Spektralpfeile; versorgt die Wachen | nein | umgesetzt |
 | [Kartograf](kartograf.md) | Cartography Table | Gebiete und Dörfer erkunden | nein | später |
@@ -33,7 +33,7 @@ Alle Berufe folgen dem [Kernloop](../grundlagen/kernloop.md) und den [Lohnstufen
 | [Bibliothekar](bibliothekar.md) | Lectern | Lagerverwaltung, Inventarliste | nein | später |
 | [Wache](wache.md) | Zielscheibe | Nachtschicht: Monster mit Pfeil und Bogen abwehren, Fehlschüsse einsammeln | nein | umgesetzt |
 
-Umgesetzt sind: Holzfäller, Holzsäger, Steinsäger, Tischler, Bauer, Hirte, Metzger, Fischer, Pfeilmacher, Wache, Apotheker, Schmied (Schmelzen und Reparieren), Grubenarbeiter, Minenarbeiter, Brenner, Handelsangestellter (Verkauf) und Träger. Damit läuft die Holzkette Holzfäller → Holzsäger → Tischler, verbunden durch Träger (siehe [Logistik](../grundlagen/logistik.md)), und Erz kommt aus der Mine zum Schmied.
+Umgesetzt sind: Holzfäller, Holzsäger, Steinsäger, Tischler, Bauer, Hirte, Metzger, Fischer, Pfeilmacher, Wache, Apotheker, Gerber, Schmied (Schmelzen und Reparieren), Grubenarbeiter, Minenarbeiter, Brenner, Handelsangestellter (Verkauf) und Träger. Damit läuft die Holzkette Holzfäller → Holzsäger → Tischler, verbunden durch Träger (siehe [Logistik](../grundlagen/logistik.md)), und Erz kommt aus der Mine zum Schmied.
 
 Als Nächstes stehen auf der [Roadmap](../planung/roadmap.md): Wirtschaft und Dorf (M2) und der [Crafter-Bediener](crafter-bediener.md) (M4). Mit ihm ist die Kette Erz → Barren → Crafter geschlossen.
 

@@ -20,7 +20,8 @@ Vanilla-Dorfbewohner kämpfen nicht; die Wache ist eine bewusste Abweichung. Sie
 - **Überfälle:** Wachen machen beim Vanilla-Überfallverhalten nicht mit (Mixins auf `SetRaidStatus` und `ReactToBell`): Sie verstecken sich nicht und fliehen nicht. Läuft ein Überfall, wo die Wache ist, arbeitet sie auch tagsüber, bewacht mindestens 24 Blöcke um ihren Posten und schießt zuerst auf Plünderer. Sieht sie einen, läutet sie die nächste Glocke im Umkreis von 48 Blöcken (Vanilla-`attemptToRing`), höchstens alle 30 Sekunden: Die Plünderer leuchten, die Dorfbewohner verstecken sich. Vorher gab es hier eine Lücke: Vanilla schaltete die Wache bei Überfällen auf „Überfall“ oder „Verstecken“, ihr Tagesplan nachts zurück auf „Arbeit“, tagsüber versteckte sie sich.
 - **Jagen und Erfahrung:** siehe [Jagd und Erfahrung](../dorf/erfahrung.md#stand-der-umsetzung).
 - **Tests unabhängig von der Uhr:** Die Gametests laufen nebeneinander, und Fabric startet Testgruppen mit verschiedenen Uhrzeiten teils gleichzeitig. Die Wachen-Tests geben der Wache deshalb eine eigene Uhrzeit vor (`GuardPost.setTimeForTests`) und nehmen Wüstenzombies, die im Tageslicht nicht brennen. Der Überfall-Test prüft nur, dass die Wache bei einem Überfall am Tag arbeitet, und beendet ihn sofort, damit sich die Dorfbewohner der anderen Tests nicht verstecken.
-- **Nicht umgesetzt:** Zurückweichen vor nahen Monstern, „Pfeile reichen für ~N Nächte“ in der Dorftruhe, Rüstung tragen, Armbrust.
+- **Rüstung:** Wachen ziehen Rüstung an, die man ihnen gibt oder die in einer Dorftruhe liegt, ein Teil pro Platz (`Uniforms`, über `ItemTags.HEAD_ARMOR` usw.; jede Rüstung). Sie schützt wie beim Spieler und nutzt sich ab (Mixin auf `LivingEntity.hurtArmor`, das für Mobs in Vanilla nichts tut); kurz vor dem Bruch ziehen sie das Teil aus und geben es zurück wie ein Werkzeug. Beim Tod fällt die Rüstung heil heraus. Zu sehen ist sie nicht, außer als **Uniform**: Ein Lederharnisch färbt den Wappenrock in seiner Farbe (siehe [Gerber](gerber.md)).
+- **Nicht umgesetzt:** Zurückweichen vor nahen Monstern, „Pfeile reichen für ~N Nächte“ in der Dorftruhe, Armbrust.
 
 ## Station: Zielscheibe
 
@@ -50,7 +51,7 @@ Wachen arbeiten **nachts** und schlafen tagsüber, umgekehrt wie alle anderen. S
 | --- | --- | --- | --- |
 | Bogen | ja | 2 | Pfeilmacher, Dorftruhe; nutzt sich ab wie beim Spieler |
 | Pfeile | ja | 64 | Pfeilmacher über die [Dorftruhe](../dorf/dorftruhen.md) |
-| Rüstung | nein | angelegt | Spieler oder Schmied; sichtbar getragen |
+| Rüstung | nein | angelegt | Spieler, Dorftruhe, Gerber (Leder); Lederharnisch färbt den Wappenrock |
 | Lohn | ja | | Lohnkasse der Zielscheibe |
 
 - **Pfeile werden knapp:** Unter 16 Pfeilen holt sie sich vor dem Dienst neue aus der Dorftruhe. Ohne Pfeile steht im Menü „Keine Pfeile!“, der Reiter bekommt den roten Punkt, und sie schüttelt den Kopf. Sie bleibt dann im Haus, statt ungeschützt draußen zu stehen.

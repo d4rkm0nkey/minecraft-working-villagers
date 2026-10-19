@@ -6,6 +6,7 @@ import me.teajay.workingvillagers.crafting.WoodTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.npc.villager.VillagerProfession;
+import net.minecraft.world.level.block.AbstractCauldronBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -57,7 +58,12 @@ public enum StationType {
 	 * The apothecary makes glass bottles, water bottles and potions at the brewing stand from
 	 * its input chests, as ordered, and heals injured workers with potions of healing.
 	 */
-	BREWING_STAND(true);
+	BREWING_STAND(true),
+	/**
+	 * The tanner makes leather (from rabbit hide, and tans rotten flesh in the cauldron) and
+	 * leather goods from its input chests, as ordered, and dyes leather armor.
+	 */
+	CAULDRON(true);
 
 	private final boolean processing;
 
@@ -81,7 +87,7 @@ public enum StationType {
 
 	/** Whether the worker needs an order, set in the order column of the overview. */
 	public boolean hasOrder() {
-		return this == WOODCUTTER || this == STONECUTTER || this == CARPENTER_BENCH || this == KILN || this == FLETCHING_TABLE || this == BREWING_STAND;
+		return this == WOODCUTTER || this == STONECUTTER || this == CARPENTER_BENCH || this == KILN || this == FLETCHING_TABLE || this == BREWING_STAND || this == CAULDRON;
 	}
 
 	/**
@@ -90,7 +96,7 @@ public enum StationType {
 	 */
 	public boolean isVanilla() {
 		return this == STONECUTTER || this == COMPOSTER || this == BLAST_FURNACE || this == SMITHING_TABLE || this == LOOM || this == SMOKER || this == BARREL
-			|| this == FLETCHING_TABLE || this == BREWING_STAND;
+			|| this == FLETCHING_TABLE || this == BREWING_STAND || this == CAULDRON;
 	}
 
 	/**
@@ -129,6 +135,7 @@ public enum StationType {
 			case FLETCHING_TABLE -> WorkingVillagers.FLETCHER_PROFESSION;
 			case TARGET -> WorkingVillagers.GUARD_PROFESSION;
 			case BREWING_STAND -> WorkingVillagers.APOTHECARY_PROFESSION;
+			case CAULDRON -> WorkingVillagers.TANNER_PROFESSION;
 		};
 	}
 
@@ -151,6 +158,7 @@ public enum StationType {
 			case FLETCHING_TABLE -> Blocks.FLETCHING_TABLE.getName();
 			case TARGET -> Blocks.TARGET.getName();
 			case BREWING_STAND -> Blocks.BREWING_STAND.getName();
+			case CAULDRON -> Blocks.CAULDRON.getName();
 		};
 	}
 
@@ -173,6 +181,7 @@ public enum StationType {
 			case FLETCHING_TABLE -> Blocks.FLETCHING_TABLE;
 			case TARGET -> Blocks.TARGET;
 			case BREWING_STAND -> Blocks.BREWING_STAND;
+			case CAULDRON -> Blocks.CAULDRON;
 		};
 	}
 
@@ -211,6 +220,9 @@ public enum StationType {
 			return TARGET;
 		} else if (state.is(Blocks.BREWING_STAND)) {
 			return BREWING_STAND;
+		} else if (state.getBlock() instanceof AbstractCauldronBlock) {
+			// Filling or emptying it makes another block of it
+			return CAULDRON;
 		}
 		return null;
 	}

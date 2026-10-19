@@ -15,13 +15,11 @@ import me.teajay.workingvillagers.crafting.BrewingPaths;
 import me.teajay.workingvillagers.mixin.BrewingStandBlockEntityAccessor;
 import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.tags.FluidTags;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.SimpleContainer;
@@ -714,14 +712,14 @@ public class BrewPotions extends Behavior<Villager> {
 	/** Fills glass bottles at water near the brewing stand, as many as the next brew takes. */
 	private void water(ServerLevel level, Villager villager, Workstations.Station workplace) {
 		if (this.waterSpot == null) {
-			Optional<BlockPos> spot = findShore(level, workplace.pos(), villager);
+			Optional<BlockPos> spot = WaterSpots.findShore(level, workplace.pos(), Config.APOTHECARY_WATER_RADIUS.get(), villager);
 			if (spot.isEmpty()) {
 				this.idle(villager, workplace, "apothecary.no_water");
 				return;
 			}
 			this.waterSpot = spot.get();
 		}
-		BlockPos water = closestWater(level, this.waterSpot);
+		BlockPos water = WaterSpots.closestWater(level, this.waterSpot);
 		if (water == null) {
 			this.waterSpot = null;
 			return;
@@ -756,40 +754,6 @@ public class BrewPotions extends Behavior<Villager> {
 		} else if (this.stateTicks % 20 == 1) {
 			villager.getBrain().setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(this.waterSpot, SPEED, 0));
 		}
-	}
-
-	/** A spot next to water (a source block) around the brewing stand, the closest to the villager. */
-	private static Optional<BlockPos> findShore(ServerLevel level, BlockPos stand, Villager villager) {
-		int radius = Config.APOTHECARY_WATER_RADIUS.get();
-		List<BlockPos> spots = new ArrayList<>();
-		for (BlockPos pos : BlockPos.betweenClosed(stand.offset(-radius, -3, -radius), stand.offset(radius, 2, radius))) {
-			if (!isWater(level, pos)) {
-				continue;
-			}
-			for (Direction side : Direction.Plane.HORIZONTAL) {
-				for (BlockPos candidate : List.of(pos.relative(side), pos.relative(side).above())) {
-					if (StandSpots.isStandable(level, candidate)) {
-						spots.add(candidate.immutable());
-					}
-				}
-			}
-		}
-		return spots.stream().min(Comparator.comparingDouble(spot -> spot.distToCenterSqr(villager.position())));
-	}
-
-	private static @Nullable BlockPos closestWater(ServerLevel level, BlockPos spot) {
-		for (Direction side : Direction.Plane.HORIZONTAL) {
-			for (BlockPos pos : List.of(spot.relative(side), spot.relative(side).below())) {
-				if (isWater(level, pos)) {
-					return pos;
-				}
-			}
-		}
-		return null;
-	}
-
-	private static boolean isWater(ServerLevel level, BlockPos pos) {
-		return level.getFluidState(pos).is(FluidTags.WATER) && level.getFluidState(pos).isSource();
 	}
 
 	// --- Healing ---

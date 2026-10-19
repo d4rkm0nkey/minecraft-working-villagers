@@ -104,6 +104,18 @@ fletcher:
     Takes: ":mc-gravel: Gravel or nuggets, :mc-stick: sticks, :mc-feather: feathers"
     Makes: ":mc-arrow: Arrows, :mc-spectral_arrow: spectral arrows, :mc-bow: bows"
 
+tanner:
+  name: Tanner
+  page: workers/tanner.md
+  head: tanner
+  workstation: cauldron
+  summary: Makes leather of rabbit hide and rotten flesh, and books, saddles and leather armor in the color of your village.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-cauldron: Cauldron"
+    Takes: ":mc-rabbit_hide: Rabbit hide, :mc-rotten_flesh: rotten flesh, :mc-leather: leather, dyes"
+    Makes: ":mc-book: Books, :mc-leather_chestplate: leather armor, :mc-saddle: saddles"
+
 apothecary:
   name: Apothecary
   page: workers/apothecary.md

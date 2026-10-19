@@ -73,10 +73,11 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
   name on the front of the stations; notes left in a world remove themselves when they are
   loaded.)
 - Hired villagers never take vanilla jobs (lectern etc.). At a stonecutter, composter,
-  loom, smoker, barrel, fletching table, brewing stand, blast furnace or smithing table a
-  hired villager becomes the stone sawyer, farmer, shepherd, butcher, fisher, fletcher,
-  apothecary or smith of this mod; unhired villagers still become masons, farmers,
-  shepherds, butchers, fishermen, fletchers, clerics, armorers and toolsmiths, except at one that is set
+  loom, smoker, barrel, fletching table, brewing stand, cauldron, blast furnace or smithing
+  table a hired villager becomes the stone sawyer, farmer, shepherd, butcher, fisher,
+  fletcher, apothecary, tanner or smith of this mod; unhired villagers still become masons,
+  farmers, shepherds, butchers, fishermen, fletchers, clerics, leatherworkers, armorers and
+  toolsmiths, except at one that is set
   up (chests, order or worker): vanilla job acquisition skips it. *Assign* there makes an
   ordinary villager that works there and has never traded (villager XP 0) unemployed;
   one that has traded keeps its job.
@@ -351,6 +352,29 @@ with a potion of healing from its inventory or a chest of the station, and harve
 replants **nether wart** on soul sand within 6 blocks (`apothecary.wartRadius`), planting
 what it carries beyond one. It trades like a vanilla cleric.
 
+## Tanner
+
+A hired villager at a vanilla **cauldron** (empty or with water, lava or powder snow: the
+same station) becomes a **tanner** (ordinary villagers still become vanilla leatherworkers
+there). The cauldron has no screen: a right-click with an empty hand opens the overview. The
+tanner makes the ordered product and keeps a **stock** of it in its output chests: leather,
+books (3 paper, 1 leather), leather armor and horse armor, bundles (string, leather) and
+saddles (3 leather, an iron ingot). Leather it takes from its input chests, makes of rabbit
+hide (4, 1) or **tans** of rotten flesh: up to 16 go into the water of the cauldron (one
+level) and are leather after 300 seconds (`tanner.tanningSeconds`), 4 for one
+(`tanner.fleshPerLeather`, off with `tanner.tanRottenFlesh`); what is in the cauldron drops
+when it is broken. It fills the cauldron with its bucket at water within 16 blocks
+(`tanner.waterRadius`), without using up the water. At the cauldron a **color** is set:
+leather armor it makes it dyes in that color, and leather armor of another color from its
+input chests it washes out in the cauldron (one level) and dyes again, also without an
+order. It trades like a vanilla leatherworker.
+
+**Guards wear armor** from a village chest or given to them, one piece per slot; it
+protects them and wears out like a player's (`LivingEntity.hurtArmor` does nothing for mobs
+in vanilla), and a piece about to break they give back like a worn tool. Villagers show no
+armor, but a guard in a leather chestplate wears its tabard in the chestplate's color (a
+render layer over the guard's clothes): the uniform of the village.
+
 ## Fisher
 
 A hired villager at a vanilla **barrel** becomes a **fisher** (ordinary villagers still
@@ -571,7 +595,9 @@ fletcher makes 24 arrows from gravel and 36 from an iron ingot and stops at its 
 apothecary makes glass bottles, fills water bottles at a puddle, brews three potions of
 healing from glass bottles (water, nether wart, glistering melon, blaze powder), heals an
 injured worker with a potion from its output chest and harvests and replants ripe nether
-wart, the
+wart, the tanner makes books, leather from rabbit hide, tans rotten flesh in the cauldron,
+fills an empty cauldron with its bucket, makes a red leather chestplate and dyes blue boots
+red, a guard puts on a chestplate it is given and boots from a village chest, the
 fisher fishes at a pond and rows out on a lake with its boat and takes it back, uses up a
 plain rod but gives back an enchanted one, the
 butcher slaughters cows down to the herd size, breeds a piglet and smokes chicken, a

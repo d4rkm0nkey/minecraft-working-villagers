@@ -11,6 +11,7 @@ import me.teajay.workingvillagers.job.ChopTrees;
 import me.teajay.workingvillagers.job.CraftAtBench;
 import me.teajay.workingvillagers.job.BrewPotions;
 import me.teajay.workingvillagers.job.CutAtStation;
+import me.teajay.workingvillagers.job.TanLeather;
 import me.teajay.workingvillagers.job.DigPit;
 import me.teajay.workingvillagers.job.DigTunnel;
 import me.teajay.workingvillagers.job.FarmFields;
@@ -89,6 +90,8 @@ public abstract class VillagerGoalPackagesMixin {
 			work = new FletchArrows();
 		} else if (profession.is(WorkingVillagers.APOTHECARY_PROFESSION)) {
 			work = new BrewPotions();
+		} else if (profession.is(WorkingVillagers.TANNER_PROFESSION)) {
+			work = new TanLeather();
 		} else if (profession.is(WorkingVillagers.GUARD_PROFESSION)) {
 			work = new GuardPost();
 		} else if (profession.is(WorkingVillagers.KILN_OPERATOR_PROFESSION)) {

@@ -80,6 +80,8 @@ public final class WorkingVillagers {
 	/** Works at the vanilla target, which no vanilla profession uses: guards the village at night. */
 	public static final ResourceKey<PoiType> GUARD_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("guard"));
 	public static final ResourceKey<VillagerProfession> GUARD_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("guard"));
+	/** Works at the vanilla cauldron, the job site of the vanilla leatherworker. */
+	public static final ResourceKey<VillagerProfession> TANNER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("tanner"));
 	/** Works at the vanilla brewing stand, the job site of the vanilla cleric. */
 	public static final ResourceKey<VillagerProfession> APOTHECARY_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("apothecary"));
 	/** Works at the vanilla fletching table, the job site of the vanilla fletcher. */
@@ -127,6 +129,7 @@ public final class WorkingVillagers {
 	public static Supplier<MenuType<StationMenu>> BARREL_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> FLETCHING_TABLE_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> BREWING_STAND_STATION_MENU;
+	public static Supplier<MenuType<StationMenu>> CAULDRON_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> TARGET_STATION_MENU;
 	public static Supplier<MenuType<CutterMenu>> WOODCUTTER_MENU;
 	public static Supplier<RecipeType<WoodcuttingRecipe>> WOODCUTTING;
@@ -214,6 +217,7 @@ public final class WorkingVillagers {
 		registerFletcher(platform);
 		registerGuard(platform);
 		registerApothecary(platform);
+		registerTanner(platform);
 		registerPitDigger(platform);
 		registerKilnOperator(platform);
 		registerShopAssistant(platform);
@@ -384,6 +388,16 @@ public final class WorkingVillagers {
 		TARGET_STATION_MENU = platform.registerMenu("target_station", (containerId, inventory) -> new StationMenu(StationType.TARGET, containerId, inventory));
 		platform.registerPoi("guard", () -> Blocks.TARGET, 1, 1);
 		registerProfession(platform, "guard", GUARD_POI, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_WEAPONSMITH);
+	}
+
+	/**
+	 * The tanner works at the vanilla cauldron (any of them: empty, with water, lava or powder
+	 * snow), which has no screen: a right-click with an empty hand opens the overview. Ordinary
+	 * villagers still become (vanilla) leatherworkers there.
+	 */
+	private static void registerTanner(Platform platform) {
+		CAULDRON_STATION_MENU = platform.registerMenu("cauldron_station", (containerId, inventory) -> new StationMenu(StationType.CAULDRON, containerId, inventory));
+		registerProfession(platform, "tanner", PoiTypes.LEATHERWORKER, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_LEATHERWORKER, VillagerProfession.LEATHERWORKER);
 	}
 
 	/**

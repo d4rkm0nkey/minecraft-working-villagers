@@ -15,6 +15,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.village.poi.PoiManager;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.item.Item;
@@ -135,7 +136,7 @@ public final class VillageChests {
 				return true;
 			}
 		}
-		return false;
+		return Uniforms.wearsArmor(villager) && Uniforms.SLOTS.stream().anyMatch(slot -> Uniforms.lacks(villager, slot));
 	}
 
 	/** Moves what the worker wants out of the container into its inventory. Returns how many items it took. */
@@ -189,6 +190,20 @@ public final class VillageChests {
 			}
 			if (best >= 0) {
 				takes.add(new Take(best, 1));
+			}
+		}
+		if (Uniforms.wearsArmor(villager)) {
+			for (EquipmentSlot slot : Uniforms.SLOTS) {
+				if (!Uniforms.lacks(villager, slot)) {
+					continue;
+				}
+				for (int i = 0; i < container.getContainerSize(); i++) {
+					ItemStack stack = container.getItem(i);
+					if (Uniforms.slotOf(stack) == slot && !WorkerSupplies.isWorn(stack) && mayTake(stack)) {
+						takes.add(new Take(i, 1));
+						break;
+					}
+				}
 			}
 		}
 		for (WorkerSupplies.Stock stock : WorkerSupplies.stocksOf(villager)) {

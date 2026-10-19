@@ -133,6 +133,8 @@ public final class WorkerSupplies {
 	public static final Stock ARROWS = new Stock("arrows", stack -> stack.is(Items.ARROW), Config.KEEP_ARROWS::get, "guard.no_arrows", true);
 	/** The guard's glass bottles, to bottle the experience of its kills. */
 	public static final Stock BOTTLES = new Stock("bottles", stack -> stack.is(Items.GLASS_BOTTLE), () -> 16, "", false);
+	/** The tanner's bucket, to fill its cauldron. */
+	public static final Stock BUCKET = new Stock("bucket", stack -> stack.is(Items.BUCKET) || stack.is(Items.WATER_BUCKET), () -> 1, "", false);
 	public static final Stock LADDERS = new Stock("ladders", stack -> stack.is(Items.LADDER), Config.KEEP_LADDERS::get, "pit_digger.no_ladders", true);
 	public static final Stock TORCHES = new Stock("torches", WorkerSupplies::isTorch, Config.KEEP_TORCHES::get, "", false);
 	public static final Stock MINER_TORCHES = new Stock("torches", WorkerSupplies::isTorch, Config.MINER_KEEP_TORCHES::get, "", false);
@@ -428,7 +430,7 @@ public final class WorkerSupplies {
 
 	/** A worn tool of the worker's job, which it gives back. */
 	public static boolean isToGiveBack(Villager villager, ItemStack stack) {
-		return isWorn(stack) && toolsOf(villager).stream().anyMatch(tool -> tool.item().test(stack));
+		return isWorn(stack) && (toolsOf(villager).stream().anyMatch(tool -> tool.item().test(stack)) || Uniforms.wearsArmor(villager) && Uniforms.isArmor(stack));
 	}
 
 	/** The tools the worker needs for its job. */
@@ -482,6 +484,9 @@ public final class WorkerSupplies {
 		if (profession.is(WorkingVillagers.GUARD_PROFESSION)) {
 			return Config.GUARD_EXPERIENCE.get() ? List.of(ARROWS, BOTTLES) : List.of(ARROWS);
 		}
+		if (profession.is(WorkingVillagers.TANNER_PROFESSION)) {
+			return List.of(BUCKET);
+		}
 		if (profession.is(WorkingVillagers.PIT_DIGGER_PROFESSION)) {
 			return Config.KEEP_TORCHES.get() > 0 ? List.of(LADDERS, TORCHES) : List.of(LADDERS);
 		}
@@ -528,6 +533,8 @@ public final class WorkerSupplies {
 			return Math.min(stack.getCount(), Workstations.MAX_WAGE - box.wage());
 		} else if (isWage(stack)) {
 			wanted = MAX_EMERALDS - count(inventory, WorkerSupplies::isWage);
+		} else if (Uniforms.wearsArmor(villager) && Uniforms.isArmor(stack)) {
+			wanted = !WorkerSupplies.isWorn(stack) && Uniforms.lacks(villager, Uniforms.slotOf(stack)) ? 1 : 0;
 		} else if (tool.isPresent()) {
 			wanted = isWorn(stack) ? 0 : MAX_TOOLS - count(inventory, tool.get().ready());
 		} else if (stock.isPresent()) {
@@ -546,7 +553,8 @@ public final class WorkerSupplies {
 		}
 		return isWage(stack)
 			|| toolsOf(villager).stream().anyMatch(tool -> tool.item().test(stack))
-			|| stocksOf(villager).stream().anyMatch(stock -> stock.item().test(stack));
+			|| stocksOf(villager).stream().anyMatch(stock -> stock.item().test(stack))
+			|| Uniforms.wearsArmor(villager) && Uniforms.isArmor(stack);
 	}
 
 	/**

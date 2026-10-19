@@ -113,6 +113,7 @@ public final class StationTabs {
 				case BARREL -> Items.OAK_BOAT;
 				case FLETCHING_TABLE -> Items.ARROW;
 				case BREWING_STAND -> Items.GLASS_BOTTLE;
+				case CAULDRON -> Items.LEATHER;
 				case TARGET -> Items.BOW;
 				default -> Items.PAPER;
 			};

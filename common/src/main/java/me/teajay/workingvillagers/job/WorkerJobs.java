@@ -31,15 +31,16 @@ import org.jspecify.annotations.Nullable;
  * sawyer, stonecutter: stone sawyer, carpenter's bench: carpenter, composter: farmer, blast
  * furnace: smith, pit stake: pit digger, kiln: kiln operator, trading counter: shop assistant,
  * mining bench: miner, loom: shepherd, smoker: butcher, barrel: fisher, fletching table:
- * fletcher, target: guard, brewing stand: apothecary). A hired villager without a job looks for a free one itself (see
+ * fletcher, target: guard, brewing stand: apothecary, cauldron: tanner). A hired villager without a job looks for a free one itself (see
  * {@link FindWorkplace}); the player can also give it one in the station menu, and take it
  * away again there. Hired villagers do not take any vanilla job.
  *
  * <p>Vanilla job acquisition only looks at job sites in the {@code acquirable_job_site} tag,
  * which the blocks of this mod are not part of. The stonecutter, the composter, the blast
- * furnace, the smithing table, the loom, the smoker, the barrel, the fletching table and the
- * brewing stand are in the tag, ordinary villagers still become masons, farmers, armorers,
- * toolsmiths, shepherds, butchers, fishermen, fletchers and clerics there.
+ * furnace, the smithing table, the loom, the smoker, the barrel, the fletching table, the
+ * brewing stand and the cauldron are in the tag, ordinary villagers still become masons,
+ * farmers, armorers, toolsmiths, shepherds, butchers, fishermen, fletchers, clerics and
+ * leatherworkers there.
  */
 public final class WorkerJobs {
 	private static final Map<ResourceKey<PoiType>, ResourceKey<VillagerProfession>> JOBS = Map.ofEntries(
@@ -55,6 +56,7 @@ public final class WorkerJobs {
 		Map.entry(PoiTypes.FISHERMAN, WorkingVillagers.FISHER_PROFESSION),
 		Map.entry(PoiTypes.FLETCHER, WorkingVillagers.FLETCHER_PROFESSION),
 		Map.entry(PoiTypes.CLERIC, WorkingVillagers.APOTHECARY_PROFESSION),
+		Map.entry(PoiTypes.LEATHERWORKER, WorkingVillagers.TANNER_PROFESSION),
 		Map.entry(WorkingVillagers.GUARD_POI, WorkingVillagers.GUARD_PROFESSION),
 		Map.entry(WorkingVillagers.PIT_DIGGER_POI, WorkingVillagers.PIT_DIGGER_PROFESSION),
 		Map.entry(WorkingVillagers.KILN_OPERATOR_POI, WorkingVillagers.KILN_OPERATOR_PROFESSION),
@@ -112,6 +114,7 @@ public final class WorkerJobs {
 			StuckWorkers.check(level, villager, CHECK_INTERVAL);
 			WorkerStatus.complain(level, villager, CHECK_INTERVAL);
 			restock(level, villager);
+			Uniforms.equip(level, villager);
 		}
 		if (!unemployed) {
 			// Keep the station's note up to date (renamed worker, worker from before names existed)

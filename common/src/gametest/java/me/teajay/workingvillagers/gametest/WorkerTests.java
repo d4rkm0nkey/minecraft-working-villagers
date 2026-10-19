@@ -21,6 +21,11 @@ import me.teajay.workingvillagers.station.StationType;
 import me.teajay.workingvillagers.station.Workstations.ChestRole;
 import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.core.BlockPos;
+import org.jspecify.annotations.Nullable;
+import net.minecraft.world.level.block.LayeredCauldronBlock;
+import net.minecraft.world.item.component.DyedItemColor;
+import net.minecraft.world.entity.EquipmentSlot;
+import me.teajay.workingvillagers.job.TanLeather;
 import net.minecraft.world.level.block.NetherWartBlock;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.alchemy.PotionContents;
@@ -135,6 +140,14 @@ public final class WorkerTests {
 		registry.accept("fletcher_makes_arrows_from_nuggets", WorkerTests::fletcherMakesArrowsFromNuggets);
 		registry.accept("fletcher_keeps_stock", WorkerTests::fletcherKeepsStock);
 		registry.accept("apothecary_makes_bottles", WorkerTests::apothecaryMakesBottles);
+		registry.accept("tanner_makes_books", WorkerTests::tannerMakesBooks);
+		registry.accept("tanner_makes_leather_from_hides", WorkerTests::tannerMakesLeatherFromHides);
+		registry.accept("tanner_tans_rotten_flesh", WorkerTests::tannerTansRottenFlesh);
+		registry.accept("tanner_fills_cauldron", WorkerTests::tannerFillsCauldron);
+		registry.accept("tanner_dyes_armor", WorkerTests::tannerDyesArmor);
+		registry.accept("tanner_recolors_armor", WorkerTests::tannerRecolorsArmor);
+		registry.accept("guard_wears_uniform", WorkerTests::guardWearsUniform);
+		registry.accept("guard_takes_armor_from_village_chest", WorkerTests::guardTakesArmorFromVillageChest);
 		registry.accept("apothecary_fills_water", WorkerTests::apothecaryFillsWater);
 		registry.accept("apothecary_brews_healing", WorkerTests::apothecaryBrewsHealing);
 		registry.accept("apothecary_heals_worker", WorkerTests::apothecaryHealsWorker);
@@ -191,6 +204,8 @@ public final class WorkerTests {
 		Config.MIN_BITE_SECONDS.set(1);
 		Config.MAX_BITE_SECONDS.set(1);
 		Config.CATCHES_PER_TRIP.set(3);
+		// Rotten flesh tans in a few seconds
+		Config.TANNING_SECONDS.set(5);
 		MinerTests.configure();
 	}
 
@@ -503,6 +518,97 @@ public final class WorkerTests {
 			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.DIAMOND_PICKAXE) && stack.getDamageValue() == 500) == 1, "The pickaxe was repaired");
 			helper.succeed();
 		});
+	}
+
+	/** A cauldron (with water, 0 for an empty one) with an input chest holding {@code material}, an output chest, the order (null for none) and the color. */
+	private static Villager tanner(GameTestHelper helper, int water, @Nullable Item order, @Nullable DyeColor dye, ItemStack... material) {
+		BlockPos cauldron = STATION.below();
+		helper.setBlock(cauldron, water == 0 ? Blocks.CAULDRON.defaultBlockState()
+			: Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, water));
+		TestWorld.chest(helper, INPUT, material);
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, cauldron, INPUT, ChestRole.INPUT);
+		TestWorld.link(helper, cauldron, OUTPUT, ChestRole.OUTPUT);
+		TestWorld.station(helper, cauldron).setOrder(order);
+		TestWorld.station(helper, cauldron).setDye(dye);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, cauldron);
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2));
+		return worker;
+	}
+
+	/** Paper and leather: books. */
+	private static void tannerMakesBooks(GameTestHelper helper) {
+		Villager worker = tanner(helper, 0, Items.BOOK, null, new ItemStack(Items.PAPER, 6), new ItemStack(Items.LEATHER, 2));
+		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.BOOK), 2, "2 books in the output chest"));
+	}
+
+	/** 8 rabbit hides: 2 leather. */
+	private static void tannerMakesLeatherFromHides(GameTestHelper helper) {
+		Villager worker = tanner(helper, 0, Items.LEATHER, null, new ItemStack(Items.RABBIT_HIDE, 8));
+		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.LEATHER), 2, "2 leather in the output chest"));
+	}
+
+	/** 8 rotten flesh tan in the water of the cauldron (one level): 2 leather. */
+	private static void tannerTansRottenFlesh(GameTestHelper helper) {
+		Villager worker = tanner(helper, 3, Items.LEATHER, null, new ItemStack(Items.ROTTEN_FLESH, 8));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.LEATHER), 2, "2 leather in the output chest");
+			helper.assertBlockProperty(STATION.below(), LayeredCauldronBlock.LEVEL, 2);
+		});
+	}
+
+	/** An empty cauldron, a bucket and a puddle: the tanner fetches water, then tans. */
+	private static void tannerFillsCauldron(GameTestHelper helper) {
+		puddle(helper);
+		Villager worker = tanner(helper, 0, Items.LEATHER, null, new ItemStack(Items.ROTTEN_FLESH, 4));
+		TestWorld.give(helper, worker, new ItemStack(Items.BUCKET));
+		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.LEATHER), 1, "1 leather in the output chest"));
+	}
+
+	/** A leather chestplate in the color of the station, with its dye. */
+	private static void tannerDyesArmor(GameTestHelper helper) {
+		Villager worker = tanner(helper, 0, Items.LEATHER_CHESTPLATE, DyeColor.RED, new ItemStack(Items.LEATHER, 8), new ItemStack(Items.DYE.red()));
+		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.LEATHER_CHESTPLATE) && TanLeather.hasColor(stack, DyeColor.RED), 1,
+			"a red leather chestplate in the output chest"));
+	}
+
+	/** Blue boots in the input chest: washed out in the cauldron and dyed red, without an order. */
+	private static void tannerRecolorsArmor(GameTestHelper helper) {
+		ItemStack blue = DyedItemColor.applyDyes(new ItemStack(Items.LEATHER_BOOTS), List.of(DyeColor.BLUE));
+		Villager worker = tanner(helper, 3, null, DyeColor.RED, blue, new ItemStack(Items.DYE.red()));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.LEATHER_BOOTS) && TanLeather.hasColor(stack, DyeColor.RED), 1, "red boots in the output chest");
+			helper.assertBlockProperty(STATION.below(), LayeredCauldronBlock.LEVEL, 2);
+		});
+	}
+
+	/** Given a red leather chestplate, the guard puts it on, and it drops whole. */
+	private static void guardWearsUniform(GameTestHelper helper) {
+		BlockPos target = STATION.below();
+		helper.setBlock(target, Blocks.TARGET);
+		Villager guard = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, guard, target);
+		ItemStack red = DyedItemColor.applyDyes(new ItemStack(Items.LEATHER_CHESTPLATE), List.of(DyeColor.RED));
+		TestWorld.give(helper, guard, red);
+		helper.succeedWhen(() -> {
+			ItemStack worn = guard.getItemBySlot(EquipmentSlot.CHEST);
+			helper.assertTrue(worn.is(Items.LEATHER_CHESTPLATE) && TanLeather.hasColor(worn, DyeColor.RED), "Not wearing the chestplate: " + worn);
+			helper.assertTrue(guard.getInventory().countItem(Items.LEATHER_CHESTPLATE) == 0, "The chestplate is still in the inventory");
+		});
+	}
+
+	/** Boots in a village chest: the guard takes and wears them. */
+	private static void guardTakesArmorFromVillageChest(GameTestHelper helper) {
+		BlockPos target = STATION.below();
+		helper.setBlock(target, Blocks.TARGET);
+		TestWorld.villageChest(helper, VILLAGE_CHEST, new ItemStack(Items.LEATHER_BOOTS));
+		Villager guard = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, guard, target);
+		TestWorld.give(helper, guard, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.BOW), new ItemStack(Items.ARROW, 64));
+		GuardPost.setTimeForTests(guard, 14000);
+		helper.succeedWhen(() -> helper.assertTrue(guard.getItemBySlot(EquipmentSlot.FEET).is(Items.LEATHER_BOOTS),
+			"Not wearing boots: " + TestWorld.describe(guard)));
 	}
 
 	/** A brewing stand with an input chest holding {@code material}, an output chest and the order (empty for none). */

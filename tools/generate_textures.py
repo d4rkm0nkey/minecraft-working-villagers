@@ -482,6 +482,56 @@ def guard():
     return image
 
 
+def guard_tabard():
+    """The guard's tabard alone, in grey: the uniform layer tints it with the color of the dyed
+    leather chestplate the guard wears. The white stripes stay as they are."""
+    source = guard().load()
+    image = blank(64)
+    p = image.load()
+    shades = {(45, 70, 140, 255): (235, 235, 235, 255), (32, 52, 110, 255): (185, 185, 185, 255)}
+    for y in range(64):
+        for x in range(64):
+            if source[x, y] in shades:
+                p[x, y] = shades[source[x, y]]
+    return image
+
+
+def tanner():
+    """Villager profession overlay: a dark brown leather apron over a linen shirt with the
+    sleeves rolled up, dye stains on the apron (blue, red, yellow), and a brown leather cap."""
+    image = blank(64)
+    p = image.load()
+    linen, linen_dark = (200, 190, 165, 255), (170, 160, 135, 255)
+    apron, apron_dark, strap = (85, 55, 35, 255), (65, 42, 26, 255), (50, 32, 20, 255)
+    stains = {(23, 30): (60, 90, 170, 255), (26, 33): (170, 50, 40, 255), (24, 35): (200, 170, 50, 255)}
+    trousers, cap, cap_dark = (70, 60, 55, 255), (120, 80, 50, 255), (95, 62, 38, 255)
+
+    def fill(x0, y0, x1, y1, color):
+        for y in range(y0, y1):
+            for x in range(x0, x1):
+                p[x, y] = color(x, y)
+
+    shirt = lambda x, y: linen_dark if (x + 2 * y) % 7 == 0 else linen
+    fill(16, 20, 44, 38, shirt)  # body
+    fill(21, 22, 27, 38, lambda x, y: apron_dark if x in (21, 26) else apron)  # apron on the front
+    fill(20, 20, 22, 23, lambda x, y: strap)  # apron straps
+    fill(26, 20, 28, 23, lambda x, y: strap)
+    for (x, y), color in stains.items():
+        p[x, y] = color
+    fill(44, 22, 60, 34, lambda x, y: linen_dark if y == 26 else shirt(x, y))  # crossed arms, sleeves rolled up
+    fill(40, 38, 64, 46, shirt)  # crossed arms, middle part
+    fill(6, 38, 14, 44, shirt)  # robe top
+    fill(0, 44, 28, 64, shirt)  # robe
+    fill(5, 44, 11, 60, lambda x, y: apron_dark if x in (5, 10) or y == 59 else apron)  # apron on the robe
+    p[7, 48] = stains[(23, 30)]
+    p[9, 53] = stains[(26, 33)]
+    fill(0, 52, 28, 53, lambda x, y: strap)  # belt
+    fill(0, 22, 16, 38, lambda x, y: trousers)  # legs
+    fill(40, 0, 48, 8, lambda x, y: cap)  # cap top
+    fill(32, 8, 64, 10, lambda x, y: cap_dark if y == 9 or x % 8 == 0 else cap)  # cap sides
+    return image
+
+
 def apothecary():
     """Villager profession overlay: a cream long coat with a bottle green apron, a leather belt
     with three small potion vials (red, blue, green), and a round bottle green cap."""
@@ -991,6 +1041,9 @@ def main():
         "entity/zombie_villager/profession/butcher.png": butcher(),
         "entity/villager/profession/fisher.png": fisher(),
         "entity/zombie_villager/profession/fisher.png": fisher(),
+        "entity/villager/guard_tabard.png": guard_tabard(),
+        "entity/villager/profession/tanner.png": tanner(),
+        "entity/zombie_villager/profession/tanner.png": tanner(),
         "entity/villager/profession/apothecary.png": apothecary(),
         "entity/zombie_villager/profession/apothecary.png": apothecary(),
         "entity/villager/profession/fletcher.png": fletcher(),

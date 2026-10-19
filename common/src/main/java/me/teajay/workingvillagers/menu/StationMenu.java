@@ -15,6 +15,7 @@ import me.teajay.workingvillagers.crafting.StoneFamilies;
 import me.teajay.workingvillagers.crafting.WoodTypes;
 import me.teajay.workingvillagers.job.ChopTrees;
 import me.teajay.workingvillagers.job.FletchArrows;
+import me.teajay.workingvillagers.job.TanLeather;
 import me.teajay.workingvillagers.job.GuardPost;
 import me.teajay.workingvillagers.job.HiredVillager;
 import me.teajay.workingvillagers.job.TendAnimals;
@@ -51,6 +52,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -122,6 +124,9 @@ public class StationMenu extends AbstractContainerMenu {
 	public static final int BOAT_BUTTON = 323;
 	/** Target: switches between standing watch and hunting. */
 	public static final int HUNT_BUTTON = 324;
+	/** Cauldron: the previous and next color for leather armor (none, then the 16 dyes). */
+	public static final int DYE_LESS_BUTTON = 325;
+	public static final int DYE_MORE_BUTTON = 326;
 	/** The steps of the side tunnel length the buttons go through. */
 	private static final int BRANCH_STEP = 4;
 	/**
@@ -180,6 +185,9 @@ public class StationMenu extends AbstractContainerMenu {
 	private static final String TAG_BOAT = "Boat";
 	private static final String TAG_HUNT = "Hunt";
 	private static final String TAG_EXPERIENCE = "Experience";
+	private static final String TAG_DYE = "Dye";
+	private static final String TAG_TANNING = "Tanning";
+	private static final String TAG_TANNED_IN = "TannedIn";
 	private static final String TAG_SHEEP = "Sheep";
 
 	/** Wage tab: the slot of the wage box, and the top left of the player's inventory. */
@@ -288,6 +296,7 @@ public class StationMenu extends AbstractContainerMenu {
 			case BARREL -> WorkingVillagers.BARREL_STATION_MENU;
 			case FLETCHING_TABLE -> WorkingVillagers.FLETCHING_TABLE_STATION_MENU;
 			case BREWING_STAND -> WorkingVillagers.BREWING_STAND_STATION_MENU;
+			case CAULDRON -> WorkingVillagers.CAULDRON_STATION_MENU;
 			case TARGET -> WorkingVillagers.TARGET_STATION_MENU;
 			case PIT_STAKE -> WorkingVillagers.PIT_STAKE_MENU;
 			case KILN -> WorkingVillagers.KILN_STATION_MENU;
@@ -336,7 +345,7 @@ public class StationMenu extends AbstractContainerMenu {
 					if (this.type == StationType.CHOPPING_BLOCK || this.type == StationType.COMPOSTER || this.type == StationType.PIT_STAKE
 						|| this.type == StationType.TRADING_COUNTER || this.type == StationType.MINING_BENCH || this.type == StationType.LOOM
 						|| this.type == StationType.SMOKER || this.type == StationType.BARREL || this.type == StationType.FLETCHING_TABLE
-						|| this.type == StationType.BREWING_STAND
+						|| this.type == StationType.BREWING_STAND || this.type == StationType.CAULDRON
 						|| this.type == StationType.TARGET) {
 						tag.putInt(TAG_LOGS, ((HiredVillager) villager).workingvillagers$getWorkDone(
 							this.type == StationType.TARGET ? GuardPost.night(serverLevel) : ChopTrees.today(serverLevel)));
@@ -446,8 +455,19 @@ public class StationMenu extends AbstractContainerMenu {
 				tag.put(TAG_PRODUCTS, products);
 				tag.putInt(TAG_STOCK, station.stock());
 			}
-			if (this.type == StationType.KILN || this.type == StationType.FLETCHING_TABLE) {
-				this.shownProducts = this.type == StationType.KILN ? KilnRecipes.products(serverLevel) : FletchArrows.PRODUCTS;
+			if (this.type == StationType.CAULDRON) {
+				if (station.dye() != null) {
+					tag.putString(TAG_DYE, station.dye().getSerializedName());
+				}
+				tag.putInt(TAG_TANNING, station.tanning());
+				tag.putInt(TAG_TANNED_IN, (int) Math.max(0L, station.tannedAt() - serverLevel.getGameTime()));
+			}
+			if (this.type == StationType.KILN || this.type == StationType.FLETCHING_TABLE || this.type == StationType.CAULDRON) {
+				this.shownProducts = switch (this.type) {
+					case KILN -> KilnRecipes.products(serverLevel);
+					case CAULDRON -> TanLeather.PRODUCTS;
+					default -> FletchArrows.PRODUCTS;
+				};
 				ListTag products = new ListTag();
 				this.shownProducts.forEach(product -> products.add(StringTag.valueOf(BuiltInRegistries.ITEM.getKey(product).toString())));
 				tag.put(TAG_PRODUCTS, products);
@@ -668,6 +688,20 @@ public class StationMenu extends AbstractContainerMenu {
 	}
 
 	/** Target: whether the guard hunts instead of standing watch. */
+	/** Cauldron: the color the tanner dyes leather armor, null for none. */
+	public @Nullable DyeColor getDye() {
+		return this.info.info().getString(TAG_DYE).map(name -> DyeColor.byName(name, null)).orElse(null);
+	}
+
+	/** Cauldron: how much rotten flesh tans in it, and in how many ticks it is done. */
+	public int getTanning() {
+		return this.info.info().getIntOr(TAG_TANNING, 0);
+	}
+
+	public int getTannedIn() {
+		return this.info.info().getIntOr(TAG_TANNED_IN, 0);
+	}
+
 	public boolean getHunting() {
 		return this.info.info().getBooleanOr(TAG_HUNT, false);
 	}
@@ -847,7 +881,15 @@ public class StationMenu extends AbstractContainerMenu {
 			}
 			return false;
 		}
-		if (this.type == StationType.KILN || this.type == StationType.FLETCHING_TABLE) {
+		if (this.type == StationType.CAULDRON && (buttonId == DYE_LESS_BUTTON || buttonId == DYE_MORE_BUTTON)) {
+			// None, then the dyes in their order, round
+			int colors = DyeColor.values().length + 1;
+			int now = station.dye() == null ? 0 : station.dye().ordinal() + 1;
+			int next = Math.floorMod(now + (buttonId == DYE_MORE_BUTTON ? 1 : -1), colors);
+			station.setDye(next == 0 ? null : DyeColor.values()[next - 1]);
+			return true;
+		}
+		if (this.type == StationType.KILN || this.type == StationType.FLETCHING_TABLE || this.type == StationType.CAULDRON) {
 			if (buttonId >= KILN_PRODUCT_BUTTON && buttonId < KILN_PRODUCT_BUTTON + this.shownProducts.size()) {
 				Item product = this.shownProducts.get(buttonId - KILN_PRODUCT_BUTTON);
 				station.setOrder(station.order() == product ? null : product);
