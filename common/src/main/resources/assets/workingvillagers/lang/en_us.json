@@ -584,5 +584,10 @@
   "gui.workingvillagers.librarian.level.tooltip2": "\"Highest\" is what the bookshelves around the table allow: 30 with 15 bookshelves.",
   "gui.workingvillagers.librarian.hint": "%s bookshelves: up to level %s. Each piece costs %s bottles o' enchanting and %s lapis lazuli. It enchants what lies in its input chests, books too.",
   "gui.workingvillagers.librarian.hint.no_table": "Place an enchanting table near the lectern (within 6 blocks), with bookshelves around it for higher levels.",
-  "gui.workingvillagers.librarian.today": "Enchanted today: %s"
+  "gui.workingvillagers.librarian.today": "Enchanted today: %s",
+  "tag.item.workingvillagers.forgeable": "Forged by the Weaponsmith",
+  "tag.item.workingvillagers.joinery": "Made by the Carpenter",
+  "tag.item.workingvillagers.kiln_excluded": "Not Fired in the Kiln",
+  "tag.item.workingvillagers.millable": "Ground in the Mill",
+  "tag.item.workingvillagers.woodcuttable": "Cut at the Woodcutter"
 }

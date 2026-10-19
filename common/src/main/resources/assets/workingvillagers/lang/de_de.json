@@ -584,5 +584,10 @@
   "gui.workingvillagers.librarian.level.tooltip2": "„Höchste“ ist, was die Bücherregale um den Tisch erlauben: 30 mit 15 Regalen.",
   "gui.workingvillagers.librarian.hint": "%s Bücherregale: bis Stufe %s. Jedes Stück kostet %s Erfahrungsfläschchen und %s Lapislazuli. Er verzaubert, was in seinen Eingangskisten liegt, auch Bücher.",
   "gui.workingvillagers.librarian.hint.no_table": "Stell einen Zaubertisch in die Nähe des Lesepults (bis 6 Blöcke), mit Bücherregalen drumherum für höhere Stufen.",
-  "gui.workingvillagers.librarian.today": "Heute verzaubert: %s"
+  "gui.workingvillagers.librarian.today": "Heute verzaubert: %s",
+  "tag.item.workingvillagers.forgeable": "Vom Waffenschmied geschmiedet",
+  "tag.item.workingvillagers.joinery": "Vom Tischler gefertigt",
+  "tag.item.workingvillagers.kiln_excluded": "Nicht im Brennofen gebrannt",
+  "tag.item.workingvillagers.millable": "In der Mühle gemahlen",
+  "tag.item.workingvillagers.woodcuttable": "An der Holzsäge geschnitten"
 }
