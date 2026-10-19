@@ -330,6 +330,16 @@ public class MenuScreenshots implements FabricClientGameTest {
 				station.setShape("planks");
 				station.setWood("oak", true);
 			}
+			if (type == StationType.PIT_STAKE) {
+				// A ring of string behind the stake, which the stake takes as its pit
+				for (int z = 1; z <= 4; z++) {
+					for (int x = -1; x <= 1; x++) {
+						if (x != 0 || z == 1 || z == 4) {
+							level.setBlockAndUpdate(pos.offset(x, 0, -z), Blocks.TRIPWIRE.defaultBlockState());
+						}
+					}
+				}
+			}
 			Villager villager = hire(level, player, pos.offset(0, 0, 2));
 			Component problem = WorkerJobs.assign(level, villager, pos);
 			if (problem != null) {
