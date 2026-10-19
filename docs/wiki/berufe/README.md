@@ -33,6 +33,7 @@ Alle Berufe folgen dem [Kernloop](../grundlagen/kernloop.md) und den [Lohnstufen
 | [Apotheker](apotheker.md) (Vanilla: Kleriker) | Braustand | Glasflaschen, Wasser, Tränke nach Rezeptweg brauen; Arbeiter heilen, Netherwarzen anbauen | nein | umgesetzt (ohne Zombie-Heilung) |
 | [Bibliothekar](bibliothekar.md) | Lesepult (mit Zaubertisch) | Verzaubern mit Erfahrungsfläschchen und Lapis; später Lagerverwaltung | nein | umgesetzt (Verzaubern) |
 | [Wache](wache.md) | Zielscheibe | Nachtschicht: Monster mit Pfeil und Bogen abwehren, Fehlschüsse einsammeln | nein | umgesetzt |
+| [Imker](imker.md) | Lagerfeuer | Bienenstöcke ernten (Waben, Honigflaschen), Kerzen und Honigblöcke, Bienen vermehren | nein | Konzept |
 
 Umgesetzt sind: Holzfäller, Holzsäger, Steinsäger, Tischler, Bauer, Hirte, Metzger, Fischer, Pfeilmacher, Wache, Apotheker, Gerber, Waffenschmied, Bibliothekar, Schmied (Schmelzen und Reparieren), Grubenarbeiter, Minenarbeiter, Brenner, Handelsangestellter (Verkauf) und Träger. Damit läuft die Holzkette Holzfäller → Holzsäger → Tischler, verbunden durch Träger (siehe [Logistik](../grundlagen/logistik.md)), und Erz kommt aus der Mine zum Schmied.
 
