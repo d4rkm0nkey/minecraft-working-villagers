@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -36,7 +37,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
+import net.minecraft.world.level.block.state.properties.ChestType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
@@ -182,6 +185,17 @@ public class Workstations extends SavedData {
 
 	public static @Nullable Container getContainer(Level level, BlockPos pos) {
 		return level.isLoaded(pos) ? HopperBlockEntity.getContainerAt(level, pos) : null;
+	}
+
+	/** The other half of a double chest, null for any other container. */
+	public static @Nullable BlockPos otherHalf(Level level, BlockPos pos) {
+		if (!level.isLoaded(pos)) {
+			return null;
+		}
+		BlockState state = level.getBlockState(pos);
+		return state.getBlock() instanceof ChestBlock && state.getValue(ChestBlock.TYPE) != ChestType.SINGLE
+			? ChestBlock.getConnectedBlockPos(pos, state)
+			: null;
 	}
 
 	public enum ChestRole {
@@ -704,6 +718,18 @@ public class Workstations extends SavedData {
 		}
 
 		/**
+		 * The linked position of the container: the given one, or for a double chest the
+		 * other half if that one is linked. Null if the container is not linked.
+		 */
+		public @Nullable BlockPos linkedHalf(Level level, BlockPos chest) {
+			if (this.role(chest) != null) {
+				return chest;
+			}
+			BlockPos other = otherHalf(level, chest);
+			return other != null && this.role(other) != null ? other : null;
+		}
+
+		/**
 		 * Links the chest in the given role, or unlinks it if the role is null.
 		 */
 		public void setRole(BlockPos chest, @Nullable ChestRole role) {
@@ -717,6 +743,19 @@ public class Workstations extends SavedData {
 			this.setDirty();
 		}
 
+		/**
+		 * Like {@link #setRole(BlockPos, ChestRole)}, but a double chest as a whole: the other
+		 * half is unlinked, so the worker does not use the same chest twice.
+		 */
+		public void setRole(Level level, BlockPos chest, @Nullable ChestRole role) {
+			BlockPos other = otherHalf(level, chest);
+			if (other != null) {
+				this.inputs.remove(other);
+				this.outputs.remove(other);
+			}
+			this.setRole(chest, role);
+		}
+
 		public int chestCount() {
 			return this.inputs.size() + this.outputs.size();
 		}
@@ -725,14 +764,28 @@ public class Workstations extends SavedData {
 			return chest.closerThan(this.pos, Config.CHEST_DISTANCE.get());
 		}
 
-		/** The input chests that still exist. */
+		/** The input chests that still exist, a double chest once. */
 		public List<BlockPos> validInputs(Level level) {
-			return this.inputs.stream().filter(pos -> getContainer(level, pos) != null).toList();
+			return valid(level, this.inputs, List.of());
 		}
 
-		/** The output chests that still exist. */
+		/**
+		 * The output chests that still exist, a double chest once. A double chest linked as
+		 * input by its other half (two linked chests placed side by side) is no output.
+		 */
 		public List<BlockPos> validOutputs(Level level) {
-			return this.outputs.stream().filter(pos -> getContainer(level, pos) != null).toList();
+			return valid(level, this.outputs, this.inputs);
+		}
+
+		private static List<BlockPos> valid(Level level, Collection<BlockPos> chests, Collection<BlockPos> taken) {
+			List<BlockPos> valid = new ArrayList<>(chests.size());
+			for (BlockPos pos : chests) {
+				BlockPos other = otherHalf(level, pos);
+				if (getContainer(level, pos) != null && (other == null || !valid.contains(other) && !taken.contains(other))) {
+					valid.add(pos);
+				}
+			}
+			return valid;
 		}
 
 		private boolean isEmpty() {

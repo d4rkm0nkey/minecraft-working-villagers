@@ -108,6 +108,7 @@ public final class WorkerTests {
 		registry.accept("worker_picks_up_wage", WorkerTests::workerPicksUpWage);
 		registry.accept("smith_smelts_ore", WorkerTests::smithSmeltsOre);
 		registry.accept("replaced_station_starts_fresh", WorkerTests::replacedStationStartsFresh);
+		registry.accept("double_chest_is_linked_once", WorkerTests::doubleChestIsLinkedOnce);
 		registry.accept("kiln_operator_fires_glass", WorkerTests::kilnOperatorFiresGlass);
 		registry.accept("kiln_operator_fires_smooth_stone", WorkerTests::kilnOperatorFiresSmoothStone);
 		registry.accept("pit_digger_digs_pit", WorkerTests::pitDiggerDigsPit);
@@ -895,6 +896,24 @@ public final class WorkerTests {
 		Workstations.Station bench = TestWorld.station(helper, STATION);
 		helper.assertTrue(bench.order() == null, "The carpenter's bench took over the order of the woodcutter");
 		helper.assertTrue(bench.chestCount() == 0, "The carpenter's bench took over the chests of the woodcutter");
+		helper.succeed();
+	}
+
+	/**
+	 * A double chest is one chest: linking one half unlinks the other, and two linked halves
+	 * (from before, or two linked chests placed side by side) count once.
+	 */
+	private static void doubleChestIsLinkedOnce(GameTestHelper helper) {
+		helper.setBlock(STATION, WorkingVillagers.CARPENTER_BENCH.get());
+		BlockPos other = TestWorld.doubleChest(helper, INPUT);
+		Workstations.Station bench = TestWorld.station(helper, STATION);
+		TestWorld.link(helper, STATION, INPUT, ChestRole.INPUT);
+		TestWorld.link(helper, STATION, other, ChestRole.INPUT);
+		helper.assertTrue(bench.validInputs(helper.getLevel()).size() == 1, "Both halves of the double chest count as input");
+		bench.setRole(helper.getLevel(), helper.absolutePos(other), ChestRole.OUTPUT);
+		helper.assertTrue(bench.validInputs(helper.getLevel()).isEmpty(), "The other half is still an input");
+		helper.assertTrue(bench.validOutputs(helper.getLevel()).size() == 1, "The double chest is no output");
+		helper.assertTrue(bench.linkedHalf(helper.getLevel(), helper.absolutePos(INPUT)) != null, "Clicking the other half does not find the link");
 		helper.succeed();
 	}
 

@@ -26,7 +26,8 @@ import org.jspecify.annotations.Nullable;
  * Picking things for a workstation in the world, started with a button in its menu: the
  * worker (right-click a hired villager), chests (right-click containers, each click links
  * or unlinks one), at a pit stake the pit and its ladder (right-click a string), at a mining
- * bench the tunnel (right-click the side of a block). Right-clicking the workstation ends picking chests and opens its menu
+ * bench the tunnel (right-click the side of a block). A double chest is linked as a whole,
+ * by either half. Right-clicking the workstation ends picking chests and opens its menu
  * again; unfinished picking runs out after two minutes.
  */
 public final class StationPicks {
@@ -148,16 +149,18 @@ public final class StationPicks {
 		if (Workstations.getContainer(level, pos) == null) {
 			return false;
 		}
-		ChestRole current = station.role(pos);
+		// A double chest counts as one, whichever half was linked
+		BlockPos linked = station.linkedHalf(level, pos);
+		ChestRole current = linked == null ? null : station.role(linked);
 		if (current == pending.role()) {
-			station.setRole(pos, null);
+			station.setRole(level, linked, null);
 			player.sendOverlayMessage(Component.translatable("message.workingvillagers.chests.unlinked", station.chestCount(), Config.MAX_CHESTS.get()));
 		} else if (current == null && !station.canReach(pos)) {
 			player.sendOverlayMessage(Component.translatable("message.workingvillagers.chests.too_far", Config.CHEST_DISTANCE.get()));
 		} else if (current == null && station.chestCount() >= Config.MAX_CHESTS.get()) {
 			player.sendOverlayMessage(Component.translatable("message.workingvillagers.chests.full", Config.MAX_CHESTS.get()));
 		} else {
-			station.setRole(pos, pending.role());
+			station.setRole(level, pos, pending.role());
 			mark(level, pos);
 			player.sendOverlayMessage(Component.translatable(
 				pending.role() == ChestRole.INPUT ? "message.workingvillagers.chests.linked_input" : "message.workingvillagers.chests.linked_output",

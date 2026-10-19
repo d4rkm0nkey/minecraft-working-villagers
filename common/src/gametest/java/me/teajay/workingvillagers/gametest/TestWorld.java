@@ -25,6 +25,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.ChestType;
 
 /**
  * Setting up the tests the way a player would: placing stations and chests, hiring with a
@@ -69,6 +70,15 @@ final class TestWorld {
 			container.setItem(i, items[i]);
 		}
 		return pos;
+	}
+
+	/** A double chest facing south: this half and the one beside it. Returns the other half. */
+	static BlockPos doubleChest(GameTestHelper helper, BlockPos pos) {
+		BlockState left = Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING, Direction.SOUTH).setValue(ChestBlock.TYPE, ChestType.LEFT);
+		BlockPos other = ChestBlock.getConnectedBlockPos(pos, left);
+		helper.setBlock(pos, left);
+		helper.setBlock(other, left.setValue(ChestBlock.TYPE, ChestType.RIGHT));
+		return other;
 	}
 
 	/** A village chest with the given items in it. */

@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "workingvillagers:double_chest_is_linked_once",
+  "max_ticks": 20,
+  "setup_ticks": 1,
+  "structure": "workingvillagers:platform"
+}

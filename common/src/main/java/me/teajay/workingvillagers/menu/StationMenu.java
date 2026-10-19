@@ -818,7 +818,7 @@ public class StationMenu extends AbstractContainerMenu {
 		boolean[] changed = {false};
 		this.access.execute((level, pos) -> {
 			if (level instanceof ServerLevel serverLevel) {
-				Workstations.find(serverLevel, pos).ifPresent(station -> changed[0] = this.click(station, buttonId));
+				Workstations.find(serverLevel, pos).ifPresent(station -> changed[0] = this.click(serverLevel, station, buttonId));
 			}
 		});
 		if (changed[0]) {
@@ -877,14 +877,14 @@ public class StationMenu extends AbstractContainerMenu {
 		return true;
 	}
 
-	private boolean click(Workstations.Station station, int buttonId) {
+	private boolean click(ServerLevel level, Workstations.Station station, int buttonId) {
 		if (buttonId >= UNLINK_BUTTON && buttonId < UNLINK_BUTTON + this.shownChests.size()) {
-			station.setRole(this.shownChests.get(buttonId - UNLINK_BUTTON), null);
+			station.setRole(level, this.shownChests.get(buttonId - UNLINK_BUTTON), null);
 			return true;
 		}
 		if (this.type.isProcessing() && buttonId >= ROLE_BUTTON && buttonId < ROLE_BUTTON + this.shownChests.size()) {
 			BlockPos chest = this.shownChests.get(buttonId - ROLE_BUTTON);
-			station.setRole(chest, station.role(chest) == ChestRole.INPUT ? ChestRole.OUTPUT : ChestRole.INPUT);
+			station.setRole(level, chest, station.role(chest) == ChestRole.INPUT ? ChestRole.OUTPUT : ChestRole.INPUT);
 			return true;
 		}
 		if (this.type == StationType.CHOPPING_BLOCK && buttonId == STRIP_BUTTON) {

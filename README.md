@@ -224,7 +224,8 @@ the same way:
    like at the chopping block: **Assign** / **Remove** for the worker, **+ Input** and
    **+ Output** to link chests by right-clicking them (*input*: material is taken from
    here, *output*: products go here). The list shows how full each chest is; a chest's
-   role is switched with one click and the × unlinks it.
+   role is switched with one click and the × unlinks it. A double chest is linked as a
+   whole, whichever half is clicked.
 3. During work hours the worker fetches up to 16 matching items from an input chest,
    cuts them at the station and brings the products to an output chest. It makes 4
    items per second (one log into four planks, slabs take twice as long), at least one
@@ -241,7 +242,7 @@ the cutter menu of this mod (it looks and works like the vanilla one).
 The carpenter's bench (three wooden slabs, an iron ingot in the middle, two logs as legs)
 is a crafting table for wooden things only: chests, barrels, crafting tables, ladders,
 bowls, composters, bookshelves, chiseled bookshelves, wooden tools, boats and boats with chest, shelves,
-hanging signs, item frames, paintings, armor stands, bows, crossbows, fishing rods,
+hanging signs, item frames, paintings, armor stands, fishing rods,
 shields, torches, tripwire hooks, trapped chests and campfires. Its menu lists all of them;
 the ones the player lacks the ingredients for are greyed out, the tooltip shows what they
 need. Pick one and take the result, it is made of the ingredients in the inventory
