@@ -24,7 +24,11 @@ import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
@@ -46,21 +50,30 @@ public class WorkingVillagersNeoForge {
 			platform.payloads.forEach(registration -> registration.accept(registrar));
 		});
 
+		// Next to the vanilla blocks they belong to
 		modBus.addListener(BuildCreativeModeTabContentsEvent.class, event -> {
 			if (event.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
-				event.accept(WorkingVillagers.CHOPPING_BLOCK_ITEM.get());
-				event.accept(WorkingVillagers.WOODCUTTER_ITEM.get());
-				event.accept(WorkingVillagers.CARPENTER_BENCH_ITEM.get());
-				event.accept(WorkingVillagers.PIT_STAKE_ITEM.get());
-				event.accept(WorkingVillagers.KILN_ITEM.get());
-				event.accept(WorkingVillagers.TRADING_COUNTER_ITEM.get());
-				event.accept(WorkingVillagers.MINING_BENCH_ITEM.get());
-				event.accept(WorkingVillagers.VILLAGE_CHEST_ITEM.get());
+				insertAfter(event, Items.CRAFTING_TABLE, WorkingVillagers.CARPENTER_BENCH_ITEM.get());
+				insertAfter(event, Items.STONECUTTER, WorkingVillagers.WOODCUTTER_ITEM.get(), WorkingVillagers.CHOPPING_BLOCK_ITEM.get());
+				insertAfter(event, Items.GRINDSTONE, WorkingVillagers.MINING_BENCH_ITEM.get(), WorkingVillagers.PIT_STAKE_ITEM.get());
+				insertAfter(event, Items.BLAST_FURNACE, WorkingVillagers.KILN_ITEM.get());
+				insertAfter(event, Items.BELL, WorkingVillagers.TRADING_COUNTER_ITEM.get());
+				event.insertBefore(new ItemStack(Items.BARREL), new ItemStack(WorkingVillagers.VILLAGE_CHEST_ITEM.get()), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
 			} else if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
-				event.accept(WorkingVillagers.WORK_CONTRACT.get());
-				event.accept(WorkingVillagers.WICKER_BASKET.get());
+				event.insertBefore(new ItemStack(Items.COMPASS), new ItemStack(WorkingVillagers.WICKER_BASKET.get()), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
+				insertAfter(event, Items.WRITABLE_BOOK, WorkingVillagers.WORK_CONTRACT.get());
 			}
 		});
+	}
+
+	/** Puts the items one after another behind the existing one. */
+	private static void insertAfter(BuildCreativeModeTabContentsEvent event, ItemLike existing, ItemLike... items) {
+		ItemStack previous = new ItemStack(existing);
+		for (ItemLike item : items) {
+			ItemStack stack = new ItemStack(item);
+			event.insertAfter(previous, stack, CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
+			previous = stack;
+		}
 	}
 
 	/**

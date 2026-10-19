@@ -21,7 +21,7 @@ in its output chests, for you, for trading, and for the [guards](guard.md).
 2. Link an **input chest** with the material and an **output chest** (**+ Input**, **+ Output**).
    A [village chest](basics.md#village-chests) makes a good output chest: the guards take
    their arrows from there.
-3. Tab :mc-arrow: **Order**: click the product and set the **stock**.
+3. Tab :mc-arrow: **Order**: click the products and set the **stock**.
 4. Give it its wage.
 
 ## Products
@@ -48,7 +48,8 @@ chest.
 
 It fetches material for up to 16 sets of arrows (4 bows, 8 sets of spectral arrows) at
 once, makes one piece per second at the fletching table and brings them to the output
-chest. With a **stock** set it stops when that many lie in the output chests and goes on
-when some are taken out. What the order does not need it puts back into the input chest.
+chest. With a **stock** set it stops when that many of a product lie in the output chests and goes on
+when some are taken out. Arrows and bows together it makes in [equal parts](basics.md#several-products).
+What the order does not need it puts back into the input chest.
 
 The menu shows how many pieces it made today.

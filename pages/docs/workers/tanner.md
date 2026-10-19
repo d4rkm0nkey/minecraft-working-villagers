@@ -19,7 +19,8 @@ in the color of your village, bundles, saddles.
 
 1. Place a cauldron and **right-click it with an empty hand**: its overview opens.
 2. Link an **input chest** with the material and an **output chest**.
-3. Tab :mc-leather: **Order**: click the product, set the **stock** and the **color**.
+3. Tab :mc-leather: **Order**: click the products (up to 8, made in
+   [equal parts](basics.md#several-products)), set the **stock** and the **color**.
 4. Give it its wage and a :mc-bucket: **bucket**, so it can fill the cauldron itself (water
    within 16 blocks; rain fills it too).
 

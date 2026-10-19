@@ -68,9 +68,9 @@ public final class StationTabFlags {
 			case MINING_BENCH -> station.tunnel() == null;
 			case KILN -> false;
 			// The weaponsmith also grinds and disenchants without an order
-			case GRINDSTONE -> station.order() == null && station.grindMode() == Workstations.GRIND_NONE;
+			case GRINDSTONE -> !station.hasOrder() && station.grindMode() == Workstations.GRIND_NONE;
 			case LECTERN -> EnchantItems.table(level, pos) == null;
-			default -> type.hasOrder() && (station.order() == null || type.hasWoods() && station.shape() != null && station.woods().isEmpty());
+			default -> type.hasOrder() && (!station.hasOrder() || type.hasWoods() && !station.shapes().isEmpty() && station.woods().isEmpty());
 		};
 		return noOrder ? flags | ORDER_PROBLEM : flags;
 	}

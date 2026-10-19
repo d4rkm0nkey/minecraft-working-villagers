@@ -2,6 +2,7 @@ package me.teajay.workingvillagers.menu;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -81,7 +82,7 @@ public class StationMenu extends AbstractContainerMenu {
 	public static final int ROLE_BUTTON = 10;
 	/**
 	 * Plus the index in {@link WoodTypes#SHAPES} (woodcutter) or in the products of the
-	 * bench: orders that shape or product.
+	 * bench: adds that shape or product to the order, or takes it out.
 	 */
 	public static final int SHAPE_BUTTON = 100;
 	/** Plus the index in {@link WoodTypes#ALL}: allows or forbids that wood type. */
@@ -138,13 +139,14 @@ public class StationMenu extends AbstractContainerMenu {
 	/** The steps of the side tunnel length the buttons go through. */
 	private static final int BRANCH_STEP = 4;
 	/**
-	 * Stonecutter: plus the index of the product in all families one after another, orders
-	 * it (or clears the order if it is the order already).
+	 * Stonecutter: plus the index of the product in all families one after another, adds it
+	 * to the order (or takes it out if it is in it already).
 	 */
 	public static final int STONE_PRODUCT_BUTTON = 1000;
 	/**
-	 * Kiln: plus the index of the product, orders it (or clears the order if it is the order
-	 * already: then the kiln operator fires everything).
+	 * Kiln and the other product grids: plus the index of the product, adds it to the order
+	 * (or takes it out if it is in it already; a kiln without products fires everything).
+	 * The brewing stand orders only one.
 	 */
 	public static final int KILN_PRODUCT_BUTTON = 2000;
 	/** Carpenter's bench: at most this many products are shown (three rows). */
@@ -169,7 +171,7 @@ public class StationMenu extends AbstractContainerMenu {
 	private static final String TAG_USED = "Used";
 	private static final String TAG_SIZE = "Size";
 	private static final String TAG_INPUT = "Input";
-	private static final String TAG_ORDER = "Order";
+	private static final String TAG_ORDERS = "Orders";
 	private static final String TAG_WOODS = "Woods";
 	private static final String TAG_AVAILABLE = "Available";
 	private static final String TAG_PRODUCTS = "Products";
@@ -433,18 +435,22 @@ public class StationMenu extends AbstractContainerMenu {
 					tag.put(TAG_TUNNEL, tunnelTag);
 				}
 			}
-			if (station.order() != null) {
-				tag.putString(TAG_ORDER, this.type == StationType.BREWING_STAND
-					? BrewingPaths.key(BrewingPaths.order(station.order(), station.potion()))
-					: BuiltInRegistries.ITEM.getKey(station.order()).toString());
+			ListTag orders = new ListTag();
+			if (this.type == StationType.BREWING_STAND) {
+				if (station.order() != null) {
+					orders.add(StringTag.valueOf(BrewingPaths.key(BrewingPaths.order(station.order(), station.potion()))));
+				}
+			} else {
+				station.orders().forEach(order -> orders.add(StringTag.valueOf(BuiltInRegistries.ITEM.getKey(order).toString())));
 			}
+			tag.put(TAG_ORDERS, orders);
 			if (this.type.hasWoods()) {
 				ListTag woods = new ListTag();
 				station.woods().forEach(wood -> woods.add(StringTag.valueOf(wood)));
 				tag.put(TAG_WOODS, woods);
 				ListTag available = new ListTag();
 				for (WoodTypes.WoodType wood : WoodTypes.ALL) {
-					if (this.canMake(serverLevel, wood, station.shape())) {
+					if (this.canMake(serverLevel, wood, station.shapes())) {
 						available.add(StringTag.valueOf(wood.name()));
 					}
 				}
@@ -518,18 +524,23 @@ public class StationMenu extends AbstractContainerMenu {
 		});
 	}
 
-	/** Whether the station has a recipe for the shape in that wood type. */
-	private boolean canMake(ServerLevel level, WoodTypes.WoodType wood, String shape) {
-		if (shape == null || WoodTypes.STICK.equals(shape)) {
+	/** Whether the station has a recipe for one of the shapes in that wood type (any wood type will do without shapes). */
+	private boolean canMake(ServerLevel level, WoodTypes.WoodType wood, List<String> shapes) {
+		if (shapes.isEmpty()) {
 			return true;
 		}
-		Item product = WoodTypes.product(wood, shape);
-		if (product == null) {
-			return false;
+		for (String shape : shapes) {
+			if (WoodTypes.STICK.equals(shape)) {
+				return true;
+			}
+			Item product = WoodTypes.product(wood, shape);
+			if (product != null && (this.type == StationType.CARPENTER_BENCH
+				? !CarpenterRecipes.forResult(level, product).isEmpty()
+				: !CuttingRecipes.forResult(level, WorkingVillagers.WOODCUTTING.get(), product).isEmpty())) {
+				return true;
+			}
 		}
-		return this.type == StationType.CARPENTER_BENCH
-			? !CarpenterRecipes.forResult(level, product).isEmpty()
-			: !CuttingRecipes.forResult(level, WorkingVillagers.WOODCUTTING.get(), product).isEmpty();
+		return false;
 	}
 
 	/**
@@ -624,15 +635,29 @@ public class StationMenu extends AbstractContainerMenu {
 		return chests;
 	}
 
-	/** What the worker makes, empty if there is no order. */
-	public ItemStack getOrder() {
-		return this.info.info().getString(TAG_ORDER).map(BrewingPaths::fromKey).orElse(ItemStack.EMPTY);
+	/** The products the worker makes, in the order they were picked; empty if there is no order. */
+	public List<ItemStack> getOrders() {
+		return this.info.info().getListOrEmpty(TAG_ORDERS).stream()
+			.flatMap(tag -> tag.asString().stream())
+			.map(BrewingPaths::fromKey)
+			.filter(stack -> !stack.isEmpty())
+			.toList();
 	}
 
-	/** Woodcutter and carpenter's bench: the shape of the order, null if none. */
-	public String getShape() {
-		ItemStack order = this.getOrder();
-		return order.isEmpty() ? null : WoodTypes.shapeOf(order.getItem(), this.type.shapes());
+	/** The first product of the order, empty if there is none. */
+	public ItemStack getOrder() {
+		List<ItemStack> orders = this.getOrders();
+		return orders.isEmpty() ? ItemStack.EMPTY : orders.getFirst();
+	}
+
+	/** Whether the product is in the order. */
+	public boolean isOrdered(ItemStack product) {
+		return this.getOrders().stream().anyMatch(order -> ItemStack.isSameItemSameComponents(order, product));
+	}
+
+	/** Woodcutter and carpenter's bench: the shapes in the order. */
+	public List<String> getShapes() {
+		return this.getOrders().stream().map(order -> WoodTypes.shapeOf(order.getItem(), this.type.shapes())).filter(Objects::nonNull).distinct().toList();
 	}
 
 	/**
@@ -818,7 +843,7 @@ public class StationMenu extends AbstractContainerMenu {
 		boolean[] changed = {false};
 		this.access.execute((level, pos) -> {
 			if (level instanceof ServerLevel serverLevel) {
-				Workstations.find(serverLevel, pos).ifPresent(station -> changed[0] = this.click(station, buttonId));
+				Workstations.find(serverLevel, pos).ifPresent(station -> changed[0] = this.click(serverLevel, player, station, buttonId));
 			}
 		});
 		if (changed[0]) {
@@ -877,14 +902,14 @@ public class StationMenu extends AbstractContainerMenu {
 		return true;
 	}
 
-	private boolean click(Workstations.Station station, int buttonId) {
+	private boolean click(ServerLevel level, Player player, Workstations.Station station, int buttonId) {
 		if (buttonId >= UNLINK_BUTTON && buttonId < UNLINK_BUTTON + this.shownChests.size()) {
-			station.setRole(this.shownChests.get(buttonId - UNLINK_BUTTON), null);
+			station.setRole(level, this.shownChests.get(buttonId - UNLINK_BUTTON), null);
 			return true;
 		}
 		if (this.type.isProcessing() && buttonId >= ROLE_BUTTON && buttonId < ROLE_BUTTON + this.shownChests.size()) {
 			BlockPos chest = this.shownChests.get(buttonId - ROLE_BUTTON);
-			station.setRole(chest, station.role(chest) == ChestRole.INPUT ? ChestRole.OUTPUT : ChestRole.INPUT);
+			station.setRole(level, chest, station.role(chest) == ChestRole.INPUT ? ChestRole.OUTPUT : ChestRole.INPUT);
 			return true;
 		}
 		if (this.type == StationType.CHOPPING_BLOCK && buttonId == STRIP_BUTTON) {
@@ -965,8 +990,7 @@ public class StationMenu extends AbstractContainerMenu {
 			|| this.type == StationType.GRINDSTONE) {
 			if (buttonId >= KILN_PRODUCT_BUTTON && buttonId < KILN_PRODUCT_BUTTON + this.shownProducts.size()) {
 				Item product = this.shownProducts.get(buttonId - KILN_PRODUCT_BUTTON);
-				station.setOrder(station.order() == product ? null : product);
-				return true;
+				return toggled(player, station.toggleOrder(product));
 			}
 			if (buttonId == STOCK_LESS_BUTTON || buttonId == STOCK_MORE_BUTTON) {
 				station.setStock(nextStock(station.stock(), buttonId == STOCK_MORE_BUTTON));
@@ -983,24 +1007,21 @@ public class StationMenu extends AbstractContainerMenu {
 			if (product == null) {
 				return false;
 			}
-			station.setOrder(station.order() == product ? null : product);
-			return true;
+			return toggled(player, station.toggleOrder(product));
 		}
 		if (!this.type.hasWoods()) {
 			return false;
 		}
 		if (this.type == StationType.CARPENTER_BENCH) {
 			if (buttonId >= SHAPE_BUTTON && buttonId < SHAPE_BUTTON + this.shownProducts.size()) {
-				station.orderProduct(this.shownProducts.get(buttonId - SHAPE_BUTTON));
-				return true;
+				return toggled(player, station.orderProduct(this.shownProducts.get(buttonId - SHAPE_BUTTON)));
 			}
 			if (buttonId == STOCK_LESS_BUTTON || buttonId == STOCK_MORE_BUTTON) {
 				station.setStock(nextStock(station.stock(), buttonId == STOCK_MORE_BUTTON));
 				return true;
 			}
 		} else if (buttonId >= SHAPE_BUTTON && buttonId < SHAPE_BUTTON + WoodTypes.SHAPES.size()) {
-			station.setShape(WoodTypes.SHAPES.get(buttonId - SHAPE_BUTTON));
-			return true;
+			return toggled(player, station.toggleShape(WoodTypes.SHAPES.get(buttonId - SHAPE_BUTTON)));
 		}
 		if (buttonId >= WOOD_BUTTON && buttonId < WOOD_BUTTON + WoodTypes.ALL.size()) {
 			String wood = WoodTypes.ALL.get(buttonId - WOOD_BUTTON).name();
@@ -1012,6 +1033,14 @@ public class StationMenu extends AbstractContainerMenu {
 			return true;
 		}
 		return false;
+	}
+
+	/** Tells the player if a product could not be added because the order is full. */
+	private static boolean toggled(Player player, boolean done) {
+		if (!done && player instanceof ServerPlayer serverPlayer) {
+			serverPlayer.sendOverlayMessage(Component.translatable("message.workingvillagers.order.full", Workstations.MAX_ORDERS));
+		}
+		return done;
 	}
 
 	/** The next stock level up or down. */

@@ -25,13 +25,13 @@ no detour over planks: one log gives 8 slabs or 4 stairs directly.
 
 === "Woodcutter"
 
-    An order at the woodcutter is a **product shape** and a **set of wood types**.
+    An order at the woodcutter is **product shapes** and a **set of wood types**.
     Open the **Order** tab above the screen (or click the order box below the result slot):
 
-    - pick the shape: planks, slabs, stairs, fences, fence gates, doors, trapdoors,
-      pressure plates, buttons, signs or sticks
-    - switch wood types on and off (**All** / **None**). Wood types that do not have
-      that product are marked red.
+    - click the shapes: planks, slabs, stairs, fences, fence gates, doors, trapdoors,
+      pressure plates, buttons, signs or sticks. A second click takes a shape out again.
+    - switch wood types on and off (**All** / **None**). Wood types that have none of
+      the shapes are marked red.
 
     The sawyer only uses wood of the selected types. Other wood stays in the input chest.
 
@@ -42,9 +42,11 @@ no detour over planks: one log gives 8 slabs or 4 stairs directly.
     copper, ...):
 
     - pick a family to see its products
-    - click a product to order it. Clicking the ordered product again clears the order.
+    - click a product to add it to the order. Clicking it again takes it out.
 
-    The stone sawyer uses any material that has a recipe for the ordered item.
+    The stone sawyer uses any material that has a recipe for an ordered item.
+
+Up to 8 products, cut in [equal parts](basics.md#several-products).
 
 !!! note
     Ordinary (not hired) villagers still become masons at stonecutters. Only hired

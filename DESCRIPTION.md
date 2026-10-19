@@ -48,13 +48,14 @@ Hired villagers never take vanilla jobs and never quit by themselves. A worker t
 ## 🪚 Sawyer and stone sawyer
 
 - The new **woodcutter** is a stonecutter for wood. One log gives 8 slabs or 4 stairs directly, without the crafting table's waste. You can use it yourself too.
-- Give the sawyer an order (a product shape and the wood types it may use) and it cuts everything from its input chests.
+- Give the sawyer an order (product shapes and the wood types it may use) and it cuts everything from its input chests.
 - A hired villager at a vanilla **stonecutter** becomes a stone sawyer. Pick a product from any stone family and it does the rest. Ordinary villagers still become masons.
 
 ## 🔨 Carpenter
 
-- The **carpenter's bench** is a crafting table for wooden things only: chests, barrels, ladders, bookshelves, wooden tools, boats, shields, bows, torches and more. Its menu lists everything and shows what you're missing.
-- The carpenter crafts your order from its input chests and keeps a **stock** you choose, e.g. "always keep 16 chests ready".
+- The **carpenter's bench** is a crafting table for wooden things only: chests, barrels, ladders, bookshelves, wooden tools, boats, shields, torches and more. Its menu lists everything and shows what you're missing.
+- The carpenter crafts your order from its input chests and keeps a **stock** you choose, e.g. "always keep 16 chests and 16 barrels ready".
+- **Several products per order**: sawyers, carpenter, kiln operator, fletcher, tanner and weaponsmith take up to 8 products and make them in equal parts. A product without material does not hold up the others.
 
 ## 🌾 Farmer, shepherd, butcher, fisher, fletcher, guard, apothecary, tanner, weaponsmith, librarian and smith
 

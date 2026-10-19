@@ -42,14 +42,15 @@ The overview lists everything the kiln makes.
 
 - **No product picked** (the start): the kiln operator fires **everything** the kiln can
   fire that it finds in the input chests, once. Cobblestone becomes stone.
-- **A product picked**: it only fires what makes that product, e.g. only sand for
+- **Products picked** (up to 8): it only fires what makes them, e.g. only sand for
   :mc-glass: glass. Everything else stays in the input chests, like the sand you keep for
-  concrete or the cobblestone you build with. Click the product again to go back to
-  everything.
+  concrete or the cobblestone you build with. Click a product again to take it out; with
+  none left it fires everything again. Several products it fires in
+  [equal parts](basics.md#several-products), one kiln load at a time.
 - Some products take **two firings**: for :mc-smooth_stone: smooth stone it fires
   cobblestone into stone and that into smooth stone. The stone in between stays with the
   kiln operator and does not end up in the output chest.
-- **Stock**: with a product picked, **-** and **+** set how many of it to keep in the
+- **Stock**: with products picked, **-** and **+** set how many of each to keep in the
   output chests. With that many there, it stops, and it goes on once some are taken out.
 
 ## How it works

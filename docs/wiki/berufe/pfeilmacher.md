@@ -6,6 +6,7 @@ Der Pfeilmacher versorgt die [Wachen](wache.md) des Dorfes mit Pfeilen und Böge
 
 ## Stand der Umsetzung
 
+- **Mehrere Produkte** (0.5.0): bis zu 8 Produkte je Auftrag, zu gleichen Teilen, Vorrat je Produkt; siehe [Tischler](tischler.md#mehrere-produkte-umgesetzt-in-050).
 - **Station:** Bognertisch, Rechtsklick mit leerer Hand öffnet die Übersicht (der Bognertisch hat in Vanilla kein Menü). Eingangs- und Ausgangskisten. Vanilla-Pfeilmacher lassen sich anheuern, behalten ihre Angebote; der Pfeilmacher handelt wie ein Vanilla-Pfeilmacher.
 - **Auftrag** im Raster wie beim Brennofen: Pfeile, Spektralpfeile, Bogen, Armbrust; dazu ein **Vorrat** (zählt das Produkt in den Ausgangskisten).
 - **Spitzen:** Feuerstein, Kupfer- oder Eisennugget, in dieser Reihenfolge. Fehlen sie, schlägt er Feuerstein aus Kies (1:1) oder zerlegt einen Barren (1 → 9 Nuggets, der Rest bleibt im Inventar). Alles ergibt 4 Pfeile pro Spitze wie im Vanilla-Rezept.

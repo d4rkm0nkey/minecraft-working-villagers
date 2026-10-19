@@ -61,8 +61,8 @@ public class CarpenterMenu extends AbstractContainerMenu implements StationWorke
 	private final Player player;
 	private final Level level;
 	private final DataSlot selectedRecipeIndex = DataSlot.standalone();
-	/** The item id of the order, 0 (air) for none. */
-	private final DataSlot order = DataSlot.standalone();
+	/** The item ids of the products of the station's order, 0 (air) for none. */
+	private final DataSlot[] orders = new DataSlot[Workstations.MAX_ORDERS];
 	/** What the tabs above the screen show, see {@link StationTabFlags}. */
 	private final DataSlot tabFlags;
 	/** Server only: the recipes, in the order of the option slots. */
@@ -109,7 +109,9 @@ public class CarpenterMenu extends AbstractContainerMenu implements StationWorke
 		}
 		this.addSlot(new HiddenSlot(this.worker, 0));
 		this.addDataSlot(this.selectedRecipeIndex);
-		this.addDataSlot(this.order);
+		for (int i = 0; i < this.orders.length; i++) {
+			this.orders[i] = this.addDataSlot(DataSlot.standalone());
+		}
 		this.tabFlags = this.addDataSlot(access.evaluate((world, pos) -> world instanceof ServerLevel serverLevel
 				? Optional.of(StationTabFlags.slot(serverLevel, pos.immutable(), StationType.CARPENTER_BENCH))
 				: Optional.<DataSlot>empty())
@@ -122,8 +124,9 @@ public class CarpenterMenu extends AbstractContainerMenu implements StationWorke
 			this.updateOptions();
 		}
 		this.station().ifPresent(station -> {
-			if (station.order() != null) {
-				this.order.set(BuiltInRegistries.ITEM.getId(station.order()));
+			List<Item> orders = station.orders();
+			for (int i = 0; i < orders.size() && i < this.orders.length; i++) {
+				this.orders[i].set(BuiltInRegistries.ITEM.getId(orders.get(i)));
 			}
 			if (this.level instanceof ServerLevel serverLevel) {
 				station.occupant(serverLevel).ifPresent(name -> {
@@ -153,9 +156,15 @@ public class CarpenterMenu extends AbstractContainerMenu implements StationWorke
 	}
 
 	/** What the worker of this station makes, empty if it has no order. */
-	public ItemStack getOrder() {
-		Item item = BuiltInRegistries.ITEM.byId(this.order.get());
-		return item == Items.AIR ? ItemStack.EMPTY : new ItemStack(item);
+	public List<ItemStack> getOrders() {
+		List<ItemStack> orders = new ArrayList<>();
+		for (DataSlot slot : this.orders) {
+			Item item = BuiltInRegistries.ITEM.byId(slot.get());
+			if (item != Items.AIR) {
+				orders.add(new ItemStack(item));
+			}
+		}
+		return orders;
 	}
 
 	public int getSelectedRecipeIndex() {

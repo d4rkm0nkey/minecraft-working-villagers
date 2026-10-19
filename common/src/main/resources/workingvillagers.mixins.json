@@ -15,7 +15,6 @@
     "BrewingStandMenuMixin",
     "ChestMenuMixin",
     "ComposterBlockMixin",
-    "DisplayMixin",
     "FarmlandBlockMixin",
     "GrindstoneMenuMixin",
     "LivingEntityMixin",

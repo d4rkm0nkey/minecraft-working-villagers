@@ -69,9 +69,7 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
   chests and the order or settings. A red dot marks the tab where something is missing. A
   vanilla block nobody has set up shows only its own tab and the worker tab.
 - The menu of every workstation shows its worker ("Hired villager" in the player's
-  language if it has no name), or "Free". (Earlier versions put a paper note with the
-  name on the front of the stations; notes left in a world remove themselves when they are
-  loaded.)
+  language if it has no name), or "Free".
 - Hired villagers never take vanilla jobs (lectern etc.). At a stonecutter, composter,
   loom, smoker, barrel, fletching table, brewing stand, cauldron, grindstone, lectern, blast
   furnace or smithing table a hired villager becomes the stone sawyer, farmer, shepherd,
@@ -208,28 +206,52 @@ the same way:
 
 1. **Set the order** in the overview: the tab *Order* above the station's menu (or a
    click on the order box below the result slot, which shows the current order) opens it.
-   At the woodcutter an order is a **product shape and a set of wood types**: the shape
-   (planks, slabs, stairs, fences, fence gates, doors, trapdoors, pressure plates,
-   buttons, signs, sticks) is picked and wood types are switched on and off (All / None).
-   Wood types without that product are marked red. Material of other wood types stays in
-   the input chest.
+   At the woodcutter an order is **product shapes and a set of wood types**: a click on a
+   shape (planks, slabs, stairs, fences, fence gates, doors, trapdoors, pressure plates,
+   buttons, signs, sticks) adds it to the order, another click takes it out, and wood
+   types are switched on and off (All / None). Wood types without any of the shapes are
+   marked red. Material of other wood types stays in the input chest.
    At the stonecutter the overview shows the **stone families** (stone, granite,
    deepslate, copper, ...: everything connected by stonecutting recipes, data packs
-   included). A click opens a family and shows its products; a click on a product orders
-   it, another click clears the order. The family of the current order is marked green.
-   Any material that has a recipe for the ordered item is used.
+   included). A click opens a family and shows its products; a click on a product adds it
+   to the order, another click takes it out. Families with ordered products are marked
+   green. Any material that has a recipe for an ordered item is used.
+   An order has up to **8 products** (see [Several products](#several-products)).
 2. **Worker and chests** are set up in the overview (the tabs for the block, the worker,
    the wage, the chests and the order stand above the station's menu and above the
    overview),
    like at the chopping block: **Assign** / **Remove** for the worker, **+ Input** and
    **+ Output** to link chests by right-clicking them (*input*: material is taken from
    here, *output*: products go here). The list shows how full each chest is; a chest's
-   role is switched with one click and the × unlinks it.
-3. During work hours the worker fetches up to 16 matching items from an input chest,
+   role is switched with one click and the × unlinks it. A double chest is linked as a
+   whole, whichever half is clicked.
+3. During work hours the worker fetches up to 16 matching items from an input chest
+   (with several products a share of that for one of them),
    cuts them at the station and brings the products to an output chest. It makes 4
    items per second (one log into four planks, slabs take twice as long), at least one
    second per cut, with wood or stone chips flying off the saw.
    **Without an order, an input chest and an output chest the worker does not work.**
+
+### Several products
+
+The sawyers, the carpenter, the kiln operator, the fletcher, the tanner and the weaponsmith
+take up to 8 products in one order: a click in the order grid adds a product, another click
+takes it out. They make them **in equal parts**, one batch at a time, always the most
+needed one they have material for:
+
+- **With a stock** it applies to each product ("keep 8" means 8 chests *and* 8 barrels). The
+  worker makes the product of which the output chests hold the fewest, and leaves out the
+  ones whose stock is full.
+- **Without a stock** (the sawyers have none) the station counts what was made of each
+  product since it was ordered, and the worker makes the one it made the fewest of. A
+  product added later starts level with the others.
+- A product without material does not hold up the others; the worker waits only when
+  there is material for none of them.
+
+A product made of one wood type (stairs at the woodcutter, boats at the bench) counts as
+one product in all its wood types. The order box below the result slot of the bench and
+the cutters shows the products one after another. The apothecary still brews one potion
+at a time. Stations saved before 0.5.0 load with their one product.
 
 The settings of all workstations are stored per dimension
 (`data/workingvillagers/workstations.dat`), not in block entities, because the vanilla
@@ -241,7 +263,7 @@ the cutter menu of this mod (it looks and works like the vanilla one).
 The carpenter's bench (three wooden slabs, an iron ingot in the middle, two logs as legs)
 is a crafting table for wooden things only: chests, barrels, crafting tables, ladders,
 bowls, composters, bookshelves, chiseled bookshelves, wooden tools, boats and boats with chest, shelves,
-hanging signs, item frames, paintings, armor stands, bows, crossbows, fishing rods,
+hanging signs, item frames, paintings, armor stands, fishing rods,
 shields, torches, tripwire hooks, trapped chests and campfires. Its menu lists all of them;
 the ones the player lacks the ingredients for are greyed out, the tooltip shows what they
 need. Pick one and take the result, it is made of the ingredients in the inventory
@@ -250,12 +272,12 @@ whose result is in the item tag `workingvillagers:joinery`, so data packs can ad
 
 A hired villager at the bench becomes a **carpenter**. It is set up like the sawyer:
 
-1. **Order:** pick the product in the overview (**i**, or a click on the order box below
-   the result slot in the bench menu). Boats, boats with chest, hanging
+1. **Order:** pick up to 8 products in the overview (**i**, or a click on the order box below
+   the result slot in the bench menu), see [Several products](#several-products). Boats, boats with chest, hanging
    signs and shelves are ordered as a shape with wood types, like at the woodcutter. Any
    other product can be made of any wood (vanilla allows mixed planks); the wood types in
    the overview then say which wood the carpenter may use up.
-2. **Stock:** in the overview, **-** / **+** set how many products the carpenter keeps in
+2. **Stock:** in the overview, **-** / **+** set how many of each product the carpenter keeps in
    the output chests (no limit, 1, 2, 4, ... 256). It stops at that many and goes on as
    soon as some are taken out.
 3. During work hours it fetches up to 32 ingredients (`ingredientsPerTrip`, e.g. 4
@@ -331,9 +353,9 @@ and enchanted items cost a bottle per step on top of the material
 
 A hired villager at a vanilla **fletching table** becomes a **fletcher** (ordinary villagers
 still become vanilla fletchers there). The fletching table has no screen in vanilla: a
-right-click with an empty hand opens the overview. The fletcher makes the ordered product
+right-click with an empty hand opens the overview. The fletcher makes the ordered products
 (arrows, spectral arrows, bow, crossbow) from its input chests at one piece per second and
-keeps a **stock** of it in its output chests, like the carpenter. An arrow needs a head, a
+keeps a **stock** of each in its output chests, like the carpenter. An arrow needs a head, a
 stick and a feather and makes 4; the head is flint, a copper nugget or an iron nugget, in
 that order. It knaps flint from gravel (1:1) and cuts ingots into nuggets (1 ingot, 9
 heads) itself. What the order does not need it puts back into the input chest. It trades
@@ -360,7 +382,7 @@ what it carries beyond one. It trades like a vanilla cleric.
 A hired villager at a vanilla **cauldron** (empty or with water, lava or powder snow: the
 same station) becomes a **tanner** (ordinary villagers still become vanilla leatherworkers
 there). The cauldron has no screen: a right-click with an empty hand opens the overview. The
-tanner makes the ordered product and keeps a **stock** of it in its output chests: leather,
+tanner makes the ordered products and keeps a **stock** of each in its output chests: leather,
 books (3 paper, 1 leather), leather armor and horse armor, bundles (string, leather) and
 saddles (3 leather, an iron ingot). Leather it takes from its input chests, makes of rabbit
 hide (4, 1) or **tans** of rotten flesh: up to 16 go into the water of the cauldron (one
@@ -382,8 +404,8 @@ render layer over the guard's clothes): the uniform of the village.
 
 A hired villager at a vanilla **grindstone** becomes a **weaponsmith** (ordinary villagers
 still become vanilla weaponsmiths there). The tabs above the grindstone screen open the
-overview. It **forges** the ordered tool or weapon from its input chests and keeps a stock
-of it: the crafting recipes whose result is in the item tag `workingvillagers:forgeable`
+overview. It **forges** the ordered tools and weapons from its input chests and keeps a stock
+of each: the crafting recipes whose result is in the item tag `workingvillagers:forgeable`
 (axes, pickaxes, shovels, hoes, swords, spears, shears, the mace), except wooden ones, up
 to 4 per trip, one every two seconds. Before its order it **grinds together** two damaged
 tools of a kind, like a grindstone (both durabilities plus 5%; not enchanted or renamed
@@ -526,11 +548,11 @@ category "food") nor smeltable in a blast furnace, minus the item tag
 `workingvillagers:kiln_excluded`: glass, stone, smooth stone, bricks, terracotta, charcoal,
 dyes, ... Anything else stays in its input slot. A hired villager there becomes a **kiln
 operator**; the tabs above the kiln screen open the overview. It works like the smith,
-and in the overview a product can be picked from everything the kiln makes: then it only
-fires what makes that product, fires it again until it is the product (cobblestone, stone,
-smooth stone; the stone in between stays with it), keeps a stock like the carpenter and does
-not burn its material as fuel (logs for charcoal). Without a product it fires everything
-once. What it took out of the kiln is handed in, even if it could burn.
+and in the overview products can be picked from everything the kiln makes: then it only
+fires what makes these products, fires it again until it is the product (cobblestone, stone,
+smooth stone; the stone in between stays with it), keeps a stock of each like the carpenter and does
+not burn its material as fuel (logs for charcoal). With several products it loads the kiln
+for the most needed one. Without a product it fires everything once. What it took out of the kiln is handed in, even if it could burn.
 
 ## Shop assistant
 

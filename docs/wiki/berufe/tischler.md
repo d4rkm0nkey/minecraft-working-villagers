@@ -17,7 +17,7 @@ Der Tischler stellt aus Planks, Sticks und Slabs alle Holzgegenstände her, die 
 | Stufe | Produkte | Zusätzliche Zutaten |
 | --- | --- | --- |
 | 1 – nur Holz | Kiste, Fass, Werkbank, Leiter, Schüssel, Boot/Floß, Composter, Shelf, Holzwerkzeuge | – |
-| 2 – Holz + Zusatz | Truhenboot, Bücherregal, Hängeschild, Bett, Item Frame, Armor Stand, Bogen, Angel, Schild, Fackel, Tripwire Hook | Bücher, Ketten, Wolle, Leder, Stein-Slab, Schnur, Eisen, Kohle |
+| 2 – Holz + Zusatz | Truhenboot, Bücherregal, Hängeschild, Bett, Item Frame, Armor Stand, Angel, Schild, Fackel, Tripwire Hook | Bücher, Ketten, Wolle, Leder, Stein-Slab, Schnur, Eisen, Kohle |
 | 3 – Workstations | Lectern, Loom, Fletching Table, Cartography Table, Smithing Table, Note Block, Jukebox | Bücherregal, Schnur, Feuerstein, Papier, Eisen, Redstone, Diamant |
 
 Mit Stufe 3 baut der Tischler die Arbeitsplätze für die anderen Berufe und wird so zum Ausbauberuf des Dorfs. Die Stufen hängen an den [Lohnstufen](../wirtschaft/anheuern-und-lohn.md#lohnstufen): Novice kann Stufe 1, ab Journeyman Stufe 2, Master Stufe 3 (Startwerte für Playtests).
@@ -68,7 +68,7 @@ Stellt Zwischenprodukte selbst her: Fehlen Sticks oder Slabs, macht er sie aus P
 ## Sonderfälle & offene Fragen
 
 - **Werkzeug:** Braucht der Tischler eine Axt, die man ihm gibt und die je Werkstück abnutzt? Das wäre konsistent mit dem Holzfäller, ist aber vielleicht unnötige Pflege. Vorschlag: zunächst ohne Werkzeug.
-- **Mehrere Aufträge:** Eine Auftragsliste („erst 200 Leitern, dann 50 Kisten“) wäre praktisch, kommt aber erst nach dem MVP.
+- **Mehrere Aufträge:** siehe [Mehrere Produkte](#mehrere-produkte-umgesetzt-in-050). Eine Auftragsliste nacheinander („erst 200 Leitern, dann 50 Kisten“) bleibt eine Idee für später.
 - **Shulker-Kisten, Lectern mit Buch usw.:** Alles mit Komponenten oder Nicht-Holz-Kern bleibt draußen. Im Zweifel entscheidet der Tag.
 - **Abgrenzung zum Crafter-Bediener:** Der Tischler ist früh verfügbar, schnell und billig, kann aber nur Holz. Der [Crafter-Bediener](crafter-bediener.md) kann später jedes Rezept, ist dafür langsamer und braucht Redstone-Technik.
 
@@ -85,6 +85,43 @@ Stand der Umsetzung:
 - Statt einer Axt als Werkzeug braucht er vorerst nichts.
 
 Später: Stufe 3, *Stückzahl*, Auftragsliste, Master-Fähigkeit.
+
+## Mehrere Produkte (umgesetzt in 0.5.0)
+
+Ein Auftrag hat bis zu **8 Produkte** (`Workstations.MAX_ORDERS`), und der Tischler stellt sie **zu gleichen Teilen** her. Dasselbe gilt für [Holzsäger und Steinsäger](holzsaeger.md), [Brenner](brenner.md), [Pfeilmacher](pfeilmacher.md), [Gerber](gerber.md) und [Waffenschmied](waffenschmied.md). Nur der [Apotheker](apotheker.md) braut weiter einen Trank nach dem anderen (seine Brauwege laufen über Zwischentränke am Braustand).
+
+### Bedienung
+
+- Im Reiter **Auftrag** schaltet ein Klick ein Produkt an oder aus. Über dem Raster steht „Erzeugnisse (2/8)“. Ist der Auftrag voll, sagt der Tooltip das, und ein Klick meldet „Der Auftrag ist voll“.
+- **Holzarten** gelten für alle Produkte gemeinsam. Ein holzartgebundenes Produkt (Treppe an der Holzsäge, Boot an der Hobelbank) ist **ein** Produkt in allen erlaubten Holzarten: Bestand und Zähler zählen alle Holzarten zusammen, wie bisher beim einzelnen Auftrag. (Abweichung vom Konzept, das jede Holzart einzeln verteilen wollte: so bleibt das Verhalten alter Stationen gleich.)
+- Das Auftragsfeld an Hobelbank und Säge zeigt die Produkte nacheinander (eine Sekunde je Produkt) mit „×3“ in der Ecke, der Tooltip listet alle.
+- Der **Vorrat** gilt **je Produkt**.
+
+### Verteilung
+
+`Station.ordersByNeed` sortiert die Produkte nach Bedarf:
+
+1. **Mit Vorrat:** wenigster Bestand in den Ausgangskisten zuerst; volle fallen heraus.
+2. **Ohne Vorrat:** die Station zählt je Produkt, was gemacht wurde (`made`, gespeichert). Es gewinnt der kleinste Zähler. Ein neu dazugenommenes Produkt startet beim kleinsten Zähler der anderen. Gespeichert werden nur die Abstände (der kleinste Zähler wird immer auf 0 gezogen).
+3. **Gleichstand:** Reihenfolge der Auswahl.
+
+Jeder Beruf nimmt davon das erste Produkt, für das er Material hat, und macht **einen Satz** davon; danach plant er neu. Fehlt für ein Produkt Material, kommt das nächste dran. Die Säger holen bei mehreren Produkten nur ihren Anteil am Satz (`sawyer.batchSize` geteilt durch die Zahl der Produkte), sonst würde das erste Produkt das ganze Holz verbrauchen. Der Brenner wählt das Produkt beim Füllen eines leeren Ofens.
+
+Ist ein Produkt Material eines anderen (Kisten für Truhenboote, Steinziegel für Steinziegeltreppen), liefert der Arbeiter es trotzdem ab, statt es weiterzuverarbeiten.
+
+### Daten
+
+Das Feld `order` der Station ist jetzt eine Liste; ein einzelnes Item aus 0.4.0 wird beim Laden zu einer Liste mit einem Eintrag. Zurück zu 0.4.0 geht nicht.
+
+### Tests
+
+Kisten + Fässer mit Vorrat 2; Kisten + Leitern ohne Sticks (die Kisten kommen trotzdem); Bretter + Treppen an der Holzsäge; Glas + Stein im Brennofen; Pfeile + Bögen; Eisenaxt + Eisenspitzhacke; Bücher + Bündel.
+
+### Offen
+
+- **Gewichte** („doppelt so viele Kisten wie Fässer“) oder ein Vorrat je Produkt.
+- Mehrere Tränke beim Apotheker.
+- Eine Auftragsliste nacheinander („erst 200 Leitern, dann 50 Kisten“).
 
 ## Siehe auch
 

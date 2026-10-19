@@ -61,8 +61,8 @@ public class CutterMenu extends AbstractContainerMenu implements StationWorker {
 	private final Kind kind;
 	private final ContainerLevelAccess access;
 	private final DataSlot selectedRecipeIndex = DataSlot.standalone();
-	/** The item id of the order, 0 (air) for none. */
-	private final DataSlot order = DataSlot.standalone();
+	/** The item ids of the products of the station's order, 0 (air) for none. */
+	private final DataSlot[] orders = new DataSlot[Workstations.MAX_ORDERS];
 	/** What the tabs above the screen show, see {@link StationTabFlags}. */
 	private final DataSlot tabFlags;
 	private final Level level;
@@ -127,15 +127,18 @@ public class CutterMenu extends AbstractContainerMenu implements StationWorker {
 		}
 		this.addSlot(new OptionSlot(this.worker, 0));
 		this.addDataSlot(this.selectedRecipeIndex);
-		this.addDataSlot(this.order);
+		for (int i = 0; i < this.orders.length; i++) {
+			this.orders[i] = this.addDataSlot(DataSlot.standalone());
+		}
 		this.tabFlags = this.addDataSlot(access.evaluate((world, pos) -> world instanceof ServerLevel serverLevel
 				? Optional.of(StationTabFlags.slot(serverLevel, pos.immutable(), this.stationType()))
 				: Optional.<DataSlot>empty())
 			.flatMap(slot -> slot)
 			.orElseGet(DataSlot::standalone));
 		this.station().ifPresent(station -> {
-			if (station.order() != null) {
-				this.order.set(BuiltInRegistries.ITEM.getId(station.order()));
+			List<Item> orders = station.orders();
+			for (int i = 0; i < orders.size() && i < this.orders.length; i++) {
+				this.orders[i].set(BuiltInRegistries.ITEM.getId(orders.get(i)));
 			}
 			if (this.level instanceof ServerLevel serverLevel) {
 				station.occupant(serverLevel).ifPresent(name -> {
@@ -164,9 +167,15 @@ public class CutterMenu extends AbstractContainerMenu implements StationWorker {
 	/**
 	 * What the worker of this station makes, empty if it has no order.
 	 */
-	public ItemStack getOrder() {
-		Item item = BuiltInRegistries.ITEM.byId(this.order.get());
-		return item == Items.AIR ? ItemStack.EMPTY : new ItemStack(item);
+	public List<ItemStack> getOrders() {
+		List<ItemStack> orders = new ArrayList<>();
+		for (DataSlot slot : this.orders) {
+			Item item = BuiltInRegistries.ITEM.byId(slot.get());
+			if (item != Items.AIR) {
+				orders.add(new ItemStack(item));
+			}
+		}
+		return orders;
 	}
 
 	/** Whether the station has an order (shown below the result); the mill of the mining bench has none. */

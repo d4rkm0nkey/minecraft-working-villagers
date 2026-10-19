@@ -22,7 +22,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * Picking the containers of a new route: started from a free route slot in the carrier
  * menu, the player then right-clicks the source and the target. Clicking the source again
- * cancels; an unfinished selection runs out after two minutes.
+ * (either half of a double chest) cancels; an unfinished selection runs out after two minutes.
  */
 public final class RouteSelection {
 	private static final long TIMEOUT_TICKS = 2400L;
@@ -84,7 +84,8 @@ public final class RouteSelection {
 			return true;
 		}
 		PENDING.remove(player.getUUID());
-		if (pending.source().equals(pos)) {
+		// The other half of a double chest is the same container
+		if (pending.source().equals(pos) || pending.source().equals(Workstations.otherHalf(level, pos))) {
 			player.sendOverlayMessage(Component.translatable("message.workingvillagers.route.cancelled"));
 			return true;
 		}

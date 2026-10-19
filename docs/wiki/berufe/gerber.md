@@ -6,6 +6,7 @@ Der Gerber macht aus den Resten anderer Betriebe Leder und aus Leder Waren. Alle
 
 ## Stand der Umsetzung
 
+- **Mehrere Produkte** (0.5.0): bis zu 8 Produkte je Auftrag, zu gleichen Teilen, Vorrat je Produkt; siehe [Tischler](tischler.md#mehrere-produkte-umgesetzt-in-050).
 - **Station:** Jeder Kessel (`AbstractCauldronBlock`: leer, Wasser, Lava, Pulverschnee) ist dieselbe Station `CAULDRON`; der Vanilla-POI `leatherworker` umfasst alle vier. Rechtsklick mit leerer Hand öffnet die Übersicht, mit Eimer oder Rüstung in der Hand bleibt es Vanilla. Vanilla-Lederer lassen sich anheuern und handeln weiter wie Lederer (Handelsfamilie `leatherworker`).
 - **Auftrag** im Raster wie beim Pfeilmacher: Leder, Buch, Lederkappe, -jacke, -hose, -stiefel, Lederpferderüstung, Bündel, Sattel; dazu ein **Vorrat**. Bücher, Bündel und Sättel in Sätzen von 4 bzw. 1, Rüstung einzeln (Tränke und Rüstung stapeln nicht, 8 Inventarplätze).
 - **Leder:** zuerst aus den Eingangskisten, dann aus Kaninchenfell (4 → 1), dann gegerbt.

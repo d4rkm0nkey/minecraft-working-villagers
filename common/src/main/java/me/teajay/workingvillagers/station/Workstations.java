@@ -4,7 +4,9 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -13,6 +15,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.ToIntFunction;
 import me.teajay.workingvillagers.Config;
 import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.crafting.WoodTypes;
@@ -36,7 +39,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
+import net.minecraft.world.level.block.state.properties.ChestType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
@@ -53,6 +58,8 @@ import org.jspecify.annotations.Nullable;
 public class Workstations extends SavedData {
 	/** The most chests a station can have, the screens have room for that many. See {@link Config#MAX_CHESTS}. */
 	public static final int MAX_CHESTS = 8;
+	/** The most products one order can have. */
+	public static final int MAX_ORDERS = 8;
 
 	private static final Codec<Workstations> CODEC = Station.CODEC.listOf()
 		.fieldOf("stations")
@@ -99,7 +106,7 @@ public class Workstations extends SavedData {
 		}
 		if (station == null) {
 			station = new Station(
-				pos.immutable(), Optional.empty(), List.of(), List.of(), Optional.empty(), Optional.empty(), Optional.empty(), List.of(), 0, false,
+				pos.immutable(), Optional.empty(), List.of(), List.of(), List.of(), Optional.empty(), Optional.empty(), List.of(), 0, false,
 				Optional.empty(), Pit.DEFAULT_DEPTH, Optional.empty(), 0, Station.Settings.DEFAULT
 			);
 			workstations.stations.put(station.pos, station);
@@ -184,6 +191,17 @@ public class Workstations extends SavedData {
 		return level.isLoaded(pos) ? HopperBlockEntity.getContainerAt(level, pos) : null;
 	}
 
+	/** The other half of a double chest, null for any other container. */
+	public static @Nullable BlockPos otherHalf(Level level, BlockPos pos) {
+		if (!level.isLoaded(pos)) {
+			return null;
+		}
+		BlockState state = level.getBlockState(pos);
+		return state.getBlock() instanceof ChestBlock && state.getValue(ChestBlock.TYPE) != ChestType.SINGLE
+			? ChestBlock.getConnectedBlockPos(pos, state)
+			: null;
+	}
+
 	public enum ChestRole {
 		/** The worker takes its material from here. */
 		INPUT,
@@ -210,12 +228,18 @@ public class Workstations extends SavedData {
 	public static final int MAX_GUARD_RADIUS = 32;
 
 	public static final class Station {
+		/** The products of the order; stations saved before 0.5.0 have one product, not a list. */
+		private static final Codec<List<Item>> ORDERS_CODEC = Codec.withAlternative(
+			BuiltInRegistries.ITEM.byNameCodec().listOf(),
+			BuiltInRegistries.ITEM.byNameCodec().xmap(List::of, List::getFirst)
+		);
+
 		private static final Codec<Station> CODEC = RecordCodecBuilder.create(i -> i.group(
 			BlockPos.CODEC.fieldOf("pos").forGetter(station -> station.pos),
 			Codec.STRING.optionalFieldOf("type").forGetter(station -> Optional.ofNullable(station.type).map(Enum::name)),
 			BlockPos.CODEC.listOf().optionalFieldOf("inputs", List.of()).forGetter(station -> station.inputs),
 			BlockPos.CODEC.listOf().optionalFieldOf("outputs", List.of()).forGetter(station -> station.outputs),
-			BuiltInRegistries.ITEM.byNameCodec().optionalFieldOf("order").forGetter(station -> Optional.ofNullable(station.order)),
+			ORDERS_CODEC.optionalFieldOf("order", List.of()).forGetter(station -> List.copyOf(station.orders)),
 			UUIDUtil.CODEC.optionalFieldOf("worker").forGetter(station -> Optional.ofNullable(station.worker)),
 			Codec.STRING.optionalFieldOf("worker_name").forGetter(station -> Optional.ofNullable(station.workerName)),
 			Codec.STRING.listOf().optionalFieldOf("woods", List.of()).forGetter(station -> List.copyOf(station.woods)),
@@ -232,8 +256,8 @@ public class Workstations extends SavedData {
 		 * The settings of a few kinds of station, in the same map as the other fields (the
 		 * codec of a record takes at most 16 fields).
 		 */
-		private record Settings(int herd, boolean boat, Optional<DyeColor> dye, int tanning, long tannedAt, int grind, int enchantLevel) {
-			static final Settings DEFAULT = new Settings(DEFAULT_HERD, true, Optional.empty(), 0, 0L, GRIND_BOTH, 0);
+		private record Settings(int herd, boolean boat, Optional<DyeColor> dye, int tanning, long tannedAt, int grind, int enchantLevel, Map<Item, Integer> made) {
+			static final Settings DEFAULT = new Settings(DEFAULT_HERD, true, Optional.empty(), 0, 0L, GRIND_BOTH, 0, Map.of());
 			static final MapCodec<Settings> MAP_CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
 				Codec.intRange(0, MAX_HERD).optionalFieldOf("herd", DEFAULT_HERD).forGetter(Settings::herd),
 				Codec.BOOL.optionalFieldOf("boat", true).forGetter(Settings::boat),
@@ -241,14 +265,24 @@ public class Workstations extends SavedData {
 				Codec.intRange(0, MAX_TANNING).optionalFieldOf("tanning", 0).forGetter(Settings::tanning),
 				Codec.LONG.optionalFieldOf("tanned_at", 0L).forGetter(Settings::tannedAt),
 				Codec.intRange(0, GRIND_MODES - 1).optionalFieldOf("grind", GRIND_BOTH).forGetter(Settings::grind),
-				Codec.intRange(0, MAX_ENCHANT_LEVEL).optionalFieldOf("enchant_level", 0).forGetter(Settings::enchantLevel)
+				Codec.intRange(0, MAX_ENCHANT_LEVEL).optionalFieldOf("enchant_level", 0).forGetter(Settings::enchantLevel),
+				Codec.unboundedMap(BuiltInRegistries.ITEM.byNameCodec(), Codec.INT).optionalFieldOf("made", Map.of()).forGetter(Settings::made)
 			).apply(i, Settings::new));
 		}
 
 		private final BlockPos pos;
 		private final List<BlockPos> inputs;
 		private final List<BlockPos> outputs;
-		private @Nullable Item order;
+		/**
+		 * The products the worker makes, in the order they were picked; the worker makes them
+		 * in equal parts (see {@link #ordersByNeed}).
+		 */
+		private final List<Item> orders;
+		/**
+		 * How many of each product of the order the worker made since it was ordered, for
+		 * equal parts without a stock. Only the differences matter, see {@link #addMade}.
+		 */
+		private final Map<Item, Integer> made;
 		private @Nullable UUID worker;
 		private @Nullable String workerName;
 		/**
@@ -286,7 +320,7 @@ public class Workstations extends SavedData {
 		private @Nullable StationType type;
 
 		private Station(
-			BlockPos pos, Optional<String> type, List<BlockPos> inputs, List<BlockPos> outputs, Optional<Item> order, Optional<UUID> worker, Optional<String> workerName,
+			BlockPos pos, Optional<String> type, List<BlockPos> inputs, List<BlockPos> outputs, List<Item> orders, Optional<UUID> worker, Optional<String> workerName,
 			List<String> woods, int stock, boolean strip, Optional<Pit> pit, int depth, Optional<Tunnel> tunnel, int wage, Settings settings
 		) {
 			this.wage = wage;
@@ -297,6 +331,7 @@ public class Workstations extends SavedData {
 			this.tannedAt = settings.tannedAt();
 			this.grind = settings.grind();
 			this.enchantLevel = settings.enchantLevel();
+			this.made = new HashMap<>(settings.made());
 			this.pit = pit.orElse(null);
 			this.tunnel = tunnel.orElse(null);
 			this.depth = depth;
@@ -307,7 +342,7 @@ public class Workstations extends SavedData {
 			this.type = type.flatMap(Station::typeByName).orElse(null);
 			this.inputs = new ArrayList<>(inputs);
 			this.outputs = new ArrayList<>(outputs);
-			this.order = order.orElse(null);
+			this.orders = new ArrayList<>(orders.stream().distinct().limit(MAX_ORDERS).toList());
 			this.worker = worker.orElse(null);
 			this.workerName = workerName.orElse(null);
 		}
@@ -328,14 +363,120 @@ public class Workstations extends SavedData {
 			return this.type;
 		}
 
-		/** What the worker should make, only used by processing stations. */
-		public @Nullable Item order() {
-			return this.order;
+		/** The products the worker should make, only used by processing stations. */
+		public List<Item> orders() {
+			return Collections.unmodifiableList(this.orders);
 		}
 
+		public boolean hasOrder() {
+			return !this.orders.isEmpty();
+		}
+
+		/**
+		 * The first product of the order, null if there is none. The brewing stand has only
+		 * one product.
+		 */
+		public @Nullable Item order() {
+			return this.orders.isEmpty() ? null : this.orders.getFirst();
+		}
+
+		/** Orders only this product, or nothing. */
 		public void setOrder(@Nullable Item order) {
-			this.order = order;
+			this.orders.clear();
+			this.made.clear();
+			if (order != null) {
+				this.orders.add(order);
+			}
 			this.setDirty();
+		}
+
+		/**
+		 * Adds the product to the order, or takes it out if it is in it already. Returns false
+		 * if the order is full.
+		 */
+		public boolean toggleOrder(Item product) {
+			if (this.orders.remove(product)) {
+				this.made.remove(product);
+				this.setDirty();
+				return true;
+			}
+			if (this.orders.size() >= MAX_ORDERS) {
+				return false;
+			}
+			// Starts where the others are, instead of catching up with all they made
+			this.made.put(product, this.orders.stream().mapToInt(this::made).min().orElse(0));
+			this.orders.add(product);
+			this.setDirty();
+			return true;
+		}
+
+		/** How many of the product of the order (all its wood types) the worker made, see {@link #made}. */
+		public int made(Item order) {
+			return this.made.getOrDefault(order, 0);
+		}
+
+		/** Counts made products for the product of the order they belong to. */
+		public void addMade(Item product, int count) {
+			Item order = this.orderOf(product);
+			if (order == null || count <= 0) {
+				return;
+			}
+			this.made.merge(order, count, Integer::sum);
+			this.made.keySet().retainAll(this.orders);
+			// Only the differences matter, so the numbers stay small
+			int least = this.orders.stream().mapToInt(this::made).min().orElse(0);
+			if (least > 0) {
+				this.made.replaceAll((item, made) -> made - least);
+			}
+			this.setDirty();
+		}
+
+		/** The product of the order the item belongs to: itself, or its shape in another wood type. */
+		public @Nullable Item orderOf(Item product) {
+			for (Item order : this.orders) {
+				if (this.productsOf(order).contains(product)) {
+					return order;
+				}
+			}
+			return null;
+		}
+
+		/**
+		 * The products of the order the worker should make, the most needed first: with a stock
+		 * the ones of which the output chests hold the fewest ({@code stocked}), without the ones
+		 * whose stock is full; without a stock the ones it made the fewest of. Equal ones keep
+		 * the order they were picked in.
+		 */
+		public List<Item> ordersByNeed(ToIntFunction<Item> stocked) {
+			if (this.stock <= 0) {
+				return this.orders.stream().sorted(Comparator.comparingInt(this::made)).toList();
+			}
+			Map<Item, Integer> counts = new HashMap<>();
+			for (Item order : this.orders) {
+				counts.put(order, stocked.applyAsInt(order));
+			}
+			return this.orders.stream()
+				.filter(order -> counts.get(order) < this.stock)
+				.sorted(Comparator.comparingInt(counts::get))
+				.toList();
+		}
+
+		/** How many of the product of the order (all its wood types) lie in the output chests. */
+		public int inOutputs(Level level, Item order) {
+			List<Item> products = this.productsOf(order);
+			int count = 0;
+			for (BlockPos pos : this.validOutputs(level)) {
+				Container container = getContainer(level, pos);
+				if (container != null) {
+					for (int slot = 0; slot < container.getContainerSize(); slot++) {
+						ItemStack stack = container.getItem(slot);
+						if (!stack.isEmpty() && products.contains(stack.getItem())) {
+							count += stack.getCount();
+						}
+					}
+				}
+			}
+			return count;
 		}
 
 		/** Chopping block: whether the lumberjack strips the logs before handing them in. */
@@ -351,20 +492,20 @@ public class Workstations extends SavedData {
 		}
 
 		/**
-		 * Carpenter's bench: orders a product picked in the overview. A product made of one
-		 * wood type becomes its shape (keeping the wood types), any other product keeps the
-		 * wood types too, all of them if none were selected.
+		 * Carpenter's bench: adds a product picked in the overview to the order, or takes it
+		 * out. A product made of one wood type stands for its shape (keeping the wood types),
+		 * any other product keeps the wood types too, all of them if none were selected.
+		 * Returns false if the order is full.
 		 */
-		public void orderProduct(Item product) {
+		public boolean orderProduct(Item product) {
 			String shape = WoodTypes.shapeOf(product, this.type.shapes());
 			if (shape != null) {
-				this.setShape(shape);
-				return;
+				return this.toggleShape(shape);
 			}
 			if (this.woods.isEmpty()) {
 				WoodTypes.ALL.forEach(wood -> this.woods.add(wood.name()));
 			}
-			this.setOrder(product);
+			return this.toggleOrder(product);
 		}
 
 		/** Pit stake: the pit to dig, null until one is picked. */
@@ -447,7 +588,7 @@ public class Workstations extends SavedData {
 		}
 
 		private Settings settings() {
-			return new Settings(this.herd, this.boat, Optional.ofNullable(this.dye), this.tanning, this.tannedAt, this.grind, this.enchantLevel);
+			return new Settings(this.herd, this.boat, Optional.ofNullable(this.dye), this.tanning, this.tannedAt, this.grind, this.enchantLevel, Map.copyOf(this.made));
 		}
 
 		/** Lectern: the level the librarian enchants at, 0 for the highest the bookshelves allow. */
@@ -575,15 +716,42 @@ public class Workstations extends SavedData {
 		}
 
 		/**
-		 * Woodcutter and carpenter's bench: the shape of the order (stairs, boat, ...), null
-		 * if there is no order or it is something else.
+		 * Woodcutter and carpenter's bench: the shape of a product of the order (stairs,
+		 * boat, ...), null if it is something else.
 		 */
-		public @Nullable String shape() {
-			return this.type.hasWoods() && this.order != null ? WoodTypes.shapeOf(this.order, this.type.shapes()) : null;
+		public @Nullable String shapeOf(Item order) {
+			return this.type.hasWoods() ? WoodTypes.shapeOf(order, this.type.shapes()) : null;
 		}
 
-		/** Woodcutter and carpenter's bench: orders the given shape, keeping the wood types. */
+		/** Woodcutter and carpenter's bench: the shapes in the order. */
+		public List<String> shapes() {
+			return this.orders.stream().map(this::shapeOf).filter(Objects::nonNull).distinct().toList();
+		}
+
+		/** Woodcutter and carpenter's bench: orders only the given shape, keeping the wood types. */
 		public void setShape(String shape) {
+			Item product = this.shapeProduct(shape);
+			if (product != null) {
+				this.setOrder(product);
+			}
+		}
+
+		/**
+		 * Woodcutter and carpenter's bench: adds the shape to the order, keeping the wood
+		 * types, or takes it out. Returns false if the order is full.
+		 */
+		public boolean toggleShape(String shape) {
+			for (Item order : this.orders) {
+				if (shape.equals(this.shapeOf(order))) {
+					return this.toggleOrder(order);
+				}
+			}
+			Item product = this.shapeProduct(shape);
+			return product == null || this.toggleOrder(product);
+		}
+
+		/** The shape in the first allowed wood type that has it; allows that one if none are. */
+		private @Nullable Item shapeProduct(String shape) {
 			WoodTypes.WoodType wood = this.woods.stream()
 				.map(WoodTypes::byName)
 				.filter(Objects::nonNull)
@@ -591,28 +759,20 @@ public class Workstations extends SavedData {
 				.findFirst()
 				.orElse(WoodTypes.ALL.getFirst());
 			Item product = WoodTypes.product(wood, shape);
-			if (product != null) {
-				if (this.woods.isEmpty()) {
-					this.woods.add(wood.name());
-				}
-				this.setOrder(product);
+			if (product != null && this.woods.isEmpty()) {
+				this.woods.add(wood.name());
 			}
+			return product;
 		}
 
 		/**
-		 * What the worker makes: the order, and for a shape the order's shape in every
-		 * allowed wood type.
+		 * What the worker makes for a product of the order: the product, and for a shape the
+		 * shape in every allowed wood type.
 		 */
-		public List<Item> products() {
-			if (this.order == null) {
-				return List.of();
-			}
-			String shape = this.shape();
-			if (shape == null) {
-				return List.of(this.order);
-			}
-			if (WoodTypes.STICK.equals(shape)) {
-				return List.of(this.order);
+		public List<Item> productsOf(Item order) {
+			String shape = this.shapeOf(order);
+			if (shape == null || WoodTypes.STICK.equals(shape)) {
+				return List.of(order);
 			}
 			return this.woods.stream()
 				.map(WoodTypes::byName)
@@ -621,6 +781,11 @@ public class Workstations extends SavedData {
 				.filter(Objects::nonNull)
 				.distinct()
 				.toList();
+		}
+
+		/** What the worker makes for the whole order. */
+		public List<Item> products() {
+			return this.orders.stream().flatMap(order -> this.productsOf(order).stream()).distinct().toList();
 		}
 
 		/**
@@ -633,7 +798,7 @@ public class Workstations extends SavedData {
 				WoodTypes.WoodType wood = WoodTypes.woodOfMaterial(stack);
 				return wood == null || this.woods.contains(wood.name());
 			}
-			if (this.shape() == null) {
+			if (this.shapes().isEmpty()) {
 				return true;
 			}
 			return this.woods.stream().map(WoodTypes::byName).filter(Objects::nonNull).anyMatch(wood -> wood.isMaterial(stack));
@@ -704,6 +869,18 @@ public class Workstations extends SavedData {
 		}
 
 		/**
+		 * The linked position of the container: the given one, or for a double chest the
+		 * other half if that one is linked. Null if the container is not linked.
+		 */
+		public @Nullable BlockPos linkedHalf(Level level, BlockPos chest) {
+			if (this.role(chest) != null) {
+				return chest;
+			}
+			BlockPos other = otherHalf(level, chest);
+			return other != null && this.role(other) != null ? other : null;
+		}
+
+		/**
 		 * Links the chest in the given role, or unlinks it if the role is null.
 		 */
 		public void setRole(BlockPos chest, @Nullable ChestRole role) {
@@ -717,6 +894,19 @@ public class Workstations extends SavedData {
 			this.setDirty();
 		}
 
+		/**
+		 * Like {@link #setRole(BlockPos, ChestRole)}, but a double chest as a whole: the other
+		 * half is unlinked, so the worker does not use the same chest twice.
+		 */
+		public void setRole(Level level, BlockPos chest, @Nullable ChestRole role) {
+			BlockPos other = otherHalf(level, chest);
+			if (other != null) {
+				this.inputs.remove(other);
+				this.outputs.remove(other);
+			}
+			this.setRole(chest, role);
+		}
+
 		public int chestCount() {
 			return this.inputs.size() + this.outputs.size();
 		}
@@ -725,18 +915,32 @@ public class Workstations extends SavedData {
 			return chest.closerThan(this.pos, Config.CHEST_DISTANCE.get());
 		}
 
-		/** The input chests that still exist. */
+		/** The input chests that still exist, a double chest once. */
 		public List<BlockPos> validInputs(Level level) {
-			return this.inputs.stream().filter(pos -> getContainer(level, pos) != null).toList();
+			return valid(level, this.inputs, List.of());
 		}
 
-		/** The output chests that still exist. */
+		/**
+		 * The output chests that still exist, a double chest once. A double chest linked as
+		 * input by its other half (two linked chests placed side by side) is no output.
+		 */
 		public List<BlockPos> validOutputs(Level level) {
-			return this.outputs.stream().filter(pos -> getContainer(level, pos) != null).toList();
+			return valid(level, this.outputs, this.inputs);
+		}
+
+		private static List<BlockPos> valid(Level level, Collection<BlockPos> chests, Collection<BlockPos> taken) {
+			List<BlockPos> valid = new ArrayList<>(chests.size());
+			for (BlockPos pos : chests) {
+				BlockPos other = otherHalf(level, pos);
+				if (getContainer(level, pos) != null && (other == null || !valid.contains(other) && !taken.contains(other))) {
+					valid.add(pos);
+				}
+			}
+			return valid;
 		}
 
 		private boolean isEmpty() {
-			return this.inputs.isEmpty() && this.outputs.isEmpty() && this.order == null && this.worker == null && this.woods.isEmpty() && this.stock == 0
+			return this.inputs.isEmpty() && this.outputs.isEmpty() && this.orders.isEmpty() && this.worker == null && this.woods.isEmpty() && this.stock == 0
 				&& !this.strip && this.pit == null && this.depth == Pit.DEFAULT_DEPTH && this.tunnel == null && this.wage == 0
 				&& this.herd == DEFAULT_HERD && this.boat && this.dye == null && this.tanning == 0
 				&& this.grind == GRIND_BOTH && this.enchantLevel == 0;

@@ -42,7 +42,10 @@ import org.jspecify.annotations.Nullable;
  * The work at a woodcutter or stonecutter: fetch material from an input chest, cut it at
  * the job site into what the station's order asks for and bring the products to an output
  * chest. Without an order, input chest or output chest the worker does not work, nor
- * before it took its wage (see {@link WorkerSupplies}).
+ * before it took its wage (see {@link WorkerSupplies}). With several products it cuts one
+ * load of material for one of them at a time, the one it made the fewest of
+ * ({@link Workstations.Station#ordersByNeed}); a product without material does not hold up
+ * the others.
  *
  * <p>The worker stands in front of the station and makes {@link Config#CUT_ITEMS_PER_SECOND} items
  * per second, slower than a player. Material and products are kept in the villager's
@@ -73,6 +76,8 @@ public class CutAtStation extends Behavior<Villager> {
 	private long recipesTime;
 	/** Why the worker waits, and what it cuts right now, for the status in the menu. */
 	private String waitReason = "saw.no_material";
+	/** The product of the order the worker cuts for right now, null before it picked one. */
+	private @Nullable Item current;
 	private ItemStack cutting = ItemStack.EMPTY;
 	private final WorkerSupplies supplies = new WorkerSupplies();
 
@@ -98,7 +103,7 @@ public class CutAtStation extends Behavior<Villager> {
 		}
 		Workstations.Station station = this.getWorkplace(level, villager);
 		return station != null
-			&& station.order() != null
+			&& station.hasOrder()
 			&& !station.validInputs(level).isEmpty()
 			&& !station.validOutputs(level).isEmpty();
 	}
@@ -132,7 +137,7 @@ public class CutAtStation extends Behavior<Villager> {
 	@Override
 	protected void tick(ServerLevel level, Villager villager, long timestamp) {
 		Workstations.Station station = this.getWorkplace(level, villager);
-		if (station == null || station.order() == null) {
+		if (station == null || !station.hasOrder()) {
 			return;
 		}
 		this.stateTicks++;
@@ -140,13 +145,18 @@ public class CutAtStation extends Behavior<Villager> {
 			return; // wage first, the chest sets the status
 		}
 		List<SingleItemRecipe> recipes = this.recipesFor(level, station.products(), timestamp);
-		Predicate<ItemStack> isMaterial = stack -> station.acceptsMaterial(stack) && recipes.stream().anyMatch(recipe -> recipe.input().test(stack));
+		Predicate<ItemStack> isMaterial = materialOf(station, recipes);
+		if (this.current != null && !station.orders().contains(this.current)) {
+			this.current = null; // the order changed
+		}
+		List<SingleItemRecipe> currentRecipes = this.current == null ? List.of() : recipesOf(station, this.current, recipes);
+		Predicate<ItemStack> isCurrentMaterial = materialOf(station, currentRecipes);
 
 		switch (this.state) {
-			case PLAN -> this.plan(level, villager, station, isMaterial);
-			case FETCH -> this.fetch(level, villager, isMaterial);
+			case PLAN -> this.plan(level, villager, station, recipes, isMaterial);
+			case FETCH -> this.fetch(level, villager, station, isCurrentMaterial);
 			case WALK_TO_STATION -> this.walkToStation(villager, station);
-			case CUT -> this.cut(level, villager, station, recipes, isMaterial);
+			case CUT -> this.cut(level, villager, station, currentRecipes, isCurrentMaterial);
 			case DELIVER -> this.deliver(level, villager, station, isMaterial);
 			case WAIT -> {
 				if (this.stateTicks >= IDLE_TICKS) {
@@ -168,31 +178,55 @@ public class CutAtStation extends Behavior<Villager> {
 		}
 	}
 
-	private void plan(ServerLevel level, Villager villager, Workstations.Station station, Predicate<ItemStack> isMaterial) {
+	private void plan(ServerLevel level, Villager villager, Workstations.Station station, List<SingleItemRecipe> recipes, Predicate<ItemStack> isMaterial) {
 		SimpleContainer inventory = villager.getInventory();
-		if (inventory.hasAnyMatching(isProduct(isMaterial))) {
+		if (inventory.hasAnyMatching(isProduct(station, isMaterial))) {
 			this.setState(State.DELIVER);
-		} else if (inventory.hasAnyMatching(isMaterial)) {
-			this.goToStation(level, villager, station);
-		} else {
-			Optional<BlockPos> chest = station.validInputs(level).stream()
-				.filter(pos -> Chests.contains(level, pos, isMaterial))
-				.min(Comparator.comparingDouble(pos -> pos.distToCenterSqr(villager.position())));
-			if (chest.isPresent()) {
-				this.trip = ChestTrip.to(level, villager, chest.get());
-				this.setState(State.FETCH);
-			} else {
-				this.idle(villager, station, "saw.no_material");
+			return;
+		}
+		List<Item> byNeed = station.ordersByNeed(order -> 0);
+		// Material it still carries first, then the most needed product there is material for
+		for (Item order : byNeed) {
+			if (inventory.hasAnyMatching(materialOf(station, recipesOf(station, order, recipes)))) {
+				this.current = order;
+				this.goToStation(level, villager, station);
+				return;
 			}
 		}
+		for (Item order : byNeed) {
+			Predicate<ItemStack> orderMaterial = materialOf(station, recipesOf(station, order, recipes));
+			Optional<BlockPos> chest = station.validInputs(level).stream()
+				.filter(pos -> Chests.contains(level, pos, orderMaterial))
+				.min(Comparator.comparingDouble(pos -> pos.distToCenterSqr(villager.position())));
+			if (chest.isPresent()) {
+				this.current = order;
+				this.trip = ChestTrip.to(level, villager, chest.get());
+				this.setState(State.FETCH);
+				return;
+			}
+		}
+		this.idle(villager, station, "saw.no_material");
 	}
 
-	private void fetch(ServerLevel level, Villager villager, Predicate<ItemStack> isMaterial) {
+	/** The recipes for one product of the order (all its wood types). */
+	private static List<SingleItemRecipe> recipesOf(Workstations.Station station, Item order, List<SingleItemRecipe> recipes) {
+		List<Item> products = station.productsOf(order);
+		return recipes.stream().filter(recipe -> products.contains(CuttingRecipes.resultOf(recipe))).toList();
+	}
+
+	/** What the worker may cut into one of the recipes' results. */
+	private static Predicate<ItemStack> materialOf(Workstations.Station station, List<SingleItemRecipe> recipes) {
+		return stack -> station.acceptsMaterial(stack) && recipes.stream().anyMatch(recipe -> recipe.input().test(stack));
+	}
+
+	private void fetch(ServerLevel level, Villager villager, Workstations.Station station, Predicate<ItemStack> isMaterial) {
 		if (this.trip == null) {
 			this.setState(State.PLAN);
 			return;
 		}
-		ChestTrip.Result result = this.trip.tick(level, villager, container -> Chests.take(container, villager.getInventory(), isMaterial, Config.CUT_BATCH.get()));
+		// With several products a share of the batch each, so the first does not use up all material
+		int batch = Math.max(1, Config.CUT_BATCH.get() / Math.max(1, station.orders().size()));
+		ChestTrip.Result result = this.trip.tick(level, villager, container -> Chests.take(container, villager.getInventory(), isMaterial, batch));
 		if (result != ChestTrip.Result.RUNNING) {
 			this.trip = null;
 			this.setState(result == ChestTrip.Result.DONE ? State.PLAN : State.WAIT);
@@ -261,6 +295,7 @@ public class CutAtStation extends Behavior<Villager> {
 		if (!rest.isEmpty()) {
 			villager.spawnAtLocation(level, rest);
 		}
+		station.addMade(result.getItem(), result.getCount());
 		level.playSound(null, station.pos(), SoundEvents.UI_STONECUTTER_TAKE_RESULT, SoundSource.BLOCKS, 0.5F, 1.0F);
 		this.cutTicks = 0;
 	}
@@ -294,7 +329,7 @@ public class CutAtStation extends Behavior<Villager> {
 	}
 
 	private void deliver(ServerLevel level, Villager villager, Workstations.Station station, Predicate<ItemStack> isMaterial) {
-		Predicate<ItemStack> isProduct = isProduct(isMaterial);
+		Predicate<ItemStack> isProduct = isProduct(station, isMaterial);
 		if (this.trip == null) {
 			if (!villager.getInventory().hasAnyMatching(isProduct)) {
 				this.setState(State.PLAN);
@@ -336,11 +371,13 @@ public class CutAtStation extends Behavior<Villager> {
 	}
 
 	/**
-	 * Everything the worker hands in: all but food and the material for the current order.
-	 * Material of an earlier order is handed in as well.
+	 * Everything the worker hands in: all but food and the material for the order, but the
+	 * products of the order even if another product is cut from them (stone bricks for stone
+	 * brick stairs). Material of an earlier order is handed in as well.
 	 */
-	private static Predicate<ItemStack> isProduct(Predicate<ItemStack> isMaterial) {
-		return stack -> Chests.isHandedIn(stack) && !isMaterial.test(stack);
+	private static Predicate<ItemStack> isProduct(Workstations.Station station, Predicate<ItemStack> isMaterial) {
+		List<Item> products = station.products();
+		return stack -> Chests.isHandedIn(stack) && (!isMaterial.test(stack) || products.contains(stack.getItem()));
 	}
 
 	private void setState(State state) {
