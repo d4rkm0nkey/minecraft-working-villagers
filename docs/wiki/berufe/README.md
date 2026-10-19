@@ -19,6 +19,7 @@ Alle Berufe folgen dem [Kernloop](../grundlagen/kernloop.md) und den [Lohnstufen
 | [Grubenlogistiker](grubenlogistiker.md) | Förderhaspel | Depots, Trägerkette, Schienen mit Lore, Aufzug zwischen Etagen | Förderhaspel | M4 |
 | [Händler](haendler.md) | Handelskontor | Karawanen zu Nachbardörfern | Handelskontor | M4 |
 | [Farmer](farmer.md) (im Spiel: Bauer) | Komposter | Vorhandene Felder ernten und neu säen | nein | umgesetzt (ohne Pflügen) |
+| [Waffenschmied](waffenschmied.md) | Schleifstein | Werkzeug und Waffen schmieden, abgenutztes Werkzeug zusammenschleifen, Beute entzaubern (Erfahrung) | nein | Konzept |
 | [Schmied](schmied.md) | Schmelzofen / Schmiedetisch | Erze schmelzen, Werkzeug reparieren | nein | umgesetzt |
 | [Grubenarbeiter](grubenarbeiter.md) | Grubenpflock | Mit Schnur umrandete Grube ausheben, Leiter als Ausgang | Grubenpflock | umgesetzt |
 | [Brenner](brenner.md) | Brennofen | Glas, Stein, Ziegel, Holzkohle brennen (Ofen ohne Essen) | Brennofen | umgesetzt |
