@@ -63,7 +63,8 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
   items and close it again. At the woodcutter and stonecutter they stand in front of
   the station.
 - The overview of a workstation and the screen of the block itself (woodcutter,
-  stonecutter, mill, carpenter's bench, kiln, blast furnace, smithing table, loom) have the
+  stonecutter, mill, carpenter's bench, kiln, blast furnace, smithing table, loom, smoker,
+  barrel, brewing stand) have the
   same tabs above them, like the creative inventory: the block, the worker, the wage, the
   chests and the order or settings. A red dot marks the tab where something is missing. A
   vanilla block nobody has set up shows only its own tab and the worker tab.
@@ -72,9 +73,10 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
   name on the front of the stations; notes left in a world remove themselves when they are
   loaded.)
 - Hired villagers never take vanilla jobs (lectern etc.). At a stonecutter, composter,
-  loom, smoker, barrel, blast furnace or smithing table a hired villager becomes the stone
-  sawyer, farmer, shepherd, butcher, fisher or smith of this mod; unhired villagers still
-  become masons, farmers, shepherds, butchers, fishermen, armorers and toolsmiths, except at one that is set
+  loom, smoker, barrel, fletching table, brewing stand, blast furnace or smithing table a
+  hired villager becomes the stone sawyer, farmer, shepherd, butcher, fisher, fletcher,
+  apothecary or smith of this mod; unhired villagers still become masons, farmers,
+  shepherds, butchers, fishermen, fletchers, clerics, armorers and toolsmiths, except at one that is set
   up (chests, order or worker): vanilla job acquisition skips it. *Assign* there makes an
   ordinary villager that works there and has never traded (villager XP 0) unemployed;
   one that has traded keeps its job.
@@ -333,6 +335,22 @@ that order. It knaps flint from gravel (1:1) and cuts ingots into nuggets (1 ing
 heads) itself. What the order does not need it puts back into the input chest. It trades
 like a vanilla fletcher.
 
+## Apothecary
+
+A hired villager at a vanilla **brewing stand** becomes an **apothecary** (ordinary
+villagers still become vanilla clerics there). The tabs above the brewing stand screen open
+the overview. The apothecary makes the ordered product and keeps a **stock** of it in its
+output chests: **glass bottles** (3 glass, 3 bottles), **water bottles** (it fills glass
+bottles at a water source within 8 blocks, `apothecary.waterRadius`) or any **potion** or
+splash potion the brewing recipes (`minecraft:brewing`, data packs included) lead to from a
+water bottle. A potion it brews at the real brewing stand, three bottles at a time, step by
+step along the shortest way (water, awkward potion, potion of healing, ...); the reagents
+and blaze powder come from its input chests, glass bottles from glass if needed. It heals
+**hired workers** within 32 blocks (`apothecary.healRadius`) that miss two hearts or more
+with a potion of healing from its inventory or a chest of the station, and harvests and
+replants **nether wart** on soul sand within 6 blocks (`apothecary.wartRadius`), planting
+what it carries beyond one. It trades like a vanilla cleric.
+
 ## Fisher
 
 A hired villager at a vanilla **barrel** becomes a **fisher** (ordinary villagers still
@@ -550,6 +568,10 @@ picks up its own arrows in the morning and bottles 20 experience into 2 bottles,
 guard kills a husk far outside its radius, a guard works during a raid in the daytime, the
 smith repairs a bow with bottles and waits for bottles for an enchanted pickaxe, the
 fletcher makes 24 arrows from gravel and 36 from an iron ingot and stops at its stock, the
+apothecary makes glass bottles, fills water bottles at a puddle, brews three potions of
+healing from glass bottles (water, nether wart, glistering melon, blaze powder), heals an
+injured worker with a potion from its output chest and harvests and replants ripe nether
+wart, the
 fisher fishes at a pond and rows out on a lake with its boat and takes it back, uses up a
 plain rod but gives back an enchanted one, the
 butcher slaughters cows down to the herd size, breeds a piglet and smokes chicken, a

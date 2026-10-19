@@ -105,6 +105,13 @@ public final class Config {
 	public static final IntOption EXPERIENCE_REPAIR_PERCENT = intOption("smith", "experienceRepairPercent", 10, 1, 100,
 		"How much of the durability one bottle o' enchanting repairs of an item without repair material (bow, fishing rod, shears).");
 
+	public static final IntOption APOTHECARY_WATER_RADIUS = intOption("apothecary", "waterRadius", 8, 2, 16,
+		"How far from the brewing stand (in blocks, sideways) the apothecary looks for water to fill bottles.");
+	public static final IntOption HEAL_RADIUS = intOption("apothecary", "healRadius", 32, 8, 64,
+		"How far from the brewing stand the apothecary looks for injured workers to heal.");
+	public static final IntOption WART_RADIUS = intOption("apothecary", "wartRadius", 6, 2, 12,
+		"How far from the brewing stand the apothecary tends nether wart on soul sand.");
+
 	public static final IntOption WATER_RADIUS = intOption("fisher", "waterRadius", 16, 4, 32,
 		"How far from the barrel (in blocks, sideways) the fisher looks for water to fish from the shore.");
 	public static final IntOption SEA_RADIUS = intOption("fisher", "seaRadius", 32, 8, 64,

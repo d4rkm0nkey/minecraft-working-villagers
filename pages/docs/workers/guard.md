@@ -20,7 +20,7 @@ for. The experience of its kills it fills into bottles o' enchanting, which the
    **input chest** with arrows (and spare bows) and an **output chest** for the loot.
 4. Tab :mc-bow: **Settings**: how far around the target it guards, 8 to 32 blocks (16 by
    default), and what it does at night: **Guard** or **Hunt**.
-5. For the experience: **glass bottles** in its input chest or a village chest.
+5. For the experience: **glass bottles** in its input chest or a village chest (the [apothecary](apothecary.md) makes them).
 
 A [village chest](basics.md#village-chests) works too: the guard takes arrows and bows from
 there when it runs low. Let the fletcher bring its arrows into the village chest.

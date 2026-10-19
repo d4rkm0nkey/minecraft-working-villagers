@@ -379,6 +379,23 @@ public class Workstations extends SavedData {
 			this.setStrip(hunting);
 		}
 
+		/**
+		 * Brewing stand: the potion of the order ({@code minecraft:healing}), null for glass
+		 * bottles. Kept in the woods field, which the brewing stand has no use for.
+		 */
+		public @Nullable String potion() {
+			return this.woods.isEmpty() ? null : this.woods.iterator().next();
+		}
+
+		/** Brewing stand: orders the item, for potions with the potion (see {@link #potion}). */
+		public void setOrder(@Nullable Item order, @Nullable String potion) {
+			this.woods.clear();
+			if (order != null && potion != null) {
+				this.woods.add(potion);
+			}
+			this.setOrder(order);
+		}
+
 		/** Barrel: whether the fisher rows out in a boat when there is open water nearby. */
 		public boolean boat() {
 			return this.boat;

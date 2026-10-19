@@ -272,6 +272,10 @@ public class MenuScreenshots implements FabricClientGameTest {
 				station.setOrder(Items.ARROW);
 				station.setStock(64);
 			}
+			if (type == StationType.BREWING_STAND) {
+				station.setOrder(Items.POTION, "minecraft:healing");
+				station.setStock(6);
+			}
 			if (type == StationType.WOODCUTTER) {
 				station.setShape("planks");
 				station.setWood("oak", true);

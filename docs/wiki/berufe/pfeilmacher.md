@@ -13,7 +13,7 @@ Der Pfeilmacher versorgt die [Wachen](wache.md) des Dorfes mit Pfeilen und Böge
 - **Status:** „Sieht nach dem Auftrag“, „Holt Material“, „Fertigt Pfeile und Bögen“, „Wartet: kein Auftrag“, „Wartet auf Feder“ (das fehlende Material), „Vorrat ist voll (x/y)“, „Kommt nicht an den Bognertisch“, dazu „Heute: x“ (gefertigte Stücke).
 - **Kleidung:** waldgrüner Kittel mit Köcherriemen, brauner Filzhut mit roter Feder.
 - **Tests:** 6 Kies, Stöcke und Federn ergeben 24 Pfeile; ein Eisenbarren ergibt 36 Pfeile; bei einem Vorrat von 8 hört er bei 8 Pfeilen auf.
-- **Nicht umgesetzt:** getränkte Pfeile (braucht den Kleriker), ein eigenes Bognertisch-Menü für Spieler, Wahl der Spitzen im Auftrag (er nimmt sie in fester Reihenfolge).
+- **Nicht umgesetzt:** getränkte Pfeile (braucht Verweiltränke vom [Apotheker](apotheker.md)), ein eigenes Bognertisch-Menü für Spieler, Wahl der Spitzen im Auftrag (er nimmt sie in fester Reihenfolge).
 
 ## Der Kreislauf
 
@@ -53,7 +53,7 @@ Wie beim [Tischler](tischler.md) wählt man im Reiter **Auftrag** Produkte und e
 | Bogen | 3 Stöcke, 3 Fäden | Wachen (Bögen nutzen sich ab) |
 | Armbrust | 3 Stöcke, 2 Fäden, Eisenbarren, Stolperdrahthaken | Wachen mit Armbrust (später) |
 | Spektralpfeile | 4 Glowstone-Staub, 1 Pfeil (→ 2) | Leuchtende Treffer, Wachen sehen Mobs im Dunkeln |
-| Getränkte Pfeile | 8 Pfeile, 1 Verweiltrank (→ 8) | sobald es den [Kleriker](kleriker.md) gibt |
+| Getränkte Pfeile | 8 Pfeile, 1 Verweiltrank (→ 8) | Verweiltränke braucht der [Apotheker](apotheker.md) (Drachenatem) |
 
 Faden kommt von Spinnen: Wachen, die nachts Spinnen erlegen, bringen ihn mit (siehe [Wache](wache.md#beute)).
 

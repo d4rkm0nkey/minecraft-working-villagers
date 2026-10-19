@@ -74,6 +74,16 @@ default and its allowed range, so you can edit it with any text editor.
 
 The radius it guards is set at each target (tab **Settings**).
 
+## Apothecary (`apothecary`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `waterRadius` | 8 | 2–16 | How far from the brewing stand it looks for water to fill bottles. |
+| `healRadius` | 32 | 8–64 | How far from the brewing stand it looks for injured workers. |
+| `wartRadius` | 6 | 2–12 | How far from the brewing stand it tends nether wart on soul sand. |
+
+Its order and stock are set at the brewing stand.
+
 ## Fletcher
 
 The fletcher has no config options; its order and stock are set at the fletching table.

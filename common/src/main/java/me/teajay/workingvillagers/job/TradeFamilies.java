@@ -28,6 +28,8 @@ public final class TradeFamilies {
 		Map.entry(WorkingVillagers.FISHER_PROFESSION, "fisherman"),
 		Map.entry(VillagerProfession.FLETCHER, "fletcher"),
 		Map.entry(WorkingVillagers.FLETCHER_PROFESSION, "fletcher"),
+		Map.entry(VillagerProfession.CLERIC, "cleric"),
+		Map.entry(WorkingVillagers.APOTHECARY_PROFESSION, "cleric"),
 		Map.entry(VillagerProfession.ARMORER, "smith"),
 		Map.entry(VillagerProfession.TOOLSMITH, "smith"),
 		Map.entry(WorkingVillagers.SMITH_PROFESSION, "smith")

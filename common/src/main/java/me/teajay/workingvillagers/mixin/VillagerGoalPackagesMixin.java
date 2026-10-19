@@ -9,6 +9,7 @@ import me.teajay.workingvillagers.job.CarryItems;
 import me.teajay.workingvillagers.carrier.KeepCarrierJob;
 import me.teajay.workingvillagers.job.ChopTrees;
 import me.teajay.workingvillagers.job.CraftAtBench;
+import me.teajay.workingvillagers.job.BrewPotions;
 import me.teajay.workingvillagers.job.CutAtStation;
 import me.teajay.workingvillagers.job.DigPit;
 import me.teajay.workingvillagers.job.DigTunnel;
@@ -86,6 +87,8 @@ public abstract class VillagerGoalPackagesMixin {
 			work = new GoFishing();
 		} else if (profession.is(WorkingVillagers.FLETCHER_PROFESSION)) {
 			work = new FletchArrows();
+		} else if (profession.is(WorkingVillagers.APOTHECARY_PROFESSION)) {
+			work = new BrewPotions();
 		} else if (profession.is(WorkingVillagers.GUARD_PROFESSION)) {
 			work = new GuardPost();
 		} else if (profession.is(WorkingVillagers.KILN_OPERATOR_PROFESSION)) {

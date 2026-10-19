@@ -5,11 +5,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 import me.teajay.workingvillagers.Config;
 import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.crafting.CarpenterRecipes;
 import me.teajay.workingvillagers.crafting.CuttingRecipes;
+import me.teajay.workingvillagers.crafting.BrewingPaths;
 import me.teajay.workingvillagers.crafting.KilnRecipes;
 import me.teajay.workingvillagers.crafting.StoneFamilies;
 import me.teajay.workingvillagers.crafting.WoodTypes;
@@ -29,6 +29,7 @@ import me.teajay.workingvillagers.station.Tunnel;
 import me.teajay.workingvillagers.station.Workstations.ChestRole;
 import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntArrayTag;
@@ -37,7 +38,6 @@ import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
-import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -199,6 +199,8 @@ public class StationMenu extends AbstractContainerMenu {
 	private List<BlockPos> shownChests = List.of();
 	/** Server only, carpenter's bench: the products as last sent. */
 	private List<Item> shownProducts = List.of();
+	/** Brewing stand: the products of the grid, potions with their potion. */
+	private List<ItemStack> shownStacks = List.of();
 	/** Server only, stonecutter: the families, computed once; the buttons refer to their products. */
 	private @Nullable List<StoneFamilies.Family> families;
 	/** Client, stonecutter: the info the families were read from, to read them only once per update. */
@@ -285,6 +287,7 @@ public class StationMenu extends AbstractContainerMenu {
 			case SMOKER -> WorkingVillagers.SMOKER_STATION_MENU;
 			case BARREL -> WorkingVillagers.BARREL_STATION_MENU;
 			case FLETCHING_TABLE -> WorkingVillagers.FLETCHING_TABLE_STATION_MENU;
+			case BREWING_STAND -> WorkingVillagers.BREWING_STAND_STATION_MENU;
 			case TARGET -> WorkingVillagers.TARGET_STATION_MENU;
 			case PIT_STAKE -> WorkingVillagers.PIT_STAKE_MENU;
 			case KILN -> WorkingVillagers.KILN_STATION_MENU;
@@ -333,6 +336,7 @@ public class StationMenu extends AbstractContainerMenu {
 					if (this.type == StationType.CHOPPING_BLOCK || this.type == StationType.COMPOSTER || this.type == StationType.PIT_STAKE
 						|| this.type == StationType.TRADING_COUNTER || this.type == StationType.MINING_BENCH || this.type == StationType.LOOM
 						|| this.type == StationType.SMOKER || this.type == StationType.BARREL || this.type == StationType.FLETCHING_TABLE
+						|| this.type == StationType.BREWING_STAND
 						|| this.type == StationType.TARGET) {
 						tag.putInt(TAG_LOGS, ((HiredVillager) villager).workingvillagers$getWorkDone(
 							this.type == StationType.TARGET ? GuardPost.night(serverLevel) : ChopTrees.today(serverLevel)));
@@ -403,7 +407,9 @@ public class StationMenu extends AbstractContainerMenu {
 				}
 			}
 			if (station.order() != null) {
-				tag.putString(TAG_ORDER, BuiltInRegistries.ITEM.getKey(station.order()).toString());
+				tag.putString(TAG_ORDER, this.type == StationType.BREWING_STAND
+					? BrewingPaths.key(BrewingPaths.order(station.order(), station.potion()))
+					: BuiltInRegistries.ITEM.getKey(station.order()).toString());
 			}
 			if (this.type.hasWoods()) {
 				ListTag woods = new ListTag();
@@ -444,6 +450,13 @@ public class StationMenu extends AbstractContainerMenu {
 				this.shownProducts = this.type == StationType.KILN ? KilnRecipes.products(serverLevel) : FletchArrows.PRODUCTS;
 				ListTag products = new ListTag();
 				this.shownProducts.forEach(product -> products.add(StringTag.valueOf(BuiltInRegistries.ITEM.getKey(product).toString())));
+				tag.put(TAG_PRODUCTS, products);
+				tag.putInt(TAG_STOCK, station.stock());
+			}
+			if (this.type == StationType.BREWING_STAND) {
+				this.shownStacks = BrewingPaths.products(serverLevel);
+				ListTag products = new ListTag();
+				this.shownStacks.forEach(product -> products.add(StringTag.valueOf(BrewingPaths.key(product))));
 				tag.put(TAG_PRODUCTS, products);
 				tag.putInt(TAG_STOCK, station.stock());
 			}
@@ -559,11 +572,7 @@ public class StationMenu extends AbstractContainerMenu {
 
 	/** What the worker makes, empty if there is no order. */
 	public ItemStack getOrder() {
-		return this.info.info().getString(TAG_ORDER)
-			.map(Identifier::tryParse)
-			.flatMap(id -> id == null ? Optional.empty() : BuiltInRegistries.ITEM.getOptional(id))
-			.map(ItemStack::new)
-			.orElse(ItemStack.EMPTY);
+		return this.info.info().getString(TAG_ORDER).map(BrewingPaths::fromKey).orElse(ItemStack.EMPTY);
 	}
 
 	/** Woodcutter and carpenter's bench: the shape of the order, null if none. */
@@ -579,9 +588,8 @@ public class StationMenu extends AbstractContainerMenu {
 	public List<ItemStack> getProducts() {
 		return this.info.info().getListOrEmpty(TAG_PRODUCTS).stream()
 			.flatMap(tag -> tag.asString().stream())
-			.map(Identifier::tryParse)
-			.flatMap(id -> id == null ? Stream.empty() : BuiltInRegistries.ITEM.getOptional(id).stream())
-			.map(ItemStack::new)
+			.map(BrewingPaths::fromKey)
+			.filter(stack -> !stack.isEmpty())
 			.toList();
 	}
 
@@ -822,6 +830,22 @@ public class StationMenu extends AbstractContainerMenu {
 		if (this.type == StationType.PIT_STAKE && (buttonId == DEPTH_LESS_BUTTON || buttonId == DEPTH_MORE_BUTTON)) {
 			station.setDepth(station.depth() + (buttonId == DEPTH_MORE_BUTTON ? 1 : -1));
 			return true;
+		}
+		if (this.type == StationType.BREWING_STAND) {
+			if (buttonId >= KILN_PRODUCT_BUTTON && buttonId < KILN_PRODUCT_BUTTON + this.shownStacks.size()) {
+				ItemStack product = this.shownStacks.get(buttonId - KILN_PRODUCT_BUTTON);
+				if (BrewingPaths.same(product, BrewingPaths.order(station.order(), station.potion()))) {
+					station.setOrder(null, null);
+				} else {
+					station.setOrder(product.getItem(), BrewingPaths.potionOf(product).flatMap(Holder::unwrapKey).map(key -> key.identifier().toString()).orElse(null));
+				}
+				return true;
+			}
+			if (buttonId == STOCK_LESS_BUTTON || buttonId == STOCK_MORE_BUTTON) {
+				station.setStock(nextStock(station.stock(), buttonId == STOCK_MORE_BUTTON));
+				return true;
+			}
+			return false;
 		}
 		if (this.type == StationType.KILN || this.type == StationType.FLETCHING_TABLE) {
 			if (buttonId >= KILN_PRODUCT_BUTTON && buttonId < KILN_PRODUCT_BUTTON + this.shownProducts.size()) {

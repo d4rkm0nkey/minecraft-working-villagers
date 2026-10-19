@@ -11,6 +11,8 @@
     "BlastFurnaceMenuMixin",
     "BoatItemAccessor",
     "BrainAccessor",
+    "BrewingStandBlockEntityAccessor",
+    "BrewingStandMenuMixin",
     "ChestMenuMixin",
     "ComposterBlockMixin",
     "DisplayMixin",
@@ -31,6 +33,7 @@
   ],
   "client": [
     "client.BlastFurnaceScreenMixin",
+    "client.BrewingStandScreenMixin",
     "client.ContainerScreenMixin",
     "client.LoomScreenMixin",
     "client.ScreenAccessor",

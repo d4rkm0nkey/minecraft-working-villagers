@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "workingvillagers:work_hours",
+  "function": "workingvillagers:apothecary_brews_healing",
+  "max_ticks": 4000,
+  "setup_ticks": 1,
+  "structure": "workingvillagers:platform"
+}

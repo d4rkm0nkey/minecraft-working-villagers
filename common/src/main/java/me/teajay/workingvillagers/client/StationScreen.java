@@ -110,7 +110,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		int productRows = type == StationType.CARPENTER_BENCH ? 3 : 2;
 		this.woodsLabelY = SHAPES_Y + productRows * 18 + 5;
 		this.woodsY = this.woodsLabelY + 11;
-		this.stockY = type == StationType.KILN || type == StationType.FLETCHING_TABLE ? SHAPES_Y + KILN_ROWS * 18 + 8 : this.woodsY + 2 * 18 + 6;
+		this.stockY = type == StationType.KILN || type == StationType.FLETCHING_TABLE || type == StationType.BREWING_STAND ? SHAPES_Y + KILN_ROWS * 18 + 8 : this.woodsY + 2 * 18 + 6;
 	}
 
 	/** The open tab, e.g. "wage" (for the tests of the menus). */
@@ -143,14 +143,18 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		return this.type() == StationType.KILN;
 	}
 
-	/** Kiln and fletching table: the order is picked from a grid of products, with a stock. */
+	/** Kiln, fletching table and brewing stand: the order is picked from a grid of products, with a stock. */
 	private boolean hasProductGrid() {
-		return this.isKiln() || this.type() == StationType.FLETCHING_TABLE;
+		return this.isKiln() || this.type() == StationType.FLETCHING_TABLE || this.type() == StationType.BREWING_STAND;
 	}
 
-	/** The start of the translation keys of the product grid: the kiln's or the fletcher's. */
+	/** The start of the translation keys of the product grid: the kiln's, the fletcher's or the apothecary's. */
 	private String gridKeys() {
-		return this.isKiln() ? "gui.workingvillagers.kiln" : "gui.workingvillagers.fletcher";
+		return switch (this.type()) {
+			case KILN -> "gui.workingvillagers.kiln";
+			case BREWING_STAND -> "gui.workingvillagers.apothecary";
+			default -> "gui.workingvillagers.fletcher";
+		};
 	}
 
 	/**
@@ -466,7 +470,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	private void extractOrderTab(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
 		switch (this.type()) {
 			case STONECUTTER -> this.extractStoneOrder(graphics, mouseX, mouseY);
-			case KILN, FLETCHING_TABLE -> {
+			case KILN, FLETCHING_TABLE, BREWING_STAND -> {
 				this.extractKilnOrder(graphics, mouseX, mouseY);
 				this.extractStock(graphics, mouseX, mouseY);
 			}
@@ -670,7 +674,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		if (!this.kilnPageShown && !products.isEmpty()) {
 			this.kilnPageShown = true;
 			for (int i = 0; i < products.size(); i++) {
-				if (order.is(products.get(i).getItem())) {
+				if (ItemStack.isSameItemSameComponents(order, products.get(i))) {
 					this.kilnPage = i / KILN_CELLS;
 				}
 			}
@@ -688,7 +692,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		int start = this.kilnPage * KILN_CELLS;
 		for (int i = start; i < Math.min(products.size(), start + KILN_CELLS); i++) {
 			ItemStack product = products.get(i);
-			boolean selected = order.is(product.getItem());
+			boolean selected = ItemStack.isSameItemSameComponents(order, product);
 			int x = left + (i - start) % GRID_COLUMNS * 18;
 			int y = top + (i - start) / GRID_COLUMNS * 18;
 			this.cell(graphics, x, y, product, selected, false);
@@ -830,7 +834,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		int textY = (BIG - 8) / 2 + 1;
 		switch (this.type()) {
 			case STONECUTTER -> GuiPanels.scrollingText(graphics, this.font, this.stoneLabel().getString(), 8, SHAPES_Y - 11, COLUMN_WIDTH - 40, GuiPanels.TEXT_COLOR);
-			case KILN, FLETCHING_TABLE -> graphics.text(this.font, Component.translatable("gui.workingvillagers.station.shape"), 8, SHAPES_Y - 11, GuiPanels.TEXT_COLOR, false);
+			case KILN, FLETCHING_TABLE, BREWING_STAND -> graphics.text(this.font, Component.translatable("gui.workingvillagers.station.shape"), 8, SHAPES_Y - 11, GuiPanels.TEXT_COLOR, false);
 			case WOODCUTTER, CARPENTER_BENCH -> {
 				graphics.text(this.font, Component.translatable("gui.workingvillagers.station.shape"), 8, SHAPES_Y - 11, GuiPanels.TEXT_COLOR, false);
 				graphics.text(this.font, Component.translatable(this.isBench() ? "gui.workingvillagers.station.woods.bench" : "gui.workingvillagers.station.woods"),
@@ -952,6 +956,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			case SMOKER -> "gui.workingvillagers.station.back.tooltip.smoker";
 			case BARREL -> "gui.workingvillagers.station.back.tooltip.barrel";
 			case KILN -> "gui.workingvillagers.station.back.tooltip.kiln";
+			case BREWING_STAND -> "gui.workingvillagers.station.back.tooltip.brewing_stand";
 			case MINING_BENCH -> "gui.workingvillagers.station.back.tooltip.mill";
 			default -> "gui.workingvillagers.station.back.tooltip";
 		};
@@ -1014,8 +1019,9 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			}
 			return blocks < 0 ? Optional.empty() : Optional.of(Component.translatable("gui.workingvillagers.pit.today", blocks, this.menu.getDailyLogs()));
 		}
-		if (this.type() == StationType.FLETCHING_TABLE && !this.menu.getOrder().isEmpty() && this.menu.getLogsToday() >= 0) {
-			return Optional.of(Component.translatable("gui.workingvillagers.fletcher.today", this.menu.getOrder().getHoverName(), this.menu.getLogsToday()));
+		if ((this.type() == StationType.FLETCHING_TABLE || this.type() == StationType.BREWING_STAND) && !this.menu.getOrder().isEmpty()
+			&& this.menu.getLogsToday() >= 0) {
+			return Optional.of(Component.translatable(this.gridKeys() + ".today", this.menu.getOrder().getHoverName(), this.menu.getLogsToday()));
 		}
 		if (this.type() == StationType.TARGET) {
 			int kills = this.menu.getLogsToday();

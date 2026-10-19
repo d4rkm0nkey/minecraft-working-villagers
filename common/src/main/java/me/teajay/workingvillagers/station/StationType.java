@@ -52,7 +52,12 @@ public enum StationType {
 	 * The guard stands at the target at night and shoots monsters; arrows and bows can come
 	 * from input chests, what the monsters drop goes to the output chests.
 	 */
-	TARGET(true);
+	TARGET(true),
+	/**
+	 * The apothecary makes glass bottles, water bottles and potions at the brewing stand from
+	 * its input chests, as ordered, and heals injured workers with potions of healing.
+	 */
+	BREWING_STAND(true);
 
 	private final boolean processing;
 
@@ -71,12 +76,12 @@ public enum StationType {
 	/** Whether the block has a screen of its own, which the overview leads back to. */
 	public boolean hasOwnScreen() {
 		return this == WOODCUTTER || this == STONECUTTER || this == CARPENTER_BENCH || this == BLAST_FURNACE || this == KILN || this == MINING_BENCH
-			|| this == SMITHING_TABLE || this == LOOM || this == SMOKER || this == BARREL;
+			|| this == SMITHING_TABLE || this == LOOM || this == SMOKER || this == BARREL || this == BREWING_STAND;
 	}
 
 	/** Whether the worker needs an order, set in the order column of the overview. */
 	public boolean hasOrder() {
-		return this == WOODCUTTER || this == STONECUTTER || this == CARPENTER_BENCH || this == KILN || this == FLETCHING_TABLE;
+		return this == WOODCUTTER || this == STONECUTTER || this == CARPENTER_BENCH || this == KILN || this == FLETCHING_TABLE || this == BREWING_STAND;
 	}
 
 	/**
@@ -85,7 +90,7 @@ public enum StationType {
 	 */
 	public boolean isVanilla() {
 		return this == STONECUTTER || this == COMPOSTER || this == BLAST_FURNACE || this == SMITHING_TABLE || this == LOOM || this == SMOKER || this == BARREL
-			|| this == FLETCHING_TABLE;
+			|| this == FLETCHING_TABLE || this == BREWING_STAND;
 	}
 
 	/**
@@ -123,6 +128,7 @@ public enum StationType {
 			case BARREL -> WorkingVillagers.FISHER_PROFESSION;
 			case FLETCHING_TABLE -> WorkingVillagers.FLETCHER_PROFESSION;
 			case TARGET -> WorkingVillagers.GUARD_PROFESSION;
+			case BREWING_STAND -> WorkingVillagers.APOTHECARY_PROFESSION;
 		};
 	}
 
@@ -144,6 +150,7 @@ public enum StationType {
 			case BARREL -> Blocks.BARREL.getName();
 			case FLETCHING_TABLE -> Blocks.FLETCHING_TABLE.getName();
 			case TARGET -> Blocks.TARGET.getName();
+			case BREWING_STAND -> Blocks.BREWING_STAND.getName();
 		};
 	}
 
@@ -165,6 +172,7 @@ public enum StationType {
 			case BARREL -> Blocks.BARREL;
 			case FLETCHING_TABLE -> Blocks.FLETCHING_TABLE;
 			case TARGET -> Blocks.TARGET;
+			case BREWING_STAND -> Blocks.BREWING_STAND;
 		};
 	}
 
@@ -201,6 +209,8 @@ public enum StationType {
 			return FLETCHING_TABLE;
 		} else if (state.is(Blocks.TARGET)) {
 			return TARGET;
+		} else if (state.is(Blocks.BREWING_STAND)) {
+			return BREWING_STAND;
 		}
 		return null;
 	}

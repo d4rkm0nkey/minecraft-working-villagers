@@ -20,12 +20,6 @@ next:
     summary: Takes goods to neighbouring villages by caravan and sells them where they are wanted.
 
 later:
-  fisher: {name: Fisher, workstation: barrel, work: ":mc-fishing_rod: Fishes at marked water"}
-  shepherd: {name: Shepherd, workstation: loom, work: ":mc-shears: Shears sheep and sorts the wool"}
-  butcher: {name: Butcher, workstation: smoker, work: ":mc-cod: Breeds animals and smokes the meat"}
   tanner: {name: Tanner, workstation: cauldron, work: ":mc-leather: Works leather"}
-  fletcher: {name: Fletcher, workstation: fletching_table, work: ":mc-arrow: Makes arrows"}
   cartographer: {name: Cartographer, workstation: cartography_table, work: ":mc-filled_map: Explores the land and finds villages"}
-  cleric: {name: Cleric, workstation: brewing_stand, work: ":mc-experience_bottle: Brews potions"}
   librarian: {name: Librarian, workstation: lectern, work: ":mc-book: Keeps a list of what is in your storage"}
-  guard: {name: Guard, work: ":mc-iron_sword: Protects mines and caravans (an idea so far)"}

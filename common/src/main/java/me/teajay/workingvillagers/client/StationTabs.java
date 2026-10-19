@@ -112,6 +112,7 @@ public final class StationTabs {
 				case SMOKER -> Items.PORKCHOP;
 				case BARREL -> Items.OAK_BOAT;
 				case FLETCHING_TABLE -> Items.ARROW;
+				case BREWING_STAND -> Items.GLASS_BOTTLE;
 				case TARGET -> Items.BOW;
 				default -> Items.PAPER;
 			};

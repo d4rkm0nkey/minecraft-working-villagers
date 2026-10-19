@@ -482,6 +482,44 @@ def guard():
     return image
 
 
+def apothecary():
+    """Villager profession overlay: a cream long coat with a bottle green apron, a leather belt
+    with three small potion vials (red, blue, green), and a round bottle green cap."""
+    image = blank(64)
+    p = image.load()
+    cream, cream_dark = (225, 215, 190, 255), (195, 183, 155, 255)
+    apron, apron_dark = (45, 95, 75, 255), (32, 72, 56, 255)
+    leather, glass = (110, 72, 40, 255), (210, 230, 235, 255)
+    vials = [(200, 45, 45, 255), (60, 90, 200, 255), (70, 170, 60, 255)]
+    trousers = (75, 65, 60, 255)
+
+    def fill(x0, y0, x1, y1, color):
+        for y in range(y0, y1):
+            for x in range(x0, x1):
+                p[x, y] = color(x, y)
+
+    coat = lambda x, y: cream_dark if y % 5 == 4 else cream
+    fill(16, 20, 44, 38, coat)  # body
+    fill(22, 22, 26, 38, lambda x, y: apron_dark if x in (22, 25) else apron)  # apron on the front
+    fill(20, 20, 22, 23, lambda x, y: apron_dark)  # apron straps
+    fill(26, 20, 28, 23, lambda x, y: apron_dark)
+    fill(20, 31, 28, 32, lambda x, y: leather)  # belt
+    for i, vial in enumerate(vials):
+        x = 20 + 3 * i
+        p[x, 32] = glass  # the neck of the vial
+        p[x, 33] = p[x, 34] = vial
+    fill(44, 22, 60, 34, coat)  # crossed arms
+    fill(40, 38, 64, 46, coat)  # crossed arms, middle part
+    fill(6, 38, 14, 44, coat)  # robe top
+    fill(0, 44, 28, 64, coat)  # robe: the long coat
+    fill(6, 44, 10, 64, lambda x, y: apron_dark if x in (6, 9) else apron)  # apron on the robe
+    fill(0, 52, 28, 53, lambda x, y: leather)  # belt
+    fill(0, 22, 16, 38, lambda x, y: trousers)  # legs
+    fill(40, 0, 48, 8, lambda x, y: apron)  # cap top
+    fill(32, 8, 64, 10, lambda x, y: apron_dark if y == 9 else apron)  # cap sides
+    return image
+
+
 def kiln_operator():
     """Villager profession overlay: a brick red head scarf knotted at the back; a terracotta shirt with the sleeves rolled up, a grey leather waist
     apron with clay and ash stains, soot on the forearms, dark trousers and boots."""
@@ -953,6 +991,8 @@ def main():
         "entity/zombie_villager/profession/butcher.png": butcher(),
         "entity/villager/profession/fisher.png": fisher(),
         "entity/zombie_villager/profession/fisher.png": fisher(),
+        "entity/villager/profession/apothecary.png": apothecary(),
+        "entity/zombie_villager/profession/apothecary.png": apothecary(),
         "entity/villager/profession/fletcher.png": fletcher(),
         "entity/zombie_villager/profession/fletcher.png": fletcher(),
         "entity/villager/profession/guard.png": guard(),

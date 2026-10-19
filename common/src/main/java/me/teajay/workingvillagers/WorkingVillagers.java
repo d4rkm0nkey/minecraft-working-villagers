@@ -80,6 +80,8 @@ public final class WorkingVillagers {
 	/** Works at the vanilla target, which no vanilla profession uses: guards the village at night. */
 	public static final ResourceKey<PoiType> GUARD_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("guard"));
 	public static final ResourceKey<VillagerProfession> GUARD_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("guard"));
+	/** Works at the vanilla brewing stand, the job site of the vanilla cleric. */
+	public static final ResourceKey<VillagerProfession> APOTHECARY_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("apothecary"));
 	/** Works at the vanilla fletching table, the job site of the vanilla fletcher. */
 	public static final ResourceKey<VillagerProfession> FLETCHER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("fletcher"));
 	/** Works at the vanilla barrel, the job site of the vanilla fisherman. */
@@ -124,6 +126,7 @@ public final class WorkingVillagers {
 	public static Supplier<MenuType<StationMenu>> SMOKER_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> BARREL_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> FLETCHING_TABLE_STATION_MENU;
+	public static Supplier<MenuType<StationMenu>> BREWING_STAND_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> TARGET_STATION_MENU;
 	public static Supplier<MenuType<CutterMenu>> WOODCUTTER_MENU;
 	public static Supplier<RecipeType<WoodcuttingRecipe>> WOODCUTTING;
@@ -210,6 +213,7 @@ public final class WorkingVillagers {
 		registerFisher(platform);
 		registerFletcher(platform);
 		registerGuard(platform);
+		registerApothecary(platform);
 		registerPitDigger(platform);
 		registerKilnOperator(platform);
 		registerShopAssistant(platform);
@@ -380,6 +384,17 @@ public final class WorkingVillagers {
 		TARGET_STATION_MENU = platform.registerMenu("target_station", (containerId, inventory) -> new StationMenu(StationType.TARGET, containerId, inventory));
 		platform.registerPoi("guard", () -> Blocks.TARGET, 1, 1);
 		registerProfession(platform, "guard", GUARD_POI, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_WEAPONSMITH);
+	}
+
+	/**
+	 * The apothecary works at the vanilla brewing stand: it makes glass bottles, fills them
+	 * with water, brews the ordered potion and heals injured workers. Ordinary villagers still
+	 * become (vanilla) clerics there; the tabs above the brewing stand's screen open the overview.
+	 */
+	private static void registerApothecary(Platform platform) {
+		BREWING_STAND_STATION_MENU = platform.registerMenu("brewing_stand_station",
+			(containerId, inventory) -> new StationMenu(StationType.BREWING_STAND, containerId, inventory));
+		registerProfession(platform, "apothecary", PoiTypes.CLERIC, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_CLERIC, VillagerProfession.CLERIC);
 	}
 
 	/**

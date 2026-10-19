@@ -34,6 +34,10 @@ the status does not help, go through this list.
 | *Waiting: needs a bow (give them one)* | Give the guard a bow. |
 | *Waiting: no order* | Pick a product at the fletching table (right-click it with an empty hand, tab **Order**). |
 | *Waiting for Feather* (or another material) | The fletcher's input chests lack it. Arrows need a head (flint, gravel, copper or iron), a stick and a feather. |
+| *Waiting for Glass Bottle* (or another material) | The apothecary's input chests lack it: glass bottles or glass, or an ingredient of the next brewing step. |
+| *Waiting for blaze powder* | The brewing stand has no fuel left. Put blaze powder into the apothecary's input chest. |
+| *No water near the brewing stand* | No water within 8 blocks of the brewing stand, or no bank next to it to stand on. |
+| *Waiting: the brewing stand is in use* | Someone else brews at the brewing stand, or it holds items the apothecary cannot carry. |
 | *Waiting: no water near the barrel* | No water (at least a small pond) within 16 blocks of the barrel, or no bank next to it to stand on. |
 | *Cannot get to the water* | The fisher cannot walk to the bank it picked. Make a path, or move the barrel. |
 | *Waiting: needs a fishing rod (give them one)* | Right-click the fisher with a fishing rod. |

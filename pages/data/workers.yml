@@ -104,6 +104,18 @@ fletcher:
     Takes: ":mc-gravel: Gravel or nuggets, :mc-stick: sticks, :mc-feather: feathers"
     Makes: ":mc-arrow: Arrows, :mc-spectral_arrow: spectral arrows, :mc-bow: bows"
 
+apothecary:
+  name: Apothecary
+  page: workers/apothecary.md
+  head: apothecary
+  workstation: brewing_stand
+  summary: Brews potions step by step at the brewing stand, makes glass bottles and heals injured workers.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-brewing_stand: Brewing stand"
+    Takes: ":mc-glass: Glass or :mc-glass_bottle: bottles, :mc-nether_wart: nether wart, :mc-blaze_powder: blaze powder"
+    Makes: ":mc-glass_bottle: Glass bottles, water bottles, potions"
+
 fisher:
   name: Fisher
   page: workers/fisher.md

@@ -21,6 +21,11 @@ import me.teajay.workingvillagers.station.StationType;
 import me.teajay.workingvillagers.station.Workstations.ChestRole;
 import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.NetherWartBlock;
+import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.core.Holder;
+import me.teajay.workingvillagers.crafting.BrewingPaths;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -129,6 +134,11 @@ public final class WorkerTests {
 		registry.accept("fletcher_makes_arrows_from_gravel", WorkerTests::fletcherMakesArrowsFromGravel);
 		registry.accept("fletcher_makes_arrows_from_nuggets", WorkerTests::fletcherMakesArrowsFromNuggets);
 		registry.accept("fletcher_keeps_stock", WorkerTests::fletcherKeepsStock);
+		registry.accept("apothecary_makes_bottles", WorkerTests::apothecaryMakesBottles);
+		registry.accept("apothecary_fills_water", WorkerTests::apothecaryFillsWater);
+		registry.accept("apothecary_brews_healing", WorkerTests::apothecaryBrewsHealing);
+		registry.accept("apothecary_heals_worker", WorkerTests::apothecaryHealsWorker);
+		registry.accept("apothecary_harvests_nether_wart", WorkerTests::apothecaryHarvestsNetherWart);
 		registry.accept("guard_shoots_zombie", WorkerTests::guardShootsZombie);
 		registry.accept("guard_collects_arrows", WorkerTests::guardCollectsArrows);
 		registry.accept("guard_bottles_experience", WorkerTests::guardBottlesExperience);
@@ -492,6 +502,79 @@ public final class WorkerTests {
 			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.DIAMOND)) == 3, "The smith used diamonds without bottles: " + TestWorld.describe(worker));
 			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.DIAMOND_PICKAXE) && stack.getDamageValue() == 500) == 1, "The pickaxe was repaired");
 			helper.succeed();
+		});
+	}
+
+	/** A brewing stand with an input chest holding {@code material}, an output chest and the order (empty for none). */
+	private static Villager apothecary(GameTestHelper helper, ItemStack order, ItemStack... material) {
+		BlockPos stand = STATION.below();
+		helper.setBlock(stand, Blocks.BREWING_STAND);
+		TestWorld.chest(helper, INPUT, material);
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, stand, INPUT, ChestRole.INPUT);
+		TestWorld.link(helper, stand, OUTPUT, ChestRole.OUTPUT);
+		if (!order.isEmpty()) {
+			TestWorld.station(helper, stand).setOrder(order.getItem(),
+				BrewingPaths.potionOf(order).flatMap(Holder::unwrapKey).map(key -> key.identifier().toString()).orElse(null));
+		}
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, stand);
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2));
+		return worker;
+	}
+
+	/** Water in the floor next to the brewing stand: two source blocks. */
+	private static void puddle(GameTestHelper helper) {
+		helper.setBlock(new BlockPos(8, -1, 11), Blocks.WATER);
+		helper.setBlock(new BlockPos(9, -1, 11), Blocks.WATER);
+	}
+
+	/** 6 glass: 6 glass bottles. */
+	private static void apothecaryMakesBottles(GameTestHelper helper) {
+		Villager worker = apothecary(helper, new ItemStack(Items.GLASS_BOTTLE), new ItemStack(Items.GLASS, 6));
+		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.GLASS_BOTTLE), 6, "6 glass bottles in the output chest"));
+	}
+
+	/** Glass bottles and water nearby: water bottles. */
+	private static void apothecaryFillsWater(GameTestHelper helper) {
+		puddle(helper);
+		Villager worker = apothecary(helper, BrewingPaths.water(), new ItemStack(Items.GLASS_BOTTLE, 3));
+		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> BrewingPaths.same(stack, BrewingPaths.water()), 3,
+			"3 water bottles in the output chest"));
+	}
+
+	/** Glass bottles, water, nether wart, a glistering melon slice and blaze powder: water, awkward potion, potion of healing. */
+	private static void apothecaryBrewsHealing(GameTestHelper helper) {
+		puddle(helper);
+		ItemStack healing = PotionContents.createItemStack(Items.POTION, Potions.HEALING);
+		Villager worker = apothecary(helper, healing, new ItemStack(Items.GLASS_BOTTLE, 3), new ItemStack(Items.NETHER_WART),
+			new ItemStack(Items.GLISTERING_MELON_SLICE), new ItemStack(Items.BLAZE_POWDER));
+		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> BrewingPaths.same(stack, healing), 3,
+			"3 potions of healing in the output chest"));
+	}
+
+	/** An injured worker nearby and a potion of healing in the output chest: the apothecary heals it. */
+	private static void apothecaryHealsWorker(GameTestHelper helper) {
+		Villager apothecary = apothecary(helper, ItemStack.EMPTY);
+		TestWorld.chest(helper, OUTPUT, PotionContents.createItemStack(Items.POTION, Potions.HEALING));
+		Villager injured = TestWorld.hireVillager(helper, new BlockPos(14, 0, 14));
+		injured.setHealth(8.0F);
+		helper.succeedWhen(() -> {
+			helper.assertTrue(injured.getHealth() > 8.0F, "Not healed: " + injured.getHealth() + ", " + TestWorld.describe(apothecary));
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, BrewingPaths::heals) == 0, "The potion is still in the output chest");
+		});
+	}
+
+	/** Ripe nether wart on soul sand next to the brewing stand: harvested and planted again. */
+	private static void apothecaryHarvestsNetherWart(GameTestHelper helper) {
+		BlockPos wart = new BlockPos(6, 0, 10);
+		helper.setBlock(wart.below(), Blocks.SOUL_SAND);
+		helper.setBlock(wart, Blocks.NETHER_WART.defaultBlockState().setValue(NetherWartBlock.AGE, NetherWartBlock.MAX_AGE));
+		Villager worker = apothecary(helper, ItemStack.EMPTY);
+		helper.succeedWhen(() -> {
+			helper.assertBlockPresent(Blocks.NETHER_WART, wart);
+			helper.assertTrue(helper.getBlockState(wart).getValue(NetherWartBlock.AGE) == 0, "The nether wart was not harvested");
+			helper.assertTrue(worker.getInventory().countItem(Items.NETHER_WART) > 0, "No nether wart in the inventory: " + TestWorld.describe(worker));
 		});
 	}
 

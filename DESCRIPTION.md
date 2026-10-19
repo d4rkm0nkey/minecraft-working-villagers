@@ -56,12 +56,13 @@ Hired villagers never take vanilla jobs and never quit by themselves. A worker t
 - The **carpenter's bench** is a crafting table for wooden things only: chests, barrels, ladders, bookshelves, wooden tools, boats, shields, bows, torches and more. Its menu lists everything and shows what you're missing.
 - The carpenter crafts your order from its input chests and keeps a **stock** you choose, e.g. "always keep 16 chests ready".
 
-## 🌾 Farmer, shepherd, butcher, fisher, fletcher, guard and smith
+## 🌾 Farmer, shepherd, butcher, fisher, fletcher, guard, apothecary and smith
 
 - A hired villager at a vanilla **composter** becomes a farmer: it harvests the ripe crops around it, replants them and brings the harvest to a chest. It needs a hoe you give it, never tills, never tramples the fields and touches nothing but crops.
 - A hired villager at a vanilla **target** becomes a guard: at night it shoots the monsters around it with bow and arrows, or goes hunting, and picks up its arrows in the morning. Every shot costs an arrow, so the village needs a fletcher. Guards fight raids instead of hiding and ring the bell when they see a raider.
 - Guards fill the experience of their kills into **bottles o' enchanting**. The smith uses them to repair bows, fishing rods and enchanted gear.
 - A hired villager at a vanilla **fletching table** becomes a fletcher: it makes arrows, bows and crossbows and keeps a stock of them. It knaps the flint from gravel itself, or makes arrowheads from copper and iron nuggets.
+- A hired villager at a vanilla **brewing stand** becomes an apothecary: it makes glass bottles, fills them with water and brews the potion you order step by step at the brewing stand itself. It heals injured workers with potions of healing and grows nether wart on soul sand next to its brewing stand.
 - A hired villager at a vanilla **barrel** becomes a fisher: it fishes at the water nearby, and with a boat it rows out onto a lake or the sea, fishes there (treasure included, like a player on open water) and rows back with its catch.
 - A hired villager at a vanilla **smoker** becomes a butcher: it keeps the cows, pigs, chickens and rabbits around it at the herd size you set, breeding below it and slaughtering above it (never named or leashed animals), and smokes the meat if you give it coal.
 - A hired villager at a vanilla **loom** becomes a shepherd: it shears the sheep around it, even over the fence of a pen without a gate, and breeds them with wheat up to the herd size you set. The wool goes to a chest.
