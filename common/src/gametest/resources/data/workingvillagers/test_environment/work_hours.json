@@ -1,5 +1,5 @@
 {
-  "type": "minecraft:clock_time",
-  "clock": "minecraft:overworld",
-  "time": 2500
+  "type": "minecraft:function",
+  "setup": "workingvillagers:work_hours",
+  "teardown": "workingvillagers:work_hours_end"
 }
