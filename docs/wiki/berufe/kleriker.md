@@ -2,7 +2,7 @@
 
 [← Berufe](README.md) · Station: **Brewing Stand** (Vanilla) · Phase: später
 
-Der Kleriker braut Tränke nach Rezept, z. B. Heiltränke für verletzte Angestellte oder Tränke zum Verkauf.
+Der Kleriker (geplant als **Apotheker**) braut Tränke nach Rezept, z. B. Heiltränke für verletzte Angestellte oder Tränke zum Verkauf. Außerdem stellt er **Glasflaschen** aus dem Glas des [Brenners](brenner.md) her (3 Glas → 3 Flaschen): für seine Wasserflaschen und für die Erfahrungsfläschchen der [Wachen](wache.md) (siehe [Jagd und Erfahrung](../dorf/erfahrung.md)).
 
 ## Arbeitsablauf
 

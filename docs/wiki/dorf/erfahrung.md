@@ -19,7 +19,7 @@ Umgesetzt wie unten beschrieben, mit diesen Abweichungen und Einzelheiten:
 - **Abfüllen:** am Ende der Morgenrunde, 7 Punkte pro Fläschchen (Config `guard.experiencePerBottle`), so viele wie Glasflaschen da sind, optional begrenzt (Config `guard.bottlesPerNight`, 0 = unbegrenzt). Glasflaschen sind ein Vorrat der Wache (bis 16): aus Eingangskisten, Dorftruhe oder vom Spieler. Die Fläschchen gehen mit der Beute in die Ausgangskiste.
 - **Schmied:** Was keine `repairable`-Komponente hat (Bogen, Armbrust, Angel, Schere, Dreizack …), repariert er mit Fläschchen allein, 10 % je Fläschchen (Config `smith.experienceRepairPercent`). Verzaubertes kostet je Schritt ein Fläschchen zusätzlich zum Material (Config `smith.enchantedNeedsExperience`); ohne Fläschchen wartet er („Wartet auf Erfahrungsfläschchen“). Die Fläschchen holt er aus Eingangskisten und Dorftruhen in Reichweite.
 - **Tests:** Die Wache bekommt die Erfahrung des erlegten Wüstenzombies; aus 20 Erfahrung und 3 Glasflaschen werden 2 Fläschchen in der Kiste, 6 Erfahrung bleiben; eine jagende Wache erlegt einen Wüstenzombie weit außerhalb ihres Wachradius; der Schmied repariert einen Bogen mit 8 Fläschchen, eine verzauberte Diamantspitzhacke mit 2 Diamanten und 2 Fläschchen, ohne Fläschchen gar nicht.
-- **Nicht umgesetzt:** Glasflaschen herstellen (vorerst der Spieler).
+- **Nicht umgesetzt:** Glasflaschen herstellen. Vorerst stellt sie der Spieler; später der [Apotheker](../berufe/kleriker.md) aus dem Glas des [Brenners](../berufe/brenner.md).
 
 ## Jagen statt Bewachen
 
@@ -36,7 +36,7 @@ Eine jagende Wache nimmt eine Fackel mit und meidet Wasser und Abgründe wie jed
 
 - In Vanilla geben Monster nur Erfahrung, wenn ein **Spieler** sie tötet. Für Wachen weichen wir davon ab: Die Erfahrung, die das Monster einem Spieler gäbe (Zombie 5, Blaze 10, …), bekommt die Wache gutgeschrieben. Kugeln fallen keine.
 - Die Wache sammelt die Erfahrung in sich (sichtbar im Menü: „Erfahrung: 23“). Morgens füllt sie sie an ihrem Posten in **leere Glasflaschen**: je 7 Punkte ein Erfahrungsfläschchen. Das entspricht dem Durchschnitt, den ein geworfenes Fläschchen in Vanilla gibt (3–11), es entsteht also keine Erfahrung aus dem Nichts.
-- Glasflaschen holt sie aus ihren Eingangskisten oder einer Dorftruhe. Glas brennt der [Brenner](../berufe/brenner.md); die Flaschen fertigt vorerst der Spieler (Idee: der Brenner bekommt „Glasflaschen“ als Erzeugnis).
+- Glasflaschen holt sie aus ihren Eingangskisten oder einer Dorftruhe. Glas brennt der [Brenner](../berufe/brenner.md); die Flaschen fertigt vorerst der Spieler, später der [Apotheker](../berufe/kleriker.md).
 - Die Fläschchen bringt sie in ihre Ausgangskiste. Spieler können sie selbst nutzen (werfen gibt Erfahrung) oder sie dem Schmied lassen.
 
 ## Der Schmied repariert mit Erfahrung
