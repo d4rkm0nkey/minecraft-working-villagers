@@ -69,9 +69,7 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
   chests and the order or settings. A red dot marks the tab where something is missing. A
   vanilla block nobody has set up shows only its own tab and the worker tab.
 - The menu of every workstation shows its worker ("Hired villager" in the player's
-  language if it has no name), or "Free". (Earlier versions put a paper note with the
-  name on the front of the stations; notes left in a world remove themselves when they are
-  loaded.)
+  language if it has no name), or "Free".
 - Hired villagers never take vanilla jobs (lectern etc.). At a stonecutter, composter,
   loom, smoker, barrel, fletching table, brewing stand, cauldron, grindstone, lectern, blast
   furnace or smithing table a hired villager becomes the stone sawyer, farmer, shepherd,

@@ -38,7 +38,6 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.animal.sheep.Sheep;
@@ -126,7 +125,6 @@ public final class WorkerTests {
 		registry.accept("shop_assistant_sells_wheat", WorkerTests::shopAssistantSellsWheat);
 		registry.accept("ordinary_villager_keeps_off_set_up_station", WorkerTests::ordinaryVillagerKeepsOffSetUpStation);
 		registry.accept("assign_displaces_ordinary_villager", WorkerTests::assignDisplacesOrdinaryVillager);
-		registry.accept("old_station_notes_are_removed", WorkerTests::oldStationNotesAreRemoved);
 		registry.accept("worker_takes_lost_station", WorkerTests::workerTakesLostStation);
 		registry.accept("village_chest_supplies_lumberjack", WorkerTests::villageChestSuppliesLumberjack);
 		registry.accept("village_chest_keeps_named_tools", WorkerTests::villageChestKeepsNamedTools);
@@ -1758,26 +1756,6 @@ public final class WorkerTests {
 			TestWorld.assertHolds(helper, worker, INPUT, stack -> stack.is(Items.STONE), 10, "stone left in the input chest");
 			helper.assertTrue(farmer.getVillagerXp() > 1, "The farmer earned no experience");
 		});
-	}
-
-	/**
-	 * Earlier versions put name notes (text displays) on the stations, also under the old mod
-	 * name: they remove themselves. Other text displays stay.
-	 */
-	private static void oldStationNotesAreRemoved(GameTestHelper helper) {
-		Display.TextDisplay note = textDisplay(helper, new BlockPos(4, 2, 4), "workingvillagers_note");
-		Display.TextDisplay oldNote = textDisplay(helper, new BlockPos(6, 2, 4), "letmework_note");
-		Display.TextDisplay sign = textDisplay(helper, new BlockPos(8, 2, 4), "some_other_tag");
-		helper.succeedWhen(() -> {
-			helper.assertTrue(note.isRemoved() && oldNote.isRemoved(), "An old station note is still there");
-			helper.assertFalse(sign.isRemoved(), "Another text display was removed");
-		});
-	}
-
-	private static Display.TextDisplay textDisplay(GameTestHelper helper, BlockPos pos, String tag) {
-		Display.TextDisplay display = helper.spawn(EntityTypes.TEXT_DISPLAY, pos);
-		display.addTag(tag);
-		return display;
 	}
 
 	private static void carrierMovesItems(GameTestHelper helper) {
