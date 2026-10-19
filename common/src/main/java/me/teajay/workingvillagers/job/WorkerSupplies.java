@@ -52,9 +52,10 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>The wage is kept in the {@link Workstations.Station#wage wage box} of the worker's
  * workstation: emeralds given to the worker, thrown to it or fetched from a village chest go
- * in there, and the worker takes the wage of the day from there, then from its pockets
- * (emeralds it carried before there were wage boxes). A carrier, which has no workstation,
- * carries its emeralds itself.
+ * in there, and the worker takes the wage of the day from there, then from its pockets.
+ * Emeralds it carried from before there were wage boxes it puts into the box (see
+ * {@link #storeCarriedWage}); only what does not fit stays in its pockets. A carrier, which
+ * has no workstation, carries its emeralds itself.
  *
  * <p>A tool that is about to break ({@link #isWorn}) counts as no tool: the worker stops
  * using it and, before its next piece of work, gives it back instead of breaking it, into a
@@ -392,6 +393,25 @@ public final class WorkerSupplies {
 			return null;
 		}
 		return Workstations.find(level, site.get().pos()).orElse(null);
+	}
+
+	/**
+	 * A worker saved by 0.3.0, before there were wage boxes, carried its wage itself: once it
+	 * has a workstation it puts these emeralds into the wage box, as many as fit. Only once,
+	 * so emeralds it carries for its work later (the takings of the shop assistant, the loot of
+	 * a guard) stay where they are.
+	 */
+	public static void storeCarriedWage(ServerLevel level, Villager villager) {
+		HiredVillager hired = (HiredVillager) villager;
+		Workstations.Station box = hired.workingvillagers$isWageStored() ? null : wageBox(level, villager);
+		if (box == null) {
+			return;
+		}
+		int stored = box.addWage(count(villager.getInventory(), WorkerSupplies::isWage));
+		if (stored > 0) {
+			villager.getInventory().removeItemType(WAGE, stored);
+		}
+		hired.workingvillagers$setWageStored(true);
 	}
 
 	/** The emeralds the worker has for its wage: in the wage box of its workstation and in its pockets. */

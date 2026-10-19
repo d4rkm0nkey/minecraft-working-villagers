@@ -143,6 +143,7 @@ public final class WorkerTests {
 		registry.accept("fletcher_keeps_stock", WorkerTests::fletcherKeepsStock);
 		registry.accept("apothecary_makes_bottles", WorkerTests::apothecaryMakesBottles);
 		registry.accept("tanner_makes_books", WorkerTests::tannerMakesBooks);
+		registry.accept("worker_stores_carried_wage", WorkerTests::workerStoresCarriedWage);
 		registry.accept("weaponsmith_forges_axes", WorkerTests::weaponsmithForgesAxes);
 		registry.accept("librarian_enchants_book", WorkerTests::librarianEnchantsBook);
 		registry.accept("librarian_enchants_at_level_30", WorkerTests::librarianEnchantsAtLevel30);
@@ -618,6 +619,22 @@ public final class WorkerTests {
 		helper.succeedWhen(() -> {
 			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.IRON_SWORD) && !stack.isEnchanted(), 1, "the sword without enchantments");
 			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.EXPERIENCE_BOTTLE), 1, "a bottle o' enchanting");
+		});
+	}
+
+	/** A worker from 0.3.0, before there were wage boxes, with its wage in its pockets, puts it into the box. */
+	private static void workerStoresCarriedWage(GameTestHelper helper) {
+		BlockPos station = STATION.below();
+		helper.setBlock(station, Blocks.STONECUTTER);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, station);
+		worker.getInventory().addItem(new ItemStack(Items.EMERALD, 20));
+		((HiredVillager) worker).workingvillagers$setWageStored(false);
+		helper.succeedWhen(() -> {
+			helper.assertTrue(worker.getInventory().countItem(Items.EMERALD) == 0, "Still carries " + worker.getInventory().countItem(Items.EMERALD));
+			// The wage of the day may already be taken out
+			int box = TestWorld.station(helper, station).wage();
+			helper.assertTrue(box >= 20 - Config.DAILY_WAGE.get() && box <= 20, "Wage box: " + box);
 		});
 	}
 

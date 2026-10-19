@@ -84,6 +84,10 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 	@Unique
 	private final StuckWorkers.Watch workingvillagers$stuckWatch = new StuckWorkers.Watch();
 	@Unique
+	private static final String TAG_WAGE_STORED = "WorkingVillagersWageStored";
+	@Unique
+	private boolean workingvillagers$wageStored = true;
+	@Unique
 	private static final String TAG_EXPERIENCE = "WorkingVillagersExperience";
 	@Unique
 	private int workingvillagers$experience;
@@ -196,6 +200,16 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 	}
 
 	@Override
+	public boolean workingvillagers$isWageStored() {
+		return this.workingvillagers$wageStored;
+	}
+
+	@Override
+	public void workingvillagers$setWageStored(boolean stored) {
+		this.workingvillagers$wageStored = stored;
+	}
+
+	@Override
 	public void workingvillagers$setEmployer(@Nullable UUID employer) {
 		this.workingvillagers$employer = employer;
 	}
@@ -212,6 +226,9 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 		if (this.workingvillagers$experience > 0) {
 			output.putInt(TAG_EXPERIENCE, this.workingvillagers$experience);
 		}
+		if (this.workingvillagers$employer != null) {
+			output.putBoolean(TAG_WAGE_STORED, this.workingvillagers$wageStored);
+		}
 		if (this.workingvillagers$keptOffers != null && this.workingvillagers$keptFamily != null) {
 			output.store(TAG_KEPT_OFFERS, MerchantOffers.CODEC, this.workingvillagers$keptOffers);
 			output.putString(TAG_KEPT_FAMILY, this.workingvillagers$keptFamily);
@@ -226,6 +243,8 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 		this.workingvillagers$workDay = input.getLongOr(TAG_WORK_DAY, -1L);
 		this.workingvillagers$workDone = input.getIntOr(TAG_WORK_DONE, 0);
 		this.workingvillagers$experience = input.getIntOr(TAG_EXPERIENCE, 0);
+		// Workers saved by 0.3.0 have no such entry: they still carry their wage themselves
+		this.workingvillagers$wageStored = this.workingvillagers$employer == null || input.getBooleanOr(TAG_WAGE_STORED, false);
 		this.workingvillagers$keptOffers = input.read(TAG_KEPT_OFFERS, MerchantOffers.CODEC).orElse(null);
 		this.workingvillagers$keptFamily = input.getString(TAG_KEPT_FAMILY).orElse(null);
 	}

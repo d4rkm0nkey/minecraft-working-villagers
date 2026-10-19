@@ -27,8 +27,8 @@ Working Villagers is in an early beta. Thanks for testing!
   of the monsters they kill.
 - The cartographer has no job in this mod yet: cartographers cannot be hired.
 - Saves from 0.3.0 should load, but this has not been tested in many worlds. **Back up
-  first.** The wage of workers is now kept in their workstation; emeralds they still carry
-  from 0.3.0 are used too.
+  first.** The wage of workers is now kept in their workstation; workers from 0.3.0 put the
+  emeralds they carry into it by themselves.
 
 What comes next is on [Planned features](planned.md).
 

@@ -117,6 +117,7 @@ public final class WorkerJobs {
 			WorkerStatus.complain(level, villager, CHECK_INTERVAL);
 			restock(level, villager);
 			Uniforms.equip(level, villager);
+			WorkerSupplies.storeCarriedWage(level, villager);
 		}
 		if (!unemployed) {
 			// Keep the station's note up to date (renamed worker, worker from before names existed)

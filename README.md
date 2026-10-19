@@ -103,7 +103,9 @@ chests. A hired worker that dies drops everything it carries (tools, material); 
 stays in the wage box.
 
 - **Wage:** before work each day the worker takes `dailyWage` (default 1) emerald from the
-  wage box, then from its pockets (emeralds carried from older versions). Without an
+  wage box, then from its pockets. A worker from 0.3.0 puts the emeralds it carried
+  into the wage box once, as many as fit (saved per worker as
+  `WorkingVillagersWageStored`). Without an
   emerald it does not work and waits next to its workstation ("Waiting for wages"),
   checking every few seconds.
 - **Lumberjack:** needs an axe (carries up to 2), optionally saplings (up to 16 of each
