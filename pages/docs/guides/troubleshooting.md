@@ -64,8 +64,8 @@ the status does not help, go through this list.
 | *Waiting for Iron Ingot to repair with* | Put the material into the input chests of the smithing table (iron ingots, diamonds, planks, ...). |
 | *Waiting for something to fire* | The kiln operator's input chests have nothing the kiln can fire, or nothing for the picked product. |
 | *Stock is full (16/16)* at a kiln | The output chests hold as many of the product as set. Take some out or raise the stock. |
-| *Waiting: no pit picked* | Lay a closed ring of string and click **Pick pit** at the pit stake. |
-| *Waiting: the string ring is broken* | A string of the ring is gone. Put it back where it was, or pick the pit again. |
+| *Waiting: no ring of string at the stake* | Lay a closed ring of string that touches the pit stake. The stake's overview says what is wrong with the ring. |
+| *Waiting: the string ring is broken* | A string of the ring is gone. Put it back where it was, or lay a new closed ring at the stake. |
 | *Waiting: needs a shovel* / *a pickaxe* / *ladders (give them ...)* | Right-click the pit digger with it. It needs ladders once the pit is deeper than one block. |
 | *Waiting: needs a better pickaxe* | Only blocks are left that its pickaxe cannot mine (e.g. diamond ore with a stone pickaxe). Give it a better one. |
 | *Waiting: water or lava in the pit* | Only blocks next to water or lava are left. Remove the liquid, then it digs on. |
@@ -153,8 +153,8 @@ the status does not help, go through this list.
 
 ### Pit digger
 
-- [ ] A pit is picked: the overview shows its size. The ring of string is closed and
-  within 16 blocks of the stake.
+- [ ] The overview shows the size of the pit: the ring of string is closed, touches the
+  stake and lies within 16 blocks of it.
 - [ ] At least one chest linked.
 - [ ] It carries a shovel, a pickaxe and ladders.
 - [ ] Not already at 256 blocks today.

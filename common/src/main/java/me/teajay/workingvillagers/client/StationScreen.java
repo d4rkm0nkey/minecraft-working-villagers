@@ -803,21 +803,16 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		return Component.translatable(this.menu.getStrip() ? "gui.workingvillagers.chopping_block.strip.on" : "gui.workingvillagers.chopping_block.strip.off");
 	}
 
-	/** Pit stake: the pit (pick it, the ladder) and how deep to dig. */
+	/** Pit stake: how deep to dig and the ladder; the pit is the ring of string at the stake. */
 	private void extractPit(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
 		int left = this.leftPos + COLUMN_X;
-		this.button(graphics, mouseX, mouseY, left, this.settingY(0), COLUMN_WIDTH, BIG,
-			Component.translatable("gui.workingvillagers.pit.pick").getString(), StationMenu.PICK_PIT_BUTTON, List.of(
-				Component.translatable("gui.workingvillagers.pit.pick.tooltip"),
-				Component.translatable("gui.workingvillagers.pit.pick.tooltip2").withStyle(ChatFormatting.GRAY)
-			));
 		List<Component> depthTooltip = List.of(
 			Component.translatable("gui.workingvillagers.pit.depth.tooltip"),
 			Component.translatable("gui.workingvillagers.pit.depth.tooltip2", this.menu.getMaxDepth()).withStyle(ChatFormatting.GRAY)
 		);
-		this.plusMinus(graphics, mouseX, mouseY, this.settingY(1), BIG, StationMenu.DEPTH_LESS_BUTTON, StationMenu.DEPTH_MORE_BUTTON, depthTooltip);
+		this.plusMinus(graphics, mouseX, mouseY, this.settingY(0), BIG, StationMenu.DEPTH_LESS_BUTTON, StationMenu.DEPTH_MORE_BUTTON, depthTooltip);
 		if (this.menu.getPit().isPresent()) {
-			this.button(graphics, mouseX, mouseY, left, this.settingY(2), COLUMN_WIDTH, BIG,
+			this.button(graphics, mouseX, mouseY, left, this.settingY(1), COLUMN_WIDTH, BIG,
 				Component.translatable("gui.workingvillagers.pit.ladder").getString(), StationMenu.PICK_LADDER_BUTTON,
 				List.of(Component.translatable("gui.workingvillagers.pit.ladder.tooltip")));
 		}
@@ -938,15 +933,17 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 				this.hint(graphics, Component.translatable("gui.workingvillagers.chopping_block.strip.tooltip2"), CONTENT_Y + BIG + 8);
 			}
 			case PIT_STAKE -> {
-				Component pit = this.menu.getPit()
-					.map(size -> (Component) Component.translatable("gui.workingvillagers.pit.size", size[0], size[1], size[2]))
+				// a problem with the ring wins over the size of the pit picked before, which the pit digger keeps waiting for
+				Optional<Component> problem = this.menu.getPitProblem();
+				Component pit = problem.or(() -> this.menu.getPit()
+						.map(size -> (Component) Component.translatable("gui.workingvillagers.pit.size", size[0], size[1], size[2])))
 					.orElse(Component.translatable("gui.workingvillagers.pit.none"));
 				GuiPanels.scrollingText(graphics, this.font, pit.getString(), 8, CONTENT_Y + 1, COLUMN_WIDTH,
-					this.menu.getPit().isPresent() ? GuiPanels.TEXT_COLOR : GuiPanels.WARNING_COLOR);
+					problem.isEmpty() && this.menu.getPit().isPresent() ? GuiPanels.TEXT_COLOR : GuiPanels.WARNING_COLOR);
 				GuiPanels.scrollingText(graphics, this.font, Component.translatable("gui.workingvillagers.pit.depth", this.menu.getDepth()).getString(), 8,
-					this.settingRowY(1) + textY, COLUMN_WIDTH - 2 * BIG - 6, GuiPanels.TEXT_COLOR);
-				this.hint(graphics, Component.translatable("gui.workingvillagers.pit.pick.tooltip2"),
-					this.settingRowY(this.menu.getPit().isPresent() ? 3 : 2) + 2);
+					this.settingRowY(0) + textY, COLUMN_WIDTH - 2 * BIG - 6, GuiPanels.TEXT_COLOR);
+				this.hint(graphics, Component.translatable("gui.workingvillagers.pit.hint"),
+					this.settingRowY(this.menu.getPit().isPresent() ? 2 : 1) + 2);
 			}
 			case MINING_BENCH -> {
 				Optional<StationMenu.TunnelInfo> tunnel = this.menu.getTunnel();

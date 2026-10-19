@@ -37,8 +37,8 @@ public final class StationPicks {
 	private StationPicks() {
 	}
 
-	/** Pit stake: picking the ring of the pit, or the string where the ladder goes. */
-	private enum PitPick { RING, LADDER, TUNNEL }
+	/** Pit stake: picking the string where the ladder goes; mining bench: the tunnel. */
+	private enum PitPick { LADDER, TUNNEL }
 
 	/**
 	 * What is picked for which station; {@code role} and {@code pit} are null when picking
@@ -55,12 +55,6 @@ public final class StationPicks {
 	public static void pickChests(ServerPlayer player, BlockPos station, ChestRole role) {
 		start(player, new Pending(station.immutable(), role, null, player.level().getGameTime() + TIMEOUT_TICKS),
 			Component.translatable(role == ChestRole.INPUT ? "message.workingvillagers.chests.pick_input" : "message.workingvillagers.chests.pick_output"));
-	}
-
-	/** Pit stake: the player right-clicks a string of the ring around the pit. */
-	public static void pickPit(ServerPlayer player, BlockPos station) {
-		start(player, new Pending(station.immutable(), null, PitPick.RING, player.level().getGameTime() + TIMEOUT_TICKS),
-			Component.translatable("message.workingvillagers.pit.pick"));
 	}
 
 	/** Pit stake: the player right-clicks the string of the ring where the ladder goes. */
@@ -191,18 +185,13 @@ public final class StationPicks {
 		if (!level.getBlockState(pos).is(Blocks.TRIPWIRE) && !level.getBlockState(pos.above()).is(Blocks.TRIPWIRE)) {
 			return false;
 		}
-		Either<Pit, Component> result;
-		if (pending.pit() == PitPick.LADDER) {
-			Pit pit = station.pit();
-			if (pit == null) {
-				PENDING.remove(player.getUUID());
-				player.sendOverlayMessage(Component.translatable("message.workingvillagers.pit.none"));
-				return true;
-			}
-			result = pit.withLadderAt(pos, level);
-		} else {
-			result = Pit.find(level, pos, pending.station());
+		Pit picked = station.pit();
+		if (picked == null) {
+			PENDING.remove(player.getUUID());
+			player.sendOverlayMessage(Component.translatable("message.workingvillagers.pit.none"));
+			return true;
 		}
+		Either<Pit, Component> result = picked.withLadderAt(pos, level);
 		Optional<Component> problem = result.right();
 		if (problem.isPresent()) {
 			player.sendOverlayMessage(problem.get());
@@ -215,9 +204,7 @@ public final class StationPicks {
 			level.sendParticles(ParticleTypes.HAPPY_VILLAGER, string.getX() + 0.5, string.getY() + 0.3, string.getZ() + 0.5, 2, 0.2, 0.1, 0.2, 0.0);
 		}
 		mark(level, pit.ladder());
-		player.sendOverlayMessage(pending.pit() == PitPick.LADDER
-			? Component.translatable("message.workingvillagers.pit.ladder_set")
-			: Component.translatable("message.workingvillagers.pit.picked", pit.width(), pit.length(), pit.inside().size()));
+		player.sendOverlayMessage(Component.translatable("message.workingvillagers.pit.ladder_set"));
 		return true;
 	}
 

@@ -191,6 +191,10 @@ public class DigPit extends Behavior<Villager> {
 		this.stateTicks++;
 		this.unreachable.values().removeIf(until -> until < timestamp);
 		this.badSpots.values().removeIf(until -> until < timestamp);
+		if (villager.tickCount % RING_CHECK_INTERVAL == 0) {
+			// The ring at the stake is the pit: a new or changed ring is taken over
+			Pit.attach(level, station);
+		}
 		Pit pit = station.pit();
 		if (pit != null && villager.tickCount % RING_CHECK_INTERVAL == 0) {
 			this.ringIntact = pit.isIntact(level);

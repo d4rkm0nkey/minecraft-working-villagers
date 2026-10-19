@@ -55,6 +55,9 @@ import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.world.level.block.TripWireBlock;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.FarmlandBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -122,6 +125,7 @@ public final class WorkerTests {
 		registry.accept("pit_digger_finishes_half_dug_pit", WorkerTests::pitDiggerFinishesHalfDugPit);
 		registry.accept("pit_digger_climbs_out_of_half_dug_pit", WorkerTests::pitDiggerClimbsOutOfHalfDugPit);
 		registry.accept("pit_digger_finishes_played_pit", WorkerTests::pitDiggerFinishesPlayedPit);
+		registry.accept("pit_stake_takes_ring_it_touches", WorkerTests::pitStakeTakesRingItTouches);
 		registry.accept("shop_assistant_sells_wheat", WorkerTests::shopAssistantSellsWheat);
 		registry.accept("ordinary_villager_keeps_off_set_up_station", WorkerTests::ordinaryVillagerKeepsOffSetUpStation);
 		registry.accept("assign_displaces_ordinary_villager", WorkerTests::assignDisplacesOrdinaryVillager);
@@ -1506,6 +1510,58 @@ public final class WorkerTests {
 			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.STONE)) == 0, "The kiln operator delivered stone");
 			TestWorld.assertHolds(helper, worker, INPUT, stack -> stack.is(Items.SAND), 2, "sand left in the input chest");
 		});
+	}
+
+	/**
+	 * The pit stake takes the ring of string it touches as the pit, standing in the ring or
+	 * next to it; string connects to the stake. Strings on a dirt path still count, and an
+	 * open ring says where it ends.
+	 */
+	private static void pitStakeTakesRingItTouches(GameTestHelper helper) {
+		int ground = 5;
+		for (int x = 4; x <= 16; x++) {
+			for (int z = 4; z <= 16; z++) {
+				for (int y = 1; y <= ground; y++) {
+					helper.setBlock(new BlockPos(x, y, z), y == ground ? Blocks.GRASS_BLOCK : Blocks.DIRT);
+				}
+			}
+		}
+		// A ring around 3×3 columns, a dirt path under one side
+		for (int i = 8; i <= 12; i++) {
+			for (BlockPos string : List.of(new BlockPos(i, ground + 1, 8), new BlockPos(i, ground + 1, 12), new BlockPos(8, ground + 1, i), new BlockPos(12, ground + 1, i))) {
+				helper.setBlock(string, Blocks.TRIPWIRE);
+			}
+			helper.setBlock(new BlockPos(i, ground, 12), Blocks.DIRT_PATH);
+		}
+		ServerLevel level = helper.getLevel();
+
+		// The stake next to the ring
+		BlockPos outside = new BlockPos(7, ground + 1, 10);
+		helper.setBlock(outside, WorkingVillagers.PIT_STAKE.get());
+		helper.assertTrue(helper.getBlockState(new BlockPos(8, ground + 1, 10)).getValue(TripWireBlock.WEST), "The string does not connect to the stake");
+		Pit pit = Pit.fromStake(level, helper.absolutePos(outside)).left()
+			.orElseThrow(() -> helper.assertionException(outside, "The ring next to the stake is no pit"));
+		helper.assertTrue(pit.inside().size() == 9, "The pit has " + pit.inside().size() + " blocks instead of 9");
+		Workstations.Station station = TestWorld.station(helper, outside);
+		helper.assertTrue(Pit.attach(level, station).isEmpty() && station.pit() != null, "The stake did not take the ring");
+		helper.setBlock(outside, Blocks.AIR);
+
+		// The stake in the ring, instead of a string
+		BlockPos inRing = new BlockPos(8, ground + 1, 10);
+		helper.setBlock(inRing, WorkingVillagers.PIT_STAKE.get());
+		pit = Pit.fromStake(level, helper.absolutePos(inRing)).left()
+			.orElseThrow(() -> helper.assertionException(inRing, "The ring through the stake is no pit"));
+		helper.assertTrue(pit.inside().size() == 9, "The pit has " + pit.inside().size() + " blocks instead of 9");
+		helper.assertFalse(pit.ring().contains(helper.absolutePos(inRing)), "The stake is taken as a string of the ring");
+		helper.assertTrue(pit.isIntact(level), "The ring through the stake is not intact");
+
+		// An open ring tells where it ends
+		helper.setBlock(new BlockPos(12, ground + 1, 10), Blocks.AIR);
+		Component problem = Pit.fromStake(level, helper.absolutePos(inRing)).right()
+			.orElseThrow(() -> helper.assertionException(inRing, "An open ring was taken as a pit"));
+		helper.assertTrue(problem.getContents() instanceof TranslatableContents contents && contents.getKey().equals("message.workingvillagers.pit.not_closed_at"),
+			"Wrong problem for an open ring: " + problem.getString());
+		helper.succeed();
 	}
 
 	/**

@@ -12,13 +12,16 @@ basements, foundations, sand and clay pits and as a simple quarry.
 
 ## Setting it up
 
-1. Lay **string** on the ground in a **closed ring** around the area to dig. Strings only
-   connect straight (north, south, east, west), not diagonally, and each one has to lie
-   on solid ground. The ring may follow the terrain, up and down by up to 4 blocks.
-2. Place a [pit stake](../blocks-and-items.md#pit-stake) near the ring and right-click
-   it to open its overview.
-3. Click **Pick pit**. The menu closes; right-click a string of the ring (or the block
-   under it). The menu shows the size of the pit, e.g. *Pit: 8×8, 64 blocks*.
+1. Place a [pit stake](../blocks-and-items.md#pit-stake) at the edge of the area to dig.
+2. Lay **string** on the ground in a **closed ring** around the area that **touches the
+   stake**: the stake may stand in the ring like a piece of string, or right next to it.
+   The string connects to the stake, and the stake takes the ring as its pit by itself;
+   green particles show the ring. Strings only connect straight (north, south, east,
+   west), not diagonally, at most one block up or down, and each one has to lie on
+   ground (dirt paths, farmland and slabs count too). The ring may follow the terrain,
+   up and down by up to 4 blocks.
+3. Right-click the stake to open its overview. It shows the size of the pit, e.g.
+   *Pit: 8×8, 64 blocks*, or what is wrong with the ring.
 4. Set the **depth** with **-** and **+** (1 to 16 blocks).
 5. Link at least one **chest** (**+ Chest**). A hired villager without a job finds the
    stake by itself; **Assign** picks a specific one.
@@ -35,17 +38,19 @@ basements, foundations, sand and clay pits and as a simple quarry.
   stay where they are.
 - At most **64 blocks** of ground inside, e.g. 8×8 or 4×16, and at least 2.
 - The whole ring has to be within **16 blocks** of the stake.
+- Make the ring bigger or change its shape whenever you like: the stake takes the new
+  ring the next time you open its overview or the pit digger looks at it.
 - If a string is taken away, the pit digger waits (*the string ring is broken*) until it
-  is back in the same place. You do not have to pick the pit again.
+  is back in the same place.
 
-If the ring is not right, a message says why: not closed, too big, too uneven or too far.
+If the ring is not right, the overview says why: not closed (with the place where it
+ends), too big, too uneven or too far.
 
 ## Depth
 
 The depth counts from the **highest string** of the ring: with a depth of 4 the pit goes
 4 blocks down from the ground under that string. Higher ground inside the ring (a hill)
-is dug away too. The height is fixed when you pick the pit, so moving strings around does
-not make the pit deeper; only a higher depth in the menu does.
+is dug away too.
 
 ## How it works
 

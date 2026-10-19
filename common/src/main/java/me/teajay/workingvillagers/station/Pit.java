@@ -16,6 +16,7 @@ import java.util.Set;
 import me.teajay.workingvillagers.Config;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
@@ -119,13 +120,42 @@ public record Pit(List<BlockPos> ring, List<BlockPos> inside, BlockPos exit, Blo
 		if (start == null) {
 			return Either.right(Component.translatable("message.workingvillagers.pit.no_string"));
 		}
-		// The strings that touch each other (straight, maybe one block up or down), on solid ground
 		Map<Long, BlockPos> strings = new LinkedHashMap<>();
-		Deque<BlockPos> open = new ArrayDeque<>();
 		if (isOnGround(level, start)) {
 			strings.put(column(start), start);
-			open.add(start);
 		}
+		return trace(level, strings, station, null);
+	}
+
+	/**
+	 * The ring of string that touches the pit stake and the pit inside it, or why there is
+	 * none. The stake may stand in the ring like a string, or right next to it.
+	 */
+	public static Either<Pit, Component> fromStake(ServerLevel level, BlockPos stake) {
+		Map<Long, BlockPos> strings = new LinkedHashMap<>();
+		strings.put(column(stake), stake.immutable());
+		return trace(level, strings, stake, stake);
+	}
+
+	private static boolean touchesString(ServerLevel level, BlockPos stake) {
+		for (Direction side : Direction.Plane.HORIZONTAL) {
+			for (int dy = -1; dy <= 1; dy++) {
+				if (level.getBlockState(stake.relative(side).above(dy)).is(Blocks.TRIPWIRE)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Follows the strings from {@code strings} (the start) and finds the pit they enclose.
+	 * {@code stake}: the pit stake, if it is part of the start; it closes the ring like a
+	 * string but is no string of the ring itself.
+	 */
+	private static Either<Pit, Component> trace(ServerLevel level, Map<Long, BlockPos> strings, BlockPos station, @Nullable BlockPos stake) {
+		// The strings that touch each other (straight, maybe one block up or down), on ground
+		Deque<BlockPos> open = new ArrayDeque<>(strings.values());
 		while (!open.isEmpty()) {
 			BlockPos string = open.poll();
 			for (Direction side : Direction.Plane.HORIZONTAL) {
@@ -142,9 +172,15 @@ public record Pit(List<BlockPos> ring, List<BlockPos> inside, BlockPos exit, Blo
 			}
 		}
 
+		if (stake != null && strings.size() == 1) {
+			return Either.right(Component.translatable("message.workingvillagers.pit.no_ring"));
+		}
 		List<BlockPos> inside = inside(strings.keySet());
 		if (inside.isEmpty()) {
-			return Either.right(Component.translatable("message.workingvillagers.pit.not_closed"));
+			BlockPos end = openEnd(strings, station, stake);
+			return Either.right(end == null
+				? Component.translatable("message.workingvillagers.pit.not_closed")
+				: Component.translatable("message.workingvillagers.pit.not_closed_at", end.getX(), end.getY(), end.getZ()));
 		}
 		int max = Config.PIT_MAX_AREA.get();
 		if (inside.size() > max) {
@@ -156,8 +192,12 @@ public record Pit(List<BlockPos> ring, List<BlockPos> inside, BlockPos exit, Blo
 		// The ring: the strings next to the inside; strings hanging off it do not count
 		Set<Long> insideColumns = columns(inside);
 		List<BlockPos> ring = strings.values().stream()
+			.filter(string -> !string.equals(stake))
 			.filter(string -> Direction.Plane.HORIZONTAL.stream().anyMatch(side -> insideColumns.contains(column(string.relative(side)))))
 			.toList();
+		if (ring.isEmpty()) {
+			return Either.right(Component.translatable("message.workingvillagers.pit.not_closed"));
+		}
 		int top = ring.stream().mapToInt(BlockPos::getY).max().orElseThrow();
 		int low = ring.stream().mapToInt(BlockPos::getY).min().orElseThrow();
 		if (top - low > Config.PIT_MAX_UNEVENNESS.get()) {
@@ -184,6 +224,38 @@ public record Pit(List<BlockPos> ring, List<BlockPos> inside, BlockPos exit, Blo
 		return Either.left(new Pit(List.copyOf(ring), columns, exit, ladder, top));
 	}
 
+	/**
+	 * Pit stake: takes the ring of string that touches the stake as the pit, e.g. after the
+	 * player laid or changed it. A ladder the player moved stays where it is while its string
+	 * is still part of the ring. Without a closed ring the pit picked before stays, so the pit
+	 * digger waits for the ring to be mended instead of forgetting the pit. Returns why there
+	 * is no pit at the stake, if there is none; nothing for a pit picked in an earlier version,
+	 * whose ring does not touch the stake.
+	 */
+	public static Optional<Component> attach(ServerLevel level, Workstations.Station station) {
+		Either<Pit, Component> found = fromStake(level, station.pos());
+		Optional<Pit> pit = found.left();
+		if (pit.isEmpty()) {
+			boolean earlierPick = station.pit() != null && !touchesString(level, station.pos());
+			return earlierPick ? Optional.empty() : found.right();
+		}
+		Pit current = station.pit();
+		Pit next = pit.get();
+		if (current != null && next.ring.contains(current.exit)) {
+			next = next.withLadderAt(current.exit, level).left().orElse(next);
+		}
+		if (!next.equals(current)) {
+			if (current == null || !Set.copyOf(current.ring).equals(Set.copyOf(next.ring))) {
+				// The stake took a new or changed ring
+				for (BlockPos string : next.ring) {
+					level.sendParticles(ParticleTypes.HAPPY_VILLAGER, string.getX() + 0.5, string.getY() + 0.3, string.getZ() + 0.5, 2, 0.2, 0.1, 0.2, 0.0);
+				}
+			}
+			station.setPit(next);
+		}
+		return Optional.empty();
+	}
+
 	/** The string at the clicked block, or on top of it. */
 	private static @Nullable BlockPos stringAt(ServerLevel level, BlockPos clicked) {
 		if (level.getBlockState(clicked).is(Blocks.TRIPWIRE)) {
@@ -192,9 +264,33 @@ public record Pit(List<BlockPos> ring, List<BlockPos> inside, BlockPos exit, Blo
 		return level.getBlockState(clicked.above()).is(Blocks.TRIPWIRE) ? clicked.above().immutable() : null;
 	}
 
-	/** A string over a hole does not count. */
+	/**
+	 * A string over a hole does not count. Any block to stand on is ground, also dirt paths,
+	 * farmland and slabs, which are not full blocks.
+	 */
 	private static boolean isOnGround(ServerLevel level, BlockPos string) {
-		return level.getBlockState(string.below()).isFaceSturdy(level, string.below(), Direction.UP);
+		BlockPos below = string.below();
+		return !level.getBlockState(below).getCollisionShape(level, below).isEmpty();
+	}
+
+	/**
+	 * Where an open ring ends: the string with fewer than two neighbours, closest to
+	 * {@code near}, so the player knows where to look for the gap; the stake counts as a
+	 * neighbour. Null if every string has two neighbours (e.g. strings that only touch at a
+	 * corner).
+	 */
+	private static @Nullable BlockPos openEnd(Map<Long, BlockPos> strings, BlockPos near, @Nullable BlockPos stake) {
+		BlockPos end = null;
+		for (BlockPos string : strings.values()) {
+			if (string.equals(stake)) {
+				continue;
+			}
+			long neighbours = Direction.Plane.HORIZONTAL.stream().filter(side -> strings.containsKey(column(string.relative(side)))).count();
+			if (neighbours < 2 && (end == null || string.distSqr(near) < end.distSqr(near))) {
+				end = string;
+			}
+		}
+		return end;
 	}
 
 	/**
