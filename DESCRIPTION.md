@@ -76,7 +76,7 @@ Hired villagers never take vanilla jobs and never quit by themselves. A worker t
 
 ## ⛏️ Pit digger and kiln operator
 
-- Lay **string** on the ground in a closed ring and pick it at the **pit stake**: the pit digger digs out everything inside, layer by layer, down to the depth you set. It puts a ladder down the wall as it goes, never digs next to water or lava, leaves builds alone and brings every block it digs to its chest. Basements, foundations, sand and clay pits, or a simple quarry.
+- Lay **string** on the ground in a closed ring that touches the **pit stake**: the pit digger digs out everything inside, layer by layer, down to the depth you set. It puts a ladder down the wall as it goes, never digs next to water or lava, leaves builds alone and brings every block it digs to its chest. Basements, foundations, sand and clay pits, or a simple quarry.
 - The **kiln** is a brick furnace for building materials: glass, stone, smooth stone, bricks, terracotta, charcoal, ... It fires no food and no ore, so smoker, blast furnace and kiln each have their own job. The kiln operator fires everything from its input chests, or only what makes the product you pick, firing twice where needed (cobblestone to smooth stone), and keeps a stock you choose.
 
 ## ⛏️ Miner

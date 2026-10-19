@@ -70,6 +70,7 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 	private static final String TAG_CARRIER = "WorkingVillagersCarrier";
 	@Unique
 	private static final String TAG_PAID_DAY = "WorkingVillagersPaidDay";
+	private static final String TAG_HIRED_DAY = "WorkingVillagersHiredDay";
 
 	@Unique
 	private @Nullable BlockPos workingvillagers$openedContainer;
@@ -81,6 +82,8 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 	private boolean workingvillagers$problem;
 	@Unique
 	private long workingvillagers$paidDay = -1L;
+	@Unique
+	private long workingvillagers$hiredDay = -1L;
 	@Unique
 	private final StuckWorkers.Watch workingvillagers$stuckWatch = new StuckWorkers.Watch();
 	@Unique
@@ -127,6 +130,16 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 	@Override
 	public void workingvillagers$setPaidDay(long day) {
 		this.workingvillagers$paidDay = day;
+	}
+
+	@Override
+	public long workingvillagers$getHiredDay() {
+		return this.workingvillagers$hiredDay;
+	}
+
+	@Override
+	public void workingvillagers$setHiredDay(long day) {
+		this.workingvillagers$hiredDay = day;
 	}
 
 	@Override
@@ -219,6 +232,7 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 		output.storeNullable(TAG_EMPLOYER, UUIDUtil.CODEC, this.workingvillagers$employer);
 		output.storeNullable(TAG_CARRIER, CarrierData.CODEC, this.workingvillagers$carrier);
 		output.putLong(TAG_PAID_DAY, this.workingvillagers$paidDay);
+		output.putLong(TAG_HIRED_DAY, this.workingvillagers$hiredDay);
 		if (this.workingvillagers$workDone > 0) {
 			output.putLong(TAG_WORK_DAY, this.workingvillagers$workDay);
 			output.putInt(TAG_WORK_DONE, this.workingvillagers$workDone);
@@ -240,6 +254,7 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 		this.workingvillagers$employer = input.read(TAG_EMPLOYER, UUIDUtil.CODEC).orElse(null);
 		this.workingvillagers$carrier = input.read(TAG_CARRIER, CarrierData.CODEC).orElse(null);
 		this.workingvillagers$paidDay = input.getLongOr(TAG_PAID_DAY, -1L);
+		this.workingvillagers$hiredDay = input.getLongOr(TAG_HIRED_DAY, -1L);
 		this.workingvillagers$workDay = input.getLongOr(TAG_WORK_DAY, -1L);
 		this.workingvillagers$workDone = input.getIntOr(TAG_WORK_DONE, 0);
 		this.workingvillagers$experience = input.getIntOr(TAG_EXPERIENCE, 0);

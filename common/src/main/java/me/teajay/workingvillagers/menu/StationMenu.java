@@ -103,8 +103,6 @@ public class StationMenu extends AbstractContainerMenu {
 	public static final int STOCK_MORE_BUTTON = 309;
 	/** Chopping block: turns stripping the logs on or off. */
 	public static final int STRIP_BUTTON = 310;
-	/** Pit stake: closes the menu, the player then right-clicks a string of the ring around the pit. */
-	public static final int PICK_PIT_BUTTON = 311;
 	/** Pit stake: closes the menu, the player then right-clicks the string where the ladder goes. */
 	public static final int PICK_LADDER_BUTTON = 312;
 	/** Pit stake: less / more deep. */
@@ -179,6 +177,9 @@ public class StationMenu extends AbstractContainerMenu {
 	private static final String TAG_STRIP = "Strip";
 	private static final String TAG_FAMILIES = "Families";
 	private static final String TAG_PIT = "Pit";
+	private static final String TAG_PIT_PROBLEM = "PitProblem";
+	/** How often (in ticks) an open pit stake menu looks at the ring again. */
+	private static final int RING_INTERVAL = 10;
 	private static final String TAG_TUNNEL = "Tunnel";
 	private static final String TAG_BRANCHES = "Branches";
 	private static final String TAG_STAIRS = "Stairs";
@@ -231,6 +232,9 @@ public class StationMenu extends AbstractContainerMenu {
 	/** Client, stonecutter: the info the families were read from, to read them only once per update. */
 	private @Nullable ItemStack familiesFrom;
 	private List<StoneFamilies.Family> clientFamilies = List.of();
+	/** Server side, pit stake: why the ring at the stake is no pit, and when it was last looked at. */
+	private Optional<Component> pitProblem = Optional.empty();
+	private long ringCheckedAt = Long.MIN_VALUE;
 
 	/** Client side. */
 	public StationMenu(StationType type, int containerId, Inventory inventory) {
@@ -346,6 +350,11 @@ public class StationMenu extends AbstractContainerMenu {
 				return;
 			}
 			Workstations.Station station = found.get();
+			if (this.type == StationType.PIT_STAKE && serverLevel.getGameTime() - this.ringCheckedAt >= RING_INTERVAL) {
+				// The ring at the stake is the pit; while the menu is open, changes to it show up
+				this.ringCheckedAt = serverLevel.getGameTime();
+				this.pitProblem = Pit.attach(serverLevel, station);
+			}
 			CompoundTag tag = new CompoundTag();
 			tag.store(TAG_STATION, BlockPos.CODEC, pos);
 			tag.putInt(TAG_DAILY_LOGS, switch (this.type) {
@@ -414,6 +423,7 @@ public class StationMenu extends AbstractContainerMenu {
 				tag.putInt(TAG_DEPTH, station.depth());
 				tag.putInt(TAG_MAX_DEPTH, Config.PIT_MAX_DEPTH.get());
 				Pit pit = station.pit();
+				this.pitProblem.ifPresent(problem -> tag.store(TAG_PIT_PROBLEM, ComponentSerialization.CODEC, problem));
 				if (pit != null) {
 					CompoundTag pitTag = new CompoundTag();
 					pitTag.putInt(TAG_WIDTH, pit.width());
@@ -697,6 +707,11 @@ public class StationMenu extends AbstractContainerMenu {
 		return this.info.info().getCompound(TAG_PIT).map(pit -> new int[] {pit.getIntOr(TAG_WIDTH, 0), pit.getIntOr(TAG_LENGTH, 0), pit.getIntOr(TAG_AREA, 0)});
 	}
 
+	/** Pit stake: why the ring at the stake is no pit, empty if it is one. */
+	public Optional<Component> getPitProblem() {
+		return this.info.info().read(TAG_PIT_PROBLEM, ComponentSerialization.CODEC);
+	}
+
 	/** Mining bench: the picked tunnel, empty if none. */
 	public Optional<TunnelInfo> getTunnel() {
 		return this.info.info().getCompound(TAG_TUNNEL).map(tunnel -> new TunnelInfo(
@@ -827,7 +842,7 @@ public class StationMenu extends AbstractContainerMenu {
 			this.access.execute((level, pos) -> player.openMenu(level.getBlockState(pos).getMenuProvider(level, pos)));
 			return true;
 		}
-		if (buttonId >= ASSIGN_BUTTON && buttonId <= ADD_OUTPUTS_BUTTON || buttonId == PICK_PIT_BUTTON || buttonId == PICK_LADDER_BUTTON
+		if (buttonId >= ASSIGN_BUTTON && buttonId <= ADD_OUTPUTS_BUTTON || buttonId == PICK_LADDER_BUTTON
 			|| buttonId == PICK_TUNNEL_BUTTON) {
 			if (!(player instanceof ServerPlayer serverPlayer)) {
 				return false;
@@ -878,12 +893,6 @@ public class StationMenu extends AbstractContainerMenu {
 					return false;
 				}
 				StationPicks.pickChests(player, pos, ChestRole.INPUT);
-			}
-			case PICK_PIT_BUTTON -> {
-				if (this.type != StationType.PIT_STAKE) {
-					return false;
-				}
-				StationPicks.pickPit(player, pos);
 			}
 			case PICK_TUNNEL_BUTTON -> {
 				if (this.type != StationType.MINING_BENCH) {

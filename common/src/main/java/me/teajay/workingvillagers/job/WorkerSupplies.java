@@ -71,6 +71,10 @@ public final class WorkerSupplies {
 	public static final int MAX_EMERALDS = 64;
 	/** At most this many tools of its kind a worker carries (one in use, one spare). */
 	private static final int MAX_TOOLS = 2;
+	/** The end of the work hours of vanilla villagers (time of day); they start at 2000. */
+	private static final long WORK_END = 9000L;
+	/** From here on less than a third of the work hours is left, and a worker takes no wage that day. */
+	private static final long FREE_FROM = WORK_END - (WORK_END - 2000L) / 3;
 	private static final float SPEED = 0.5F;
 	/** How long the worker waits before it looks again. */
 	private static final int RETRY_TICKS = 100;
@@ -177,6 +181,13 @@ public final class WorkerSupplies {
 		int wage = Config.DAILY_WAGE.get();
 		SimpleContainer inventory = villager.getInventory();
 		Workstations.Station box = wageBox(level, villager);
+		HiredVillager hired = (HiredVillager) villager;
+		if (wage > 0 && !isPaid(level, villager) && isLateInWorkDay(level) && hired.workingvillagers$getHiredDay() == ChopTrees.today(level)) {
+			// Hired in the afternoon, too little of the work hours is left for a day's wage: the
+			// rest of the day is free. Only on the day of the first hiring, so holding back the
+			// wage (or hiring again) gives no free work.
+			hired.workingvillagers$setPaidDay(ChopTrees.today(level));
+		}
 		if (wage > 0 && !isPaid(level, villager)) {
 			if (emeralds(level, villager) < wage) {
 				if (!this.fetch(level, villager, WorkerSupplies::isWage)) {
@@ -372,6 +383,12 @@ public final class WorkerSupplies {
 	}
 
 	/** Whether the worker has taken its wage for today. */
+	/** Whether less than a third of the work hours of vanilla villagers (2000 to 9000) is left. */
+	static boolean isLateInWorkDay(ServerLevel level) {
+		long time = level.getOverworldClockTime() % 24000L;
+		return time >= FREE_FROM && time < WORK_END;
+	}
+
 	public static boolean isPaid(ServerLevel level, Villager villager) {
 		return ((HiredVillager) villager).workingvillagers$getPaidDay() >= ChopTrees.today(level);
 	}

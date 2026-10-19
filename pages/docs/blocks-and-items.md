@@ -46,8 +46,9 @@ buttons and sticks.
 
 ## Pit stake
 
-:mc-pit_stake: Workstation of the [pit digger](workers/pit-digger.md). Its overview picks the
-pit (a ring of string on the ground), the place of the ladder and the depth. Villagers walk
+:mc-pit_stake: Workstation of the [pit digger](workers/pit-digger.md). The ring of string on
+the ground that touches the stake is the pit; string connects to the stake. Its overview
+shows the pit and sets the place of the ladder and the depth. Villagers walk
 around it instead of climbing on it.
 
 [[craft: _ string _ / _ stick _ / _ any_planks _ -> pit_stake]]

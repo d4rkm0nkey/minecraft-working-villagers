@@ -10,6 +10,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -65,7 +66,10 @@ final class StandSpots {
 		List<BlockPos> candidates = new ArrayList<>();
 		for (BlockPos target : targets) {
 			for (Direction side : Direction.Plane.HORIZONTAL) {
-				candidates.add(target.relative(side));
+				// also a block up or down, e.g. next to a tree on a slope
+				for (int dy = -1; dy <= 1; dy++) {
+					candidates.add(target.relative(side).above(dy));
+				}
 			}
 		}
 		return candidates.stream()
@@ -73,11 +77,16 @@ final class StandSpots {
 			.min(Comparator.comparingDouble(candidate -> candidate.distToCenterSqr(villager.position())));
 	}
 
-	/** Two blocks of room above solid ground. */
+	/**
+	 * Two blocks of room above ground. Ground is a block whose top is at least half high and
+	 * not higher than a full block: also dirt paths, farmland and slabs, but not fences.
+	 */
 	static boolean isStandable(ServerLevel level, BlockPos pos) {
+		BlockPos below = pos.below();
+		VoxelShape ground = level.getBlockState(below).getCollisionShape(level, below);
 		return level.getBlockState(pos).getCollisionShape(level, pos).isEmpty()
 			&& level.getBlockState(pos.above()).getCollisionShape(level, pos.above()).isEmpty()
-			&& level.getBlockState(pos.below()).isFaceSturdy(level, pos.below(), Direction.UP);
+			&& !ground.isEmpty() && ground.max(Direction.Axis.Y) >= 0.5 && ground.max(Direction.Axis.Y) <= 1.0;
 	}
 
 	/** Whether the villager stands on the spot (its feet are within the block, roughly centered). */

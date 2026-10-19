@@ -70,7 +70,9 @@ public class ChopTrees extends Behavior<Villager> {
 	private static final int SEARCH_COOLDOWN = 100;
 	/** How long a tree that could not be reached is ignored. */
 	private static final long UNREACHABLE_COOLDOWN = 2400L;
-	/** How close the lumberjack has to get to a trunk without a free spot next to it. */
+	/** How close the lumberjack gets to a trunk without a free spot next to it. */
+	private static final double TREE_CLOSE = 2.5;
+	/** How close is enough when it cannot get closer than that (its path ends there). */
 	private static final double TREE_REACH = 4.5;
 
 	private enum State { SEARCH, WALK_TO_TREE, CHOP, FELL, DELIVER, WAIT }
@@ -218,7 +220,7 @@ public class ChopTrees extends Behavior<Villager> {
 			return;
 		}
 		this.tree = current;
-		boolean there = this.treeSpot != null ? StandSpots.isAt(villager, this.treeSpot) : this.tree.base().closerToCenterThan(villager.position(), TREE_REACH);
+		boolean there = this.treeSpot != null ? StandSpots.isAt(villager, this.treeSpot) : this.closeToTrunk(villager);
 		if (there) {
 			ItemStack axe = findAxe(villager.getInventory());
 			if (axe.isEmpty()) {
@@ -237,6 +239,19 @@ public class ChopTrees extends Behavior<Villager> {
 		} else if (this.stateTicks % 20 == 1) {
 			this.walkTo(villager, this.treeSpot != null ? this.treeSpot : this.tree.base(), this.treeSpot != null ? 0 : 1);
 		}
+	}
+
+	/**
+	 * Without a spot next to the trunk: close to it, or as close as the path gets (the walk
+	 * target is dropped when the villager arrives or no path gets further).
+	 */
+	private boolean closeToTrunk(Villager villager) {
+		BlockPos base = this.tree.base();
+		if (base.closerToCenterThan(villager.position(), TREE_CLOSE)) {
+			return true;
+		}
+		boolean walking = villager.getBrain().hasMemoryValue(MemoryModuleType.WALK_TARGET);
+		return !walking && this.stateTicks > 20 && base.closerToCenterThan(villager.position(), TREE_REACH);
 	}
 
 	/**

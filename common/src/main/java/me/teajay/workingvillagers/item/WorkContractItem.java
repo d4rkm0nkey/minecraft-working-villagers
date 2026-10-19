@@ -1,5 +1,6 @@
 package me.teajay.workingvillagers.item;
 
+import me.teajay.workingvillagers.job.ChopTrees;
 import me.teajay.workingvillagers.job.HiredVillager;
 import me.teajay.workingvillagers.job.WorkerJobs;
 import me.teajay.workingvillagers.job.WorkerNames;
@@ -47,6 +48,7 @@ public class WorkContractItem extends Item {
 		}
 
 		hired.workingvillagers$setEmployer(player.getUUID());
+		hired.workingvillagers$markHired(ChopTrees.today(level));
 		WorkerNames.ensureName(villager);
 		stack.consume(1, player);
 		if (employed) {

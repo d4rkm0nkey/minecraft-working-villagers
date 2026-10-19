@@ -26,6 +26,7 @@
     "SmithingMenuMixin",
     "SmokerMenuMixin",
     "StonecutterBlockMixin",
+    "TripWireBlockMixin",
     "UpdateActivityFromScheduleMixin",
     "VillagerGoalPackagesMixin",
     "VillagerMixin",

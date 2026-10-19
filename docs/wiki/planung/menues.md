@@ -88,7 +88,7 @@ Die bisherige linke Spalte der breiten Übersicht, nun allein im Fenster und dam
 | Hobelbank | Erzeugnis (3 Reihen), Holzsorten, Vorrat − / + |
 | Brennofen | Erzeugnis (5 Reihen, seitenweise), Vorrat − / + |
 | Hackklotz | Schalter „Stämme entrinden“ |
-| Grubenpflock | „Grube wählen“, Größe, Leiter, Tiefe − / + |
+| Grubenpflock | Größe (oder Problem mit dem Ring), Tiefe − / +, Leiter |
 | Grubenwerkbank | „Stollen wählen“, Richtung, Länge − / +, Art, Abzweige − / + |
 
 Oben eine Zeile mit dem aktuellen Auftrag („Bretter aus Eiche“, rot „Kein Auftrag“). Der Reiter zeigt als Symbol das bestellte Erzeugnis.

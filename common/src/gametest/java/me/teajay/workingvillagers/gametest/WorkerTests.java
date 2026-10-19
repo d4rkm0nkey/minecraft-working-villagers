@@ -16,6 +16,7 @@ import me.teajay.workingvillagers.job.TendAnimals;
 import me.teajay.workingvillagers.job.TendSheep;
 import me.teajay.workingvillagers.job.WorkerStatus;
 import me.teajay.workingvillagers.job.WorkerSupplies;
+import me.teajay.workingvillagers.job.ChopTrees;
 import me.teajay.workingvillagers.station.Pit;
 import me.teajay.workingvillagers.station.StationType;
 import me.teajay.workingvillagers.station.Workstations.ChestRole;
@@ -55,6 +56,9 @@ import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.world.level.block.TripWireBlock;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.FarmlandBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -94,6 +98,9 @@ public final class WorkerTests {
 		registry.accept("lumberjack_fells_tree", WorkerTests::lumberjackFellsTree);
 		registry.accept("lumberjack_fells_tree_on_mud", WorkerTests::lumberjackFellsTreeOnMud);
 		registry.accept("lumberjack_fells_tree_on_grass", WorkerTests::lumberjackFellsTreeOnGrass);
+		registry.accept("lumberjack_hired_late_works_for_free", WorkerTests::lumberjackHiredLateWorksForFree);
+		registry.accept("lumberjack_hired_before_pays_late", WorkerTests::lumberjackHiredBeforePaysLate);
+		registry.accept("lumberjack_stands_at_trunk_on_path", WorkerTests::lumberjackStandsAtTrunkOnPath);
 		registry.accept("lumberjack_spares_builds", WorkerTests::lumberjackSparesBuilds);
 		registry.accept("no_wage_no_work", WorkerTests::noWageNoWork);
 		registry.accept("stuck_worker_is_brought_back", WorkerTests::stuckWorkerIsBroughtBack);
@@ -122,6 +129,7 @@ public final class WorkerTests {
 		registry.accept("pit_digger_finishes_half_dug_pit", WorkerTests::pitDiggerFinishesHalfDugPit);
 		registry.accept("pit_digger_climbs_out_of_half_dug_pit", WorkerTests::pitDiggerClimbsOutOfHalfDugPit);
 		registry.accept("pit_digger_finishes_played_pit", WorkerTests::pitDiggerFinishesPlayedPit);
+		registry.accept("pit_stake_takes_ring_it_touches", WorkerTests::pitStakeTakesRingItTouches);
 		registry.accept("shop_assistant_sells_wheat", WorkerTests::shopAssistantSellsWheat);
 		registry.accept("ordinary_villager_keeps_off_set_up_station", WorkerTests::ordinaryVillagerKeepsOffSetUpStation);
 		registry.accept("assign_displaces_ordinary_villager", WorkerTests::assignDisplacesOrdinaryVillager);
@@ -960,6 +968,61 @@ public final class WorkerTests {
 		});
 	}
 
+	/** Hired late in the afternoon, the lumberjack works the rest of the day without a wage. */
+	private static void lumberjackHiredLateWorksForFree(GameTestHelper helper) {
+		BlockPos tree = new BlockPos(15, 1, 15);
+		TestWorld.oakTree(helper, tree, 5, true, Blocks.DIRT);
+		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_AXE));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_LOG), 5, "oak logs in the output chest");
+			int left = TestWorld.station(helper, STATION).wage() + WorkerSupplies.count(worker.getInventory(), WorkerSupplies::isWage);
+			helper.assertTrue(left == 2, "The lumberjack took a wage late in the day: " + left + " of 2 emeralds left");
+		});
+	}
+
+	/**
+	 * Hired on an earlier day, the lumberjack takes its wage also when it starts late: holding
+	 * back the wage until the afternoon gives no free work.
+	 */
+	private static void lumberjackHiredBeforePaysLate(GameTestHelper helper) {
+		BlockPos tree = new BlockPos(15, 1, 15);
+		TestWorld.oakTree(helper, tree, 5, true, Blocks.DIRT);
+		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_AXE));
+		((HiredVillager) worker).workingvillagers$setHiredDay(ChopTrees.today(helper.getLevel()) - 1);
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_LOG), 5, "oak logs in the output chest");
+			int left = TestWorld.station(helper, STATION).wage() + WorkerSupplies.count(worker.getInventory(), WorkerSupplies::isWage);
+			helper.assertTrue(left == 1, "The lumberjack hired before did not take its wage: " + left + " of 2 emeralds left");
+		});
+	}
+
+	/**
+	 * A tree on a dirt path, which is not a full block: the lumberjack still finds a spot
+	 * right next to the trunk instead of chopping from a few blocks away.
+	 */
+	private static void lumberjackStandsAtTrunkOnPath(GameTestHelper helper) {
+		BlockPos tree = new BlockPos(15, 1, 15);
+		for (int x = 12; x <= 18; x++) {
+			for (int z = 12; z <= 18; z++) {
+				helper.setBlock(new BlockPos(x, 0, z), Blocks.DIRT_PATH);
+			}
+		}
+		TestWorld.oakTree(helper, tree, 5, true, Blocks.DIRT);
+		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_AXE));
+		BlockPos top = tree.above(4);
+		double[] distance = {-1};
+		helper.onEachTick(() -> {
+			if (distance[0] < 0 && !helper.getBlockState(top).is(Blocks.OAK_LOG)) {
+				// the tree comes down from the top: where the lumberjack stood while chopping
+				distance[0] = Math.sqrt(helper.absolutePos(tree).distToCenterSqr(worker.getX(), helper.absolutePos(tree).getY() + 0.5, worker.getZ()));
+			}
+		});
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_LOG), 5, "oak logs in the output chest");
+			helper.assertTrue(distance[0] >= 0 && distance[0] < 1.6, "The lumberjack chopped from " + distance[0] + " blocks away");
+		});
+	}
+
 	private static void lumberjackSparesBuilds(GameTestHelper helper) {
 		// Persistent leaves: placed by a player, so this is a build, not a tree
 		BlockPos build = new BlockPos(15, 1, 15);
@@ -1506,6 +1569,58 @@ public final class WorkerTests {
 			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.STONE)) == 0, "The kiln operator delivered stone");
 			TestWorld.assertHolds(helper, worker, INPUT, stack -> stack.is(Items.SAND), 2, "sand left in the input chest");
 		});
+	}
+
+	/**
+	 * The pit stake takes the ring of string it touches as the pit, standing in the ring or
+	 * next to it; string connects to the stake. Strings on a dirt path still count, and an
+	 * open ring says where it ends.
+	 */
+	private static void pitStakeTakesRingItTouches(GameTestHelper helper) {
+		int ground = 5;
+		for (int x = 4; x <= 16; x++) {
+			for (int z = 4; z <= 16; z++) {
+				for (int y = 1; y <= ground; y++) {
+					helper.setBlock(new BlockPos(x, y, z), y == ground ? Blocks.GRASS_BLOCK : Blocks.DIRT);
+				}
+			}
+		}
+		// A ring around 3×3 columns, a dirt path under one side
+		for (int i = 8; i <= 12; i++) {
+			for (BlockPos string : List.of(new BlockPos(i, ground + 1, 8), new BlockPos(i, ground + 1, 12), new BlockPos(8, ground + 1, i), new BlockPos(12, ground + 1, i))) {
+				helper.setBlock(string, Blocks.TRIPWIRE);
+			}
+			helper.setBlock(new BlockPos(i, ground, 12), Blocks.DIRT_PATH);
+		}
+		ServerLevel level = helper.getLevel();
+
+		// The stake next to the ring
+		BlockPos outside = new BlockPos(7, ground + 1, 10);
+		helper.setBlock(outside, WorkingVillagers.PIT_STAKE.get());
+		helper.assertTrue(helper.getBlockState(new BlockPos(8, ground + 1, 10)).getValue(TripWireBlock.WEST), "The string does not connect to the stake");
+		Pit pit = Pit.fromStake(level, helper.absolutePos(outside)).left()
+			.orElseThrow(() -> helper.assertionException(outside, "The ring next to the stake is no pit"));
+		helper.assertTrue(pit.inside().size() == 9, "The pit has " + pit.inside().size() + " blocks instead of 9");
+		Workstations.Station station = TestWorld.station(helper, outside);
+		helper.assertTrue(Pit.attach(level, station).isEmpty() && station.pit() != null, "The stake did not take the ring");
+		helper.setBlock(outside, Blocks.AIR);
+
+		// The stake in the ring, instead of a string
+		BlockPos inRing = new BlockPos(8, ground + 1, 10);
+		helper.setBlock(inRing, WorkingVillagers.PIT_STAKE.get());
+		pit = Pit.fromStake(level, helper.absolutePos(inRing)).left()
+			.orElseThrow(() -> helper.assertionException(inRing, "The ring through the stake is no pit"));
+		helper.assertTrue(pit.inside().size() == 9, "The pit has " + pit.inside().size() + " blocks instead of 9");
+		helper.assertFalse(pit.ring().contains(helper.absolutePos(inRing)), "The stake is taken as a string of the ring");
+		helper.assertTrue(pit.isIntact(level), "The ring through the stake is not intact");
+
+		// An open ring tells where it ends
+		helper.setBlock(new BlockPos(12, ground + 1, 10), Blocks.AIR);
+		Component problem = Pit.fromStake(level, helper.absolutePos(inRing)).right()
+			.orElseThrow(() -> helper.assertionException(inRing, "An open ring was taken as a pit"));
+		helper.assertTrue(problem.getContents() instanceof TranslatableContents contents && contents.getKey().equals("message.workingvillagers.pit.not_closed_at"),
+			"Wrong problem for an open ring: " + problem.getString());
+		helper.succeed();
 	}
 
 	/**
