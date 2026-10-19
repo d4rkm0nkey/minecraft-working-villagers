@@ -1,9 +1,9 @@
 package me.teajay.workingvillagers.item;
 
-import me.teajay.workingvillagers.job.ChopTrees;
 import me.teajay.workingvillagers.job.HiredVillager;
 import me.teajay.workingvillagers.job.WorkerJobs;
 import me.teajay.workingvillagers.job.WorkerNames;
+import me.teajay.workingvillagers.job.WorkerSupplies;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -48,7 +48,7 @@ public class WorkContractItem extends Item {
 		}
 
 		hired.workingvillagers$setEmployer(player.getUUID());
-		hired.workingvillagers$markHired(ChopTrees.today(level));
+		WorkerSupplies.onHired(level, villager);
 		WorkerNames.ensureName(villager);
 		stack.consume(1, player);
 		if (employed) {

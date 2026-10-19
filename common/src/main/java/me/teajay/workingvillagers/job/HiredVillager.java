@@ -69,18 +69,11 @@ public interface HiredVillager {
 
 	/**
 	 * The day the villager was hired for the first time, -1 if never (or before this was
-	 * kept). Starting work late on that day, it works the rest of it for free.
+	 * kept). See {@link WorkerSupplies#onHired}.
 	 */
 	long workingvillagers$getHiredDay();
 
 	void workingvillagers$setHiredDay(long day);
-
-	/** Remembers today as the day of the first hiring, unless the villager was hired before. */
-	default void workingvillagers$markHired(long today) {
-		if (this.workingvillagers$getHiredDay() < 0) {
-			this.workingvillagers$setHiredDay(today);
-		}
-	}
 
 	/** Whether the worker is stuck, see {@link StuckWorkers}. Not saved. */
 	StuckWorkers.Watch workingvillagers$getStuckWatch();

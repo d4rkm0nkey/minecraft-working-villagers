@@ -1,10 +1,10 @@
 package me.teajay.workingvillagers.carrier;
 
 import me.teajay.workingvillagers.WorkingVillagers;
-import me.teajay.workingvillagers.job.ChopTrees;
 import me.teajay.workingvillagers.job.HiredVillager;
 import me.teajay.workingvillagers.job.WorkerJobs;
 import me.teajay.workingvillagers.job.WorkerNames;
+import me.teajay.workingvillagers.job.WorkerSupplies;
 import me.teajay.workingvillagers.menu.CarrierMenu;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -49,7 +49,7 @@ public final class Carriers {
 		}
 
 		hired.workingvillagers$setEmployer(player.getUUID());
-		hired.workingvillagers$markHired(ChopTrees.today(level));
+		WorkerSupplies.onHired(level, villager);
 		hired.workingvillagers$setCarrier(CarrierData.fromBasket(basket));
 		WorkerNames.ensureName(villager);
 		basket.consume(1, player);

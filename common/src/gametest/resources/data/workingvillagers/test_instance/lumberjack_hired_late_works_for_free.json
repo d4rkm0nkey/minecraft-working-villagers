@@ -1,6 +1,6 @@
 {
   "type": "minecraft:function",
-  "environment": "workingvillagers:late_work_hours",
+  "environment": "workingvillagers:work_hours",
   "function": "workingvillagers:lumberjack_hired_late_works_for_free",
   "max_ticks": 2400,
   "setup_ticks": 1,

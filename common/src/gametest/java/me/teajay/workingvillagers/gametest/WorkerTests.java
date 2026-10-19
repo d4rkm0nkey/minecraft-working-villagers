@@ -968,11 +968,17 @@ public final class WorkerTests {
 		});
 	}
 
-	/** Hired late in the afternoon, the lumberjack works the rest of the day without a wage. */
+	/**
+	 * Hired late in the afternoon, the lumberjack works the rest of the day without a wage.
+	 * The hiring is played at 7500 (the test runs in the morning: changing the clock would
+	 * change it for the other tests running at the same time).
+	 */
 	private static void lumberjackHiredLateWorksForFree(GameTestHelper helper) {
 		BlockPos tree = new BlockPos(15, 1, 15);
 		TestWorld.oakTree(helper, tree, 5, true, Blocks.DIRT);
 		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_AXE));
+		((HiredVillager) worker).workingvillagers$setHiredDay(-1);
+		WorkerSupplies.onHired(worker, ChopTrees.today(helper.getLevel()), 7500);
 		helper.succeedWhen(() -> {
 			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_LOG), 5, "oak logs in the output chest");
 			int left = TestWorld.station(helper, STATION).wage() + WorkerSupplies.count(worker.getInventory(), WorkerSupplies::isWage);
@@ -981,18 +987,20 @@ public final class WorkerTests {
 	}
 
 	/**
-	 * Hired on an earlier day, the lumberjack takes its wage also when it starts late: holding
-	 * back the wage until the afternoon gives no free work.
+	 * Hired before, the lumberjack takes its wage also when it is hired again late in the
+	 * afternoon (like a carrier that got its basket back): no free work.
 	 */
 	private static void lumberjackHiredBeforePaysLate(GameTestHelper helper) {
 		BlockPos tree = new BlockPos(15, 1, 15);
 		TestWorld.oakTree(helper, tree, 5, true, Blocks.DIRT);
 		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_AXE));
-		((HiredVillager) worker).workingvillagers$setHiredDay(ChopTrees.today(helper.getLevel()) - 1);
+		long today = ChopTrees.today(helper.getLevel());
+		WorkerSupplies.onHired(worker, today, 7500);
 		helper.succeedWhen(() -> {
 			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_LOG), 5, "oak logs in the output chest");
 			int left = TestWorld.station(helper, STATION).wage() + WorkerSupplies.count(worker.getInventory(), WorkerSupplies::isWage);
-			helper.assertTrue(left == 1, "The lumberjack hired before did not take its wage: " + left + " of 2 emeralds left");
+			helper.assertTrue(left == 1, "The lumberjack hired before did not take its wage: " + left + " of 2 emeralds left (paid day "
+				+ ((HiredVillager) worker).workingvillagers$getPaidDay() + ", hired day " + ((HiredVillager) worker).workingvillagers$getHiredDay() + ", today " + today + ")");
 		});
 	}
 

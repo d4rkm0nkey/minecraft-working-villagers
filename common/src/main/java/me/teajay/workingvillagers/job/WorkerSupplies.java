@@ -181,13 +181,6 @@ public final class WorkerSupplies {
 		int wage = Config.DAILY_WAGE.get();
 		SimpleContainer inventory = villager.getInventory();
 		Workstations.Station box = wageBox(level, villager);
-		HiredVillager hired = (HiredVillager) villager;
-		if (wage > 0 && !isPaid(level, villager) && isLateInWorkDay(level) && hired.workingvillagers$getHiredDay() == ChopTrees.today(level)) {
-			// Hired in the afternoon, too little of the work hours is left for a day's wage: the
-			// rest of the day is free. Only on the day of the first hiring, so holding back the
-			// wage (or hiring again) gives no free work.
-			hired.workingvillagers$setPaidDay(ChopTrees.today(level));
-		}
 		if (wage > 0 && !isPaid(level, villager)) {
 			if (emeralds(level, villager) < wage) {
 				if (!this.fetch(level, villager, WorkerSupplies::isWage)) {
@@ -382,13 +375,29 @@ public final class WorkerSupplies {
 		}
 	}
 
-	/** Whether the worker has taken its wage for today. */
-	/** Whether less than a third of the work hours of vanilla villagers (2000 to 9000) is left. */
-	static boolean isLateInWorkDay(ServerLevel level) {
-		long time = level.getOverworldClockTime() % 24000L;
-		return time >= FREE_FROM && time < WORK_END;
+	/**
+	 * A villager was hired. The first time, late in the afternoon (less than a third of the
+	 * work hours of vanilla villagers, 2000 to 9000, left), it works the rest of the day for
+	 * free. Only the first time, so hiring again (a carrier gets its basket back) gives no
+	 * free work.
+	 */
+	public static void onHired(ServerLevel level, Villager villager) {
+		onHired(villager, ChopTrees.today(level), level.getOverworldClockTime() % 24000L);
 	}
 
+	/** {@link #onHired(ServerLevel, Villager)} at the given day and time of day, for tests. */
+	public static void onHired(Villager villager, long today, long timeOfDay) {
+		HiredVillager hired = (HiredVillager) villager;
+		if (hired.workingvillagers$getHiredDay() >= 0) {
+			return;
+		}
+		hired.workingvillagers$setHiredDay(today);
+		if (timeOfDay >= FREE_FROM && timeOfDay < WORK_END) {
+			hired.workingvillagers$setPaidDay(today);
+		}
+	}
+
+	/** Whether the worker has taken its wage for today. */
 	public static boolean isPaid(ServerLevel level, Villager villager) {
 		return ((HiredVillager) villager).workingvillagers$getPaidDay() >= ChopTrees.today(level);
 	}
