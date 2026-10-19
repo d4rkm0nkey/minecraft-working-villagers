@@ -10,8 +10,8 @@ Konzept (Stand der Umsetzung siehe [unten](#stand-der-umsetzung)):
 
 - Nur Dorfbewohner eines [gekauften Dorfes](../dorf/dorf-und-kauf.md).
 - Arbeitslose Dorfbewohner können angeheuert werden. Idee: Nitwits nur als [Träger](../berufe/traeger.md) (einfachste Arbeit, halber Lohn) – endlich ein Nutzen für sie. Noch nicht umgesetzt, Nitwits lassen sich bisher gar nicht anheuern.
-- Berufstätige Villager mit Handelsangeboten können nicht angeheuert werden, damit Handel nicht kaputtgeht. Alternative: Anheuern löscht die Trades (Config).
-- Das Level eines angeheuerten Villagers steigt durch Arbeit statt durch Handel (Novice → Master).
+- Berufstätige Villager behalten beim Anheuern ihre Angebote, damit Handel nicht kaputtgeht (umgesetzt, siehe unten).
+- Das Level eines angeheuerten Villagers steigt durch Arbeit statt durch Handel (Novice → Master). Derzeit steigen Arbeiter mit Vanilla-Gegenstück durch Handel auf wie in Vanilla; die Stufe durch Arbeit soll dazukommen.
 
 ## Lohnstufen
 
@@ -34,19 +34,23 @@ Die ursprünglich genannten 100 Emeralds pro Woche sind für Early Game sehr vie
 
 ### Stand der Umsetzung
 
-**Anheuern:** Den Arbeitsvertrag craftet man formlos aus Papier, Tintenbeutel und 3 Emeralds. Rechtsklick damit auf einen arbeitslosen, erwachsenen Dorfbewohner stellt ihn ein, in jedem Dorf und auch außerhalb; einen Dorfkauf gibt es noch nicht. Berufstätige Dorfbewohner und Nitwits lassen sich nicht anheuern. Eine Anheuergebühr gibt es nicht, der Vertrag ist der Preis. Den [Träger](../berufe/traeger.md) stellt man statt mit Vertrag mit dem Weidenkorb ein.
+**Anheuern:** Den Arbeitsvertrag craftet man formlos aus Papier, Tintenbeutel und 3 Emeralds. Rechtsklick damit auf einen erwachsenen Dorfbewohner stellt ihn ein, in jedem Dorf und auch außerhalb; einen Dorfkauf gibt es noch nicht. Ein arbeitsloser sucht sich danach selbst eine Station. Einer **mit Beruf bleibt an seinem Block** und wird dort Arbeiter dieser Mod: der Bauer am Komposter, der Steinmetz als Steinsäger an der Steinsäge, der Schäfer als Hirte am Webstuhl, Panzermacher und Werkzeugschmied als Schmied, der Fleischer als Metzger am Räucherofen, der Fischer am Fass. Nicht angeheuert werden Nitwits, Babys und Dorfbewohner mit einem Beruf ohne Arbeit in dieser Mod (Bibliothekar, Kartograf, …).
+
+**Handel:** Arbeiter mit Vanilla-Gegenstück handeln wie dieses (`TradeFamilies`): Bauer wie Bauer, Steinsäger wie Steinmetz, Hirte wie Schäfer, Metzger wie Fleischer, Fischer wie Fischer, Schmied wie Panzermacher (am Schmelzofen) bzw. Werkzeugschmied (am Schmiedetisch). Ihre Berufe verweisen dafür auf die Vanilla-Angebotslisten. Wer schon gehandelt hat, **behält beim Anheuern Angebote und Stufe**: Vanilla würde die Angebote beim Berufswechsel löschen, ein Mixin hebt sie innerhalb derselben Familie auf (auch über eine Zeit ohne Arbeit hinweg, gespeichert am Dorfbewohner). Aufstieg geschieht wie in Vanilla durch Handel; die Angebote füllt der Arbeiter während der Arbeitszeit an seiner Station auf (höchstens zweimal am Tag, wie Vanilla). Gehandelt wird mit leerer Hand oder mit Schleichen + Rechtsklick; mit Smaragden oder Werkzeug in der Hand bekommt er sie geschenkt. Die übrigen Arbeiter (Holzfäller, Holzsäger, Tischler, …) handeln nicht. Eine Anheuergebühr gibt es nicht, der Vertrag ist der Preis. Den [Träger](../berufe/traeger.md) stellt man statt mit Vertrag mit dem Weidenkorb ein. Geplant: [ein Vertrag je Beruf](arbeitsvertraege.md), nur in Truhen von Strukturen zu finden statt craftbar.
 
 **Arbeitszeit:** die normale Vanilla-Arbeitszeit der Dorfbewohner; nachts schlafen sie.
 
-**Lohn:** Eine Dorfkasse gibt es noch nicht, auch keine persönliche Kiste mehr. Der Spieler gibt Lohn und Werkzeug direkt, wie Futter: Rechtsklick auf den Arbeiter mit Emeralds, Werkzeug oder Saatgut, oder die Items vor ihm fallen lassen. Der Arbeiter trägt sie selbst bei sich:
+**Lohn:** Eine Dorfkasse gibt es noch nicht. Jede Station hat eine **Lohnkasse** für bis zu 64 Emeralds (Wunsch vom 18.10.2026): Reiter **Lohn** der Stationsübersicht mit einem Slot und dem Spielerinventar wie ein Container; außerdem legt ein Rechtsklick mit Emeralds auf die Station sie hinein, und Emeralds, die man dem Arbeiter gibt oder zuwirft, legt er ebenfalls hinein. Aus Dorftruhen geholter Lohn (für 3 Tage) landet auch dort. Vor der Arbeit nimmt sich der Arbeiter den Tageslohn (Standard 1 Emerald) aus der Kasse, danach aus der Tasche (Emeralds aus älteren Versionen). Ohne Emerald wartet er an seiner Station.
 
-- bis zu 64 Emeralds; vor der Arbeit nimmt er sich den Tageslohn (Standard 1 Emerald). Ohne Emerald wartet er an seiner Station.
+- Die Emeralds gehören der Station, nicht dem Arbeiter: Stirbt er, wird er zum Zombie oder wechselt er die Station, geht nichts verloren; der nächste Arbeiter dort wird aus derselben Kasse bezahlt. Wird die Station abgebaut, gesprengt oder ersetzt, fallen die Emeralds heraus wie aus einer Truhe (über die POI-Aktualisierung von Vanilla, `ServerLevelMixin`). Gespeichert in den Stationsdaten (`wage`), nicht im Block.
+- Der Träger hat keine Station und trägt seine Emeralds weiter selbst (bis zu 64).
+- Werkzeug und Saatgut trägt der Arbeiter weiter selbst, der Spieler gibt sie direkt, wie Futter: Rechtsklick auf den Arbeiter oder die Items vor ihm fallen lassen.
 - Holzfäller: bis zu 2 Äxte und 16 Setzlinge je Sorte. Farmer: bis zu 2 Hacken und 16 Saatgut je Sorte zum Start, danach pflanzt er aus der Ernte nach.
 - Hat er genug, schüttelt er den Kopf. Zugeworfene Items nimmt er nur bis zu denselben Höchstmengen auf. Stirbt er, lässt er alles fallen.
 - Der Lohn ist für alle gleich (Config `workers.dailyWage`, 0 = umsonst). Lohnstufen, Level, Moral und Kündigung gibt es noch nicht; alle Arbeiter sind Novizen.
 - Kann er nicht arbeiten, schüttelt er ab und zu den Kopf mit dem „Nein“-Sound, wenn ein Spieler in der Nähe ist.
 
-Später sollen [Dorftruhen](../planung/roadmap.md#weitere-geplante-punkte) das ergänzen.
+Ergänzend gibt es [Dorftruhen](../dorf/dorftruhen.md): Jeder Arbeiter in der Nähe holt sich daraus selbst, was ihm ausgeht (Lohn für 3 Tage, Ersatzwerkzeug, Setzlinge, Saatgut, Leitern, Fackeln).
 
 ## Moral statt Strafe
 

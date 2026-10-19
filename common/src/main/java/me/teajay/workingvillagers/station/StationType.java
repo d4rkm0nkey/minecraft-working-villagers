@@ -4,6 +4,9 @@ import java.util.List;
 import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.crafting.WoodTypes;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.npc.villager.VillagerProfession;
+import net.minecraft.world.level.block.AbstractCauldronBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -21,7 +24,56 @@ public enum StationType {
 	/** The farmer only delivers its harvest. */
 	COMPOSTER(false),
 	/** The smith smelts whatever it finds in the input chests, there is no order. */
-	BLAST_FURNACE(true);
+	BLAST_FURNACE(true),
+	/** The pit digger only delivers what it digs. */
+	PIT_STAKE(false),
+	/** The kiln operator fires everything, or only what makes the order. */
+	KILN(true),
+	/** The shop assistant sells the goods of the input chests, the emeralds go to the output chests. */
+	TRADING_COUNTER(true),
+	/** The miner only delivers what it digs; the bench itself is a mill for players. */
+	MINING_BENCH(false),
+	/**
+	 * The smith repairs tools: worn ones from the village chests nearby and damaged ones from
+	 * the input chests, with the material from the input chests.
+	 */
+	SMITHING_TABLE(true),
+	/** The shepherd shears and breeds the sheep around the loom; it only delivers the wool. */
+	LOOM(false),
+	/**
+	 * The butcher breeds and slaughters the animals around the smoker and smokes the meat;
+	 * feed and coal can come from input chests.
+	 */
+	SMOKER(true),
+	/** The fisher fishes from the shore or from a boat; it only delivers its catch. */
+	BARREL(false),
+	/** The fletcher makes arrows, bows and crossbows from its input chests, as ordered. */
+	FLETCHING_TABLE(true),
+	/**
+	 * The guard stands at the target at night and shoots monsters; arrows and bows can come
+	 * from input chests, what the monsters drop goes to the output chests.
+	 */
+	TARGET(true),
+	/**
+	 * The apothecary makes glass bottles, water bottles and potions at the brewing stand from
+	 * its input chests, as ordered, and heals injured workers with potions of healing.
+	 */
+	BREWING_STAND(true),
+	/**
+	 * The tanner makes leather (from rabbit hide, and tans rotten flesh in the cauldron) and
+	 * leather goods from its input chests, as ordered, and dyes leather armor.
+	 */
+	CAULDRON(true),
+	/**
+	 * The weaponsmith forges tools and weapons from its input chests, as ordered, grinds two
+	 * worn tools into one and disenchants what lies in its input chests.
+	 */
+	GRINDSTONE(true),
+	/**
+	 * The librarian enchants what lies in the input chests at an enchanting table near the
+	 * lectern, with bottles o' enchanting and lapis lazuli.
+	 */
+	LECTERN(true);
 
 	private final boolean processing;
 
@@ -37,9 +89,17 @@ public enum StationType {
 		return this.processing;
 	}
 
+	/** Whether the block has a screen of its own, which the overview leads back to. */
+	public boolean hasOwnScreen() {
+		return this == WOODCUTTER || this == STONECUTTER || this == CARPENTER_BENCH || this == BLAST_FURNACE || this == KILN || this == MINING_BENCH
+			|| this == SMITHING_TABLE || this == LOOM || this == SMOKER || this == BARREL || this == BREWING_STAND
+			|| this == GRINDSTONE;
+	}
+
 	/** Whether the worker needs an order, set in the order column of the overview. */
 	public boolean hasOrder() {
-		return this == WOODCUTTER || this == STONECUTTER || this == CARPENTER_BENCH;
+		return this == WOODCUTTER || this == STONECUTTER || this == CARPENTER_BENCH || this == KILN || this == FLETCHING_TABLE || this == BREWING_STAND || this == CAULDRON
+			|| this == GRINDSTONE;
 	}
 
 	/**
@@ -47,7 +107,8 @@ public enum StationType {
 	 * profession. It only counts as a workstation of this mod once it has been set up.
 	 */
 	public boolean isVanilla() {
-		return this == STONECUTTER || this == COMPOSTER || this == BLAST_FURNACE;
+		return this == STONECUTTER || this == COMPOSTER || this == BLAST_FURNACE || this == SMITHING_TABLE || this == LOOM || this == SMOKER || this == BARREL
+			|| this == FLETCHING_TABLE || this == BREWING_STAND || this == CAULDRON || this == GRINDSTONE || this == LECTERN;
 	}
 
 	/**
@@ -67,6 +128,31 @@ public enum StationType {
 		return !this.shapes().isEmpty();
 	}
 
+	/** The profession of this mod that works here. */
+	public ResourceKey<VillagerProfession> profession() {
+		return switch (this) {
+			case CHOPPING_BLOCK -> WorkingVillagers.LUMBERJACK_PROFESSION;
+			case WOODCUTTER -> WorkingVillagers.WOODCUTTER_PROFESSION;
+			case STONECUTTER -> WorkingVillagers.STONECUTTER_PROFESSION;
+			case CARPENTER_BENCH -> WorkingVillagers.CARPENTER_PROFESSION;
+			case COMPOSTER -> WorkingVillagers.FARMER_PROFESSION;
+			case BLAST_FURNACE, SMITHING_TABLE -> WorkingVillagers.SMITH_PROFESSION;
+			case PIT_STAKE -> WorkingVillagers.PIT_DIGGER_PROFESSION;
+			case KILN -> WorkingVillagers.KILN_OPERATOR_PROFESSION;
+			case TRADING_COUNTER -> WorkingVillagers.SHOP_ASSISTANT_PROFESSION;
+			case MINING_BENCH -> WorkingVillagers.MINER_PROFESSION;
+			case LOOM -> WorkingVillagers.SHEPHERD_PROFESSION;
+			case SMOKER -> WorkingVillagers.BUTCHER_PROFESSION;
+			case BARREL -> WorkingVillagers.FISHER_PROFESSION;
+			case FLETCHING_TABLE -> WorkingVillagers.FLETCHER_PROFESSION;
+			case TARGET -> WorkingVillagers.GUARD_PROFESSION;
+			case BREWING_STAND -> WorkingVillagers.APOTHECARY_PROFESSION;
+			case CAULDRON -> WorkingVillagers.TANNER_PROFESSION;
+			case GRINDSTONE -> WorkingVillagers.WEAPONSMITH_PROFESSION;
+			case LECTERN -> WorkingVillagers.LIBRARIAN_PROFESSION;
+		};
+	}
+
 	public Component displayName() {
 		return switch (this) {
 			case CHOPPING_BLOCK -> WorkingVillagers.CHOPPING_BLOCK.get().getName();
@@ -75,6 +161,20 @@ public enum StationType {
 			case CARPENTER_BENCH -> WorkingVillagers.CARPENTER_BENCH.get().getName();
 			case COMPOSTER -> Blocks.COMPOSTER.getName();
 			case BLAST_FURNACE -> Blocks.BLAST_FURNACE.getName();
+			case PIT_STAKE -> WorkingVillagers.PIT_STAKE.get().getName();
+			case KILN -> WorkingVillagers.KILN.get().getName();
+			case TRADING_COUNTER -> WorkingVillagers.TRADING_COUNTER.get().getName();
+			case MINING_BENCH -> WorkingVillagers.MINING_BENCH.get().getName();
+			case SMITHING_TABLE -> Blocks.SMITHING_TABLE.getName();
+			case LOOM -> Blocks.LOOM.getName();
+			case SMOKER -> Blocks.SMOKER.getName();
+			case BARREL -> Blocks.BARREL.getName();
+			case FLETCHING_TABLE -> Blocks.FLETCHING_TABLE.getName();
+			case TARGET -> Blocks.TARGET.getName();
+			case BREWING_STAND -> Blocks.BREWING_STAND.getName();
+			case CAULDRON -> Blocks.CAULDRON.getName();
+			case GRINDSTONE -> Blocks.GRINDSTONE.getName();
+			case LECTERN -> Blocks.LECTERN.getName();
 		};
 	}
 
@@ -86,6 +186,20 @@ public enum StationType {
 			case CARPENTER_BENCH -> WorkingVillagers.CARPENTER_BENCH.get();
 			case COMPOSTER -> Blocks.COMPOSTER;
 			case BLAST_FURNACE -> Blocks.BLAST_FURNACE;
+			case PIT_STAKE -> WorkingVillagers.PIT_STAKE.get();
+			case KILN -> WorkingVillagers.KILN.get();
+			case TRADING_COUNTER -> WorkingVillagers.TRADING_COUNTER.get();
+			case MINING_BENCH -> WorkingVillagers.MINING_BENCH.get();
+			case SMITHING_TABLE -> Blocks.SMITHING_TABLE;
+			case LOOM -> Blocks.LOOM;
+			case SMOKER -> Blocks.SMOKER;
+			case BARREL -> Blocks.BARREL;
+			case FLETCHING_TABLE -> Blocks.FLETCHING_TABLE;
+			case TARGET -> Blocks.TARGET;
+			case BREWING_STAND -> Blocks.BREWING_STAND;
+			case CAULDRON -> Blocks.CAULDRON;
+			case GRINDSTONE -> Blocks.GRINDSTONE;
+			case LECTERN -> Blocks.LECTERN;
 		};
 	}
 
@@ -102,6 +216,35 @@ public enum StationType {
 			return COMPOSTER;
 		} else if (state.is(Blocks.BLAST_FURNACE)) {
 			return BLAST_FURNACE;
+		} else if (state.is(WorkingVillagers.PIT_STAKE.get())) {
+			return PIT_STAKE;
+		} else if (state.is(WorkingVillagers.KILN.get())) {
+			return KILN;
+		} else if (state.is(WorkingVillagers.TRADING_COUNTER.get())) {
+			return TRADING_COUNTER;
+		} else if (state.is(WorkingVillagers.MINING_BENCH.get())) {
+			return MINING_BENCH;
+		} else if (state.is(Blocks.SMITHING_TABLE)) {
+			return SMITHING_TABLE;
+		} else if (state.is(Blocks.LOOM)) {
+			return LOOM;
+		} else if (state.is(Blocks.SMOKER)) {
+			return SMOKER;
+		} else if (state.is(Blocks.BARREL)) {
+			return BARREL;
+		} else if (state.is(Blocks.FLETCHING_TABLE)) {
+			return FLETCHING_TABLE;
+		} else if (state.is(Blocks.TARGET)) {
+			return TARGET;
+		} else if (state.is(Blocks.BREWING_STAND)) {
+			return BREWING_STAND;
+		} else if (state.is(Blocks.GRINDSTONE)) {
+			return GRINDSTONE;
+		} else if (state.is(Blocks.LECTERN)) {
+			return LECTERN;
+		} else if (state.getBlock() instanceof AbstractCauldronBlock) {
+			// Filling or emptying it makes another block of it
+			return CAULDRON;
 		}
 		return null;
 	}

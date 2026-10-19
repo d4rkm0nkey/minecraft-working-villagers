@@ -4,10 +4,14 @@ import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.client.CarpenterScreen;
 import me.teajay.workingvillagers.client.CarrierScreen;
 import me.teajay.workingvillagers.client.CutterScreen;
+import me.teajay.workingvillagers.client.KilnScreen;
 import me.teajay.workingvillagers.client.StationScreen;
+import me.teajay.workingvillagers.client.VillageChestRenderer;
+import me.teajay.workingvillagers.client.VillageChestScreen;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
 @Mod(value = WorkingVillagers.MOD_ID, dist = Dist.CLIENT)
@@ -24,6 +28,26 @@ public class WorkingVillagersNeoForgeClient {
 			event.register(WorkingVillagers.CARPENTER_STATION_MENU.get(), StationScreen::new);
 			event.register(WorkingVillagers.COMPOSTER_STATION_MENU.get(), StationScreen::new);
 			event.register(WorkingVillagers.BLAST_FURNACE_STATION_MENU.get(), StationScreen::new);
+			event.register(WorkingVillagers.SMITHING_TABLE_STATION_MENU.get(), StationScreen::new);
+			event.register(WorkingVillagers.LOOM_STATION_MENU.get(), StationScreen::new);
+			event.register(WorkingVillagers.SMOKER_STATION_MENU.get(), StationScreen::new);
+			event.register(WorkingVillagers.BARREL_STATION_MENU.get(), StationScreen::new);
+			event.register(WorkingVillagers.FLETCHING_TABLE_STATION_MENU.get(), StationScreen::new);
+			event.register(WorkingVillagers.BREWING_STAND_STATION_MENU.get(), StationScreen::new);
+			event.register(WorkingVillagers.CAULDRON_STATION_MENU.get(), StationScreen::new);
+			event.register(WorkingVillagers.GRINDSTONE_STATION_MENU.get(), StationScreen::new);
+			event.register(WorkingVillagers.LECTERN_STATION_MENU.get(), StationScreen::new);
+			event.register(WorkingVillagers.TARGET_STATION_MENU.get(), StationScreen::new);
+			event.register(WorkingVillagers.PIT_STAKE_MENU.get(), StationScreen::new);
+			event.register(WorkingVillagers.KILN_STATION_MENU.get(), StationScreen::new);
+			event.register(WorkingVillagers.KILN_MENU.get(), KilnScreen::new);
+			event.register(WorkingVillagers.TRADING_COUNTER_MENU.get(), StationScreen::new);
+			event.register(WorkingVillagers.MINING_BENCH_MENU.get(), StationScreen::new);
+			event.register(WorkingVillagers.MILL_MENU.get(), CutterScreen::new);
+			event.register(WorkingVillagers.VILLAGE_CHEST_MENU.get(), VillageChestScreen::new);
+			event.register(WorkingVillagers.VILLAGE_CHEST_DOUBLE_MENU.get(), VillageChestScreen::new);
 		});
+		modBus.addListener(EntityRenderersEvent.RegisterRenderers.class,
+			event -> event.registerBlockEntityRenderer(WorkingVillagers.VILLAGE_CHEST_BLOCK_ENTITY.get(), VillageChestRenderer::new));
 	}
 }

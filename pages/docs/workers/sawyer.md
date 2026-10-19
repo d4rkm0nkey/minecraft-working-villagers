@@ -26,8 +26,7 @@ no detour over planks: one log gives 8 slabs or 4 stairs directly.
 === "Woodcutter"
 
     An order at the woodcutter is a **product shape** and a **set of wood types**.
-    Open the overview with the **i** button at the top right (or click the order box
-    below the result slot):
+    Open the **Order** tab above the screen (or click the order box below the result slot):
 
     - pick the shape: planks, slabs, stairs, fences, fence gates, doors, trapdoors,
       pressure plates, buttons, signs or sticks
@@ -38,8 +37,8 @@ no detour over planks: one log gives 8 slabs or 4 stairs directly.
 
 === "Stonecutter"
 
-    Open the overview with the **i** button at the top right (or click the order box
-    below the result slot). It shows the stone families (stone, granite, deepslate,
+    Open the **Order** tab above the screen (or click the order box below the result slot).
+    It shows the stone families (stone, granite, deepslate,
     copper, ...):
 
     - pick a family to see its products
@@ -49,11 +48,12 @@ no detour over planks: one log gives 8 slabs or 4 stairs directly.
 
 !!! note
     Ordinary (not hired) villagers still become masons at stonecutters. Only hired
-    villagers become stone sawyers.
+    villagers become stone sawyers. A station you have set up (linked chests) is
+    kept for hired workers, and **Assign** makes room there.
 
 ## Worker and chests
 
-In the overview (**i**, back with **Back**):
+In the overview (the tabs above the screen: **Worker**, **Chests** and **Order**):
 
 - **Assign** / **Remove** the worker
 - **+ Input**: chests the material is taken from

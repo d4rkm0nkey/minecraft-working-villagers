@@ -19,6 +19,16 @@ Working Villagers is in an early beta. Thanks for testing!
 - A worker that gets stuck (in a hole, boxed in) is brought back to its workstation after
   a minute. If there is no room at the workstation either, it stays stuck until you free it.
 - No integration with JEI/EMI/REI or Jade yet.
+- Villagers show no armor. A [guard](workers/guard.md#armor) in a leather tunic wears its
+  tabard in the tunic's color; other armor protects it but is not visible.
+- Some things are not in vanilla: the [tanner](workers/tanner.md) tans rotten flesh into
+  leather (can be switched off), the [fletcher](workers/fletcher.md) makes arrowheads of
+  copper and iron nuggets, and the [guards](workers/guard.md#experience) get the experience
+  of the monsters they kill.
+- The cartographer has no job in this mod yet: cartographers cannot be hired.
+- Saves from 0.3.0 should load, but this has not been tested in many worlds. **Back up
+  first.** The wage of workers is now kept in their workstation; workers from 0.3.0 put the
+  emeralds they carry into it by themselves.
 
 What comes next is on [Planned features](planned.md).
 

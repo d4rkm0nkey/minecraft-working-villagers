@@ -1,0 +1,13 @@
+{
+  "type": "workingvillagers:milling",
+  "ingredient": [
+    "minecraft:sandstone",
+    "minecraft:chiseled_sandstone",
+    "minecraft:cut_sandstone",
+    "minecraft:smooth_sandstone"
+  ],
+  "result": {
+    "id": "minecraft:sand",
+    "count": 4
+  }
+}

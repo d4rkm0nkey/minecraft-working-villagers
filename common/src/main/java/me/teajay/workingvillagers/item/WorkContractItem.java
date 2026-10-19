@@ -1,6 +1,7 @@
 package me.teajay.workingvillagers.item;
 
 import me.teajay.workingvillagers.job.HiredVillager;
+import me.teajay.workingvillagers.job.WorkerJobs;
 import me.teajay.workingvillagers.job.WorkerNames;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -14,8 +15,10 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Used on an unemployed villager, it hires the villager and gives it a name. A hired villager
- * takes a workstation of this mod nearby instead of the usual village jobs.
+ * Used on an adult villager, it hires the villager. An unemployed one takes a workstation of
+ * this mod nearby instead of the usual village jobs. One with a vanilla job stays at its job
+ * site and becomes the worker of this mod there (a farmer at its composter, a mason at its
+ * stonecutter, ...), unless it has traded already: it would lose its trades.
  */
 public class WorkContractItem extends Item {
 	public WorkContractItem(Properties properties) {
@@ -34,15 +37,24 @@ public class WorkContractItem extends Item {
 			player.sendOverlayMessage(Component.translatable("message.workingvillagers.contract.already_hired"));
 			return InteractionResult.CONSUME;
 		}
-		if (villager.isBaby() || !villager.getVillagerData().profession().is(VillagerProfession.NONE)) {
+		boolean employed = !villager.getVillagerData().profession().is(VillagerProfession.NONE);
+		Component problem = villager.isBaby() ? Component.translatable("message.workingvillagers.contract.not_unemployed")
+			: employed ? WorkerJobs.checkKeepJobSite(level, villager) : null;
+		if (problem != null) {
 			villager.makeSound(SoundEvents.VILLAGER_NO);
-			player.sendOverlayMessage(Component.translatable("message.workingvillagers.contract.not_unemployed"));
+			player.sendOverlayMessage(problem);
 			return InteractionResult.CONSUME;
 		}
 
 		hired.workingvillagers$setEmployer(player.getUUID());
 		WorkerNames.ensureName(villager);
 		stack.consume(1, player);
+		if (employed) {
+			WorkerJobs.keepJobSite(level, villager);
+			player.sendOverlayMessage(Component.translatable("message.workingvillagers.contract.hired_here", villager.getName(),
+				villager.getVillagerData().profession().value().name()));
+			return InteractionResult.SUCCESS_SERVER;
+		}
 		villager.makeSound(SoundEvents.VILLAGER_YES);
 		// Happy villager particles
 		level.broadcastEntityEvent(villager, (byte) 14);

@@ -28,12 +28,13 @@ profession.
 
 ## For the workers you already have
 
+- :mc-work_contract: **A contract for every profession.** Instead of one contract you craft,
+  each profession gets its own: a lumberjack contract, a farmer contract, a pit digger
+  contract, ... They cannot be crafted. You find them in chests of villages, mineshafts,
+  pillager outposts and woodland mansions, and a villager hired with one only takes jobs of
+  that profession.
 - :mc-experience_bottle: **Experience levels.** Workers rise from novice to master by
   working instead of trading, and get faster or carry more on the way.
-- :mc-wicker_basket: **Filters for carriers**, so a carrier only moves the items you
-  choose instead of everything in a chest.
-- :mc-smithing_table: **Repairs by the smith.** At a smithing table the smith repairs the
-  worn tools of the other workers with ingots.
 
 ## Villages
 
@@ -44,8 +45,6 @@ profession.
 - :mc-clock: **Working without players nearby.** A village you own keeps its workplaces
   loaded as long as the treasury covers the wages, so the work goes on while you are
   away.
-- :mc-chest: **Village chests.** Chests that every worker of the village takes wages,
-  tools, seeds and saplings from, instead of each worker carrying its own.
 
 ## Economy
 

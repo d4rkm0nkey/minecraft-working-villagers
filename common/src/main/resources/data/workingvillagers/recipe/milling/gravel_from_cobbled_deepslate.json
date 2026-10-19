@@ -1,0 +1,7 @@
+{
+  "type": "workingvillagers:milling",
+  "ingredient": "minecraft:cobbled_deepslate",
+  "result": {
+    "id": "minecraft:gravel"
+  }
+}

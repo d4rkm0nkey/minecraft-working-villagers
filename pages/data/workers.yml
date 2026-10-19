@@ -79,15 +79,181 @@ farmer:
     Makes: ":mc-wheat: Wheat, :mc-carrot: carrots, :mc-potato: potatoes, :mc-beetroot: beetroots"
     Range: 8 blocks
 
+guard:
+  name: Guard
+  page: workers/guard.md
+  head: guard
+  workstation: target
+  summary: Shoots the monsters around its target at night and picks up its arrows in the morning.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-target: Target"
+    Needs: ":mc-bow: A bow, :mc-arrow: arrows"
+    Makes: "Safety, and the loot of the monsters"
+    Range: 8 to 32 blocks
+
+fletcher:
+  name: Fletcher
+  page: workers/fletcher.md
+  head: fletcher
+  workstation: fletching_table
+  summary: Makes arrows, bows and crossbows, with heads of flint from gravel or of copper and iron.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-fletching_table: Fletching table"
+    Takes: ":mc-gravel: Gravel or nuggets, :mc-stick: sticks, :mc-feather: feathers"
+    Makes: ":mc-arrow: Arrows, :mc-spectral_arrow: spectral arrows, :mc-bow: bows"
+
+librarian:
+  name: Librarian
+  page: workers/librarian.md
+  head: librarian
+  workstation: lectern
+  summary: Enchants tools, weapons, armor and books at an enchanting table, paid with bottles o' enchanting.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-lectern: Lectern, with an :mc-enchanting_table: enchanting table nearby"
+    Takes: ":mc-experience_bottle: Bottles o' enchanting, :mc-lapis_lazuli: lapis lazuli"
+    Makes: ":mc-enchanted_book: Enchanted books, tools, weapons and armor"
+
+weaponsmith:
+  name: Weaponsmith
+  page: workers/weaponsmith.md
+  head: weaponsmith
+  workstation: grindstone
+  summary: Forges tools and weapons, grinds two worn tools into one and disenchants loot for bottles o' enchanting.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-grindstone: Grindstone"
+    Takes: ":mc-iron_ingot: Ingots or cobblestone, :mc-stick: sticks, worn tools, enchanted loot"
+    Makes: ":mc-iron_axe: Tools, :mc-stone_sword: weapons, :mc-experience_bottle: bottles o' enchanting"
+
+tanner:
+  name: Tanner
+  page: workers/tanner.md
+  head: tanner
+  workstation: cauldron
+  summary: Makes leather of rabbit hide and rotten flesh, and books, saddles and leather armor in the color of your village.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-cauldron: Cauldron"
+    Takes: ":mc-rabbit_hide: Rabbit hide, :mc-rotten_flesh: rotten flesh, :mc-leather: leather, dyes"
+    Makes: ":mc-book: Books, :mc-leather_chestplate: leather armor, :mc-saddle: saddles"
+
+apothecary:
+  name: Apothecary
+  page: workers/apothecary.md
+  head: apothecary
+  workstation: brewing_stand
+  summary: Brews potions step by step at the brewing stand, makes glass bottles and heals injured workers.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-brewing_stand: Brewing stand"
+    Takes: ":mc-glass: Glass or :mc-glass_bottle: bottles, :mc-nether_wart: nether wart, :mc-blaze_powder: blaze powder"
+    Makes: ":mc-glass_bottle: Glass bottles, water bottles, potions"
+
+fisher:
+  name: Fisher
+  page: workers/fisher.md
+  head: fisher
+  workstation: barrel
+  summary: Fishes near its barrel, from the shore or out in a boat.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-barrel: Barrel"
+    Needs: ":mc-fishing_rod: A fishing rod, optionally :mc-oak_boat: a boat"
+    Makes: ":mc-cod: Fish, junk, and treasure out on open water"
+    Range: 16 blocks, by boat 32
+
+butcher:
+  name: Butcher
+  page: workers/butcher.md
+  head: butcher
+  workstation: smoker
+  summary: Breeds and slaughters the animals around its smoker and smokes the meat.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-smoker: Smoker"
+    Needs: ":mc-iron_sword: A sword or an axe, :mc-carrot: feed, :mc-charcoal: coal for smoking"
+    Makes: ":mc-cooked_porkchop: Smoked meat, :mc-leather: leather, :mc-feather: feathers"
+    Range: 12 blocks
+
+shepherd:
+  name: Shepherd
+  page: workers/shepherd.md
+  head: shepherd
+  workstation: loom
+  summary: Shears and breeds the sheep around its loom.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-loom: Loom"
+    Needs: ":mc-shears: Shears, :mc-wheat: wheat for breeding"
+    Makes: ":mc-white_wool: Wool"
+    Range: 12 blocks
+
 smith:
   name: Smith
   page: workers/smith.md
   head: smith
   workstation: blast_furnace
-  summary: Smelts ore from its input chests in the blast furnace.
+  summary: Smelts ore in the blast furnace, or repairs tools at a smithing table.
   facts:
     Hired with: ":mc-work_contract: Work contract"
-    Workstation: ":mc-blast_furnace: Blast furnace"
+    Workstation: ":mc-blast_furnace: Blast furnace or :mc-smithing_table: smithing table"
     Takes: ":mc-raw_iron: Ore and :mc-coal: fuel"
     Makes: ":mc-iron_ingot: Ingots"
     Batch: 16 items, 8 fuel
+
+pit_digger:
+  name: Pit digger
+  page: workers/pit-digger.md
+  head: pit_digger
+  workstation: pit_stake
+  summary: Digs out a pit you mark with string, layer by layer, with a ladder as the way out.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-pit_stake: Pit stake"
+    Needs: ":mc-iron_shovel: A shovel, :mc-iron_pickaxe: a pickaxe, :mc-ladder: ladders (:mc-torch: torches optional)"
+    Makes: ":mc-dirt: Dirt, :mc-sand: sand, :mc-gravel: gravel, :mc-cobblestone: cobblestone, ..."
+    Pit: up to 64 blocks, 16 deep
+    Per day: 256 blocks
+
+miner:
+  name: Miner
+  page: workers/miner.md
+  head: miner
+  workstation: mining_bench
+  summary: Digs a tunnel with supports into a hill, side tunnels or stairs down, follows the ores and seals off water and lava.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-mining_bench: Mining bench"
+    Needs: ":mc-iron_pickaxe: A pickaxe (:mc-oak_fence: fences, :mc-oak_planks: planks and :mc-torch: torches optional)"
+    Makes: ":mc-cobblestone: Cobblestone, :mc-raw_iron: ores, :mc-gravel: gravel, ..."
+    Tunnel: 3×3, up to 32 long, side tunnels up to 16
+    Per day: 256 blocks
+
+kiln_operator:
+  name: Kiln operator
+  page: workers/kiln-operator.md
+  head: kiln_operator
+  workstation: kiln
+  summary: Fires glass, stone, bricks, terracotta and charcoal in the kiln.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-kiln: Kiln"
+    Takes: ":mc-sand: Sand, :mc-cobblestone: cobblestone, :mc-clay_ball: clay, :mc-any_log: logs, ... and :mc-coal: fuel"
+    Makes: ":mc-glass: Glass, :mc-smooth_stone: smooth stone, :mc-brick: bricks, :mc-charcoal: charcoal, ..."
+    Stock: none, or 1 to 256
+
+shop_assistant:
+  name: Shop assistant
+  page: workers/shop-assistant.md
+  head: shop_assistant
+  workstation: trading_counter
+  summary: Sells goods from its chests to the villagers around, through their own trades, and brings in emeralds.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-trading_counter: Trading counter"
+    Takes: ":mc-wheat: Wheat, :mc-stick: sticks, :mc-paper: paper, ... whatever villagers buy"
+    Makes: ":mc-emerald: Emeralds"
+    Range: 24 blocks

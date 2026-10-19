@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "workingvillagers:work_hours",
+  "function": "workingvillagers:worn_axe_goes_to_output_chest",
+  "max_ticks": 2000,
+  "setup_ticks": 1,
+  "structure": "workingvillagers:platform"
+}

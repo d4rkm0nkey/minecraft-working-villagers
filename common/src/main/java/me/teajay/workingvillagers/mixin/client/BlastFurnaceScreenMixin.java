@@ -1,36 +1,26 @@
 package me.teajay.workingvillagers.mixin.client;
 
-import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import java.util.List;
-import me.teajay.workingvillagers.client.GuiPanels;
+import me.teajay.workingvillagers.client.StationTabs;
 import me.teajay.workingvillagers.menu.CutterMenu;
-import net.minecraft.client.Minecraft;
+import me.teajay.workingvillagers.menu.StationWorker;
+import me.teajay.workingvillagers.station.StationType;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractFurnaceScreen;
 import net.minecraft.client.gui.screens.inventory.BlastFurnaceScreen;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.BlastFurnaceMenu;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 
 /**
- * The "i" button at the top right of the blast furnace screen, like in the stonecutter: it
- * opens the overview of the smith's station (worker, chests, wage).
+ * The tabs of the smith's station above the blast furnace screen (see {@link StationTabs}):
+ * the blast furnace is the open one, the others open the overview there.
  */
 @Mixin(BlastFurnaceScreen.class)
 public abstract class BlastFurnaceScreenMixin extends AbstractFurnaceScreen<BlastFurnaceMenu> {
-	@Unique
-	private static final int STATION_X = 157;
-	@Unique
-	private static final int STATION_Y = 3;
-	@Unique
-	private static final int STATION_SIZE = 12;
-
 	private BlastFurnaceScreenMixin(BlastFurnaceMenu menu, Inventory inventory, Component title) {
 		super(menu, inventory, title, title, Identifier.withDefaultNamespace("textures/gui/container/blast_furnace.png"), null, null, List.of());
 	}
@@ -38,33 +28,21 @@ public abstract class BlastFurnaceScreenMixin extends AbstractFurnaceScreen<Blas
 	@Override
 	public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
 		super.extractBackground(graphics, mouseX, mouseY, a);
-		boolean over = this.workingvillagers$isOverStation(mouseX, mouseY);
-		GuiPanels.button(graphics, this.font, this.leftPos + STATION_X, this.topPos + STATION_Y, STATION_SIZE, "i", over);
-		if (over) {
-			graphics.requestCursor(CursorTypes.POINTING_HAND);
-		}
+		StationTabs.extractAbove(graphics, this.leftPos, this.topPos, mouseX, mouseY, StationType.BLAST_FURNACE, ((StationWorker) this.menu).workingvillagers$tabFlags());
 	}
 
 	@Override
 	protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
 		super.extractTooltip(graphics, mouseX, mouseY);
-		if (this.workingvillagers$isOverStation(mouseX, mouseY)) {
-			graphics.setTooltipForNextFrame(this.font, Component.translatable("gui.workingvillagers.station.open"), mouseX, mouseY);
-		}
+		StationTabs.tooltip(graphics, this.font, mouseX, mouseY, this.leftPos, this.topPos, StationType.BLAST_FURNACE, ((StationWorker) this.menu).workingvillagers$tabFlags());
 	}
 
 	@Override
 	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-		if (this.workingvillagers$isOverStation(event.x(), event.y())) {
-			Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-			this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, CutterMenu.STATION_BUTTON);
+		if (StationTabs.click(this.minecraft, this.menu.containerId, CutterMenu.STATION_BUTTON, event.x(), event.y(), this.leftPos, this.topPos,
+			StationType.BLAST_FURNACE, ((StationWorker) this.menu).workingvillagers$tabFlags())) {
 			return true;
 		}
 		return super.mouseClicked(event, doubleClick);
-	}
-
-	@Unique
-	private boolean workingvillagers$isOverStation(double mouseX, double mouseY) {
-		return GuiPanels.isOver(mouseX, mouseY, this.leftPos + STATION_X, this.topPos + STATION_Y, STATION_SIZE, STATION_SIZE);
 	}
 }

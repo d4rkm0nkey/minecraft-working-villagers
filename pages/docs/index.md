@@ -24,13 +24,27 @@ hide:
 <span class="wv-villager" style="--delay: .7s"><img src="assets/mc/heads/smith.png" alt=""><img src="assets/mc/blocks/blast_furnace.png" alt=""></span>
 <span class="wv-villager" style="--delay: 1.1s"><img src="assets/mc/heads/stonecutter.png" alt=""><img src="assets/mc/blocks/stonecutter.png" alt=""></span>
 <span class="wv-villager" style="--delay: .5s"><img src="assets/mc/heads/carrier.png" alt=""><img src="assets/mc/blocks/chest.png" alt=""></span>
+<span class="wv-villager" style="--delay: .3s"><img src="assets/mc/heads/pit_digger.png" alt=""><img src="assets/mc/blocks/pit_stake.png" alt=""></span>
+<span class="wv-villager" style="--delay: .8s"><img src="assets/mc/heads/kiln_operator.png" alt=""><img src="assets/mc/blocks/kiln.png" alt=""></span>
+<span class="wv-villager" style="--delay: .6s"><img src="assets/mc/heads/shop_assistant.png" alt=""><img src="assets/mc/blocks/trading_counter.png" alt=""></span>
+<span class="wv-villager" style="--delay: 1s"><img src="assets/mc/heads/miner.png" alt=""><img src="assets/mc/blocks/mining_bench.png" alt=""></span>
+<span class="wv-villager" style="--delay: .45s"><img src="assets/mc/heads/shepherd.png" alt=""><img src="assets/mc/blocks/loom.png" alt=""></span>
+<span class="wv-villager" style="--delay: .85s"><img src="assets/mc/heads/butcher.png" alt=""><img src="assets/mc/blocks/smoker.png" alt=""></span>
+<span class="wv-villager" style="--delay: .15s"><img src="assets/mc/heads/fisher.png" alt=""><img src="assets/mc/blocks/barrel.png" alt=""></span>
+<span class="wv-villager" style="--delay: .65s"><img src="assets/mc/heads/fletcher.png" alt=""><img src="assets/mc/blocks/fletching_table.png" alt=""></span>
+<span class="wv-villager" style="--delay: .35s"><img src="assets/mc/heads/guard.png" alt=""><img src="assets/mc/blocks/target.png" alt=""></span>
+<span class="wv-villager" style="--delay: .95s"><img src="assets/mc/heads/apothecary.png" alt=""><img src="assets/mc/items/brewing_stand.png" alt=""></span>
+<span class="wv-villager" style="--delay: .55s"><img src="assets/mc/heads/tanner.png" alt=""><img src="assets/mc/blocks/cauldron.png" alt=""></span>
+<span class="wv-villager" style="--delay: .25s"><img src="assets/mc/heads/weaponsmith.png" alt=""><img src="assets/mc/blocks/grindstone.png" alt=""></span>
+<span class="wv-villager" style="--delay: .75s"><img src="assets/mc/heads/librarian.png" alt=""><img src="assets/mc/blocks/lectern.png" alt=""></span>
 </div>
 </div>
 
-Working Villagers turns unemployed villagers into paid employees. You hand them a work
+Working Villagers turns villagers into paid employees. You hand them a work
 contract, give them a workstation and a few chests, and they start working: felling
-trees, sawing planks, crafting chests, farming fields, smelting ore and carrying items
-from one place to another.
+trees, sawing planks, crafting chests, farming fields, smelting ore, digging pits and tunnels, firing
+glass and bricks, selling goods to the villagers and carrying items from one place to
+another.
 There are no machines: everything is done by villagers walking around, opening chests
 and working at their stations.
 
@@ -48,7 +62,7 @@ one emerald each day. No wage, no work.
 ## How it works in short
 
 <ol class="wv-steps">
-<li><span class="mc-slot">:mc-work_contract:</span><strong>Hire</strong> Craft a work contract and right-click an unemployed villager with it.</li>
+<li><span class="mc-slot">:mc-work_contract:</span><strong>Hire</strong> Craft a work contract and right-click a villager with it.</li>
 <li><span class="mc-slot">:mc-chopping_block:</span><strong>Workstation</strong> Place a workstation. The villager walks there and takes the job.</li>
 <li><span class="mc-slot">:mc-chest:</span><strong>Chests</strong> Link chests: where the material comes from and where the products go.</li>
 <li><span class="mc-slot">:mc-emerald:</span><strong>Wage</strong> Right-click the worker with emeralds (and its tool, if it needs one).</li>
@@ -66,7 +80,6 @@ New here? Start with [Installation](installation.md) and then
   particles.
 - Hired villagers find a free workstation by themselves, never take vanilla jobs and
   never leave their job by themselves.
-- Each workstation (except the composter) shows its worker on a paper note.
 - The menus show what each worker is doing right now: chopping 40 %, waiting for wages,
   done for today, sleeping, ...
 - Lumberjacks only touch natural trees, so your log houses are safe.

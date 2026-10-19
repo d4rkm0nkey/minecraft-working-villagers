@@ -14,7 +14,7 @@ and into pages/overrides/.icons/wv/<name>.svg pixel art icons for the navigation
 
 The renderer is a small orthographic projection of block model elements (with element
 and UV rotation), drawn back to front. It is good enough for workstation icons; it does
-not know about block entities, so the chest is built from its entity texture by hand.
+not know about block entities, so the chests are built from their entity textures by hand.
 """
 import json
 import math
@@ -44,6 +44,14 @@ VANILLA_ITEMS = [
     "oak_sapling:block", "birch_sapling:block", "spruce_sapling:block",
     "iron_pickaxe", "iron_shovel", "minecart", "spyglass", "leather", "arrow", "iron_sword",
     "experience_bottle", "cod", "brewing_stand", "fishing_rod", "shears", "string", "rail:block",
+    "brick", "clay_ball", "green_dye", "flint", "wooden_pickaxe", "stone_pickaxe", "diamond_pickaxe",
+    "porkchop", "cooked_porkchop", "beef", "feather",
+    "salmon", "tropical_fish", "pufferfish", "oak_boat",
+    "gravel:block", "copper_nugget", "iron_nugget", "spectral_arrow",
+    "glass_bottle", "nether_wart", "blaze_powder", "glistering_melon_slice",
+    "enchanted_book", "iron_hoe", "stone_sword",
+    "lapis_lazuli",
+    "rabbit_hide", "rotten_flesh", "bundle", "saddle", "leather_chestplate", "leather_horse_armor", "red_dye", "water_bucket",
 ]
 MOD_ITEMS = ["work_contract", "wicker_basket"]
 
@@ -60,10 +68,13 @@ BLOCKS = {
     "spruce_slab": "minecraft:block/spruce_slab",
     "oak_stairs": "minecraft:block/oak_stairs",
     "stone": "minecraft:block/stone",
+    "oak_fence": "minecraft:block/oak_fence_inventory",
+    "cobbled_deepslate": "minecraft:block/cobbled_deepslate",
     "stone_bricks": "minecraft:block/stone_bricks",
     "crafting_table": "minecraft:block/crafting_table",
     "barrel": "minecraft:block/barrel",
     "composter": "minecraft:block/composter",
+    "white_wool": "minecraft:block/white_wool",
     "blast_furnace": "minecraft:block/blast_furnace",
     "stonecutter": "minecraft:block/stonecutter",
     "grass_block": "minecraft:block/grass_block",
@@ -78,14 +89,32 @@ BLOCKS = {
     "smoker": "minecraft:block/smoker",
     "cauldron": "minecraft:block/cauldron",
     "fletching_table": "minecraft:block/fletching_table",
+    "target": "minecraft:block/target",
+    "soul_sand": "minecraft:block/soul_sand",
+    "grindstone": "minecraft:block/grindstone",
+    "enchanting_table": "minecraft:block/enchanting_table",
     "cartography_table": "minecraft:block/cartography_table",
     "smithing_table": "minecraft:block/smithing_table",
     "chopping_block": "workingvillagers:block/chopping_block",
     "woodcutter": "workingvillagers:block/woodcutter",
     "carpenter_bench": "workingvillagers:block/carpenter_bench",
+    "pit_stake": "workingvillagers:block/pit_stake",
+    "kiln": "workingvillagers:block/kiln",
+    "trading_counter": "workingvillagers:block/trading_counter",
+    "mining_bench": "workingvillagers:block/mining_bench",
+    "furnace": "minecraft:block/furnace",
+    "sand": "minecraft:block/sand",
+    "glass": "minecraft:block/glass",
+    "cobblestone": "minecraft:block/cobblestone",
+    "smooth_stone": "minecraft:block/smooth_stone",
+    "dirt": "minecraft:block/dirt",
+    "gravel": "minecraft:block/gravel",
+    "terracotta": "minecraft:block/terracotta",
 }
 
-PROFESSIONS = ["lumberjack", "woodcutter", "stonecutter", "carpenter", "carrier", "farmer", "smith"]
+LEATHER_TINT = (0xA0, 0x65, 0x40)
+
+PROFESSIONS = ["lumberjack", "woodcutter", "stonecutter", "carpenter", "carrier", "farmer", "smith", "pit_digger", "kiln_operator", "shop_assistant", "miner", "shepherd", "butcher", "fisher", "fletcher", "guard", "apothecary", "tanner", "weaponsmith", "librarian"]
 
 # Navigation icons (pixel SVGs) made from item textures.
 NAV_ICONS = ["spyglass", "emerald", "work_contract", "book", "writable_book", "map", "filled_map", "clock", "barrier", "oak_sapling"]
@@ -146,6 +175,8 @@ def split(ref):
 
 def resolve(textures, name):
     seen = set()
+    if isinstance(name, dict):
+        name = name["sprite"]  # a texture with options, e.g. {"sprite": ..., "force_translucent": true}
     while name.startswith("#"):
         if name in seen:
             return None
@@ -153,6 +184,8 @@ def resolve(textures, name):
         name = textures.get(name[1:])
         if name is None:
             return None
+        if isinstance(name, dict):
+            name = name["sprite"]
     return name
 
 
@@ -394,10 +427,11 @@ def villager_head(assets, profession):
     faces += entity_box(skin, 24, 0, (2, 4, 2), (3, -1, -2))
     rim = profession_tex.crop((30, 47, 64, 64))
     if rim.getbbox():
-        # The hat rim: a 16x16 plate, one pixel thick, laid flat around the head.
+        # The hat rim: a 16x16 plate, one pixel thick, laid flat around the head. The model
+        # tips it forward, so the bottom row of its texture is at the front of the head.
         y = 5
         corners = ((-4, y + 1, -4), (12, y + 1, -4), (-4, y + 1, 12))
-        faces.append(Face(corners, skin, [(31, 48), (47, 48), (31, 64)]))
+        faces.append(Face(corners, skin, [(31, 64), (47, 64), (31, 48)]))
         # Its edges: the front one is the plate's bottom row, the side one a column of its side.
         faces.append(Face(((12, y + 1, -4), (-4, y + 1, -4), (12, y, -4)), skin, [(47, 47), (63, 47), (47, 48)]))
         faces.append(Face(((-4, y + 1, -4), (-4, y + 1, 12), (-4, y, -4)), skin, [(30, 64), (30, 48), (31, 64)]))
@@ -414,9 +448,9 @@ def box(image, origin, size, north, west, up):
     return faces
 
 
-def chest(assets):
+def chest(assets, texture="minecraft:entity/chest/normal"):
     """The chest is a block entity, so it is put together from its entity texture."""
-    image = assets.texture("minecraft:entity/chest/normal")
+    image = assets.texture(texture)
     faces = box(image, (1, 0, 1), (14, 10, 14), (42, 33, 56, 43), (28, 33, 42, 43), (14, 19, 28, 33))
     faces += box(image, (1, 9, 1), (14, 5, 14), (42, 14, 56, 19), (28, 14, 42, 19), (28, 0, 42, 14))
     faces += box(image, (7, 7, 0), (2, 4, 1), (1, 1, 3, 5), (0, 1, 1, 5), (1, 0, 3, 1))
@@ -470,6 +504,13 @@ def main():
     for entry in VANILLA_ITEMS:
         name, _, kind = entry.partition(":")
         image = assets.texture(f"minecraft:{kind or 'item'}/{name}")
+        if name.startswith("leather_"):
+            # Leather armor is grey, tinted in the game: in the color of undyed leather
+            image = multiply(image.convert("RGBA"), LEATHER_TINT)
+            try:
+                image.alpha_composite(assets.texture(f"minecraft:item/{name}_overlay").convert("RGBA"))
+            except Exception:
+                pass
         items[name.removesuffix("_00")] = image
     for name in MOD_ITEMS:
         items[name] = assets.texture(f"workingvillagers:item/{name}")
@@ -480,6 +521,7 @@ def main():
         tint = GRASS_TINT if name == "grass_block" else None
         render(model_faces(assets, ref, tint), bounds=CUBE).save(OUT / "blocks" / f"{name}.png", optimize=True)
     chest(assets).save(OUT / "blocks" / "chest.png", optimize=True)
+    chest(assets, "workingvillagers:entity/chest/village").save(OUT / "blocks" / "village_chest.png", optimize=True)
 
     for profession in PROFESSIONS:
         villager_head(assets, profession).save(OUT / "heads" / f"{profession}.png", optimize=True)

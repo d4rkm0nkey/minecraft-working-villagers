@@ -27,6 +27,7 @@ DOCS_ASSETS = "assets/mc"
 GROUPS = {
     "any_axe": ("Any Axe", ["wooden_axe", "stone_axe", "iron_axe", "golden_axe", "diamond_axe", "netherite_axe"]),
     "any_hoe": ("Any Hoe", ["wooden_hoe", "stone_hoe", "iron_hoe", "diamond_hoe"]),
+    "any_pickaxe": ("Any Pickaxe", ["wooden_pickaxe", "stone_pickaxe", "iron_pickaxe", "diamond_pickaxe"]),
     "any_log": ("Any Log", ["oak_log", "birch_log", "spruce_log", "dark_oak_log"]),
     "any_planks": ("Any Planks", ["oak_planks", "birch_planks", "spruce_planks"]),
     "any_wooden_slab": ("Any Wooden Slab", ["oak_slab", "spruce_slab"]),
@@ -200,7 +201,7 @@ class Context:
             f'<span class="wv-card__art">{self.image("head_villager", "wv-card__head")}'
             f'{self.image("scaffolding", "wv-card__station")}</span>'
             f'<span class="wv-card__name">More planned</span>'
-            f'<span class="wv-card__text">Miner, pit digger, kiln operator, merchant and more '
+            f'<span class="wv-card__text">Miner, mine logistician, merchant and more '
             f'are on their way. See what is coming.</span></a>'
         )
         return f'<div class="wv-cards">{"".join(cards)}</div>'

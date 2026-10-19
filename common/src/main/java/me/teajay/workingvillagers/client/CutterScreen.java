@@ -4,17 +4,17 @@ import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import java.util.ArrayList;
 import java.util.List;
 import me.teajay.workingvillagers.menu.CutterMenu;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
-import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
@@ -23,7 +23,8 @@ import net.minecraft.world.item.ItemStack;
  * The woodcutter and stonecutter screen: the vanilla stonecutter screen, drawing the recipe
  * buttons from the options the server put into the menu, plus a box below the result slot
  * that shows the order of the workstation. The order is set in the overview, which a click
- * on the box opens (like the "i" button).
+ * on the box opens on its order tab. The tabs of the station stand above the screen (see
+ * {@link StationTabs}).
  */
 public class CutterScreen extends AbstractContainerScreen<CutterMenu> {
 	private static final Identifier SCROLLER_SPRITE = Identifier.withDefaultNamespace("container/stonecutter/scroller");
@@ -41,10 +42,6 @@ public class CutterScreen extends AbstractContainerScreen<CutterMenu> {
 	/** Position of the order item, below the result slot. */
 	private static final int ORDER_X = 143;
 	private static final int ORDER_Y = 59;
-	/** The button to the overview of the workstation, top right. */
-	private static final int STATION_X = 157;
-	private static final int STATION_Y = 3;
-	private static final int STATION_SIZE = 12;
 	private float scrollOffs;
 	private boolean scrolling;
 	private int startIndex;
@@ -72,23 +69,21 @@ public class CutterScreen extends AbstractContainerScreen<CutterMenu> {
 				: CursorTypes.NOT_ALLOWED);
 		}
 
-		int orderX = xo + ORDER_X;
-		int orderY = yo + ORDER_Y;
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SLOT_SPRITE, orderX - 1, orderY - 1, 18, 18);
-		ItemStack order = this.menu.getOrder();
-		if (!order.isEmpty()) {
-			graphics.item(order, orderX, orderY);
-		}
-		if (this.isOverOrder(mouseX, mouseY)) {
-			graphics.fill(orderX, orderY, orderX + 16, orderY + 16, 0x80FFFFFF);
-			graphics.requestCursor(CursorTypes.POINTING_HAND);
+		if (this.menu.hasOrder()) {
+			int orderX = xo + ORDER_X;
+			int orderY = yo + ORDER_Y;
+			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SLOT_SPRITE, orderX - 1, orderY - 1, 18, 18);
+			ItemStack order = this.menu.getOrder();
+			if (!order.isEmpty()) {
+				graphics.item(order, orderX, orderY);
+			}
+			if (this.isOverOrder(mouseX, mouseY)) {
+				graphics.fill(orderX, orderY, orderX + 16, orderY + 16, 0x80FFFFFF);
+				graphics.requestCursor(CursorTypes.POINTING_HAND);
+			}
 		}
 
-		boolean overStation = this.isOverStation(mouseX, mouseY);
-		GuiPanels.button(graphics, this.font, xo + STATION_X, yo + STATION_Y, STATION_SIZE, "i", overStation);
-		if (overStation) {
-			graphics.requestCursor(CursorTypes.POINTING_HAND);
-		}
+		StationTabs.extractAbove(graphics, xo, yo, mouseX, mouseY, this.menu.stationType(), this.menu.workingvillagers$tabFlags());
 
 		if (this.menu.hasInputItem()) {
 			List<ItemStack> options = this.menu.getVisibleOptions();
@@ -101,24 +96,12 @@ public class CutterScreen extends AbstractContainerScreen<CutterMenu> {
 	}
 
 	@Override
-	protected void extractLabels(GuiGraphicsExtractor graphics, int xm, int ym) {
-		super.extractLabels(graphics, xm, ym);
-		Component worker = this.menu.getWorker()
-			.map(name -> (Component) Component.translatable("gui.workingvillagers.worker", name))
-			.orElse(Component.translatable("gui.workingvillagers.worker.none"));
-		String text = this.font.plainSubstrByWidth(worker.getString(), 100);
-		graphics.text(this.font, text, STATION_X - 4 - this.font.width(text), this.titleLabelY, 0xFF707070, false);
-	}
-
-	@Override
 	protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
 		super.extractTooltip(graphics, mouseX, mouseY);
 		if (this.isOverOrder(mouseX, mouseY)) {
 			graphics.setTooltipForNextFrame(this.orderTooltip(), mouseX, mouseY);
 		}
-		if (this.isOverStation(mouseX, mouseY)) {
-			graphics.setTooltipForNextFrame(this.font, Component.translatable("gui.workingvillagers.station.open"), mouseX, mouseY);
-		}
+		StationTabs.tooltip(graphics, this.font, mouseX, mouseY, this.leftPos, this.topPos, this.menu.stationType(), this.menu.workingvillagers$tabFlags());
 		if (!this.menu.hasInputItem()) {
 			return;
 		}
@@ -168,11 +151,10 @@ public class CutterScreen extends AbstractContainerScreen<CutterMenu> {
 		}
 	}
 
-	private boolean isOverStation(double mouseX, double mouseY) {
-		return GuiPanels.isOver(mouseX, mouseY, this.leftPos + STATION_X, this.topPos + STATION_Y, STATION_SIZE, STATION_SIZE);
-	}
-
 	private boolean isOverOrder(double mouseX, double mouseY) {
+		if (!this.menu.hasOrder()) {
+			return false;
+		}
 		int x = this.leftPos + ORDER_X;
 		int y = this.topPos + ORDER_Y;
 		return mouseX >= x - 1 && mouseX < x + 17 && mouseY >= y - 1 && mouseY < y + 17;
@@ -195,10 +177,13 @@ public class CutterScreen extends AbstractContainerScreen<CutterMenu> {
 
 	@Override
 	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-		// The order box leads to the overview too, where the order is set
-		if (this.isOverStation(event.x(), event.y()) || this.isOverOrder(event.x(), event.y())) {
-			Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-			this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, CutterMenu.STATION_BUTTON);
+		if (StationTabs.click(this.minecraft, this.menu.containerId, CutterMenu.STATION_BUTTON, event.x(), event.y(), this.leftPos, this.topPos,
+			this.menu.stationType(), this.menu.workingvillagers$tabFlags())) {
+			return true;
+		}
+		// The order box leads to the order tab of the overview, where the order is set
+		if (this.isOverOrder(event.x(), event.y())) {
+			StationTabs.open(this.minecraft, this.menu.containerId, CutterMenu.STATION_BUTTON, StationTabs.Tab.ORDER);
 			return true;
 		}
 		if (this.menu.hasInputItem()) {

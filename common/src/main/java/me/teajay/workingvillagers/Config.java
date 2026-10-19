@@ -34,8 +34,8 @@ public final class Config {
 	private static final List<Option> OPTIONS = new ArrayList<>();
 
 	public static final IntOption DAILY_WAGE = intOption("workers", "dailyWage", 1, 0, 64,
-		"Emeralds a worker takes from what it carries before work each day (give them by right-clicking",
-		"the worker). 0: they work for free.");
+		"Emeralds a worker takes from the wage box of its workstation before work each day (put them in there,",
+		"or right-click the station or the worker with them). 0: they work for free.");
 	public static final BoolOption RANDOM_NAMES = boolOption("workers", "randomNames", false,
 		"Give hired villagers a random name (like Anton or Berta). Otherwise only a name tag names them.");
 	public static final IntOption MAX_CHESTS = intOption("workers", "maxChests", 8, 1, 8,
@@ -78,10 +78,128 @@ public final class Config {
 	public static final IntOption KEEP_SEEDS = intOption("farmer", "keepSeeds", 16, 1, 64,
 		"How many seeds of each kind (wheat seeds, carrots, potatoes, ...) the farmer keeps for planting.");
 
+	public static final IntOption PASTURE_RADIUS = intOption("shepherd", "pastureRadius", 12, 4, 24,
+		"How far from the loom (in blocks, sideways) the shepherd looks after sheep.");
+	public static final DoubleOption SECONDS_PER_SHEEP = doubleOption("shepherd", "secondsPerSheep", 1.5, 0.1, 20.0,
+		"How long the shepherd needs to shear or feed one sheep.");
+	public static final IntOption KEEP_WHEAT = intOption("shepherd", "keepWheat", 16, 2, 64,
+		"How much wheat the shepherd keeps for breeding its sheep.");
+
+	public static final IntOption KEEP_ARROWS = intOption("guard", "keepArrows", 64, 8, 256,
+		"How many arrows a guard carries.");
+	public static final DoubleOption SECONDS_PER_SHOT = doubleOption("guard", "secondsPerShot", 1.5, 0.25, 10.0,
+		"How long a guard needs to draw the bow again, like a skeleton.");
+	public static final IntOption GUARD_RANGE = intOption("guard", "range", 24, 8, 48,
+		"How far a guard shoots.");
+
+	public static final IntOption HUNT_RADIUS = intOption("guard", "huntRadius", 32, 16, 64,
+		"How far from its target a hunting guard roams at night.");
+	public static final BoolOption GUARD_EXPERIENCE = boolOption("guard", "experience", true,
+		"Whether guards get the experience of the monsters they kill and bottle it (players only get it in vanilla).");
+	public static final IntOption EXPERIENCE_PER_BOTTLE = intOption("guard", "experiencePerBottle", 7, 1, 50,
+		"How much experience goes into one bottle o' enchanting (vanilla bottles give 3 to 11, 7 on average).");
+	public static final IntOption BOTTLES_PER_NIGHT = intOption("guard", "bottlesPerNight", 0, 0, 64,
+		"At most this many bottles a guard fills per morning, 0 for no limit.");
+	public static final BoolOption ENCHANTED_NEEDS_EXPERIENCE = boolOption("smith", "enchantedNeedsExperience", true,
+		"Whether the smith needs a bottle o' enchanting per repair step for enchanted items, like the experience an anvil costs.");
+	public static final IntOption EXPERIENCE_REPAIR_PERCENT = intOption("smith", "experienceRepairPercent", 10, 1, 100,
+		"How much of the durability one bottle o' enchanting repairs of an item without repair material (bow, fishing rod, shears).");
+
+	public static final IntOption APOTHECARY_WATER_RADIUS = intOption("apothecary", "waterRadius", 8, 2, 16,
+		"How far from the brewing stand (in blocks, sideways) the apothecary looks for water to fill bottles.");
+	public static final IntOption HEAL_RADIUS = intOption("apothecary", "healRadius", 32, 8, 64,
+		"How far from the brewing stand the apothecary looks for injured workers to heal.");
+	public static final IntOption WART_RADIUS = intOption("apothecary", "wartRadius", 6, 2, 12,
+		"How far from the brewing stand the apothecary tends nether wart on soul sand.");
+
+	public static final BoolOption TAN_ROTTEN_FLESH = boolOption("tanner", "tanRottenFlesh", true,
+		"Whether the tanner tans rotten flesh into leather in its cauldron (not in vanilla).");
+	public static final IntOption FLESH_PER_LEATHER = intOption("tanner", "fleshPerLeather", 4, 1, 16,
+		"How much rotten flesh makes one leather.");
+	public static final IntOption TANNING_SECONDS = intOption("tanner", "tanningSeconds", 300, 5, 3600,
+		"How long rotten flesh tans in the cauldron (300 seconds: half a Minecraft day).");
+	public static final IntOption TANNER_WATER_RADIUS = intOption("tanner", "waterRadius", 16, 2, 32,
+		"How far from the cauldron (in blocks, sideways) the tanner fetches water with its bucket.");
+
+	public static final IntOption TABLE_RADIUS = intOption("librarian", "tableRadius", 6, 1, 16,
+		"How far from the lectern the librarian looks for an enchanting table.");
+	public static final IntOption LEVELS_PER_BOTTLE = intOption("librarian", "levelsPerBottle", 3, 1, 30,
+		"How many levels of an enchantment one bottle o' enchanting pays for (level 30: 10 bottles).");
+
+	public static final IntOption WATER_RADIUS = intOption("fisher", "waterRadius", 16, 4, 32,
+		"How far from the barrel (in blocks, sideways) the fisher looks for water to fish from the shore.");
+	public static final IntOption SEA_RADIUS = intOption("fisher", "seaRadius", 32, 8, 64,
+		"How far from the barrel the fisher rows out in a boat.");
+	public static final IntOption MIN_BITE_SECONDS = intOption("fisher", "minBiteSeconds", 5, 1, 60,
+		"The shortest wait for a bite, like vanilla fishing (a lure shortens it).");
+	public static final IntOption MAX_BITE_SECONDS = intOption("fisher", "maxBiteSeconds", 30, 1, 120,
+		"The longest wait for a bite.");
+	public static final IntOption CATCHES_PER_TRIP = intOption("fisher", "catchesPerTrip", 12, 1, 64,
+		"How many catches the fisher makes before it brings them to a chest.");
+
+	public static final IntOption BUTCHER_RADIUS = intOption("butcher", "pastureRadius", 12, 4, 24,
+		"How far from the smoker (in blocks, sideways) the butcher looks after cows, pigs, chickens and rabbits.");
+	public static final DoubleOption SECONDS_PER_ANIMAL = doubleOption("butcher", "secondsPerAnimal", 1.5, 0.1, 20.0,
+		"How long the butcher needs to feed or slaughter one animal.");
+	public static final IntOption KEEP_FEED = intOption("butcher", "keepFeed", 16, 2, 64,
+		"How much feed of each kind (wheat, carrots, seeds, ...) the butcher keeps for breeding.");
+	public static final IntOption KEEP_FUEL = intOption("butcher", "keepFuel", 16, 1, 64,
+		"How much coal or charcoal the butcher keeps for the smoker.");
+
 	public static final IntOption SMELT_BATCH = intOption("smith", "batchSize", 16, 1, 64,
 		"How many items to smelt the smith fetches from an input chest at once.");
 	public static final IntOption FUEL_BATCH = intOption("smith", "fuelPerTrip", 8, 1, 64,
 		"How much fuel the smith fetches at once.");
+
+	public static final IntOption KILN_BATCH = intOption("kilnOperator", "batchSize", 16, 1, 64,
+		"How many items to fire the kiln operator fetches from an input chest at once.");
+	public static final IntOption KILN_FUEL_BATCH = intOption("kilnOperator", "fuelPerTrip", 8, 1, 64,
+		"How much fuel the kiln operator fetches at once.");
+
+	public static final IntOption TRADE_RADIUS = intOption("shopAssistant", "tradeRadius", 24, 4, 48,
+		"How far from the trading counter (in blocks) the shop assistant looks for villagers to sell to.");
+	public static final DoubleOption SECONDS_PER_TRADE = doubleOption("shopAssistant", "secondsPerTrade", 2.0, 0.25, 20.0,
+		"How long one trade with a villager takes.");
+
+	public static final IntOption PIT_MAX_AREA = intOption("pitDigger", "maxArea", 64, 4, 256,
+		"How many blocks of ground (inside the string ring) a pit may have at most.");
+	public static final IntOption PIT_MAX_DEPTH = intOption("pitDigger", "maxDepth", 16, 1, 64,
+		"How deep (in blocks, below the highest string of the ring) a pit may be at most.");
+	public static final IntOption PIT_MAX_UNEVENNESS = intOption("pitDigger", "maxUnevenness", 4, 0, 8,
+		"How far apart (in height) the strings of a ring may lie at most.");
+	public static final IntOption PIT_DAILY_BLOCKS = intOption("pitDigger", "dailyBlocks", 256, 1, 4096,
+		"After this many blocks a day the pit digger stops for the day.");
+	public static final DoubleOption DIG_SLOWDOWN = doubleOption("pitDigger", "digSlowdown", 8.0, 1.0, 32.0,
+		"How many times as long as a player with the same tool a (novice) pit digger needs for a block,",
+		"but at least minSecondsPerBlock.");
+	public static final DoubleOption MIN_DIG_SECONDS = doubleOption("pitDigger", "minSecondsPerBlock", 2.0, 0.25, 20.0,
+		"How long the pit digger needs at least for a block, however good its tool (plants take a quarter of it).");
+	public static final IntOption KEEP_LADDERS = intOption("pitDigger", "keepLadders", 64, 1, 64,
+		"How many ladders the pit digger carries at most.");
+	public static final IntOption KEEP_TORCHES = intOption("pitDigger", "keepTorches", 16, 0, 64,
+		"How many torches the pit digger carries at most (0: it takes none).");
+
+	public static final IntOption TUNNEL_MAX_LENGTH = intOption("miner", "maxTunnelLength", 32, 4, 64,
+		"How long (in blocks) a tunnel may be at most. The miner carries every load out to its chests itself.");
+	public static final IntOption TUNNEL_MAX_BRANCH = intOption("miner", "maxBranchLength", 16, 0, 32,
+		"How long the side tunnels (every 4 blocks, left and right) may be at most. 0: no side tunnels.");
+	public static final IntOption MINER_DAILY_BLOCKS = intOption("miner", "dailyBlocks", 256, 1, 4096,
+		"After this many blocks a day the miner stops for the day.");
+	public static final DoubleOption MINER_DIG_SLOWDOWN = doubleOption("miner", "digSlowdown", 8.0, 1.0, 32.0,
+		"How many times as long as a player with the same pickaxe a (novice) miner needs for a block,",
+		"but at least minSecondsPerBlock.");
+	public static final DoubleOption MINER_MIN_DIG_SECONDS = doubleOption("miner", "minSecondsPerBlock", 1.5, 0.25, 20.0,
+		"How long the miner needs at least for a block, however good its pickaxe.");
+	public static final BoolOption TUNNEL_SUPPORTS = boolOption("miner", "supports", true,
+		"The miner puts wooden supports (fences and planks) into its tunnels every 4 blocks, like a mineshaft.");
+	public static final IntOption KEEP_FENCES = intOption("miner", "keepFences", 16, 0, 64,
+		"How many fences for the supports the miner carries at most (0: it takes none).");
+	public static final IntOption KEEP_PLANKS = intOption("miner", "keepPlanks", 16, 0, 64,
+		"How many planks for the supports the miner carries at most (0: it takes none).");
+	public static final IntOption KEEP_SEAL_BLOCKS = intOption("miner", "keepSealBlocks", 16, 1, 64,
+		"How much cobblestone the miner keeps of what it digs, to seal off water and lava and to close holes in the floor.");
+	public static final IntOption MINER_KEEP_TORCHES = intOption("miner", "keepTorches", 16, 0, 64,
+		"How many torches the miner carries at most (0: it takes none and leaves its tunnels dark).");
 
 	public static final IntOption ROUTE_LENGTH = intOption("carrier", "maxRouteLength", 32, 4, 64,
 		"How far (in blocks) source and target of a route may be apart.");
@@ -89,6 +207,23 @@ public final class Config {
 		"How far apart the sources of one carrier's routes may be.");
 	public static final IntOption STACKS_PER_TRIP = intOption("carrier", "stacksPerTrip", 6, 1, 6,
 		"How many stacks a carrier carries at once (its basket holds 6).");
+
+	public static final BoolOption VILLAGE_CHESTS = boolOption("villageChests", "enabled", true,
+		"Workers take their wage, tools, saplings, seeds, ladders and torches from village chests nearby.",
+		"Off: village chests are ordinary chests.");
+	public static final IntOption VILLAGE_CHEST_RADIUS = intOption("villageChests", "radius", 48, 8, 128,
+		"How far (in blocks, horizontally) a village chest may be from a worker's workstation (24 up or down).");
+	public static final IntOption VILLAGE_CHEST_WAGE_DAYS = intOption("villageChests", "wageDays", 3, 1, 16,
+		"For how many days a worker takes its wage from a village chest at once.");
+	public static final BoolOption VILLAGE_CHEST_ENCHANTED = boolOption("villageChests", "takeEnchanted", false,
+		"Workers also take enchanted and renamed tools from village chests.");
+
+	public static final IntOption TOOL_RETURN_BELOW = intOption("tools", "returnBelow", 10, 0, 50,
+		"Workers stop using a tool once this many percent of its durability are left (but at least 2 uses)",
+		"and give it back instead of breaking it: into a village chest, or an output chest of their workstation.",
+		"They never take such a tool. 0: tools are used up until they break.");
+	public static final BoolOption TOOL_RETURN_CHEAP = boolOption("tools", "returnCheap", false,
+		"Wooden and stone tools are given back, too. Off: they are used up; enchanted and renamed ones always come back.");
 
 	private Config() {
 	}
@@ -204,6 +339,11 @@ public final class Config {
 			return this.value;
 		}
 
+		/** Changes the value for this run (the game tests), clamped to the range. The file stays as it is. */
+		public void set(int value) {
+			this.value = Math.clamp(value, this.min, this.max);
+		}
+
 		@Override
 		boolean read(JsonElement value) {
 			if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isNumber()) {
@@ -241,6 +381,11 @@ public final class Config {
 
 		public double get() {
 			return this.value;
+		}
+
+		/** Changes the value for this run (the game tests), clamped to the range. The file stays as it is. */
+		public void set(double value) {
+			this.value = Math.clamp(value, this.min, this.max);
 		}
 
 		@Override

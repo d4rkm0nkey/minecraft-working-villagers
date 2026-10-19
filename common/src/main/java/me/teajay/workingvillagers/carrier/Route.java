@@ -4,8 +4,10 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.List;
 import me.teajay.workingvillagers.Config;
+import me.teajay.workingvillagers.station.ContainerNames;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -47,12 +49,12 @@ public record Route(BlockPos source, BlockPos target, String name) {
 	/**
 	 * Why the route cannot be added to the others, or null if it can.
 	 */
-	public static @Nullable Component checkNew(List<Route> routes, Route route) {
+	public static @Nullable Component checkNew(Level level, List<Route> routes, Route route) {
 		if (routes.size() >= MAX_ROUTES) {
 			return Component.translatable("message.workingvillagers.route.full", MAX_ROUTES);
 		}
 		if (routes.stream().anyMatch(route::sameChests)) {
-			return Component.translatable("message.workingvillagers.route.exists", route.describe());
+			return Component.translatable("message.workingvillagers.route.exists", route.describe(level));
 		}
 		if (!route.source.closerThan(route.target, Config.ROUTE_LENGTH.get() + 0.5)) {
 			return Component.translatable("message.workingvillagers.route.too_long", Config.ROUTE_LENGTH.get());
@@ -70,7 +72,8 @@ public record Route(BlockPos source, BlockPos target, String name) {
 		return this.name.isEmpty() ? Component.translatable("gui.workingvillagers.carrier.route", index + 1) : Component.literal(this.name);
 	}
 
-	public Component describe() {
-		return Component.literal(this.source.toShortString() + " → " + this.target.toShortString());
+	/** "Source → Target", by the names of the containers. */
+	public Component describe(Level level) {
+		return Component.empty().append(ContainerNames.name(level, this.source)).append(" → ").append(ContainerNames.name(level, this.target));
 	}
 }

@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "workingvillagers:work_hours",
+  "function": "workingvillagers:wage_box_outlives_worker",
+  "max_ticks": 600,
+  "setup_ticks": 1,
+  "structure": "workingvillagers:platform"
+}

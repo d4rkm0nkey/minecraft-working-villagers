@@ -1,0 +1,7 @@
+{
+  "type": "workingvillagers:milling",
+  "ingredient": "minecraft:andesite",
+  "result": {
+    "id": "minecraft:gravel"
+  }
+}

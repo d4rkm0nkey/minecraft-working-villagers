@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import java.util.ArrayList;
 import java.util.List;
 import me.teajay.workingvillagers.menu.CarpenterMenu;
+import me.teajay.workingvillagers.station.StationType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -39,10 +40,6 @@ public class CarpenterScreen extends AbstractContainerScreen<CarpenterMenu> {
 	/** Position of the order item, below the result slot. */
 	private static final int ORDER_X = CarpenterMenu.RESULT_X;
 	private static final int ORDER_Y = 63;
-	/** The button to the overview of the workstation, top right. */
-	private static final int STATION_X = 157;
-	private static final int STATION_Y = 3;
-	private static final int STATION_SIZE = 12;
 	private float scrollOffs;
 	private boolean scrolling;
 	private int startRow;
@@ -89,11 +86,7 @@ public class CarpenterScreen extends AbstractContainerScreen<CarpenterMenu> {
 			graphics.requestCursor(CursorTypes.POINTING_HAND);
 		}
 
-		boolean overStation = this.isOverStation(mouseX, mouseY);
-		GuiPanels.button(graphics, this.font, left + STATION_X, top + STATION_Y, STATION_SIZE, "i", overStation);
-		if (overStation) {
-			graphics.requestCursor(CursorTypes.POINTING_HAND);
-		}
+		StationTabs.extractAbove(graphics, left, top, mouseX, mouseY, StationType.CARPENTER_BENCH, this.menu.workingvillagers$tabFlags());
 	}
 
 	private void extractRecipes(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
@@ -127,12 +120,6 @@ public class CarpenterScreen extends AbstractContainerScreen<CarpenterMenu> {
 	protected void extractLabels(GuiGraphicsExtractor graphics, int xm, int ym) {
 		graphics.text(this.font, this.title, this.titleLabelX, this.titleLabelY, GuiPanels.TEXT_COLOR, false);
 		graphics.text(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, GuiPanels.TEXT_COLOR, false);
-		Component worker = this.menu.getWorker()
-			.map(name -> (Component) Component.translatable("gui.workingvillagers.worker", name))
-			.orElse(Component.translatable("gui.workingvillagers.worker.none"));
-		int room = STATION_X - 4 - (this.titleLabelX + this.font.width(this.title) + 6);
-		String text = this.font.plainSubstrByWidth(worker.getString(), Math.max(0, room));
-		graphics.text(this.font, text, STATION_X - 4 - this.font.width(text), this.titleLabelY, GuiPanels.MUTED_COLOR, false);
 	}
 
 	@Override
@@ -141,9 +128,7 @@ public class CarpenterScreen extends AbstractContainerScreen<CarpenterMenu> {
 		if (this.isOverOrder(mouseX, mouseY)) {
 			graphics.setTooltipForNextFrame(this.orderTooltip(), mouseX, mouseY);
 		}
-		if (this.isOverStation(mouseX, mouseY)) {
-			graphics.setTooltipForNextFrame(this.font, Component.translatable("gui.workingvillagers.station.open"), mouseX, mouseY);
-		}
+		StationTabs.tooltip(graphics, this.font, mouseX, mouseY, this.leftPos, this.topPos, StationType.CARPENTER_BENCH, this.menu.workingvillagers$tabFlags());
 		int index = this.optionAt(mouseX, mouseY);
 		if (index >= 0) {
 			graphics.setTooltipForNextFrame(this.font, this.menu.getOptions().get(index), mouseX, mouseY);
@@ -176,20 +161,19 @@ public class CarpenterScreen extends AbstractContainerScreen<CarpenterMenu> {
 		return index < this.menu.getOptions().size() ? index : -1;
 	}
 
-	private boolean isOverStation(double mouseX, double mouseY) {
-		return GuiPanels.isOver(mouseX, mouseY, this.leftPos + STATION_X, this.topPos + STATION_Y, STATION_SIZE, STATION_SIZE);
-	}
-
 	private boolean isOverOrder(double mouseX, double mouseY) {
 		return GuiPanels.isOver(mouseX, mouseY, this.leftPos + ORDER_X - 1, this.topPos + ORDER_Y - 1, 18, 18);
 	}
 
 	@Override
 	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-		// The order box leads to the overview too, where the order is set
-		if (this.isOverStation(event.x(), event.y()) || this.isOverOrder(event.x(), event.y())) {
-			this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-			this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, CarpenterMenu.STATION_BUTTON);
+		if (StationTabs.click(this.minecraft, this.menu.containerId, CarpenterMenu.STATION_BUTTON, event.x(), event.y(), this.leftPos, this.topPos,
+			StationType.CARPENTER_BENCH, this.menu.workingvillagers$tabFlags())) {
+			return true;
+		}
+		// The order box leads to the order tab of the overview, where the order is set
+		if (this.isOverOrder(event.x(), event.y())) {
+			StationTabs.open(this.minecraft, this.menu.containerId, CarpenterMenu.STATION_BUTTON, StationTabs.Tab.ORDER);
 			return true;
 		}
 		int index = this.optionAt(event.x(), event.y());

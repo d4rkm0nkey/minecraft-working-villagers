@@ -1,30 +1,41 @@
 package me.teajay.workingvillagers.mixin;
 
 import java.util.UUID;
+import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.carrier.CarrierData;
 import me.teajay.workingvillagers.carrier.Carriers;
 import me.teajay.workingvillagers.item.WickerBasketItem;
 import me.teajay.workingvillagers.item.WorkContractItem;
 import me.teajay.workingvillagers.job.HiredVillager;
 import me.teajay.workingvillagers.job.StuckWorkers;
+import me.teajay.workingvillagers.job.TradeFamilies;
 import me.teajay.workingvillagers.job.WorkerJobs;
 import me.teajay.workingvillagers.job.WorkerSupplies;
 import me.teajay.workingvillagers.station.StationPicks;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
+import net.minecraft.core.Holder;
 import net.minecraft.core.UUIDUtil;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.ai.Brain;
-import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.entity.ContainerUser;
+import net.minecraft.world.entity.ai.Brain;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.entity.npc.villager.VillagerData;
+import net.minecraft.world.entity.npc.villager.VillagerProfession;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.trading.MerchantOffers;
+import net.minecraft.world.item.trading.TradeSet;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.entity.ContainerOpenersCounter;
 import net.minecraft.world.level.block.state.BlockState;
@@ -36,6 +47,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -71,6 +83,26 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 	private long workingvillagers$paidDay = -1L;
 	@Unique
 	private final StuckWorkers.Watch workingvillagers$stuckWatch = new StuckWorkers.Watch();
+	@Unique
+	private static final String TAG_WAGE_STORED = "WorkingVillagersWageStored";
+	@Unique
+	private boolean workingvillagers$wageStored = true;
+	@Unique
+	private static final String TAG_EXPERIENCE = "WorkingVillagersExperience";
+	@Unique
+	private int workingvillagers$experience;
+	@Unique
+	private static final String TAG_KEPT_OFFERS = "WorkingVillagersKeptOffers";
+	@Unique
+	private static final String TAG_KEPT_FAMILY = "WorkingVillagersKeptFamily";
+	/**
+	 * The trades of a hired villager that lost its job (or is about to get another), kept
+	 * for when it gets a job of the same family again (see {@link TradeFamilies}).
+	 */
+	@Unique
+	private @Nullable MerchantOffers workingvillagers$keptOffers;
+	@Unique
+	private @Nullable String workingvillagers$keptFamily;
 
 	@Override
 	public StuckWorkers.Watch workingvillagers$getStuckWatch() {
@@ -158,6 +190,26 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 	}
 
 	@Override
+	public int workingvillagers$getExperience() {
+		return this.workingvillagers$experience;
+	}
+
+	@Override
+	public void workingvillagers$setExperience(int experience) {
+		this.workingvillagers$experience = Math.max(0, experience);
+	}
+
+	@Override
+	public boolean workingvillagers$isWageStored() {
+		return this.workingvillagers$wageStored;
+	}
+
+	@Override
+	public void workingvillagers$setWageStored(boolean stored) {
+		this.workingvillagers$wageStored = stored;
+	}
+
+	@Override
 	public void workingvillagers$setEmployer(@Nullable UUID employer) {
 		this.workingvillagers$employer = employer;
 	}
@@ -171,6 +223,16 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 			output.putLong(TAG_WORK_DAY, this.workingvillagers$workDay);
 			output.putInt(TAG_WORK_DONE, this.workingvillagers$workDone);
 		}
+		if (this.workingvillagers$experience > 0) {
+			output.putInt(TAG_EXPERIENCE, this.workingvillagers$experience);
+		}
+		if (this.workingvillagers$employer != null) {
+			output.putBoolean(TAG_WAGE_STORED, this.workingvillagers$wageStored);
+		}
+		if (this.workingvillagers$keptOffers != null && this.workingvillagers$keptFamily != null) {
+			output.store(TAG_KEPT_OFFERS, MerchantOffers.CODEC, this.workingvillagers$keptOffers);
+			output.putString(TAG_KEPT_FAMILY, this.workingvillagers$keptFamily);
+		}
 	}
 
 	@Inject(method = "readAdditionalSaveData", at = @At("HEAD"))
@@ -180,6 +242,52 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 		this.workingvillagers$paidDay = input.getLongOr(TAG_PAID_DAY, -1L);
 		this.workingvillagers$workDay = input.getLongOr(TAG_WORK_DAY, -1L);
 		this.workingvillagers$workDone = input.getIntOr(TAG_WORK_DONE, 0);
+		this.workingvillagers$experience = input.getIntOr(TAG_EXPERIENCE, 0);
+		// Workers saved by 0.3.0 have no such entry: they still carry their wage themselves
+		this.workingvillagers$wageStored = this.workingvillagers$employer == null || input.getBooleanOr(TAG_WAGE_STORED, false);
+		this.workingvillagers$keptOffers = input.read(TAG_KEPT_OFFERS, MerchantOffers.CODEC).orElse(null);
+		this.workingvillagers$keptFamily = input.getString(TAG_KEPT_FAMILY).orElse(null);
+	}
+
+	/**
+	 * Vanilla throws away the trades when the profession changes. A hired villager keeps them
+	 * when it changes to a profession of the same family (a vanilla farmer that is hired and
+	 * becomes the farmer of this mod), and also while it is without a job for a while.
+	 */
+	@Inject(method = "setVillagerData", at = @At("HEAD"))
+	private void workingvillagers$keepOffers(VillagerData data, CallbackInfo ci) {
+		Villager villager = (Villager) (Object) this;
+		Holder<VillagerProfession> before = villager.getVillagerData().profession();
+		MerchantOffers offers = ((AbstractVillagerAccessor) villager).workingvillagers$getOffers();
+		String family = TradeFamilies.of(before);
+		if (this.workingvillagers$employer != null && !before.equals(data.profession()) && family != null && offers != null && !offers.isEmpty()) {
+			this.workingvillagers$keptOffers = offers.copy();
+			this.workingvillagers$keptFamily = family;
+		}
+	}
+
+	@Inject(method = "setVillagerData", at = @At("TAIL"))
+	private void workingvillagers$restoreOffers(VillagerData data, CallbackInfo ci) {
+		MerchantOffers kept = this.workingvillagers$keptOffers;
+		if (kept != null && this.workingvillagers$keptFamily != null && this.workingvillagers$keptFamily.equals(TradeFamilies.of(data.profession()))) {
+			((Villager) (Object) this).setOffers(kept);
+			this.workingvillagers$keptOffers = null;
+			this.workingvillagers$keptFamily = null;
+		}
+	}
+
+	/** The smith trades like the toolsmith at a smithing table, like the armorer elsewhere. */
+	@Redirect(method = "updateTrades", at = @At(value = "INVOKE",
+		target = "Lnet/minecraft/world/entity/npc/villager/VillagerProfession;getTrades(I)Lnet/minecraft/resources/ResourceKey;"))
+	private ResourceKey<TradeSet> workingvillagers$smithTrades(VillagerProfession profession, int level) {
+		Villager villager = (Villager) (Object) this;
+		if (villager.getVillagerData().profession().is(WorkingVillagers.SMITH_PROFESSION)
+			&& villager.getBrain().getMemory(MemoryModuleType.JOB_SITE)
+				.filter(site -> site.dimension() == villager.level().dimension() && villager.level().getBlockState(site.pos()).is(Blocks.SMITHING_TABLE))
+				.isPresent()) {
+			return BuiltInRegistries.VILLAGER_PROFESSION.getValueOrThrow(VillagerProfession.TOOLSMITH).getTrades(level);
+		}
+		return profession.getTrades(level);
 	}
 
 	/**
@@ -198,7 +306,8 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 			cir.setReturnValue(WorkContractItem.hire(villager, player, stack, hand));
 		} else if (stack.getItem() instanceof WickerBasketItem) {
 			cir.setReturnValue(Carriers.appoint(villager, player, stack, hand));
-		} else if (WorkerSupplies.give(villager, player, hand) instanceof InteractionResult given) {
+		} else if (!player.isShiftKeyDown() && WorkerSupplies.give(villager, player, hand) instanceof InteractionResult given) {
+			// Sneaking opens the trades instead, also with emeralds in the hand
 			cir.setReturnValue(given);
 		} else if (stack.isEmpty() && hand == InteractionHand.MAIN_HAND && Carriers.isCarrier(villager)) {
 			cir.setReturnValue(player.isShiftKeyDown() ? Carriers.dismiss(villager, player) : Carriers.openMenu(villager, player));
@@ -207,11 +316,14 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 
 	/**
 	 * A carrier drops its basket with everything in it, every worker what it carries: its
-	 * emeralds, tools and what it was working with.
+	 * emeralds, tools and what it was working with. A workstation it was walking to is free
+	 * again.
 	 */
 	@Inject(method = "die", at = @At("HEAD"))
 	private void workingvillagers$dropBasket(DamageSource source, CallbackInfo ci) {
 		Villager villager = (Villager) (Object) this;
+		// Vanilla would keep a workstation of this mod taken that the villager was walking to
+		WorkerJobs.giveUpPotentialJobSite(villager);
 		Carriers.dropBasket(villager, null);
 		if (this.workingvillagers$employer != null && villager.level() instanceof ServerLevel level) {
 			for (ItemStack stack : villager.getInventory().removeAllItems()) {

@@ -100,7 +100,20 @@ nav:
       - Carpenter: workers/carpenter.md
       - Carrier: workers/carrier.md
       - Farmer: workers/farmer.md
+      - Shepherd: workers/shepherd.md
+      - Butcher: workers/butcher.md
+      - Fisher: workers/fisher.md
+      - Fletcher: workers/fletcher.md
+      - Guard: workers/guard.md
+      - Apothecary: workers/apothecary.md
+      - Tanner: workers/tanner.md
+      - Weaponsmith: workers/weaponsmith.md
+      - Librarian: workers/librarian.md
       - Smith: workers/smith.md
+      - Pit digger: workers/pit-digger.md
+      - Miner: workers/miner.md
+      - Kiln operator: workers/kiln-operator.md
+      - Shop assistant: workers/shop-assistant.md
   - Guides:
       - A wood workshop: guides/wood-workshop.md
       - Worker does not work?: guides/troubleshooting.md

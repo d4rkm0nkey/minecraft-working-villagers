@@ -21,13 +21,13 @@ Das größte Risiko ist nicht die Idee, sondern die Villager-KI: Pathfinding, St
 ## Offene Fragen
 
 - [ ] Wie hoch ist der Lohn wirklich? 100 Emeralds/Woche vs. 16–64 gestaffelt. (Derzeit 1 Emerald pro Arbeitstag, per Config.)
-- [ ] Werden Villager mit Trades anheuerbar (und verlieren sie ihre Trades)? (Derzeit nur arbeitslose Dorfbewohner.)
+- [x] Werden Villager mit Trades anheuerbar (und verlieren sie ihre Trades)? Entschieden: Dorfbewohner mit Beruf lassen sich anheuern, bleiben an ihrem Block und behalten Angebote und Stufe; Arbeiter mit Vanilla-Gegenstück handeln wie dieses.
 - [ ] Eigene Grubenwerkbank oder Vanilla-Block als Minen-Station?
 - [ ] Wie viele Arbeiter pro Spieler (Limit)?
 - [x] Was passiert beim Tod eines Arbeiters? Er lässt alles fallen, was er trägt (Emeralds, Werkzeug, Material); ein Träger zusätzlich seinen Korb samt Inhalt.
 - [x] Fabric oder NeoForge? Beide parallel über das Multiloader-Setup, Spiellogik in `common`.
 - [ ] Kaufformel für Dörfer: reichen Betten, Workstations und Villager, oder zählt auch das Biom?
 - [ ] Handelsangestellter und Bibliothekar: beide am Lectern, oder eigener Handelstresen?
-- [ ] Wache: Golem, kämpfender Villager oder nur Abschreckung?
+- [ ] Wache: Golem, kämpfender Villager oder nur Abschreckung? Konzept: kämpfender Dorfbewohner mit Bogen in der Nachtschicht, siehe [Wache](../berufe/wache.md).
 - [ ] Grubenlogistiker: eigener Block Förderhaspel oder zweiter Arbeiter an der Grubenwerkbank?
 - [ ] Etagenmine: Etagenabstand, Unterhalt großer Minen, Förderkorb als Entity oder abstrakt (siehe [Die Mine](../grundlagen/mine.md#offene-fragen)).

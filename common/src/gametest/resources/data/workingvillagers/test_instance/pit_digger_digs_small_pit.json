@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "workingvillagers:work_hours",
+  "function": "workingvillagers:pit_digger_digs_small_pit",
+  "max_ticks": 6000,
+  "setup_ticks": 1,
+  "structure": "workingvillagers:platform"
+}

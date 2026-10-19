@@ -47,6 +47,11 @@ final class Chests {
 		return allStored;
 	}
 
+	/** Puts the stack into the container like a hopper would. Returns what did not fit. */
+	static ItemStack store(Container container, ItemStack stack) {
+		return HopperBlockEntity.addItem(null, container, stack, null);
+	}
+
 	/**
 	 * Takes up to {@code max} matching items out of the container into the inventory. Returns
 	 * how many were taken.

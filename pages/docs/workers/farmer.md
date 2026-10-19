@@ -11,7 +11,8 @@ harvest to a chest.
 
 !!! note
     Ordinary (not hired) villagers still become vanilla farmers at composters. Only hired
-    villagers become farmers of this mod.
+    villagers become farmers of this mod. A station you have set up (linked chests) is
+    kept for hired workers, and **Assign** makes room there.
 
 ## Setting it up
 
@@ -44,8 +45,9 @@ It keeps up to **16** of every kind of seed (wheat seeds, beetroot seeds, carrot
 potatoes, ...) for planting and hands in the rest. After the first harvest it replants
 from what it harvests.
 
-The hoe wears out like a player's, one use per harvested crop, and is gone when it
-breaks. Then the farmer uses its second hoe, if it carries one (it takes up to 2), or
+The hoe wears out like a player's, one use per harvested crop. Shortly before it breaks,
+the farmer gives it back (see [Worn tools](basics.md#worn-tools); wooden and stone hoes are
+used up). Then it uses its second hoe, if it carries one (it takes up to 2), or
 waits ("needs a hoe"). The menu shows the hoe with its durability bar and the seeds it
 carries.
 

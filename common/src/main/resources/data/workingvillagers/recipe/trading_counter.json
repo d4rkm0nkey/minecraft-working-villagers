@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "S": "#minecraft:wooden_slabs",
+    "P": "#minecraft:planks",
+    "E": "minecraft:emerald"
+  },
+  "pattern": [
+    "SSS",
+    "PEP",
+    "PPP"
+  ],
+  "result": {
+    "id": "workingvillagers:trading_counter"
+  }
+}

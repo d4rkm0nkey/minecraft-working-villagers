@@ -6,7 +6,7 @@ Der Steinsäger verarbeitet Stein an der Vanilla-Steinsäge zu Ziegeln, Stufen, 
 
 ## Workstation: Steinsäge
 
-- Die normale Vanilla-Steinsäge, kein neuer Block. Für Spieler funktioniert sie wie immer; ihr Menü zeigt zusätzlich den Auftrag, und der Knopf **i** öffnet die Stationsübersicht.
+- Die normale Vanilla-Steinsäge, kein neuer Block. Für Spieler funktioniert sie wie immer; ihr Menü zeigt zusätzlich den Auftrag, und die Reiter über dem Menü führen in die Stationsübersicht. Solange niemand sie eingerichtet hat, stehen dort nur die Reiter Block und Arbeiter.
 - Steinmetze aus dem Dorf arbeiten weiter an Steinsägen. Arbeitet dort schon einer, zeigt die Station „besetzt“.
 - Ein angeheuerter Dorfbewohner, der hier anfängt, wird Steinsäger, nicht Steinmetz.
 
@@ -30,7 +30,7 @@ Wie beim [Holzsäger](holzsaeger.md#arbeitsablauf): Lohn nehmen, bis zu 16 Items
 ## Stand der Umsetzung
 
 - Umgesetzt wie oben beschrieben, ohne Werkzeug.
-- Stein im Ofen zu Glattstein brennen kann er nicht. Das soll der [Brenner](brenner.md) übernehmen.
+- Stein im Ofen zu Glattstein brennen kann er nicht. Das übernimmt der [Brenner](brenner.md).
 - Der [Maurer](maurer.md) bleibt als Konzept für später (z. B. mit Master-Fähigkeit).
 
 ## Siehe auch

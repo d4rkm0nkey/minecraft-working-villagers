@@ -6,8 +6,8 @@ icon: wv/book
 
 ## Work contract
 
-:mc-work_contract: Hires an unemployed adult
-villager. Right-click the villager with it; the contract is used up.
+:mc-work_contract: Hires an adult villager; one with a job stays at its block (see
+[Hiring](workers/basics.md#hiring)). Right-click the villager with it; the contract is used up.
 
 [[craft shapeless: paper ink_sac emerald emerald emerald -> work_contract]]
 
@@ -44,11 +44,101 @@ buttons and sticks.
 
 [[craft: any_wooden_slab any_wooden_slab any_wooden_slab / _ iron_ingot _ / any_log _ any_log -> carpenter_bench]]
 
+## Pit stake
+
+:mc-pit_stake: Workstation of the [pit digger](workers/pit-digger.md). Its overview picks the
+pit (a ring of string on the ground), the place of the ladder and the depth. Villagers walk
+around it instead of climbing on it.
+
+[[craft: _ string _ / _ stick _ / _ any_planks _ -> pit_stake]]
+
+## Kiln
+
+:mc-kiln: A brick furnace for building materials and workstation of the
+[kiln operator](workers/kiln-operator.md). Works like a furnace, with its recipe book and
+at its speed, but fires no food and nothing the blast furnace can smelt: glass, stone,
+smooth stone, bricks, terracotta, charcoal, dyes, ... The [tabs](workers/basics.md#the-overview) above
+its screen lead to the overview.
+
+[[craft: _ brick _ / brick furnace brick / _ brick _ -> kiln]]
+
+## Trading counter
+
+:mc-trading_counter: Workstation of the [shop assistant](workers/shop-assistant.md).
+Right-click it to open its overview. Villagers walk around it instead of climbing on it.
+
+[[craft: any_wooden_slab any_wooden_slab any_wooden_slab / any_planks emerald any_planks / any_planks any_planks any_planks -> trading_counter]]
+
+## Mining bench
+
+:mc-mining_bench: Workstation of the [miner](workers/miner.md). For you it is a **mill**,
+used like a stonecutter: cobblestone and other stone to gravel, gravel to sand or flint,
+sandstone back to sand. The [tabs](workers/basics.md#the-overview) above its screen lead to the overview,
+where you pick the miner's tunnel.
+
+[[craft: smooth_stone any_pickaxe smooth_stone / cobblestone iron_ingot cobblestone / cobblestone cobblestone cobblestone -> mining_bench]]
+
+## Village chest
+
+:mc-village_chest: A chest every worker nearby takes its wage, tools, saplings, seeds,
+ladders and torches from by itself, see [Village chests](workers/basics.md#village-chests).
+Use it like a chest: two village chests next to each other form a double chest (sneak while placing to keep them apart).
+
+[[craft shapeless: chest emerald -> village_chest]]
+
 ## Stonecutter (vanilla)
 
 :mc-stonecutter: Workstation of the [stone sawyer](workers/sawyer.md). Every stonecutter
 opens the cutter menu of this mod, which looks and works like the vanilla one but
-has the order box and the **i** button.
+has the order box and the [tabs](workers/basics.md#the-overview) of the station above it.
+
+## Loom (vanilla)
+
+:mc-loom: Workstation of the [shepherd](workers/shepherd.md). The [tabs](workers/basics.md#the-overview)
+above its screen lead to the overview; the loom itself works as usual.
+
+## Target (vanilla)
+
+:mc-target: Workstation of the [guard](workers/guard.md). Right-click it with an empty hand
+to open its overview. No vanilla villager takes it as a job site.
+
+## Fletching table (vanilla)
+
+:mc-fletching_table: Workstation of the [fletcher](workers/fletcher.md). It has no screen in
+vanilla; right-click it with an empty hand to open its overview.
+
+## Lectern (vanilla)
+
+:mc-lectern: Workstation of the [librarian](workers/librarian.md), who enchants at an
+:mc-enchanting_table: enchanting table within 6 blocks. Right-click a lectern without a book
+with an empty hand to open its overview; with a book on it, it opens the book as usual.
+
+## Grindstone (vanilla)
+
+:mc-grindstone: Workstation of the [weaponsmith](workers/weaponsmith.md). The [tabs](workers/basics.md#the-overview)
+above its screen lead to the overview; the grindstone itself works as usual.
+
+## Cauldron (vanilla)
+
+:mc-cauldron: Workstation of the [tanner](workers/tanner.md). Right-click it with an empty
+hand to open its overview; with a bucket, a bottle or leather armor in your hand it works as
+usual. An empty cauldron and one with water, lava or powder snow are the same station.
+
+## Brewing stand (vanilla)
+
+:mc-brewing_stand: Workstation of the [apothecary](workers/apothecary.md). The [tabs](workers/basics.md#the-overview)
+above its screen lead to the overview; you can still brew at it yourself while the
+apothecary does not.
+
+## Barrel (vanilla)
+
+:mc-barrel: Workstation of the [fisher](workers/fisher.md). The [tabs](workers/basics.md#the-overview)
+above its screen lead to the overview; the barrel stays a barrel for your items.
+
+## Smoker (vanilla)
+
+:mc-smoker: Workstation of the [butcher](workers/butcher.md). The [tabs](workers/basics.md#the-overview)
+above its screen lead to the overview; you can still use the smoker yourself.
 
 ## Composter (vanilla)
 
@@ -58,8 +148,8 @@ composts as usual.
 
 ## Blast furnace (vanilla)
 
-:mc-blast_furnace: Workstation of the [smith](workers/smith.md). It opens as usual; the **i** button at
-the top right of its screen opens the overview.
+:mc-blast_furnace: Workstation of the [smith](workers/smith.md). It opens as usual; the
+[tabs](workers/basics.md#the-overview) above its screen lead to the overview.
 
 ## Professions
 
@@ -71,4 +161,17 @@ the top right of its screen opens the overview.
 | :mc-head_carpenter: Carpenter | :mc-carpenter_bench: Carpenter's bench | :mc-work_contract: Work contract |
 | :mc-head_carrier: Carrier | (wicker basket) | :mc-wicker_basket: Wicker basket |
 | :mc-head_farmer: Farmer | :mc-composter: Composter | :mc-work_contract: Work contract |
+| :mc-head_shepherd: Shepherd | :mc-loom: Loom | :mc-work_contract: Work contract |
+| :mc-head_butcher: Butcher | :mc-smoker: Smoker | :mc-work_contract: Work contract |
+| :mc-head_fisher: Fisher | :mc-barrel: Barrel | :mc-work_contract: Work contract |
+| :mc-head_fletcher: Fletcher | :mc-fletching_table: Fletching table | :mc-work_contract: Work contract |
+| :mc-head_guard: Guard | :mc-target: Target | :mc-work_contract: Work contract |
+| :mc-head_librarian: Librarian | :mc-lectern: Lectern | :mc-work_contract: Work contract |
+| :mc-head_weaponsmith: Weaponsmith | :mc-grindstone: Grindstone | :mc-work_contract: Work contract |
+| :mc-head_tanner: Tanner | :mc-cauldron: Cauldron | :mc-work_contract: Work contract |
+| :mc-head_apothecary: Apothecary | :mc-brewing_stand: Brewing stand | :mc-work_contract: Work contract |
 | :mc-head_smith: Smith | :mc-blast_furnace: Blast furnace | :mc-work_contract: Work contract |
+| :mc-head_pit_digger: Pit digger | :mc-pit_stake: Pit stake | :mc-work_contract: Work contract |
+| :mc-head_kiln_operator: Kiln operator | :mc-kiln: Kiln | :mc-work_contract: Work contract |
+| :mc-head_shop_assistant: Shop assistant | :mc-trading_counter: Trading counter | :mc-work_contract: Work contract |
+| :mc-head_miner: Miner | :mc-mining_bench: Mining bench | :mc-work_contract: Work contract |

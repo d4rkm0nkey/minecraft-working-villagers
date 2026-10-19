@@ -30,17 +30,24 @@ final class ChestTrip {
 
 	private final BlockPos chest;
 	private final @Nullable BlockPos spot;
+	private final int walkTimeout;
 	private int ticks;
 	private boolean arrived;
 	private @Nullable Container opened;
 
-	private ChestTrip(BlockPos chest, @Nullable BlockPos spot) {
+	private ChestTrip(BlockPos chest, @Nullable BlockPos spot, int walkTimeout) {
 		this.chest = chest;
 		this.spot = spot;
+		this.walkTimeout = walkTimeout;
 	}
 
 	static ChestTrip to(ServerLevel level, Villager villager, BlockPos chest) {
-		return new ChestTrip(chest, StandSpots.find(level, chest, villager).orElse(null));
+		return to(level, villager, chest, WALK_TIMEOUT);
+	}
+
+	/** A trip that fails if the worker is not at the chest after {@code walkTimeout} ticks. */
+	static ChestTrip to(ServerLevel level, Villager villager, BlockPos chest, int walkTimeout) {
+		return new ChestTrip(chest, StandSpots.find(level, chest, villager).orElse(null), walkTimeout);
 	}
 
 	BlockPos chest() {
@@ -58,7 +65,7 @@ final class ChestTrip {
 				this.arrived = true;
 				this.ticks = 0;
 				villager.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
-			} else if (this.ticks > WALK_TIMEOUT) {
+			} else if (this.ticks > this.walkTimeout) {
 				return Result.FAILED;
 			} else if (this.ticks % 20 == 1) {
 				BlockPos target = this.spot != null ? this.spot : this.chest;

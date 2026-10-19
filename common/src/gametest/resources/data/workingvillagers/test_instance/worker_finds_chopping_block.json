@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "workingvillagers:work_hours",
+  "function": "workingvillagers:worker_finds_chopping_block",
+  "max_ticks": 1200,
+  "setup_ticks": 1,
+  "structure": "workingvillagers:platform"
+}

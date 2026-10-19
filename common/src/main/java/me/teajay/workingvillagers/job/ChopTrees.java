@@ -139,7 +139,7 @@ public class ChopTrees extends Behavior<Villager> {
 		villager.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
 		villager.getBrain().eraseMemory(MemoryModuleType.LOOK_TARGET);
 		villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
-		this.supplies.stop();
+		this.supplies.stop(villager);
 		if (this.tree != null) {
 			level.destroyBlockProgress(villager.getId(), this.tree.base(), -1);
 		}
@@ -383,9 +383,10 @@ public class ChopTrees extends Behavior<Villager> {
 		return stack.is(ItemTags.AXES);
 	}
 
+	/** The axe the lumberjack works with; a worn one it gives back instead (see {@link WorkerSupplies#isWorn}). */
 	private static ItemStack findAxe(SimpleContainer inventory) {
 		for (ItemStack stack : inventory) {
-			if (!stack.isEmpty() && isAxe(stack)) {
+			if (!stack.isEmpty() && isAxe(stack) && !WorkerSupplies.isWorn(stack)) {
 				return stack;
 			}
 		}

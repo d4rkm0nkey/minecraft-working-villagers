@@ -2,6 +2,7 @@ package me.teajay.workingvillagers.carrier;
 
 import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.job.HiredVillager;
+import me.teajay.workingvillagers.job.WorkerJobs;
 import me.teajay.workingvillagers.job.WorkerNames;
 import me.teajay.workingvillagers.menu.CarrierMenu;
 import net.minecraft.network.chat.Component;
@@ -50,10 +51,7 @@ public final class Carriers {
 		hired.workingvillagers$setCarrier(CarrierData.fromBasket(basket));
 		WorkerNames.ensureName(villager);
 		basket.consume(1, player);
-		if (villager.getBrain().hasMemoryValue(MemoryModuleType.POTENTIAL_JOB_SITE)) {
-			villager.releasePoi(MemoryModuleType.POTENTIAL_JOB_SITE);
-			villager.getBrain().eraseMemory(MemoryModuleType.POTENTIAL_JOB_SITE);
-		}
+		WorkerJobs.giveUpPotentialJobSite(villager);
 		villager.setVillagerData(villager.getVillagerData().withProfession(level.registryAccess(), WorkingVillagers.CARRIER_PROFESSION));
 		villager.refreshBrain(level);
 		villager.makeSound(SoundEvents.VILLAGER_YES);

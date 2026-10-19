@@ -4,20 +4,45 @@
   "package": "me.teajay.workingvillagers.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "AbstractArrowMixin",
+    "AbstractVillagerAccessor",
     "AbstractFurnaceMenuAccessor",
+    "BaseContainerBlockEntityAccessor",
     "BlastFurnaceMenuMixin",
+    "BoatItemAccessor",
     "BrainAccessor",
+    "BrewingStandBlockEntityAccessor",
+    "BrewingStandMenuMixin",
+    "ChestMenuMixin",
     "ComposterBlockMixin",
+    "DisplayMixin",
     "FarmlandBlockMixin",
-    "ServerPlayerGameModeMixin",
+    "GrindstoneMenuMixin",
+    "LivingEntityMixin",
+    "ReactToBellMixin",
+    "LoomMenuMixin",
     "ServerLevelMixin",
+    "ServerPlayerGameModeMixin",
+    "SetRaidStatusMixin",
+    "SmithingMenuMixin",
+    "SmokerMenuMixin",
     "StonecutterBlockMixin",
+    "UpdateActivityFromScheduleMixin",
     "VillagerGoalPackagesMixin",
-    "VillagerMixin"
+    "VillagerMixin",
+    "VillagerPanicTriggerMixin"
   ],
   "client": [
     "client.BlastFurnaceScreenMixin",
-    "client.VillagerRendererMixin"
+    "client.BrewingStandScreenMixin",
+    "client.ContainerScreenMixin",
+    "client.GrindstoneScreenMixin",
+    "client.LoomScreenMixin",
+    "client.ScreenAccessor",
+    "client.SmithingScreenMixin",
+    "client.SmokerScreenMixin",
+    "client.VillagerRendererMixin",
+    "client.VillagerRenderStateMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -3,20 +3,35 @@ package me.teajay.workingvillagers;
 import com.google.common.collect.ImmutableSet;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import me.teajay.workingvillagers.block.CarpenterBenchBlock;
 import me.teajay.workingvillagers.block.ChoppingBlock;
+import me.teajay.workingvillagers.block.KilnBlock;
+import me.teajay.workingvillagers.block.KilnBlockEntity;
+import me.teajay.workingvillagers.block.MiningBenchBlock;
+import me.teajay.workingvillagers.block.PitStakeBlock;
+import me.teajay.workingvillagers.block.TradingCounterBlock;
+import me.teajay.workingvillagers.block.VillageChestBlock;
+import me.teajay.workingvillagers.block.VillageChestBlockEntity;
 import me.teajay.workingvillagers.block.WoodcutterBlock;
+import me.teajay.workingvillagers.crafting.MillingRecipe;
 import me.teajay.workingvillagers.crafting.WoodcuttingRecipe;
 import me.teajay.workingvillagers.item.WickerBasketItem;
 import me.teajay.workingvillagers.item.WorkContractItem;
 import me.teajay.workingvillagers.menu.CarpenterMenu;
 import me.teajay.workingvillagers.menu.CarrierMenu;
 import me.teajay.workingvillagers.menu.CutterMenu;
+import me.teajay.workingvillagers.menu.KilnMenu;
 import me.teajay.workingvillagers.menu.StationMenu;
+import me.teajay.workingvillagers.menu.VillageChestMenu;
+import me.teajay.workingvillagers.network.RenameContainerPayload;
 import me.teajay.workingvillagers.network.RenameRoutePayload;
 import me.teajay.workingvillagers.station.StationType;
 import me.teajay.workingvillagers.platform.Platform;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvent;
@@ -37,7 +52,11 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import net.minecraft.world.level.material.MapColor;
 import org.jspecify.annotations.Nullable;
 
@@ -56,8 +75,35 @@ public final class WorkingVillagers {
 	public static final ResourceKey<VillagerProfession> STONECUTTER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("stonecutter"));
 	/** Works at the vanilla composter, the job site of the vanilla farmer. */
 	public static final ResourceKey<VillagerProfession> FARMER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("farmer"));
-	/** Works at the vanilla blast furnace, the job site of the armorer. */
+	/** Works at the vanilla loom, the job site of the vanilla shepherd. */
+	public static final ResourceKey<VillagerProfession> SHEPHERD_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("shepherd"));
+	/** Works at the vanilla target, which no vanilla profession uses: guards the village at night. */
+	public static final ResourceKey<PoiType> GUARD_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("guard"));
+	public static final ResourceKey<VillagerProfession> GUARD_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("guard"));
+	/** Works at the vanilla lectern, the job site of the vanilla librarian: enchants at an enchanting table nearby. */
+	public static final ResourceKey<VillagerProfession> LIBRARIAN_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("librarian"));
+	/** Works at the vanilla grindstone, the job site of the vanilla weaponsmith. */
+	public static final ResourceKey<VillagerProfession> WEAPONSMITH_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("weaponsmith"));
+	/** Works at the vanilla cauldron, the job site of the vanilla leatherworker. */
+	public static final ResourceKey<VillagerProfession> TANNER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("tanner"));
+	/** Works at the vanilla brewing stand, the job site of the vanilla cleric. */
+	public static final ResourceKey<VillagerProfession> APOTHECARY_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("apothecary"));
+	/** Works at the vanilla fletching table, the job site of the vanilla fletcher. */
+	public static final ResourceKey<VillagerProfession> FLETCHER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("fletcher"));
+	/** Works at the vanilla barrel, the job site of the vanilla fisherman. */
+	public static final ResourceKey<VillagerProfession> FISHER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("fisher"));
+	/** Works at the vanilla smoker, the job site of the vanilla butcher. */
+	public static final ResourceKey<VillagerProfession> BUTCHER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("butcher"));
+	/** Works at the vanilla blast furnace (the job site of the armorer) or the smithing table (the toolsmith's). */
 	public static final ResourceKey<VillagerProfession> SMITH_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("smith"));
+	public static final ResourceKey<PoiType> PIT_DIGGER_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("pit_digger"));
+	public static final ResourceKey<VillagerProfession> PIT_DIGGER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("pit_digger"));
+	public static final ResourceKey<PoiType> KILN_OPERATOR_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("kiln_operator"));
+	public static final ResourceKey<VillagerProfession> KILN_OPERATOR_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("kiln_operator"));
+	public static final ResourceKey<PoiType> MINER_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("miner"));
+	public static final ResourceKey<VillagerProfession> MINER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("miner"));
+	public static final ResourceKey<PoiType> SHOP_ASSISTANT_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("shop_assistant"));
+	public static final ResourceKey<VillagerProfession> SHOP_ASSISTANT_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("shop_assistant"));
 
 	public static Supplier<Block> CHOPPING_BLOCK;
 	public static Supplier<Item> CHOPPING_BLOCK_ITEM;
@@ -66,6 +112,8 @@ public final class WorkingVillagers {
 
 	/** What the carpenter's bench makes: crafting recipes with a result in this tag. */
 	public static final TagKey<Item> JOINERY = TagKey.create(Registries.ITEM, id("joinery"));
+	/** What the weaponsmith makes at the grindstone (see {@code ForgeRecipes}). */
+	public static final TagKey<Item> FORGEABLE = TagKey.create(Registries.ITEM, id("forgeable"));
 	public static Supplier<Block> CARPENTER_BENCH;
 	public static Supplier<Item> CARPENTER_BENCH_ITEM;
 	public static Supplier<MenuType<CarpenterMenu>> CARPENTER_BENCH_MENU;
@@ -81,6 +129,16 @@ public final class WorkingVillagers {
 	public static Supplier<MenuType<CarrierMenu>> CARRIER_MENU;
 	public static Supplier<MenuType<StationMenu>> COMPOSTER_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> BLAST_FURNACE_STATION_MENU;
+	public static Supplier<MenuType<StationMenu>> SMITHING_TABLE_STATION_MENU;
+	public static Supplier<MenuType<StationMenu>> LOOM_STATION_MENU;
+	public static Supplier<MenuType<StationMenu>> SMOKER_STATION_MENU;
+	public static Supplier<MenuType<StationMenu>> BARREL_STATION_MENU;
+	public static Supplier<MenuType<StationMenu>> FLETCHING_TABLE_STATION_MENU;
+	public static Supplier<MenuType<StationMenu>> BREWING_STAND_STATION_MENU;
+	public static Supplier<MenuType<StationMenu>> CAULDRON_STATION_MENU;
+	public static Supplier<MenuType<StationMenu>> GRINDSTONE_STATION_MENU;
+	public static Supplier<MenuType<StationMenu>> LECTERN_STATION_MENU;
+	public static Supplier<MenuType<StationMenu>> TARGET_STATION_MENU;
 	public static Supplier<MenuType<CutterMenu>> WOODCUTTER_MENU;
 	public static Supplier<RecipeType<WoodcuttingRecipe>> WOODCUTTING;
 	public static Supplier<RecipeSerializer<WoodcuttingRecipe>> WOODCUTTING_SERIALIZER;
@@ -89,6 +147,49 @@ public final class WorkingVillagers {
 	);
 
 	public static Supplier<MenuType<CutterMenu>> STONECUTTER_MENU;
+
+	/** The blocks the pit digger digs: natural ground, stone, ores, plants. */
+	public static final TagKey<Block> PIT_DIGGABLE = TagKey.create(Registries.BLOCK, id("pit_diggable"));
+	public static Supplier<Block> PIT_STAKE;
+	public static Supplier<Item> PIT_STAKE_ITEM;
+	public static Supplier<MenuType<StationMenu>> PIT_STAKE_MENU;
+
+	/** Items the kiln does not fire although a furnace smelts them. */
+	public static final TagKey<Item> KILN_EXCLUDED = TagKey.create(Registries.ITEM, id("kiln_excluded"));
+	public static Supplier<Block> KILN;
+	public static Supplier<Item> KILN_ITEM;
+	public static Supplier<BlockEntityType<KilnBlockEntity>> KILN_BLOCK_ENTITY;
+	public static Supplier<MenuType<KilnMenu>> KILN_MENU;
+	public static Supplier<MenuType<StationMenu>> KILN_STATION_MENU;
+
+	/** What the miner digs through: natural ground and stone, ores, cave plants. */
+	public static final TagKey<Block> MINE_DIGGABLE = TagKey.create(Registries.BLOCK, id("mine_diggable"));
+	/** The ores the miner follows from its tunnel. */
+	public static final TagKey<Block> MINER_ORES = TagKey.create(Registries.BLOCK, id("miner_ores"));
+	/** Items that can be put into the mill by shift-clicking. */
+	public static final TagKey<Item> MILLABLE = TagKey.create(Registries.ITEM, id("millable"));
+	public static Supplier<Block> MINING_BENCH;
+	public static Supplier<Item> MINING_BENCH_ITEM;
+	public static Supplier<MenuType<StationMenu>> MINING_BENCH_MENU;
+	public static Supplier<MenuType<CutterMenu>> MILL_MENU;
+	public static Supplier<RecipeType<MillingRecipe>> MILLING;
+	public static Supplier<RecipeSerializer<MillingRecipe>> MILLING_SERIALIZER;
+	public static final CutterMenu.Kind MILL_KIND = new CutterMenu.Kind(
+		() -> MILL_MENU.get(), () -> MILLING.get(), () -> MINING_BENCH.get(),
+		(level, stack) -> stack.is(MILLABLE)
+	);
+
+	public static Supplier<Block> TRADING_COUNTER;
+	public static Supplier<Item> TRADING_COUNTER_ITEM;
+	public static Supplier<MenuType<StationMenu>> TRADING_COUNTER_MENU;
+	/** Every worker nearby takes its supplies from these, see VillageChests. */
+	public static final ResourceKey<PoiType> VILLAGE_CHEST_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("village_chest"));
+	public static Supplier<Block> VILLAGE_CHEST;
+	public static Supplier<Item> VILLAGE_CHEST_ITEM;
+	public static Supplier<BlockEntityType<VillageChestBlockEntity>> VILLAGE_CHEST_BLOCK_ENTITY;
+	public static Supplier<MenuType<VillageChestMenu>> VILLAGE_CHEST_MENU;
+	public static Supplier<MenuType<VillageChestMenu>> VILLAGE_CHEST_DOUBLE_MENU;
+
 	public static final CutterMenu.Kind STONECUTTER_KIND = new CutterMenu.Kind(
 		() -> STONECUTTER_MENU.get(), () -> RecipeType.STONECUTTING, () -> Blocks.STONECUTTER,
 		(level, stack) -> level.recipeAccess().stonecutterRecipes().acceptsInput(stack)
@@ -118,7 +219,22 @@ public final class WorkingVillagers {
 		registerCarrier(platform);
 		registerFarmer(platform);
 		registerSmith(platform);
+		registerShepherd(platform);
+		registerButcher(platform);
+		registerFisher(platform);
+		registerFletcher(platform);
+		registerGuard(platform);
+		registerApothecary(platform);
+		registerTanner(platform);
+		registerWeaponsmith(platform);
+		registerLibrarian(platform);
+		registerPitDigger(platform);
+		registerKilnOperator(platform);
+		registerShopAssistant(platform);
+		registerVillageChest(platform);
+		registerMiner(platform);
 		platform.registerServerbound(RenameRoutePayload.TYPE, RenameRoutePayload.CODEC, RenameRoutePayload::handle);
+		platform.registerServerbound(RenameContainerPayload.TYPE, RenameContainerPayload.CODEC, RenameContainerPayload::handle);
 	}
 
 	private static void registerCarrier(Platform platform) {
@@ -168,14 +284,32 @@ public final class WorkingVillagers {
 	private static void registerProfession(
 		Platform platform, String name, ResourceKey<PoiType> jobSite, ImmutableSet<Item> requestedItems, @Nullable SoundEvent workSound
 	) {
+		registerProfession(platform, name, poi -> poi.is(jobSite), requestedItems, workSound, null);
+	}
+
+	private static void registerProfession(
+		Platform platform, String name, ResourceKey<PoiType> jobSite, ImmutableSet<Item> requestedItems, @Nullable SoundEvent workSound,
+		@Nullable ResourceKey<VillagerProfession> tradesLike
+	) {
+		registerProfession(platform, name, poi -> poi.is(jobSite), requestedItems, workSound, tradesLike);
+	}
+
+	/**
+	 * Registers a profession of this mod. {@code tradesLike}: the vanilla profession whose
+	 * trades it has (see {@code TradeFamilies}), null for a worker that does not trade.
+	 */
+	private static void registerProfession(
+		Platform platform, String name, Predicate<Holder<PoiType>> jobSite, ImmutableSet<Item> requestedItems, @Nullable SoundEvent workSound,
+		@Nullable ResourceKey<VillagerProfession> tradesLike
+	) {
 		platform.register(Registries.VILLAGER_PROFESSION, name, () -> new VillagerProfession(
 			Component.translatable("entity." + MOD_ID + ".villager." + name),
-			poi -> poi.is(jobSite),
+			jobSite,
 			poi -> false,
 			requestedItems,
 			ImmutableSet.of(),
 			workSound,
-			Int2ObjectMaps.emptyMap()
+			tradesLike == null ? Int2ObjectMaps.emptyMap() : BuiltInRegistries.VILLAGER_PROFESSION.getValueOrThrow(tradesLike).tradeSetsByLevel()
 		));
 	}
 
@@ -230,7 +364,7 @@ public final class WorkingVillagers {
 	private static void registerStonecutter(Platform platform) {
 		STONECUTTER_STATION_MENU = platform.registerMenu("stonecutter_station", (containerId, inventory) -> new StationMenu(StationType.STONECUTTER, containerId, inventory));
 		STONECUTTER_MENU = platform.registerMenu("stonecutter", (containerId, inventory) -> new CutterMenu(STONECUTTER_KIND, containerId, inventory));
-		registerProfession(platform, "stonecutter", PoiTypes.MASON, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_MASON);
+		registerProfession(platform, "stonecutter", PoiTypes.MASON, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_MASON, VillagerProfession.MASON);
 	}
 
 	/**
@@ -242,16 +376,245 @@ public final class WorkingVillagers {
 		COMPOSTER_STATION_MENU = platform.registerMenu("composter_station", (containerId, inventory) -> new StationMenu(StationType.COMPOSTER, containerId, inventory));
 		registerProfession(platform, "farmer", PoiTypes.FARMER, ImmutableSet.of(
 			Items.WHEAT, Items.WHEAT_SEEDS, Items.BEETROOT_SEEDS, Items.CARROT, Items.POTATO, Items.BEETROOT, Items.BONE_MEAL
-		), SoundEvents.VILLAGER_WORK_FARMER);
+		), SoundEvents.VILLAGER_WORK_FARMER, VillagerProfession.FARMER);
 	}
 
 	/**
-	 * The smith works at the vanilla blast furnace; ordinary villagers still become armorers
-	 * there. The overview opens with the "i" button in the blast furnace screen.
+	 * The shepherd works at the vanilla loom: it shears the sheep around it and breeds them.
+	 * Ordinary villagers still become (vanilla) shepherds there; the button with the
+	 * shepherd's face in the loom's screen opens the overview.
+	 */
+	private static void registerShepherd(Platform platform) {
+		LOOM_STATION_MENU = platform.registerMenu("loom_station", (containerId, inventory) -> new StationMenu(StationType.LOOM, containerId, inventory));
+		registerProfession(platform, "shepherd", PoiTypes.SHEPHERD, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_SHEPHERD, VillagerProfession.SHEPHERD);
+	}
+
+	/**
+	 * The guard works at the vanilla target, which becomes a point of interest of this mod
+	 * (no vanilla villager takes it): it shoots monsters at night. A right-click with an empty
+	 * hand opens the overview.
+	 */
+	private static void registerGuard(Platform platform) {
+		TARGET_STATION_MENU = platform.registerMenu("target_station", (containerId, inventory) -> new StationMenu(StationType.TARGET, containerId, inventory));
+		platform.registerPoi("guard", () -> Blocks.TARGET, 1, 1);
+		registerProfession(platform, "guard", GUARD_POI, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_WEAPONSMITH);
+	}
+
+	/**
+	 * The librarian works at the vanilla lectern and enchants at an enchanting table nearby. A
+	 * right-click with an empty hand on a lectern without a book opens the overview. Ordinary
+	 * villagers still become (vanilla) librarians there.
+	 */
+	private static void registerLibrarian(Platform platform) {
+		LECTERN_STATION_MENU = platform.registerMenu("lectern_station", (containerId, inventory) -> new StationMenu(StationType.LECTERN, containerId, inventory));
+		registerProfession(platform, "librarian", PoiTypes.LIBRARIAN, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_LIBRARIAN, VillagerProfession.LIBRARIAN);
+	}
+
+	/**
+	 * The weaponsmith works at the vanilla grindstone: it forges tools and weapons, grinds two
+	 * worn tools into one and disenchants. Ordinary villagers still become (vanilla)
+	 * weaponsmiths there; the tabs above the grindstone's screen open the overview.
+	 */
+	private static void registerWeaponsmith(Platform platform) {
+		GRINDSTONE_STATION_MENU = platform.registerMenu("grindstone_station",
+			(containerId, inventory) -> new StationMenu(StationType.GRINDSTONE, containerId, inventory));
+		registerProfession(platform, "weaponsmith", PoiTypes.WEAPONSMITH, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_WEAPONSMITH, VillagerProfession.WEAPONSMITH);
+	}
+
+	/**
+	 * The tanner works at the vanilla cauldron (any of them: empty, with water, lava or powder
+	 * snow), which has no screen: a right-click with an empty hand opens the overview. Ordinary
+	 * villagers still become (vanilla) leatherworkers there.
+	 */
+	private static void registerTanner(Platform platform) {
+		CAULDRON_STATION_MENU = platform.registerMenu("cauldron_station", (containerId, inventory) -> new StationMenu(StationType.CAULDRON, containerId, inventory));
+		registerProfession(platform, "tanner", PoiTypes.LEATHERWORKER, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_LEATHERWORKER, VillagerProfession.LEATHERWORKER);
+	}
+
+	/**
+	 * The apothecary works at the vanilla brewing stand: it makes glass bottles, fills them
+	 * with water, brews the ordered potion and heals injured workers. Ordinary villagers still
+	 * become (vanilla) clerics there; the tabs above the brewing stand's screen open the overview.
+	 */
+	private static void registerApothecary(Platform platform) {
+		BREWING_STAND_STATION_MENU = platform.registerMenu("brewing_stand_station",
+			(containerId, inventory) -> new StationMenu(StationType.BREWING_STAND, containerId, inventory));
+		registerProfession(platform, "apothecary", PoiTypes.CLERIC, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_CLERIC, VillagerProfession.CLERIC);
+	}
+
+	/**
+	 * The fletcher works at the vanilla fletching table, which has no screen in vanilla: a
+	 * right-click with an empty hand opens the overview. Ordinary villagers still become
+	 * (vanilla) fletchers there.
+	 */
+	private static void registerFletcher(Platform platform) {
+		FLETCHING_TABLE_STATION_MENU = platform.registerMenu("fletching_table_station",
+			(containerId, inventory) -> new StationMenu(StationType.FLETCHING_TABLE, containerId, inventory));
+		registerProfession(platform, "fletcher", PoiTypes.FLETCHER, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_FLETCHER, VillagerProfession.FLETCHER);
+	}
+
+	/**
+	 * The fisher works at the vanilla barrel: it fishes from the shore nearby or rows out in a
+	 * boat. Ordinary villagers still become (vanilla) fishermen there.
+	 */
+	private static void registerFisher(Platform platform) {
+		BARREL_STATION_MENU = platform.registerMenu("barrel_station", (containerId, inventory) -> new StationMenu(StationType.BARREL, containerId, inventory));
+		registerProfession(platform, "fisher", PoiTypes.FISHERMAN, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_FISHERMAN, VillagerProfession.FISHERMAN);
+	}
+
+	/**
+	 * The butcher works at the vanilla smoker: it breeds and slaughters the animals around it
+	 * and smokes the meat. Ordinary villagers still become (vanilla) butchers there.
+	 */
+	private static void registerButcher(Platform platform) {
+		SMOKER_STATION_MENU = platform.registerMenu("smoker_station", (containerId, inventory) -> new StationMenu(StationType.SMOKER, containerId, inventory));
+		registerProfession(platform, "butcher", PoiTypes.BUTCHER, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_BUTCHER, VillagerProfession.BUTCHER);
+	}
+
+	/**
+	 * The smith smelts at the vanilla blast furnace and repairs tools at the vanilla smithing
+	 * table; ordinary villagers still become armorers and toolsmiths there. The button with the
+	 * smith's face in the screens of the blast furnace and the smithing table opens the overview.
 	 */
 	private static void registerSmith(Platform platform) {
 		BLAST_FURNACE_STATION_MENU = platform.registerMenu("blast_furnace_station", (containerId, inventory) -> new StationMenu(StationType.BLAST_FURNACE, containerId, inventory));
-		registerProfession(platform, "smith", PoiTypes.ARMORER, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_ARMORER);
+		SMITHING_TABLE_STATION_MENU = platform.registerMenu("smithing_table_station", (containerId, inventory) -> new StationMenu(StationType.SMITHING_TABLE, containerId, inventory));
+		registerProfession(platform, "smith", poi -> poi.is(PoiTypes.ARMORER) || poi.is(PoiTypes.TOOLSMITH), ImmutableSet.of(), SoundEvents.VILLAGER_WORK_ARMORER,
+			VillagerProfession.ARMORER);
+	}
+
+	/**
+	 * The pit digger works at the pit stake: it digs out the pit the player marked with a
+	 * ring of string and brings everything it digs to its chests.
+	 */
+	private static void registerPitDigger(Platform platform) {
+		PIT_STAKE = platform.register(Registries.BLOCK, "pit_stake", () -> new PitStakeBlock(
+			BlockBehaviour.Properties.of()
+				.setId(ResourceKey.create(Registries.BLOCK, id("pit_stake")))
+				.mapColor(MapColor.WOOD)
+				.strength(1.5F)
+				.sound(SoundType.WOOD)
+				.ignitedByLava()
+				.noOcclusion()
+		));
+		PIT_STAKE_ITEM = platform.register(Registries.ITEM, "pit_stake", () -> new BlockItem(
+			PIT_STAKE.get(),
+			itemProperties("pit_stake").useBlockDescriptionPrefix()
+		));
+		PIT_STAKE_MENU = platform.registerMenu("pit_stake", (containerId, inventory) -> new StationMenu(StationType.PIT_STAKE, containerId, inventory));
+		platform.registerPoi("pit_digger", () -> PIT_STAKE.get(), 1, 1);
+		registerProfession(platform, "pit_digger", PIT_DIGGER_POI, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_TOOLSMITH);
+	}
+
+	/**
+	 * The kiln operator works at the kiln, a furnace for building materials: it fetches what
+	 * the kiln fires and fuel from its input chests and brings the results to its output
+	 * chests. The button with the kiln operator's face in the kiln's screen opens the overview.
+	 */
+	private static void registerKilnOperator(Platform platform) {
+		KILN = platform.register(Registries.BLOCK, "kiln", () -> new KilnBlock(
+			BlockBehaviour.Properties.of()
+				.setId(ResourceKey.create(Registries.BLOCK, id("kiln")))
+				.mapColor(MapColor.COLOR_RED)
+				.instrument(NoteBlockInstrument.BASEDRUM)
+				.requiresCorrectToolForDrops()
+				.strength(3.5F)
+				.lightLevel(state -> state.getValue(BlockStateProperties.LIT) ? 13 : 0)
+		));
+		KILN_ITEM = platform.register(Registries.ITEM, "kiln", () -> new BlockItem(
+			KILN.get(),
+			itemProperties("kiln").useBlockDescriptionPrefix()
+		));
+		KILN_BLOCK_ENTITY = registerBlockEntityType(platform, "kiln", KilnBlockEntity::new, () -> KILN.get());
+		KILN_MENU = platform.registerMenu("kiln", KilnMenu::new);
+		KILN_STATION_MENU = platform.registerMenu("kiln_station", (containerId, inventory) -> new StationMenu(StationType.KILN, containerId, inventory));
+		platform.registerPoi("kiln_operator", () -> KILN.get(), 1, 1);
+		registerProfession(platform, "kiln_operator", KILN_OPERATOR_POI, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_ARMORER);
+	}
+
+	/**
+	 * The shop assistant works at the trading counter: it sells the goods from its input
+	 * chests to the villagers around, through their own trades, and brings the emeralds to
+	 * its output chests.
+	 */
+	private static void registerShopAssistant(Platform platform) {
+		TRADING_COUNTER = platform.register(Registries.BLOCK, "trading_counter", () -> new TradingCounterBlock(
+			BlockBehaviour.Properties.of()
+				.setId(ResourceKey.create(Registries.BLOCK, id("trading_counter")))
+				.mapColor(MapColor.WOOD)
+				.strength(2.5F)
+				.sound(SoundType.WOOD)
+				.ignitedByLava()
+				.noOcclusion()
+		));
+		TRADING_COUNTER_ITEM = platform.register(Registries.ITEM, "trading_counter", () -> new BlockItem(
+			TRADING_COUNTER.get(),
+			itemProperties("trading_counter").useBlockDescriptionPrefix()
+		));
+		TRADING_COUNTER_MENU = platform.registerMenu("trading_counter", (containerId, inventory) -> new StationMenu(StationType.TRADING_COUNTER, containerId, inventory));
+		platform.registerPoi("shop_assistant", () -> TRADING_COUNTER.get(), 1, 1);
+		registerProfession(platform, "shop_assistant", SHOP_ASSISTANT_POI, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_LIBRARIAN);
+	}
+
+	/**
+	 * The miner works at the mining bench: it digs the tunnel the player picked (3×3 with
+	 * supports, side tunnels, or stairs down) and brings what it digs to its chests. For
+	 * players the bench is a mill: cobblestone to gravel, gravel to sand and flint.
+	 */
+	private static void registerMiner(Platform platform) {
+		MINING_BENCH = platform.register(Registries.BLOCK, "mining_bench", () -> new MiningBenchBlock(
+			BlockBehaviour.Properties.of()
+				.setId(ResourceKey.create(Registries.BLOCK, id("mining_bench")))
+				.mapColor(MapColor.STONE)
+				.instrument(NoteBlockInstrument.BASEDRUM)
+				.requiresCorrectToolForDrops()
+				.strength(3.0F)
+				.noOcclusion()
+		));
+		MINING_BENCH_ITEM = platform.register(Registries.ITEM, "mining_bench", () -> new BlockItem(
+			MINING_BENCH.get(),
+			itemProperties("mining_bench").useBlockDescriptionPrefix()
+		));
+		MINING_BENCH_MENU = platform.registerMenu("mining_bench", (containerId, inventory) -> new StationMenu(StationType.MINING_BENCH, containerId, inventory));
+		MILL_MENU = platform.registerMenu("mill", (containerId, inventory) -> new CutterMenu(MILL_KIND, containerId, inventory));
+		MILLING = registerRecipeType(platform, "milling");
+		MILLING_SERIALIZER = registerRecipeSerializer(platform, "milling", () -> new RecipeSerializer<>(
+			MillingRecipe.MAP_CODEC, MillingRecipe.STREAM_CODEC
+		));
+		platform.registerPoi("miner", () -> MINING_BENCH.get(), 1, 1);
+		registerProfession(platform, "miner", MINER_POI, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_TOOLSMITH);
+	}
+
+	/**
+	 * The village chest: a chest the workers nearby take their wage, tools and what they use
+	 * up from. A point of interest without job, so the workers find it quickly.
+	 */
+	private static void registerVillageChest(Platform platform) {
+		VILLAGE_CHEST = platform.register(Registries.BLOCK, "village_chest", () -> new VillageChestBlock(
+			BlockBehaviour.Properties.of()
+				.setId(ResourceKey.create(Registries.BLOCK, id("village_chest")))
+				.mapColor(MapColor.WOOD)
+				.instrument(NoteBlockInstrument.BASS)
+				.strength(2.5F)
+				.sound(SoundType.WOOD)
+				.ignitedByLava()
+		));
+		VILLAGE_CHEST_ITEM = platform.register(Registries.ITEM, "village_chest", () -> new BlockItem(
+			VILLAGE_CHEST.get(),
+			itemProperties("village_chest").useBlockDescriptionPrefix()
+		));
+		VILLAGE_CHEST_BLOCK_ENTITY = registerBlockEntityType(platform, "village_chest", VillageChestBlockEntity::new, () -> VILLAGE_CHEST.get());
+		VILLAGE_CHEST_MENU = platform.registerMenu("village_chest", VillageChestMenu::single);
+		VILLAGE_CHEST_DOUBLE_MENU = platform.registerMenu("village_chest_double", VillageChestMenu::doubleChest);
+		platform.registerPoi("village_chest", () -> VILLAGE_CHEST.get(), 0, 1);
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <T extends BlockEntity> Supplier<BlockEntityType<T>> registerBlockEntityType(
+		Platform platform, String name, BlockEntityType.BlockEntitySupplier<T> factory, Supplier<Block> block
+	) {
+		Supplier<BlockEntityType<?>> registered = platform.register(Registries.BLOCK_ENTITY_TYPE, name, () -> new BlockEntityType<>(factory, Set.of(block.get())));
+		return () -> (BlockEntityType<T>) registered.get();
 	}
 
 	@SuppressWarnings("unchecked")

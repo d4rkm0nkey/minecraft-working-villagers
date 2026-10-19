@@ -48,6 +48,20 @@ public interface HiredVillager {
 
 	void workingvillagers$setProblem(boolean problem);
 
+	/** A guard, a weaponsmith: the experience it has not bottled yet. */
+	int workingvillagers$getExperience();
+
+	void workingvillagers$setExperience(int experience);
+
+	/**
+	 * Whether the emeralds the worker carried before there were wage boxes are in the wage box
+	 * of its workstation (see {@link WorkerSupplies#storeCarriedWage}). True for every worker
+	 * hired since; false for workers saved by 0.3.0 until they have done it.
+	 */
+	boolean workingvillagers$isWageStored();
+
+	void workingvillagers$setWageStored(boolean stored);
+
 	/** The last day the worker took its wage, -1 if never. */
 	long workingvillagers$getPaidDay();
 

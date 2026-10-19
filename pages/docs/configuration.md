@@ -21,7 +21,7 @@ default and its allowed range, so you can edit it with any text editor.
 
 | Option | Default | Range | What it does |
 | --- | --- | --- | --- |
-| `dailyWage` | 1 | 0–64 | Emeralds a worker takes each work day from the emeralds it carries. **0**: workers work for free; the lumberjack still needs an axe and the farmer a hoe. |
+| `dailyWage` | 1 | 0–64 | Emeralds a worker takes each work day from the wage box of its workstation. **0**: workers work for free; they still need their tools. |
 | `maxChests` | 8 | 1–8 | Chests that can be linked to one workstation. |
 | `chestDistance` | 16 | 4–32 | How far a linked chest may be from its workstation. |
 | `randomNames` | false | | Give hired villagers a random name (like Anton or Berta). Otherwise only a name tag names them. |
@@ -60,12 +60,142 @@ default and its allowed range, so you can edit it with any text editor.
 | `secondsPerCrop` | 1.5 | 0.1–20.0 | Time to harvest or plant one crop. |
 | `keepSeeds` | 16 | 1–64 | Seeds of each kind it keeps for planting (wheat seeds, carrots, potatoes, ...) and takes when you give them. |
 
+## Guard (`guard`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `keepArrows` | 64 | 8–256 | Arrows a guard carries. |
+| `secondsPerShot` | 1.5 | 0.25–10.0 | Time to draw the bow again. |
+| `range` | 24 | 8–48 | How far a guard shoots. |
+| `huntRadius` | 32 | 16–64 | How far from its target a hunting guard roams. |
+| `experience` | true | | Whether guards get the experience of their kills and bottle it. |
+| `experiencePerBottle` | 7 | 1–50 | Experience in one bottle o' enchanting. |
+| `bottlesPerNight` | 0 | 0–64 | At most this many bottles per morning, 0 for no limit. |
+
+The radius it guards is set at each target (tab **Settings**).
+
+## Apothecary (`apothecary`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `waterRadius` | 8 | 2–16 | How far from the brewing stand it looks for water to fill bottles. |
+| `healRadius` | 32 | 8–64 | How far from the brewing stand it looks for injured workers. |
+| `wartRadius` | 6 | 2–12 | How far from the brewing stand it tends nether wart on soul sand. |
+
+Its order and stock are set at the brewing stand.
+
+## Tanner (`tanner`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `tanRottenFlesh` | true | | Whether it tans rotten flesh into leather (not in vanilla). |
+| `fleshPerLeather` | 4 | 1–16 | Rotten flesh for one leather. |
+| `tanningSeconds` | 300 | 5–3600 | How long rotten flesh tans in the cauldron. |
+| `waterRadius` | 16 | 2–32 | How far from the cauldron it fetches water with its bucket. |
+
+Its order, stock and color are set at the cauldron.
+
+## Librarian (`librarian`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `tableRadius` | 6 | 1–16 | How far from the lectern it looks for an enchanting table. |
+| `levelsPerBottle` | 3 | 1–30 | How many levels one bottle o' enchanting pays for (level 30: 10 bottles). |
+
+The level is set at the lectern.
+
+## Weaponsmith
+
+The weaponsmith has no config options of its own; its order, stock and what it grinds are
+set at the grindstone. Bottles o' enchanting hold `guard.experiencePerBottle` experience.
+
+## Fletcher
+
+The fletcher has no config options; its order and stock are set at the fletching table.
+
+## Fisher (`fisher`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `waterRadius` | 16 | 4–32 | How far from the barrel (sideways) the fisher looks for water to fish from the shore. |
+| `seaRadius` | 32 | 8–64 | How far from the barrel it rows out in a boat. |
+| `minBiteSeconds` | 5 | 1–60 | The shortest wait for a bite (a lure shortens it). |
+| `maxBiteSeconds` | 30 | 1–120 | The longest wait for a bite. |
+| `catchesPerTrip` | 12 | 1–64 | Catches before it brings them to a chest. |
+
+Whether the fisher rows out is set at each barrel (tab **Settings**).
+
+## Butcher (`butcher`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `pastureRadius` | 12 | 4–24 | How far from the smoker (sideways) the butcher looks after animals. |
+| `secondsPerAnimal` | 1.5 | 0.1–20.0 | Time to feed or slaughter one animal. |
+| `keepFeed` | 16 | 2–64 | Feed of each kind it keeps for breeding and takes when you give it. |
+| `keepFuel` | 16 | 1–64 | Coal or charcoal it keeps for the smoker. |
+
+The herd size is no config option: set it at each smoker (tab **Settings**).
+
+## Shepherd (`shepherd`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `pastureRadius` | 12 | 4–24 | How far from the loom (sideways) the shepherd looks after sheep. |
+| `secondsPerSheep` | 1.5 | 0.1–20.0 | Time to shear or feed one sheep. |
+| `keepWheat` | 16 | 2–64 | Wheat it keeps for breeding and takes when you give it. |
+
+The herd size is no config option: set it at each loom (tab **Settings**).
+
 ## Smith (`smith`)
 
 | Option | Default | Range | What it does |
 | --- | --- | --- | --- |
 | `batchSize` | 16 | 1–64 | Items to smelt fetched from an input chest at once. |
 | `fuelPerTrip` | 8 | 1–64 | Fuel fetched at once. |
+| `enchantedNeedsExperience` | true | | Whether repairing an enchanted item costs a bottle o' enchanting per step. |
+| `experienceRepairPercent` | 10 | 1–100 | How much one bottle repairs of an item without repair material (bow, fishing rod, shears). |
+
+## Kiln operator (`kilnOperator`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `batchSize` | 16 | 1–64 | Items to fire fetched from an input chest at once. |
+| `fuelPerTrip` | 8 | 1–64 | Fuel fetched at once. |
+
+## Shop assistant (`shopAssistant`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `tradeRadius` | 24 | 4–48 | How far from the trading counter it looks for villagers to sell to. |
+| `secondsPerTrade` | 2.0 | 0.25–20.0 | How long one trade takes. |
+
+## Pit digger (`pitDigger`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `maxArea` | 64 | 4–256 | Blocks of ground a pit may have at most (inside the ring). |
+| `maxDepth` | 16 | 1–64 | The deepest depth that can be set at the pit stake. |
+| `maxUnevenness` | 4 | 0–8 | How far apart in height the strings of a ring may lie. |
+| `dailyBlocks` | 256 | 1–4096 | Blocks per day, then it stops for the day. |
+| `digSlowdown` | 8.0 | 1.0–32.0 | How many times as long as a player with the same tool it needs for a block, but at least `minSecondsPerBlock`. `1.0` is as fast as you. |
+| `minSecondsPerBlock` | 2.0 | 0.25–20.0 | How long it needs at least for a block, however good its tool (dirt with an iron shovel). Plants take a quarter of it. |
+| `keepLadders` | 64 | 1–64 | Ladders it carries at most (and takes when you give them). |
+| `keepTorches` | 16 | 0–64 | Torches it carries at most. **0**: it takes none and leaves the pit dark. |
+
+## Miner (`miner`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `maxTunnelLength` | 32 | 4–64 | How long a tunnel may be at most. |
+| `maxBranchLength` | 16 | 0–32 | How long the side tunnels may be at most. **0**: no side tunnels. |
+| `dailyBlocks` | 256 | 1–4096 | Blocks per day, then it stops for the day. |
+| `digSlowdown` | 8.0 | 1.0–32.0 | How many times as long as a player with the same pickaxe it needs for a block, but at least `minSecondsPerBlock`. |
+| `minSecondsPerBlock` | 1.5 | 0.25–20.0 | How long it needs at least for a block, however good its pickaxe. |
+| `supports` | true | | Wooden supports every 4 blocks. `false`: none, torches straight on the wall. |
+| `keepFences` | 16 | 0–64 | Fences it carries at most. |
+| `keepPlanks` | 16 | 0–64 | Planks it carries at most. |
+| `keepSealBlocks` | 16 | 1–64 | Cobblestone it keeps of what it digs, for sealing water and lava and closing holes. |
+| `keepTorches` | 16 | 0–64 | Torches it carries at most. **0**: none, the tunnel stays dark. |
 
 ## Carrier (`carrier`)
 
@@ -78,6 +208,22 @@ default and its allowed range, so you can edit it with any text editor.
 !!! note
     Lowering a distance does not unlink chests or routes that are already set up; it only
     applies to new ones.
+
+## Village chests (`villageChests`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `enabled` | true | | Workers take their supplies from village chests. `false`: village chests are ordinary chests. |
+| `radius` | 48 | 8–128 | How far (horizontally) a village chest may be from a worker's workstation. Up or down it is always 24 blocks. |
+| `wageDays` | 3 | 1–16 | For how many days a worker takes its wage at once. |
+| `takeEnchanted` | false | | Workers also take enchanted and renamed tools. |
+
+## Tools (`tools`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `returnBelow` | 10 | 0–50 | Once this many percent of a tool's durability are left (at least 2 uses), the worker stops using it and gives it back, see [Worn tools](workers/basics.md#worn-tools). `0`: tools are used until they break. |
+| `returnCheap` | false | | Wooden and stone tools are given back, too. `false`: they are used up, unless they are enchanted or renamed. |
 
 ## Example: a relaxed survival setup
 

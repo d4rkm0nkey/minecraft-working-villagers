@@ -1,34 +1,64 @@
 package me.teajay.workingvillagers.gametest;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import me.teajay.workingvillagers.Config;
 import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.carrier.CarrierData;
 import me.teajay.workingvillagers.carrier.Carriers;
 import me.teajay.workingvillagers.carrier.Route;
 import me.teajay.workingvillagers.item.WorkContractItem;
+import me.teajay.workingvillagers.job.GuardPost;
 import me.teajay.workingvillagers.job.HiredVillager;
+import me.teajay.workingvillagers.job.TendAnimals;
+import me.teajay.workingvillagers.job.TendSheep;
 import me.teajay.workingvillagers.job.WorkerStatus;
 import me.teajay.workingvillagers.job.WorkerSupplies;
-import me.teajay.workingvillagers.station.Workstations;
+import me.teajay.workingvillagers.station.Pit;
+import me.teajay.workingvillagers.station.StationType;
 import me.teajay.workingvillagers.station.Workstations.ChestRole;
+import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.core.registries.Registries;
+import org.jspecify.annotations.Nullable;
+import net.minecraft.world.level.block.LayeredCauldronBlock;
+import net.minecraft.world.item.component.DyedItemColor;
+import net.minecraft.world.entity.EquipmentSlot;
+import me.teajay.workingvillagers.job.TanLeather;
+import net.minecraft.world.level.block.NetherWartBlock;
+import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.core.Holder;
+import me.teajay.workingvillagers.crafting.BrewingPaths;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.animal.sheep.Sheep;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.npc.villager.VillagerProfession;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.trading.ItemCost;
+import net.minecraft.world.item.trading.MerchantOffer;
+import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.FarmlandBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -42,12 +72,24 @@ public final class WorkerTests {
 	private static final BlockPos STATION = new BlockPos(8, 1, 8);
 	private static final BlockPos INPUT = new BlockPos(10, 1, 6);
 	private static final BlockPos OUTPUT = new BlockPos(12, 1, 6);
+	private static final BlockPos VILLAGE_CHEST = new BlockPos(4, 1, 12);
+	/** The middle of the sheep pen, on the floor. */
+	private static final BlockPos PEN = new BlockPos(15, 0, 15);
 
 	private WorkerTests() {
 	}
 
-	/** Registers every test function under its name (the path of the test instance). */
-	public static void register(BiConsumer<String, Consumer<GameTestHelper>> registry) {
+	/**
+	 * Registers every test function under its name (the path of the test instance). Each sets
+	 * the config values of the tests when it starts: the mod may load its config file after
+	 * this, the order of the mod initializers is not fixed.
+	 */
+	public static void register(BiConsumer<String, Consumer<GameTestHelper>> functions) {
+		BiConsumer<String, Consumer<GameTestHelper>> registry = (name, test) -> functions.accept(name, helper -> {
+			configure();
+			test.accept(helper);
+		});
+		MinerTests.register(registry);
 		registry.accept("contract_hires_unemployed", WorkerTests::contractHiresUnemployed);
 		registry.accept("contract_rejects_employed", WorkerTests::contractRejectsEmployed);
 		registry.accept("lumberjack_fells_tree", WorkerTests::lumberjackFellsTree);
@@ -66,6 +108,113 @@ public final class WorkerTests {
 		registry.accept("worker_picks_up_wage", WorkerTests::workerPicksUpWage);
 		registry.accept("smith_smelts_ore", WorkerTests::smithSmeltsOre);
 		registry.accept("replaced_station_starts_fresh", WorkerTests::replacedStationStartsFresh);
+		registry.accept("kiln_operator_fires_glass", WorkerTests::kilnOperatorFiresGlass);
+		registry.accept("kiln_operator_fires_smooth_stone", WorkerTests::kilnOperatorFiresSmoothStone);
+		registry.accept("pit_digger_digs_pit", WorkerTests::pitDiggerDigsPit);
+		registry.accept("pit_digger_digs_small_pit", WorkerTests::pitDiggerDigsSmallPit);
+		registry.accept("pit_digger_finishes_half_dug_pit", WorkerTests::pitDiggerFinishesHalfDugPit);
+		registry.accept("pit_digger_climbs_out_of_half_dug_pit", WorkerTests::pitDiggerClimbsOutOfHalfDugPit);
+		registry.accept("pit_digger_finishes_played_pit", WorkerTests::pitDiggerFinishesPlayedPit);
+		registry.accept("shop_assistant_sells_wheat", WorkerTests::shopAssistantSellsWheat);
+		registry.accept("ordinary_villager_keeps_off_set_up_station", WorkerTests::ordinaryVillagerKeepsOffSetUpStation);
+		registry.accept("assign_displaces_ordinary_villager", WorkerTests::assignDisplacesOrdinaryVillager);
+		registry.accept("old_station_notes_are_removed", WorkerTests::oldStationNotesAreRemoved);
+		registry.accept("worker_takes_lost_station", WorkerTests::workerTakesLostStation);
+		registry.accept("village_chest_supplies_lumberjack", WorkerTests::villageChestSuppliesLumberjack);
+		registry.accept("village_chest_keeps_named_tools", WorkerTests::villageChestKeepsNamedTools);
+		registry.accept("lumberjack_gives_back_worn_axe", WorkerTests::lumberjackGivesBackWornAxe);
+		registry.accept("lumberjack_swaps_worn_axe", WorkerTests::lumberjackSwapsWornAxe);
+		registry.accept("worn_axe_goes_to_output_chest", WorkerTests::wornAxeGoesToOutputChest);
+		registry.accept("stone_axe_is_used_up", WorkerTests::stoneAxeIsUsedUp);
+		registry.accept("smith_repairs_worn_axe", WorkerTests::smithRepairsWornAxe);
+		registry.accept("wage_box_outlives_worker", WorkerTests::wageBoxOutlivesWorker);
+		registry.accept("broken_station_drops_wage", WorkerTests::brokenStationDropsWage);
+		registry.accept("right_click_fills_wage_box", WorkerTests::rightClickFillsWageBox);
+		registry.accept("smith_repairs_input_chest", WorkerTests::smithRepairsInputChest);
+		registry.accept("shepherd_shears_over_fence", WorkerTests::shepherdShearsOverFence);
+		registry.accept("shepherd_breeds_sheep", WorkerTests::shepherdBreedsSheep);
+		registry.accept("contract_hires_at_job_site", WorkerTests::contractHiresAtJobSite);
+		registry.accept("contract_keeps_trades", WorkerTests::contractKeepsTrades);
+		registry.accept("butcher_slaughters_surplus", WorkerTests::butcherSlaughtersSurplus);
+		registry.accept("fisher_fishes_from_shore", WorkerTests::fisherFishesFromShore);
+		registry.accept("fisher_rows_out", WorkerTests::fisherRowsOut);
+		registry.accept("fletcher_makes_arrows_from_gravel", WorkerTests::fletcherMakesArrowsFromGravel);
+		registry.accept("fletcher_makes_arrows_from_nuggets", WorkerTests::fletcherMakesArrowsFromNuggets);
+		registry.accept("fletcher_keeps_stock", WorkerTests::fletcherKeepsStock);
+		registry.accept("apothecary_makes_bottles", WorkerTests::apothecaryMakesBottles);
+		registry.accept("tanner_makes_books", WorkerTests::tannerMakesBooks);
+		registry.accept("worker_stores_carried_wage", WorkerTests::workerStoresCarriedWage);
+		registry.accept("weaponsmith_forges_axes", WorkerTests::weaponsmithForgesAxes);
+		registry.accept("librarian_enchants_book", WorkerTests::librarianEnchantsBook);
+		registry.accept("librarian_enchants_at_level_30", WorkerTests::librarianEnchantsAtLevel30);
+		registry.accept("weaponsmith_grinds_worn_tools_together", WorkerTests::weaponsmithGrindsWornToolsTogether);
+		registry.accept("weaponsmith_disenchants", WorkerTests::weaponsmithDisenchants);
+		registry.accept("tanner_makes_leather_from_hides", WorkerTests::tannerMakesLeatherFromHides);
+		registry.accept("tanner_tans_rotten_flesh", WorkerTests::tannerTansRottenFlesh);
+		registry.accept("tanner_fills_cauldron", WorkerTests::tannerFillsCauldron);
+		registry.accept("tanner_dyes_armor", WorkerTests::tannerDyesArmor);
+		registry.accept("tanner_recolors_armor", WorkerTests::tannerRecolorsArmor);
+		registry.accept("guard_wears_uniform", WorkerTests::guardWearsUniform);
+		registry.accept("guard_takes_armor_from_village_chest", WorkerTests::guardTakesArmorFromVillageChest);
+		registry.accept("apothecary_fills_water", WorkerTests::apothecaryFillsWater);
+		registry.accept("apothecary_brews_healing", WorkerTests::apothecaryBrewsHealing);
+		registry.accept("apothecary_heals_worker", WorkerTests::apothecaryHealsWorker);
+		registry.accept("apothecary_harvests_nether_wart", WorkerTests::apothecaryHarvestsNetherWart);
+		registry.accept("guard_shoots_zombie", WorkerTests::guardShootsZombie);
+		registry.accept("guard_collects_arrows", WorkerTests::guardCollectsArrows);
+		registry.accept("guard_bottles_experience", WorkerTests::guardBottlesExperience);
+		registry.accept("guard_hunts", WorkerTests::guardHunts);
+		registry.accept("guard_fights_raid_by_day", WorkerTests::guardFightsRaidByDay);
+		registry.accept("smith_repairs_bow_with_experience", WorkerTests::smithRepairsBowWithExperience);
+		registry.accept("smith_waits_for_experience", WorkerTests::smithWaitsForExperience);
+		registry.accept("fisher_gives_back_enchanted_rod", WorkerTests::fisherGivesBackEnchantedRod);
+		registry.accept("butcher_breeds_pigs", WorkerTests::butcherBreedsPigs);
+		registry.accept("butcher_smokes_meat", WorkerTests::butcherSmokesMeat);
+		for (StationType type : StationType.values()) {
+			String name = type.name().toLowerCase(Locale.ROOT);
+			registry.accept("worker_finds_" + name, helper -> workerFinds(helper, type));
+		}
+	}
+
+	/**
+	 * A workstation that counts as taken although nobody works there or walks there (a
+	 * ticket lost by earlier versions) is freed and taken by a hired villager.
+	 */
+	private static void workerTakesLostStation(GameTestHelper helper) {
+		BlockPos station = STATION.below();
+		helper.setBlock(station, WorkingVillagers.PIT_STAKE.get());
+		BlockPos absolute = helper.absolutePos(station);
+		helper.getLevel().getPoiManager().take(poi -> true, (poi, pos) -> pos.equals(absolute), absolute, 1);
+		Villager worker = TestWorld.hireVillager(helper, new BlockPos(2, 0, 2));
+		helper.succeedWhen(() -> helper.assertTrue(worker.getVillagerData().profession().is(WorkingVillagers.PIT_DIGGER_PROFESSION),
+			"The lost station was not taken: " + TestWorld.describe(worker)));
+	}
+
+	/**
+	 * A hired villager without a job walks to a workstation standing on the ground, like a
+	 * player places it, and takes the job there.
+	 */
+	private static void workerFinds(GameTestHelper helper, StationType type) {
+		// On the floor, where a player puts it (y 1 of the platform is one block above the grass)
+		BlockPos station = STATION.below();
+		helper.setBlock(station, type.block());
+		Villager worker = TestWorld.hireVillager(helper, new BlockPos(2, 0, 2));
+		helper.succeedWhen(() -> helper.assertTrue(TestWorld.station(helper, station).occupant(helper.getLevel()).isPresent(),
+			"Nobody took the job: " + worker.getVillagerData().profession().getRegisteredName()
+				+ ", potential " + worker.getBrain().getMemory(MemoryModuleType.POTENTIAL_JOB_SITE) + ", job " + worker.getBrain().getMemory(MemoryModuleType.JOB_SITE)
+				+ ", at " + worker.blockPosition() + ", station " + helper.absolutePos(station)));
+	}
+
+	private static void configure() {
+		// The tests run side by side: the village chests of one test must not reach the workers of the next
+		Config.VILLAGE_CHEST_RADIUS.set(8);
+		// Quick bites, short trips
+		Config.MIN_BITE_SECONDS.set(1);
+		Config.MAX_BITE_SECONDS.set(1);
+		Config.CATCHES_PER_TRIP.set(3);
+		// Rotten flesh tans in a few seconds
+		Config.TANNING_SECONDS.set(5);
+		MinerTests.configure();
 	}
 
 	private static void contractHiresUnemployed(GameTestHelper helper) {
@@ -79,20 +228,660 @@ public final class WorkerTests {
 		helper.succeed();
 	}
 
+	/** Not hired: a farmer without a job site, a baby and a cartographer (no job of this mod at a cartography table). */
 	private static void contractRejectsEmployed(GameTestHelper helper) {
 		Villager farmer = helper.spawn(EntityTypes.VILLAGER, WORKER);
 		farmer.setVillagerData(farmer.getVillagerData().withProfession(helper.getLevel().registryAccess(), VillagerProfession.FARMER));
 		Villager baby = helper.spawn(EntityTypes.VILLAGER, WORKER.east(2));
 		baby.setAge(-24000);
+		Villager cartographer = vanillaWorker(helper, new BlockPos(9, 0, 2), Blocks.CARTOGRAPHY_TABLE, VillagerProfession.CARTOGRAPHER);
 		Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-		for (Villager villager : new Villager[] {farmer, baby}) {
+		for (Villager villager : new Villager[] {farmer, baby, cartographer}) {
 			ItemStack contract = new ItemStack(WorkingVillagers.WORK_CONTRACT.get());
 			WorkContractItem.hire(villager, player, contract, InteractionHand.MAIN_HAND);
-			helper.assertFalse(((HiredVillager) villager).workingvillagers$isHired(), "A farmer or a baby must not be hired");
+			helper.assertFalse(((HiredVillager) villager).workingvillagers$isHired(), "Hired although it must not be: " + villager.getVillagerData().profession().getRegisteredName());
 			helper.assertFalse(contract.isEmpty(), "The contract was used up although nobody was hired");
 		}
 		helper.succeed();
 	}
+
+	/** A vanilla villager with the profession, working at the block next to it. */
+	private static Villager vanillaWorker(GameTestHelper helper, BlockPos block, net.minecraft.world.level.block.Block type,
+		net.minecraft.resources.ResourceKey<VillagerProfession> profession) {
+		helper.setBlock(block, type);
+		Villager villager = helper.spawn(EntityTypes.VILLAGER, block.offset(0, 1, 2));
+		BlockPos absolute = helper.absolutePos(block);
+		helper.getLevel().getPoiManager().take(poi -> true, (poi, pos) -> pos.equals(absolute), absolute, 1);
+		villager.getBrain().setMemory(MemoryModuleType.JOB_SITE, net.minecraft.core.GlobalPos.of(helper.getLevel().dimension(), absolute));
+		villager.setVillagerData(villager.getVillagerData().withProfession(helper.getLevel().registryAccess(), profession));
+		return villager;
+	}
+
+	/** A vanilla farmer that has never traded is hired and stays at its composter, as the farmer of this mod. */
+	private static void contractHiresAtJobSite(GameTestHelper helper) {
+		BlockPos composter = STATION.below();
+		Villager farmer = vanillaWorker(helper, composter, Blocks.COMPOSTER, VillagerProfession.FARMER);
+		ItemStack contract = new ItemStack(WorkingVillagers.WORK_CONTRACT.get());
+		WorkContractItem.hire(farmer, helper.makeMockPlayer(GameType.SURVIVAL), contract, InteractionHand.MAIN_HAND);
+		helper.assertTrue(((HiredVillager) farmer).workingvillagers$isHired(), "The farmer was not hired");
+		helper.assertTrue(contract.isEmpty(), "The contract was not used up");
+		helper.assertTrue(farmer.getVillagerData().profession().is(WorkingVillagers.FARMER_PROFESSION), "Not the farmer of this mod: "
+			+ farmer.getVillagerData().profession().getRegisteredName());
+		helper.assertTrue(farmer.getBrain().getMemory(MemoryModuleType.JOB_SITE).map(site -> site.pos().equals(helper.absolutePos(composter))).orElse(false),
+			"The farmer left its composter");
+		helper.assertTrue(TestWorld.station(helper, composter).worker() != null, "The composter does not know its worker");
+		helper.assertFalse(farmer.getOffers().isEmpty(), "The farmer of this mod has no trades");
+		helper.succeed();
+	}
+
+	/** A vanilla farmer somebody traded with keeps its trades and its experience when it is hired. */
+	private static void contractKeepsTrades(GameTestHelper helper) {
+		BlockPos composter = STATION.below();
+		Villager farmer = vanillaWorker(helper, composter, Blocks.COMPOSTER, VillagerProfession.FARMER);
+		net.minecraft.world.item.trading.MerchantOffers offers = new net.minecraft.world.item.trading.MerchantOffers();
+		offers.add(new net.minecraft.world.item.trading.MerchantOffer(new net.minecraft.world.item.trading.ItemCost(Items.WHEAT, 20),
+			new ItemStack(Items.EMERALD), 12, 2, 0.05F));
+		farmer.setOffers(offers);
+		farmer.setVillagerXp(5);
+		WorkContractItem.hire(farmer, helper.makeMockPlayer(GameType.SURVIVAL), new ItemStack(WorkingVillagers.WORK_CONTRACT.get()), InteractionHand.MAIN_HAND);
+		helper.assertTrue(((HiredVillager) farmer).workingvillagers$isHired(), "The farmer was not hired");
+		helper.assertTrue(farmer.getVillagerData().profession().is(WorkingVillagers.FARMER_PROFESSION), "Not the farmer of this mod");
+		helper.assertTrue(farmer.getOffers().size() == 1 && farmer.getOffers().getFirst().getCostA().is(Items.WHEAT), "The trades were lost: " + farmer.getOffers().size());
+		helper.assertTrue(farmer.getVillagerXp() == 5, "The experience was lost");
+		helper.succeed();
+	}
+
+	/**
+	 * Water two deep from {@code from} to {@code to} (inclusive, x and z), its surface level
+	 * with the floor's air, a rim of dirt around it and stone below.
+	 */
+	private static void pond(GameTestHelper helper, int fromX, int fromZ, int toX, int toZ) {
+		for (int x = fromX - 1; x <= toX + 1; x++) {
+			for (int z = fromZ - 1; z <= toZ + 1; z++) {
+				boolean inside = x >= fromX && x <= toX && z >= fromZ && z <= toZ;
+				helper.setBlock(new BlockPos(x, -2, z), Blocks.STONE);
+				helper.setBlock(new BlockPos(x, -1, z), inside ? Blocks.WATER : Blocks.DIRT);
+				helper.setBlock(new BlockPos(x, 0, z), inside ? Blocks.WATER : Blocks.DIRT);
+			}
+		}
+	}
+
+	/** A small pond next to the barrel: the fisher fishes from the shore and brings the catch to the chest. */
+	private static void fisherFishesFromShore(GameTestHelper helper) {
+		helper.setBlock(STATION.below(), Blocks.BARREL);
+		pond(helper, 12, 12, 15, 15);
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, STATION.below(), OUTPUT, ChestRole.OUTPUT);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, STATION.below());
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.FISHING_ROD));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> !stack.is(Items.FISHING_ROD), 3, "the catch in the output chest");
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.FISHING_ROD)) == 0, "The fisher delivered its rod");
+		});
+	}
+
+	/**
+	 * Two rods about to break: the plain one is cheap and used up, the enchanted one is given
+	 * back into the output chest (there is no village chest) instead of being broken.
+	 */
+	private static void fisherGivesBackEnchantedRod(GameTestHelper helper) {
+		helper.setBlock(STATION.below(), Blocks.BARREL);
+		pond(helper, 12, 12, 15, 15);
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, STATION.below(), OUTPUT, ChestRole.OUTPUT);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, STATION.below());
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2));
+		ItemStack enchanted = new ItemStack(Items.FISHING_ROD);
+		enchanted.enchant(helper.getLevel().registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
+			.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.LURE), 1);
+		enchanted.setDamageValue(enchanted.getMaxDamage() - 2);
+		ItemStack plain = new ItemStack(Items.FISHING_ROD);
+		plain.setDamageValue(plain.getMaxDamage() - 2);
+		// Into its inventory: a worker does not accept a worn tool from a player
+		worker.getInventory().addItem(enchanted);
+		worker.getInventory().addItem(plain);
+		helper.succeedWhen(() -> {
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.FISHING_ROD) && stack.isEnchanted()) == 1,
+				"The enchanted rod is not in the output chest: " + TestWorld.describe(worker));
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.FISHING_ROD) && !stack.isEnchanted()) == 0, "The plain rod was given back");
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> !stack.is(Items.FISHING_ROD)) >= 2, "Not caught with the plain rod until it broke");
+			helper.assertTrue(worker.getInventory().countItem(Items.FISHING_ROD) == 0, "The plain rod did not break");
+		});
+	}
+
+	/** A fletching table with an input chest holding {@code material}, an output chest and the order. */
+	private static Villager fletcher(GameTestHelper helper, Item order, int stock, ItemStack... material) {
+		BlockPos table = STATION.below();
+		helper.setBlock(table, Blocks.FLETCHING_TABLE);
+		TestWorld.chest(helper, INPUT, material);
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, table, INPUT, ChestRole.INPUT);
+		TestWorld.link(helper, table, OUTPUT, ChestRole.OUTPUT);
+		TestWorld.station(helper, table).setOrder(order);
+		TestWorld.station(helper, table).setStock(stock);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, table);
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2));
+		return worker;
+	}
+
+	/** Gravel, sticks and feathers: the fletcher knaps flint from the gravel and makes 4 arrows of each set. */
+	private static void fletcherMakesArrowsFromGravel(GameTestHelper helper) {
+		Villager worker = fletcher(helper, Items.ARROW, 0, new ItemStack(Items.GRAVEL, 6), new ItemStack(Items.STICK, 6), new ItemStack(Items.FEATHER, 6));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.ARROW), 24, "24 arrows in the output chest");
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.GRAVEL)) == 0, "Gravel left in the input chest");
+		});
+	}
+
+	/** An iron ingot instead of flint: 9 nuggets, 9 sets of arrows. */
+	private static void fletcherMakesArrowsFromNuggets(GameTestHelper helper) {
+		Villager worker = fletcher(helper, Items.ARROW, 0, new ItemStack(Items.IRON_INGOT), new ItemStack(Items.STICK, 9), new ItemStack(Items.FEATHER, 9));
+		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.ARROW), 36, "36 arrows in the output chest"));
+	}
+
+	/** A stock of 8: the fletcher makes 8 arrows and stops, although there is material for more. */
+	private static void fletcherKeepsStock(GameTestHelper helper) {
+		Villager worker = fletcher(helper, Items.ARROW, 8, new ItemStack(Items.FLINT, 16), new ItemStack(Items.STICK, 16), new ItemStack(Items.FEATHER, 16));
+		helper.runAfterDelay(1200, () -> {
+			int arrows = TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.ARROW));
+			helper.assertTrue(arrows == 8, "Arrows in the output chest: " + arrows + ", " + TestWorld.describe(worker));
+			helper.succeed();
+		});
+	}
+
+	/**
+	 * At night a guard at its target shoots a zombie dead with its arrows. A cow stands in the
+	 * way: the guard's arrows fly through it.
+	 */
+	private static void guardShootsZombie(GameTestHelper helper) {
+		BlockPos target = STATION.below();
+		helper.setBlock(target, Blocks.TARGET);
+		Villager guard = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, guard, target);
+		TestWorld.give(helper, guard, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.BOW), new ItemStack(Items.ARROW, 32));
+		GuardPost.setTimeForTests(guard, 14000);
+		// A husk does not burn in the daylight of the other tests
+		net.minecraft.world.entity.monster.zombie.Husk zombie = helper.spawn(EntityTypes.HUSK, new BlockPos(18, 0, 18));
+		net.minecraft.world.entity.animal.cow.Cow cow = helper.spawn(EntityTypes.COW, new BlockPos(13, 0, 13));
+		cow.setNoAi(true);
+		helper.succeedWhen(() -> {
+			helper.assertTrue(!zombie.isAlive(), "The zombie is still alive: " + TestWorld.describe(guard));
+			helper.assertTrue(zombie.getLastHurtByMob() == guard, "Not the guard killed the zombie");
+			helper.assertTrue(guard.getInventory().countItem(Items.ARROW) < 32, "The guard used no arrows");
+			helper.assertTrue(cow.getHealth() == cow.getMaxHealth(), "The guard hit the cow");
+			helper.assertTrue(((HiredVillager) guard).workingvillagers$getExperience() >= 5, "The guard did not get the zombie's experience");
+		});
+	}
+
+	/** In the morning a guard picks up its arrows that missed, but not somebody else's. */
+	private static void guardCollectsArrows(GameTestHelper helper) {
+		BlockPos target = STATION.below();
+		helper.setBlock(target, Blocks.TARGET);
+		Villager guard = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, guard, target);
+		TestWorld.give(helper, guard, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.BOW), new ItemStack(Items.ARROW, 10));
+		GuardPost.setTimeForTests(guard, 200);
+		List<net.minecraft.world.entity.projectile.arrow.Arrow> missed = new java.util.ArrayList<>();
+		for (BlockPos pos : List.of(new BlockPos(14, 0, 14), new BlockPos(4, 0, 15), new BlockPos(15, 0, 3))) {
+			net.minecraft.world.entity.projectile.arrow.Arrow arrow = helper.spawn(EntityTypes.ARROW, pos);
+			arrow.setOwner(guard);
+			arrow.pickup = net.minecraft.world.entity.projectile.arrow.AbstractArrow.Pickup.ALLOWED;
+			missed.add(arrow);
+		}
+		net.minecraft.world.entity.projectile.arrow.Arrow other = helper.spawn(EntityTypes.ARROW, new BlockPos(12, 0, 12));
+		other.pickup = net.minecraft.world.entity.projectile.arrow.AbstractArrow.Pickup.ALLOWED;
+		helper.succeedWhen(() -> {
+			helper.assertTrue(missed.stream().noneMatch(arrow -> arrow.isAlive()), "Arrows left: " + TestWorld.describe(guard));
+			helper.assertTrue(guard.getInventory().countItem(Items.ARROW) == 13, "Arrows carried: " + guard.getInventory().countItem(Items.ARROW));
+			helper.assertTrue(other.isAlive(), "The guard picked up somebody else's arrow");
+		});
+	}
+
+	/**
+	 * A guard set to hunt shoots a zombie far outside its radius of 8 (the zombie stands
+	 * still); standing watch it would leave it alone.
+	 */
+	private static void guardHunts(GameTestHelper helper) {
+		BlockPos target = STATION.below();
+		helper.setBlock(target, Blocks.TARGET);
+		TestWorld.station(helper, target).setGuardRadius(8);
+		TestWorld.station(helper, target).setHunting(true);
+		Villager guard = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, guard, target);
+		TestWorld.give(helper, guard, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.BOW), new ItemStack(Items.ARROW, 32));
+		GuardPost.setTimeForTests(guard, 14000);
+		net.minecraft.world.entity.monster.zombie.Husk zombie = helper.spawn(EntityTypes.HUSK, new BlockPos(22, 0, 22));
+		zombie.setNoAi(true);
+		helper.succeedWhen(() -> helper.assertTrue(!zombie.isAlive() && zombie.getLastHurtByMob() == guard, "The hunting guard did not kill the zombie: "
+			+ TestWorld.describe(guard)));
+	}
+
+	/**
+	 * A raid in the daytime, when guards sleep: the guard works anyway. The raid ends right
+	 * away again, the other tests run side by side and their villagers would hide.
+	 */
+	@SuppressWarnings("removal")
+	private static void guardFightsRaidByDay(GameTestHelper helper) {
+		BlockPos target = STATION.below();
+		helper.setBlock(target, Blocks.TARGET);
+		helper.setBlock(new BlockPos(4, 0, 4), Blocks.BELL);
+		Villager guard = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, guard, target);
+		GuardPost.setTimeForTests(guard, 6000);
+		helper.assertTrue(GuardPost.activity(helper.getLevel(), guard) == net.minecraft.world.entity.schedule.Activity.REST, "At noon a guard sleeps");
+		net.minecraft.server.level.ServerPlayer player = helper.makeMockServerPlayerInLevel();
+		player.setPos(helper.absoluteVec(new net.minecraft.world.phys.Vec3(8, 0, 4)));
+		net.minecraft.world.entity.raid.Raid raid = helper.getLevel().getRaids().createOrExtendRaid(player, helper.absolutePos(target));
+		helper.assertTrue(raid != null, "No raid started");
+		boolean works = GuardPost.activity(helper.getLevel(), guard) == net.minecraft.world.entity.schedule.Activity.WORK;
+		raid.stop();
+		helper.assertTrue(works, "The guard does not work in a raid");
+		helper.succeed();
+	}
+
+	/** In the morning a guard fills the experience of its kills into its glass bottles and brings them to its output chest. */
+	private static void guardBottlesExperience(GameTestHelper helper) {
+		BlockPos target = STATION.below();
+		helper.setBlock(target, Blocks.TARGET);
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, target, OUTPUT, ChestRole.OUTPUT);
+		Villager guard = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, guard, target);
+		TestWorld.give(helper, guard, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.BOW), new ItemStack(Items.ARROW, 10), new ItemStack(Items.GLASS_BOTTLE, 3));
+		((HiredVillager) guard).workingvillagers$setExperience(20);
+		GuardPost.setTimeForTests(guard, 200);
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, guard, OUTPUT, stack -> stack.is(Items.EXPERIENCE_BOTTLE), 2, "2 bottles o' enchanting in the output chest");
+			helper.assertTrue(((HiredVillager) guard).workingvillagers$getExperience() == 6, "Experience left: " + ((HiredVillager) guard).workingvillagers$getExperience());
+			helper.assertTrue(guard.getInventory().countItem(Items.GLASS_BOTTLE) == 1, "The guard did not keep its last glass bottle");
+		});
+	}
+
+	/** A bow has no repair material: the smith repairs it with bottles o' enchanting, a tenth of the durability each. */
+	private static void smithRepairsBowWithExperience(GameTestHelper helper) {
+		helper.setBlock(STATION, Blocks.SMITHING_TABLE);
+		ItemStack bow = new ItemStack(Items.BOW);
+		bow.setDamageValue(300);
+		Villager worker = processingStation(helper, bow, new ItemStack(Items.EXPERIENCE_BOTTLE, 10));
+		helper.succeedWhen(() -> {
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.BOW) && !stack.isDamaged()) == 1,
+				"The bow is not repaired in the input chest: " + TestWorld.describe(worker));
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.EXPERIENCE_BOTTLE)) == 2, "The smith did not use 8 bottles");
+		});
+	}
+
+	/** An enchanted pickaxe and diamonds, but no bottles o' enchanting: the smith does not repair it. */
+	private static void smithWaitsForExperience(GameTestHelper helper) {
+		helper.setBlock(STATION, Blocks.SMITHING_TABLE);
+		ItemStack pickaxe = new ItemStack(Items.DIAMOND_PICKAXE);
+		pickaxe.setDamageValue(500);
+		pickaxe.enchant(helper.getLevel().registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
+			.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.EFFICIENCY), 3);
+		Villager worker = processingStation(helper, pickaxe, new ItemStack(Items.DIAMOND, 3));
+		helper.runAfterDelay(800, () -> {
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.DIAMOND)) == 3, "The smith used diamonds without bottles: " + TestWorld.describe(worker));
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.DIAMOND_PICKAXE) && stack.getDamageValue() == 500) == 1, "The pickaxe was repaired");
+			helper.succeed();
+		});
+	}
+
+	private static final BlockPos ENCHANTING_TABLE = new BlockPos(12, 0, 12);
+
+	/** A lectern with an enchanting table nearby, an input chest holding {@code material} and an output chest. */
+	private static Villager librarian(GameTestHelper helper, ItemStack... material) {
+		BlockPos lectern = STATION.below();
+		helper.setBlock(lectern, Blocks.LECTERN);
+		helper.setBlock(ENCHANTING_TABLE, Blocks.ENCHANTING_TABLE);
+		TestWorld.chest(helper, INPUT, material);
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, lectern, INPUT, ChestRole.INPUT);
+		TestWorld.link(helper, lectern, OUTPUT, ChestRole.OUTPUT);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, lectern);
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2));
+		return worker;
+	}
+
+	/** A bare table (level 8): a book, 3 bottles o' enchanting and a lapis lazuli make an enchanted book. */
+	private static void librarianEnchantsBook(GameTestHelper helper) {
+		Villager worker = librarian(helper, new ItemStack(Items.BOOK), new ItemStack(Items.EXPERIENCE_BOTTLE, 3), new ItemStack(Items.LAPIS_LAZULI));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.ENCHANTED_BOOK), 1, "an enchanted book in the output chest");
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.EXPERIENCE_BOTTLE)) == 0
+				&& worker.getInventory().countItem(Items.EXPERIENCE_BOTTLE) == 0, "The bottles were not used");
+		});
+	}
+
+	/** 15 bookshelves around the table: level 30, 10 bottles and 3 lapis lazuli for an iron pickaxe. */
+	private static void librarianEnchantsAtLevel30(GameTestHelper helper) {
+		for (int x = -2; x <= 2; x++) {
+			for (int z = -2; z <= 2; z++) {
+				// A ring two blocks off the table, open at the front to get in
+				if ((Math.abs(x) == 2 || Math.abs(z) == 2) && !(x == 0 && z == -2)) {
+					helper.setBlock(ENCHANTING_TABLE.offset(x, 0, z), Blocks.BOOKSHELF);
+				}
+			}
+		}
+		Villager worker = librarian(helper, new ItemStack(Items.IRON_PICKAXE), new ItemStack(Items.EXPERIENCE_BOTTLE, 12), new ItemStack(Items.LAPIS_LAZULI, 3));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.IRON_PICKAXE) && stack.isEnchanted(), 1, "an enchanted pickaxe in the output chest");
+			int left = TestWorld.count(helper, INPUT, stack -> stack.is(Items.EXPERIENCE_BOTTLE)) + worker.getInventory().countItem(Items.EXPERIENCE_BOTTLE)
+				+ TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.EXPERIENCE_BOTTLE));
+			helper.assertTrue(left == 2, "Bottles left: " + left + " (12 - 10 for level 30)");
+		});
+	}
+
+	/** A grindstone with an input chest holding {@code material}, an output chest and the order (null for none). */
+	private static Villager weaponsmith(GameTestHelper helper, @Nullable Item order, ItemStack... material) {
+		BlockPos grindstone = STATION.below();
+		helper.setBlock(grindstone, Blocks.GRINDSTONE);
+		TestWorld.chest(helper, INPUT, material);
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, grindstone, INPUT, ChestRole.INPUT);
+		TestWorld.link(helper, grindstone, OUTPUT, ChestRole.OUTPUT);
+		TestWorld.station(helper, grindstone).setOrder(order);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, grindstone);
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2));
+		return worker;
+	}
+
+	/** 6 iron ingots and 4 sticks: 2 iron axes. */
+	private static void weaponsmithForgesAxes(GameTestHelper helper) {
+		Villager worker = weaponsmith(helper, Items.IRON_AXE, new ItemStack(Items.IRON_INGOT, 6), new ItemStack(Items.STICK, 4));
+		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.IRON_AXE), 2, "2 iron axes in the output chest"));
+	}
+
+	/** Two worn iron pickaxes in a village chest become one, back in the village chest. */
+	private static void weaponsmithGrindsWornToolsTogether(GameTestHelper helper) {
+		ItemStack worn = new ItemStack(Items.IRON_PICKAXE);
+		worn.setDamageValue(worn.getMaxDamage() - 20);
+		TestWorld.villageChest(helper, VILLAGE_CHEST, worn.copy(), worn.copy());
+		Villager worker = weaponsmith(helper, null);
+		helper.succeedWhen(() -> {
+			int pickaxes = TestWorld.count(helper, VILLAGE_CHEST, stack -> stack.is(Items.IRON_PICKAXE));
+			helper.assertTrue(pickaxes == 1, "Pickaxes in the village chest: " + pickaxes + ", " + TestWorld.describe(worker));
+			// 20 + 20 left, plus 5%
+			helper.assertTrue(TestWorld.count(helper, VILLAGE_CHEST,
+				stack -> stack.is(Items.IRON_PICKAXE) && stack.getMaxDamage() - stack.getDamageValue() >= 40 && !stack.has(DataComponents.CUSTOM_DATA)) == 1,
+				"The pickaxe is not ground together");
+		});
+	}
+
+	/** An enchanted sword and glass bottles: the sword without enchantments and bottles o' enchanting. */
+	private static void weaponsmithDisenchants(GameTestHelper helper) {
+		ItemStack sword = new ItemStack(Items.IRON_SWORD);
+		sword.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SHARPNESS), 3);
+		Villager worker = weaponsmith(helper, null, sword, new ItemStack(Items.GLASS_BOTTLE, 4));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.IRON_SWORD) && !stack.isEnchanted(), 1, "the sword without enchantments");
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.EXPERIENCE_BOTTLE), 1, "a bottle o' enchanting");
+		});
+	}
+
+	/** A worker from 0.3.0, before there were wage boxes, with its wage in its pockets, puts it into the box. */
+	private static void workerStoresCarriedWage(GameTestHelper helper) {
+		BlockPos station = STATION.below();
+		helper.setBlock(station, Blocks.STONECUTTER);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, station);
+		worker.getInventory().addItem(new ItemStack(Items.EMERALD, 20));
+		((HiredVillager) worker).workingvillagers$setWageStored(false);
+		helper.succeedWhen(() -> {
+			helper.assertTrue(worker.getInventory().countItem(Items.EMERALD) == 0, "Still carries " + worker.getInventory().countItem(Items.EMERALD));
+			// The wage of the day may already be taken out
+			int box = TestWorld.station(helper, station).wage();
+			helper.assertTrue(box >= 20 - Config.DAILY_WAGE.get() && box <= 20, "Wage box: " + box);
+		});
+	}
+
+	/** A cauldron (with water, 0 for an empty one) with an input chest holding {@code material}, an output chest, the order (null for none) and the color. */
+	private static Villager tanner(GameTestHelper helper, int water, @Nullable Item order, @Nullable DyeColor dye, ItemStack... material) {
+		BlockPos cauldron = STATION.below();
+		helper.setBlock(cauldron, water == 0 ? Blocks.CAULDRON.defaultBlockState()
+			: Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, water));
+		TestWorld.chest(helper, INPUT, material);
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, cauldron, INPUT, ChestRole.INPUT);
+		TestWorld.link(helper, cauldron, OUTPUT, ChestRole.OUTPUT);
+		TestWorld.station(helper, cauldron).setOrder(order);
+		TestWorld.station(helper, cauldron).setDye(dye);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, cauldron);
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2));
+		return worker;
+	}
+
+	/** Paper and leather: books. */
+	private static void tannerMakesBooks(GameTestHelper helper) {
+		Villager worker = tanner(helper, 0, Items.BOOK, null, new ItemStack(Items.PAPER, 6), new ItemStack(Items.LEATHER, 2));
+		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.BOOK), 2, "2 books in the output chest"));
+	}
+
+	/** 8 rabbit hides: 2 leather. */
+	private static void tannerMakesLeatherFromHides(GameTestHelper helper) {
+		Villager worker = tanner(helper, 0, Items.LEATHER, null, new ItemStack(Items.RABBIT_HIDE, 8));
+		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.LEATHER), 2, "2 leather in the output chest"));
+	}
+
+	/** 8 rotten flesh tan in the water of the cauldron (one level): 2 leather. */
+	private static void tannerTansRottenFlesh(GameTestHelper helper) {
+		Villager worker = tanner(helper, 3, Items.LEATHER, null, new ItemStack(Items.ROTTEN_FLESH, 8));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.LEATHER), 2, "2 leather in the output chest");
+			helper.assertBlockProperty(STATION.below(), LayeredCauldronBlock.LEVEL, 2);
+		});
+	}
+
+	/** An empty cauldron, a bucket and a puddle: the tanner fetches water, then tans. */
+	private static void tannerFillsCauldron(GameTestHelper helper) {
+		puddle(helper);
+		Villager worker = tanner(helper, 0, Items.LEATHER, null, new ItemStack(Items.ROTTEN_FLESH, 4));
+		TestWorld.give(helper, worker, new ItemStack(Items.BUCKET));
+		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.LEATHER), 1, "1 leather in the output chest"));
+	}
+
+	/** A leather chestplate in the color of the station, with its dye. */
+	private static void tannerDyesArmor(GameTestHelper helper) {
+		Villager worker = tanner(helper, 0, Items.LEATHER_CHESTPLATE, DyeColor.RED, new ItemStack(Items.LEATHER, 8), new ItemStack(Items.DYE.red()));
+		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.LEATHER_CHESTPLATE) && TanLeather.hasColor(stack, DyeColor.RED), 1,
+			"a red leather chestplate in the output chest"));
+	}
+
+	/** Blue boots in the input chest: washed out in the cauldron and dyed red, without an order. */
+	private static void tannerRecolorsArmor(GameTestHelper helper) {
+		ItemStack blue = DyedItemColor.applyDyes(new ItemStack(Items.LEATHER_BOOTS), List.of(DyeColor.BLUE));
+		Villager worker = tanner(helper, 3, null, DyeColor.RED, blue, new ItemStack(Items.DYE.red()));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.LEATHER_BOOTS) && TanLeather.hasColor(stack, DyeColor.RED), 1, "red boots in the output chest");
+			helper.assertBlockProperty(STATION.below(), LayeredCauldronBlock.LEVEL, 2);
+		});
+	}
+
+	/** Given a red leather chestplate, the guard puts it on, and it drops whole. */
+	private static void guardWearsUniform(GameTestHelper helper) {
+		BlockPos target = STATION.below();
+		helper.setBlock(target, Blocks.TARGET);
+		Villager guard = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, guard, target);
+		ItemStack red = DyedItemColor.applyDyes(new ItemStack(Items.LEATHER_CHESTPLATE), List.of(DyeColor.RED));
+		TestWorld.give(helper, guard, red);
+		helper.succeedWhen(() -> {
+			ItemStack worn = guard.getItemBySlot(EquipmentSlot.CHEST);
+			helper.assertTrue(worn.is(Items.LEATHER_CHESTPLATE) && TanLeather.hasColor(worn, DyeColor.RED), "Not wearing the chestplate: " + worn);
+			helper.assertTrue(guard.getInventory().countItem(Items.LEATHER_CHESTPLATE) == 0, "The chestplate is still in the inventory");
+		});
+	}
+
+	/** Boots in a village chest: the guard takes and wears them. */
+	private static void guardTakesArmorFromVillageChest(GameTestHelper helper) {
+		BlockPos target = STATION.below();
+		helper.setBlock(target, Blocks.TARGET);
+		TestWorld.villageChest(helper, VILLAGE_CHEST, new ItemStack(Items.LEATHER_BOOTS));
+		Villager guard = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, guard, target);
+		TestWorld.give(helper, guard, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.BOW), new ItemStack(Items.ARROW, 64));
+		GuardPost.setTimeForTests(guard, 14000);
+		helper.succeedWhen(() -> helper.assertTrue(guard.getItemBySlot(EquipmentSlot.FEET).is(Items.LEATHER_BOOTS),
+			"Not wearing boots: " + TestWorld.describe(guard)));
+	}
+
+	/** A brewing stand with an input chest holding {@code material}, an output chest and the order (empty for none). */
+	private static Villager apothecary(GameTestHelper helper, ItemStack order, ItemStack... material) {
+		BlockPos stand = STATION.below();
+		helper.setBlock(stand, Blocks.BREWING_STAND);
+		TestWorld.chest(helper, INPUT, material);
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, stand, INPUT, ChestRole.INPUT);
+		TestWorld.link(helper, stand, OUTPUT, ChestRole.OUTPUT);
+		if (!order.isEmpty()) {
+			TestWorld.station(helper, stand).setOrder(order.getItem(),
+				BrewingPaths.potionOf(order).flatMap(Holder::unwrapKey).map(key -> key.identifier().toString()).orElse(null));
+		}
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, stand);
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2));
+		return worker;
+	}
+
+	/** Water in the floor next to the brewing stand: two source blocks. */
+	private static void puddle(GameTestHelper helper) {
+		helper.setBlock(new BlockPos(8, -1, 11), Blocks.WATER);
+		helper.setBlock(new BlockPos(9, -1, 11), Blocks.WATER);
+	}
+
+	/** 6 glass: 6 glass bottles. */
+	private static void apothecaryMakesBottles(GameTestHelper helper) {
+		Villager worker = apothecary(helper, new ItemStack(Items.GLASS_BOTTLE), new ItemStack(Items.GLASS, 6));
+		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.GLASS_BOTTLE), 6, "6 glass bottles in the output chest"));
+	}
+
+	/** Glass bottles and water nearby: water bottles. */
+	private static void apothecaryFillsWater(GameTestHelper helper) {
+		puddle(helper);
+		Villager worker = apothecary(helper, BrewingPaths.water(), new ItemStack(Items.GLASS_BOTTLE, 3));
+		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> BrewingPaths.same(stack, BrewingPaths.water()), 3,
+			"3 water bottles in the output chest"));
+	}
+
+	/** Glass bottles, water, nether wart, a glistering melon slice and blaze powder: water, awkward potion, potion of healing. */
+	private static void apothecaryBrewsHealing(GameTestHelper helper) {
+		puddle(helper);
+		ItemStack healing = PotionContents.createItemStack(Items.POTION, Potions.HEALING);
+		Villager worker = apothecary(helper, healing, new ItemStack(Items.GLASS_BOTTLE, 3), new ItemStack(Items.NETHER_WART),
+			new ItemStack(Items.GLISTERING_MELON_SLICE), new ItemStack(Items.BLAZE_POWDER));
+		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> BrewingPaths.same(stack, healing), 3,
+			"3 potions of healing in the output chest"));
+	}
+
+	/** An injured worker nearby and a potion of healing in the output chest: the apothecary heals it. */
+	private static void apothecaryHealsWorker(GameTestHelper helper) {
+		Villager apothecary = apothecary(helper, ItemStack.EMPTY);
+		TestWorld.chest(helper, OUTPUT, PotionContents.createItemStack(Items.POTION, Potions.HEALING));
+		Villager injured = TestWorld.hireVillager(helper, new BlockPos(14, 0, 14));
+		injured.setHealth(8.0F);
+		helper.succeedWhen(() -> {
+			helper.assertTrue(injured.getHealth() > 8.0F, "Not healed: " + injured.getHealth() + ", " + TestWorld.describe(apothecary));
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, BrewingPaths::heals) == 0, "The potion is still in the output chest");
+		});
+	}
+
+	/** Ripe nether wart on soul sand next to the brewing stand: harvested and planted again. */
+	private static void apothecaryHarvestsNetherWart(GameTestHelper helper) {
+		BlockPos wart = new BlockPos(6, 0, 10);
+		helper.setBlock(wart.below(), Blocks.SOUL_SAND);
+		helper.setBlock(wart, Blocks.NETHER_WART.defaultBlockState().setValue(NetherWartBlock.AGE, NetherWartBlock.MAX_AGE));
+		Villager worker = apothecary(helper, ItemStack.EMPTY);
+		helper.succeedWhen(() -> {
+			helper.assertBlockPresent(Blocks.NETHER_WART, wart);
+			helper.assertTrue(helper.getBlockState(wart).getValue(NetherWartBlock.AGE) == 0, "The nether wart was not harvested");
+			helper.assertTrue(worker.getInventory().countItem(Items.NETHER_WART) > 0, "No nether wart in the inventory: " + TestWorld.describe(worker));
+		});
+	}
+
+	/** A lake and a boat: the fisher rows out, fishes, rows back, takes its boat and delivers the catch. */
+	private static void fisherRowsOut(GameTestHelper helper) {
+		helper.setBlock(STATION.below(), Blocks.BARREL);
+		pond(helper, 3, 11, 22, 22);
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, STATION.below(), OUTPUT, ChestRole.OUTPUT);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, STATION.below());
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.FISHING_ROD), new ItemStack(Items.OAK_BOAT));
+		boolean[] rowed = {false};
+		helper.onEachTick(() -> rowed[0] |= worker.getVehicle() instanceof net.minecraft.world.entity.vehicle.boat.AbstractBoat
+			&& worker.getVehicle().position().distanceTo(helper.absoluteVec(new net.minecraft.world.phys.Vec3(8, 0, 11))) > 5.0);
+		helper.succeedWhen(() -> {
+			helper.assertTrue(rowed[0], "The fisher did not row out");
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> !stack.is(Items.FISHING_ROD) && !stack.is(Items.OAK_BOAT), 3, "the catch in the output chest");
+			helper.assertTrue(worker.getVehicle() == null, "The fisher is still in the boat");
+			helper.assertTrue(worker.getInventory().countItem(Items.OAK_BOAT) == 1, "The fisher did not take its boat back");
+		});
+	}
+
+	/** A pen of fences without a gate (3 × 3 inside, around {@link #PEN}) with animals of one kind, a smoker and an output chest. */
+	private static List<net.minecraft.world.entity.animal.Animal> animalPen(GameTestHelper helper, net.minecraft.world.entity.EntityType<? extends net.minecraft.world.entity.animal.Animal> kind,
+		int count, int herd) {
+		BlockPos smoker = STATION.below();
+		helper.setBlock(smoker, Blocks.SMOKER);
+		for (int x = -2; x <= 2; x++) {
+			for (int z = -2; z <= 2; z++) {
+				if (Math.abs(x) == 2 || Math.abs(z) == 2) {
+					helper.setBlock(PEN.offset(x, 0, z), Blocks.OAK_FENCE);
+				}
+			}
+		}
+		List<net.minecraft.world.entity.animal.Animal> animals = new java.util.ArrayList<>();
+		for (int i = 0; i < count; i++) {
+			animals.add(helper.spawn(kind, PEN.offset(i % 3 - 1, 0, i / 3 - 1)));
+		}
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, smoker, OUTPUT, ChestRole.OUTPUT);
+		TestWorld.station(helper, smoker).setHerd(herd);
+		return animals;
+	}
+
+	/** Four cows, herd size 2: the butcher slaughters two over the fence and brings beef and leather to the chest. */
+	private static void butcherSlaughtersSurplus(GameTestHelper helper) {
+		animalPen(helper, EntityTypes.COW, 4, 2);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, STATION.below());
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_SWORD));
+		helper.succeedWhen(() -> {
+			int cows = TendAnimals.herd(helper.getLevel(), helper.absolutePos(STATION.below())).size();
+			helper.assertTrue(cows == 2, "Cows left: " + cows);
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.BEEF), 2, "raw beef in the output chest");
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.IRON_SWORD)) == 0, "The butcher delivered its sword");
+		});
+	}
+
+	/** Two pigs, fewer than the herd size: the butcher feeds them carrots and they get a piglet. */
+	private static void butcherBreedsPigs(GameTestHelper helper) {
+		animalPen(helper, EntityTypes.PIG, 2, Workstations.DEFAULT_HERD);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, STATION.below());
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_SWORD), new ItemStack(Items.CARROT, 4));
+		helper.succeedWhen(() -> {
+			List<net.minecraft.world.entity.animal.Animal> herd = TendAnimals.herd(helper.getLevel(), helper.absolutePos(STATION.below()));
+			helper.assertTrue(herd.stream().anyMatch(net.minecraft.world.entity.animal.Animal::isBaby), "No piglet yet, " + herd.size() + " pigs");
+			helper.assertTrue(herd.size() >= 3, "A pig was slaughtered");
+		});
+	}
+
+	/** Three chickens, herd size 2, and coal: the butcher slaughters one and smokes the chicken in the smoker. */
+	private static void butcherSmokesMeat(GameTestHelper helper) {
+		animalPen(helper, EntityTypes.CHICKEN, 3, 2);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, STATION.below());
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_SWORD), new ItemStack(Items.COAL, 2));
+		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.COOKED_CHICKEN), 1, "cooked chicken in the output chest"));
+	}
+
+	/**
+	 * A hired villager without a job walks to a free stonecutter
 
 	/** A station put where another kind of station was must not take over its settings. */
 	private static void replacedStationStartsFresh(GameTestHelper helper) {
@@ -140,7 +929,8 @@ public final class WorkerTests {
 		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_AXE), new ItemStack(Items.OAK_SAPLING));
 		helper.succeedWhen(() -> {
 			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_LOG), 5, "oak logs in the output chest");
-			helper.assertTrue(WorkerSupplies.count(worker.getInventory(), WorkerSupplies::isWage) == 1, "The wage was not taken");
+			helper.assertTrue(TestWorld.station(helper, STATION).wage() == 1 && WorkerSupplies.count(worker.getInventory(), WorkerSupplies::isWage) == 0,
+				"The wage was not taken from the wage box: " + TestWorld.station(helper, STATION).wage());
 			helper.assertTrue(TestWorld.count(helper, OUTPUT, WorkerSupplies::isWage) == 0, "The lumberjack delivered its emeralds");
 			helper.assertBlockPresent(Blocks.OAK_SAPLING, tree);
 		});
@@ -156,6 +946,221 @@ public final class WorkerTests {
 			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> !stack.isEmpty()) == 0, "The lumberjack delivered something");
 			helper.succeed();
 		});
+	}
+
+	/**
+	 * A lumberjack that was given nothing takes its wage for a few days, the more worn of two
+	 * axes and saplings from a village chest, and fells the tree.
+	 */
+	private static void villageChestSuppliesLumberjack(GameTestHelper helper) {
+		BlockPos tree = new BlockPos(15, 1, 15);
+		TestWorld.oakTree(helper, tree, 5, true, Blocks.DIRT);
+		ItemStack worn = new ItemStack(Items.IRON_AXE);
+		worn.setDamageValue(worn.getMaxDamage() / 2);
+		TestWorld.villageChest(helper, VILLAGE_CHEST, new ItemStack(Items.EMERALD, 10), new ItemStack(Items.IRON_AXE), worn,
+			new ItemStack(Items.OAK_SAPLING, 32));
+		Villager worker = lumberjack(helper);
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_LOG), 5, "oak logs in the output chest");
+			int wageDays = Config.VILLAGE_CHEST_WAGE_DAYS.get() * Config.DAILY_WAGE.get();
+			helper.assertTrue(TestWorld.count(helper, VILLAGE_CHEST, WorkerSupplies::isWage) == 10 - wageDays,
+				"The lumberjack did not take its wage for " + Config.VILLAGE_CHEST_WAGE_DAYS.get() + " days: " + TestWorld.describe(worker));
+			helper.assertTrue(TestWorld.count(helper, VILLAGE_CHEST, stack -> stack.is(Items.IRON_AXE) && !stack.isDamaged()) == 1,
+				"The lumberjack took the new axe instead of the worn one");
+			helper.assertTrue(TestWorld.count(helper, VILLAGE_CHEST, stack -> stack.is(Items.OAK_SAPLING)) == 32 - Config.KEEP_SAPLINGS.get(),
+				"The lumberjack did not take its saplings");
+			TestWorld.removeVillageChest(helper, VILLAGE_CHEST);
+		});
+	}
+
+	/** Renamed (and enchanted) tools in a village chest stay there for the player. */
+	private static void villageChestKeepsNamedTools(GameTestHelper helper) {
+		BlockPos tree = new BlockPos(15, 1, 15);
+		TestWorld.oakTree(helper, tree, 4, true, Blocks.DIRT);
+		ItemStack named = new ItemStack(Items.DIAMOND_AXE);
+		named.set(DataComponents.CUSTOM_NAME, Component.literal("Lucky"));
+		TestWorld.villageChest(helper, VILLAGE_CHEST, new ItemStack(Items.EMERALD, 10), named);
+		Villager worker = lumberjack(helper);
+		helper.failIfEver(() -> helper.assertBlockPresent(Blocks.OAK_LOG, tree));
+		helper.runAfterDelay(600, () -> {
+			helper.assertTrue(TestWorld.count(helper, VILLAGE_CHEST, stack -> stack.is(Items.DIAMOND_AXE)) == 1,
+				"The lumberjack took the named axe");
+			helper.assertTrue(WorkerSupplies.emeralds(helper.getLevel(), worker) > 0, "The lumberjack took no wage: " + TestWorld.describe(worker));
+			helper.assertTrue(((HiredVillager) worker).workingvillagers$hasProblem(), "The lumberjack without axe does not complain: " + TestWorld.describe(worker));
+			TestWorld.removeVillageChest(helper, VILLAGE_CHEST);
+			helper.succeed();
+		});
+	}
+
+	/** An iron axe with 20 of its 250 uses left: worn, it is given back instead of used. */
+	private static ItemStack wornAxe() {
+		ItemStack axe = new ItemStack(Items.IRON_AXE);
+		axe.setDamageValue(axe.getMaxDamage() - 20);
+		return axe;
+	}
+
+	/** Into its inventory: a worker does not accept a worn tool from a player. */
+	private static void carryWornAxe(Villager worker) {
+		worker.getInventory().addItem(wornAxe());
+	}
+
+	private static boolean isWornAxe(ItemStack stack) {
+		return stack.is(Items.IRON_AXE) && WorkerSupplies.isWorn(stack);
+	}
+
+	/**
+	 * A lumberjack with a worn axe and a spare fells the tree with the spare and puts the worn
+	 * axe into the village chest, where it does not take it again.
+	 */
+	private static void lumberjackGivesBackWornAxe(GameTestHelper helper) {
+		BlockPos tree = new BlockPos(15, 1, 15);
+		TestWorld.oakTree(helper, tree, 5, true, Blocks.DIRT);
+		TestWorld.villageChest(helper, VILLAGE_CHEST);
+		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_AXE));
+		carryWornAxe(worker);
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_LOG), 5, "oak logs in the output chest");
+			helper.assertTrue(TestWorld.count(helper, VILLAGE_CHEST, WorkerTests::isWornAxe) == 1,
+				"The worn axe is not in the village chest: " + TestWorld.describe(worker));
+			helper.assertTrue(WorkerSupplies.count(worker.getInventory(), stack -> stack.is(Items.IRON_AXE)) == 1, "The lumberjack lost its spare axe");
+			TestWorld.removeVillageChest(helper, VILLAGE_CHEST);
+		});
+	}
+
+	/**
+	 * A lumberjack whose only axe is worn takes a new one from the village chest and leaves
+	 * the worn one there, in one walk, and fells the tree.
+	 */
+	private static void lumberjackSwapsWornAxe(GameTestHelper helper) {
+		BlockPos tree = new BlockPos(15, 1, 15);
+		TestWorld.oakTree(helper, tree, 5, true, Blocks.DIRT);
+		TestWorld.villageChest(helper, VILLAGE_CHEST, new ItemStack(Items.IRON_AXE));
+		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 2));
+		carryWornAxe(worker);
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_LOG), 5, "oak logs in the output chest");
+			helper.assertTrue(TestWorld.count(helper, VILLAGE_CHEST, WorkerTests::isWornAxe) == 1,
+				"The worn axe is not in the village chest: " + TestWorld.describe(worker));
+			helper.assertTrue(TestWorld.count(helper, VILLAGE_CHEST, stack -> stack.is(Items.IRON_AXE)) == 1, "The lumberjack did not take the new axe");
+			TestWorld.removeVillageChest(helper, VILLAGE_CHEST);
+		});
+	}
+
+	/**
+	 * Without a village chest the worn axe goes into the output chest. The lumberjack does not
+	 * use it up: without another axe it waits and leaves the tree standing.
+	 */
+	private static void wornAxeGoesToOutputChest(GameTestHelper helper) {
+		BlockPos tree = new BlockPos(15, 1, 15);
+		TestWorld.oakTree(helper, tree, 4, true, Blocks.DIRT);
+		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 2));
+		carryWornAxe(worker);
+		helper.failIfEver(() -> helper.assertBlockPresent(Blocks.OAK_LOG, tree));
+		helper.succeedWhen(() -> {
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, WorkerTests::isWornAxe) == 1,
+				"The worn axe is not in the output chest: " + TestWorld.describe(worker));
+			helper.assertTrue(((HiredVillager) worker).workingvillagers$hasProblem(), "The lumberjack without axe does not complain: " + TestWorld.describe(worker));
+		});
+	}
+
+	/** A stone axe is cheap: the lumberjack uses it up instead of giving it back. */
+	private static void stoneAxeIsUsedUp(GameTestHelper helper) {
+		BlockPos tree = new BlockPos(15, 1, 15);
+		TestWorld.oakTree(helper, tree, 4, true, Blocks.DIRT);
+		ItemStack axe = new ItemStack(Items.STONE_AXE);
+		axe.setDamageValue(axe.getMaxDamage() - 2);
+		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 2), axe);
+		helper.succeedWhen(() -> {
+			helper.assertTrue(WorkerSupplies.count(worker.getInventory(), stack -> stack.is(Items.STONE_AXE)) == 0
+				&& TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.STONE_AXE)) == 0, "The stone axe was not used up: " + TestWorld.describe(worker));
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_LOG), 1, "oak logs in the output chest");
+		});
+	}
+
+	/**
+	 * A worn iron axe in the village chest (20 of 250 uses left): the smith at the smithing
+	 * table repairs it with 4 iron ingots, a quarter each, and puts it back.
+	 */
+	private static void smithRepairsWornAxe(GameTestHelper helper) {
+		helper.setBlock(STATION, Blocks.SMITHING_TABLE);
+		TestWorld.villageChest(helper, VILLAGE_CHEST, wornAxe());
+		Villager worker = processingStation(helper, new ItemStack(Items.IRON_INGOT, 6));
+		helper.succeedWhen(() -> {
+			helper.assertTrue(TestWorld.count(helper, VILLAGE_CHEST, stack -> stack.is(Items.IRON_AXE) && !stack.isDamaged()) == 1,
+				"The axe is not repaired in the village chest: " + TestWorld.describe(worker));
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.IRON_INGOT)) == 2, "The smith did not use 4 iron ingots");
+			TestWorld.removeVillageChest(helper, VILLAGE_CHEST);
+		});
+	}
+
+	/**
+	 * A damaged, enchanted diamond pickaxe in the input chest: the smith repairs it with
+	 * diamonds and puts it back, the enchantment stays. Stone it cannot repair anything with
+	 * stays in the chest.
+	 */
+	private static void smithRepairsInputChest(GameTestHelper helper) {
+		helper.setBlock(STATION, Blocks.SMITHING_TABLE);
+		ItemStack pickaxe = new ItemStack(Items.DIAMOND_PICKAXE);
+		pickaxe.setDamageValue(500);
+		pickaxe.enchant(helper.getLevel().registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
+			.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.EFFICIENCY), 3);
+		Villager worker = processingStation(helper, pickaxe, new ItemStack(Items.DIAMOND, 3), new ItemStack(Items.STONE, 4), new ItemStack(Items.EXPERIENCE_BOTTLE, 3));
+		helper.succeedWhen(() -> {
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.DIAMOND_PICKAXE) && !stack.isDamaged() && stack.isEnchanted()) == 1,
+				"The pickaxe is not repaired in the input chest: " + TestWorld.describe(worker));
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.DIAMOND)) == 1, "The smith did not use 2 diamonds");
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.EXPERIENCE_BOTTLE)) == 1, "The smith did not use 2 bottles o' enchanting");
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.STONE)) == 4, "The smith took the stone");
+		});
+	}
+
+	/**
+	 * Emeralds given to the lumberjack go into the wage box of its chopping block; it takes its
+	 * wage from there. When it dies, they stay there; the worker drops none.
+	 */
+	private static void wageBoxOutlivesWorker(GameTestHelper helper) {
+		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 5));
+		helper.assertTrue(WorkerSupplies.count(worker.getInventory(), WorkerSupplies::isWage) == 0, "The emeralds went into the worker's pockets");
+		helper.assertTrue(TestWorld.station(helper, STATION).wage() == 5, "The emeralds are not in the wage box: " + TestWorld.station(helper, STATION).wage());
+		helper.runAfterDelay(40, () -> {
+			worker.kill(helper.getLevel());
+			helper.runAfterDelay(5, () -> {
+				int wage = TestWorld.station(helper, STATION).wage();
+				helper.assertTrue(wage == 4, "The wage box lost its emeralds or the wage was not paid: " + wage);
+				helper.assertItemEntityNotPresent(Items.EMERALD);
+				helper.succeed();
+			});
+		});
+	}
+
+	/** A broken workstation drops the emeralds of its wage box. */
+	private static void brokenStationDropsWage(GameTestHelper helper) {
+		helper.setBlock(STATION, WorkingVillagers.CHOPPING_BLOCK.get());
+		TestWorld.station(helper, STATION).setWage(10);
+		helper.destroyBlock(STATION);
+		helper.succeedWhen(() -> {
+			int dropped = helper.getEntities(EntityTypes.ITEM, STATION, 2.0).stream()
+				.filter(item -> item.getItem().is(Items.EMERALD))
+				.mapToInt(item -> item.getItem().getCount())
+				.sum();
+			helper.assertTrue(dropped == 10, "Expected 10 dropped emeralds, found " + dropped);
+		});
+	}
+
+	/** Right-clicking a workstation with emeralds puts them into its wage box, up to 64. */
+	private static void rightClickFillsWageBox(GameTestHelper helper) {
+		helper.setBlock(STATION, Blocks.BLAST_FURNACE);
+		net.minecraft.server.level.ServerPlayer player = helper.makeMockServerPlayerInLevel();
+		// In survival, so the emeralds leave the hand
+		player.setGameMode(GameType.SURVIVAL);
+		ItemStack emeralds = new ItemStack(Items.EMERALD, 50);
+		helper.assertTrue(Workstations.depositWage(player, helper.absolutePos(STATION), emeralds), "The blast furnace did not take the emeralds");
+		ItemStack more = new ItemStack(Items.EMERALD, 30);
+		Workstations.depositWage(player, helper.absolutePos(STATION), more);
+		helper.assertTrue(TestWorld.station(helper, STATION).wage() == 64 && emeralds.isEmpty() && more.getCount() == 16,
+			"The wage box holds " + TestWorld.station(helper, STATION).wage() + ", 16 should be left in the hand: " + more.getCount());
+		helper.assertFalse(Workstations.depositWage(player, helper.absolutePos(STATION), new ItemStack(Items.DIAMOND)), "A diamond went into the wage box");
+		helper.succeed();
 	}
 
 	private static void noWageNoWork(GameTestHelper helper) {
@@ -261,6 +1266,54 @@ public final class WorkerTests {
 		});
 	}
 
+	/** A pen of fences without a gate (3 × 3 inside, around {@link #PEN}) with sheep in it, a loom and an output chest. */
+	private static List<Sheep> pen(GameTestHelper helper, int sheep, boolean sheared) {
+		helper.setBlock(STATION.below(), Blocks.LOOM);
+		for (int x = -2; x <= 2; x++) {
+			for (int z = -2; z <= 2; z++) {
+				if (Math.abs(x) == 2 || Math.abs(z) == 2) {
+					helper.setBlock(PEN.offset(x, 0, z), Blocks.OAK_FENCE);
+				}
+			}
+		}
+		List<Sheep> herd = new java.util.ArrayList<>();
+		for (int i = 0; i < sheep; i++) {
+			Sheep animal = helper.spawn(EntityTypes.SHEEP, PEN.offset(i - 1, 0, 0));
+			animal.setColor(DyeColor.WHITE);
+			animal.setSheared(sheared);
+			herd.add(animal);
+		}
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, STATION.below(), OUTPUT, ChestRole.OUTPUT);
+		return herd;
+	}
+
+	/** Sheep in a pen without a gate: the shepherd shears them over the fence and brings the wool to the chest. */
+	private static void shepherdShearsOverFence(GameTestHelper helper) {
+		List<Sheep> herd = pen(helper, 2, false);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, STATION.below());
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.SHEARS));
+		helper.succeedWhen(() -> {
+			helper.assertTrue(herd.stream().allMatch(Sheep::isSheared), "Not every sheep was sheared");
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.WOOL.white()), 2, "white wool in the output chest");
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.SHEARS)) == 0, "The shepherd delivered its shears");
+		});
+	}
+
+	/** Two sheared sheep, fewer than the herd size: the shepherd feeds them wheat and they get a lamb. */
+	private static void shepherdBreedsSheep(GameTestHelper helper) {
+		pen(helper, 2, true);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, STATION.below());
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.SHEARS), new ItemStack(Items.WHEAT, 4));
+		helper.succeedWhen(() -> {
+			List<Sheep> herd = TendSheep.herd(helper.getLevel(), helper.absolutePos(STATION.below()));
+			helper.assertTrue(herd.stream().anyMatch(Sheep::isBaby), "No lamb yet, " + herd.size() + " sheep");
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.WHEAT)) == 0, "The shepherd delivered its wheat");
+		});
+	}
+
 	/**
 	 * A hired villager without a job walks to a free stonecutter and becomes a stone sawyer
 	 * there, not a mason.
@@ -297,8 +1350,10 @@ public final class WorkerTests {
 	private static void workersDoNotTrampleFarmland(GameTestHelper helper) {
 		BlockPos worked = new BlockPos(3, 0, 3);
 		BlockPos trampled = new BlockPos(9, 0, 3);
-		helper.setBlock(worked, Blocks.FARMLAND);
-		helper.setBlock(trampled, Blocks.FARMLAND);
+		// Moist, so it does not dry out to dirt by itself meanwhile
+		BlockState farmland = Blocks.FARMLAND.defaultBlockState().setValue(FarmlandBlock.MOISTURE, FarmlandBlock.MAX_MOISTURE);
+		helper.setBlock(worked, farmland);
+		helper.setBlock(trampled, farmland);
 		Villager worker = TestWorld.hireVillager(helper, worked.above(4));
 		Villager villager = helper.spawn(EntityTypes.VILLAGER, trampled.above(4));
 		helper.succeedWhen(() -> {
@@ -312,6 +1367,302 @@ public final class WorkerTests {
 		helper.setBlock(STATION, Blocks.BLAST_FURNACE);
 		Villager worker = processingStation(helper, new ItemStack(Items.RAW_IRON, 4), new ItemStack(Items.COAL, 2));
 		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.IRON_INGOT), 4, "iron ingots in the output chest"));
+	}
+
+	/** Sand becomes glass; meat (the smoker's) and raw iron (the blast furnace's) stay in the chest. */
+	private static void kilnOperatorFiresGlass(GameTestHelper helper) {
+		helper.setBlock(STATION, WorkingVillagers.KILN.get());
+		Villager worker = processingStation(helper, new ItemStack(Items.SAND, 4), new ItemStack(Items.BEEF, 2), new ItemStack(Items.RAW_IRON, 2), new ItemStack(Items.COAL, 2));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.GLASS), 4, "glass in the output chest");
+			TestWorld.assertHolds(helper, worker, INPUT, stack -> stack.is(Items.BEEF), 2, "beef left in the input chest");
+			TestWorld.assertHolds(helper, worker, INPUT, stack -> stack.is(Items.RAW_IRON), 2, "raw iron left in the input chest");
+		});
+	}
+
+	/**
+	 * With the order "smooth stone" cobblestone is fired twice; the stone in between stays
+	 * in the kiln operator's hands. Sand is not fired for that order.
+	 */
+	private static void kilnOperatorFiresSmoothStone(GameTestHelper helper) {
+		helper.setBlock(STATION, WorkingVillagers.KILN.get());
+		TestWorld.station(helper, STATION).setOrder(Items.SMOOTH_STONE);
+		Villager worker = processingStation(helper, new ItemStack(Items.COBBLESTONE, 2), new ItemStack(Items.SAND, 2), new ItemStack(Items.COAL, 2));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.SMOOTH_STONE), 2, "smooth stone in the output chest");
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.STONE)) == 0, "The kiln operator delivered stone");
+			TestWorld.assertHolds(helper, worker, INPUT, stack -> stack.is(Items.SAND), 2, "sand left in the input chest");
+		});
+	}
+
+	/**
+	 * A 4×4 pit marked with string on a mound of dirt, 3 deep: the pit digger digs it out,
+	 * puts ladders down to the bottom and a torch on the floor, leaves the ring and
+	 * everything outside it alone and brings the dirt to the chest.
+	 */
+	private static void pitDiggerDigsPit(GameTestHelper helper) {
+		pitDiggerDigsPit(helper, 4, false, false);
+	}
+
+	/**
+	 * A 3×3 pit: the pit digger reaches every block from the ladder column it starts on, and
+	 * still has to dig the ladder column with the rest of each layer.
+	 */
+	private static void pitDiggerDigsSmallPit(GameTestHelper helper) {
+		pitDiggerDigsPit(helper, 3, false, false);
+	}
+
+	/**
+	 * A 3×3 pit dug out to the bottom except for the column of the ladder (as earlier
+	 * versions left it): the pit digger digs the ladder column, puts the ladders in and gets
+	 * out again.
+	 */
+	private static void pitDiggerFinishesHalfDugPit(GameTestHelper helper) {
+		pitDiggerDigsPit(helper, 3, true, false);
+	}
+
+	/** The same, with the pit digger down in the hole at the start. */
+	private static void pitDiggerClimbsOutOfHalfDugPit(GameTestHelper helper) {
+		pitDiggerDigsPit(helper, 3, true, true);
+	}
+
+	/**
+	 * A pit {@code size}×{@code size} inside, starting at x 9, z 9, 3 deep. {@code halfDug}:
+	 * everything but the ladder column (x 9) is dug out already.
+	 */
+	private static void pitDiggerDigsPit(GameTestHelper helper, int size, boolean halfDug, boolean startInHole) {
+		int ground = 5;
+		int far = 9 + size;
+		for (int x = 4; x <= 16; x++) {
+			for (int z = 4; z <= 16; z++) {
+				for (int y = 1; y <= ground; y++) {
+					helper.setBlock(new BlockPos(x, y, z), y == ground ? Blocks.GRASS_BLOCK : Blocks.DIRT);
+				}
+			}
+		}
+		// The ring around the inside, one string still missing
+		BlockPos gap = new BlockPos(far, ground + 1, far);
+		for (int i = 8; i <= far; i++) {
+			for (BlockPos string : List.of(new BlockPos(i, ground + 1, 8), new BlockPos(i, ground + 1, far), new BlockPos(8, ground + 1, i), new BlockPos(far, ground + 1, i))) {
+				if (!string.equals(gap)) {
+					helper.setBlock(string, Blocks.TRIPWIRE);
+				}
+			}
+		}
+		if (halfDug) {
+			for (BlockPos pos : BlockPos.betweenClosed(new BlockPos(10, ground - 2, 9), new BlockPos(far - 1, ground, far - 1))) {
+				helper.setBlock(pos, Blocks.AIR);
+			}
+		}
+		BlockPos stake = new BlockPos(6, ground + 1, 10);
+		helper.setBlock(stake, WorkingVillagers.PIT_STAKE.get());
+		helper.assertTrue(Pit.find(helper.getLevel(), helper.absolutePos(new BlockPos(8, ground + 1, 8)), helper.absolutePos(stake)).left().isEmpty(),
+			"An open ring was taken as a pit");
+		helper.setBlock(gap, Blocks.TRIPWIRE);
+		Pit pit = Pit.find(helper.getLevel(), helper.absolutePos(new BlockPos(8, ground + 1, 8)), helper.absolutePos(stake))
+			.left().orElseThrow(() -> helper.assertionException(gap, "The closed ring is no pit"));
+		helper.assertTrue(pit.inside().size() == size * size, "The pit has " + pit.inside().size() + " blocks instead of " + size * size);
+		Workstations.Station station = TestWorld.station(helper, stake);
+		station.setPit(pit);
+		station.setDepth(3);
+		BlockPos output = new BlockPos(6, ground + 1, 13);
+		TestWorld.chest(helper, output);
+		TestWorld.link(helper, stake, output, ChestRole.OUTPUT);
+		Villager worker = TestWorld.hireVillager(helper, new BlockPos(5, ground + 1, 6));
+		TestWorld.assign(helper, worker, stake);
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_SHOVEL), new ItemStack(Items.IRON_PICKAXE), new ItemStack(Items.LADDER, 8),
+			new ItemStack(Items.TORCH, 4));
+		// It starts on the ladder column (the block under it has to be dug like every other), or
+		// down in the hole
+		Vec3 start = helper.absoluteVec(Vec3.atBottomCenterOf(startInHole ? new BlockPos(10, ground - 2, 10) : new BlockPos(9, ground + 1, 10)));
+		worker.teleportTo(start.x, start.y, start.z);
+		// It never gets stuck on the way (a worker that does is brought back after a minute)
+		helper.failIfEver(() -> helper.assertFalse(((HiredVillager) worker).workingvillagers$getStuckWatch().isStuck(), "The pit digger got stuck: " + TestWorld.describe(worker)));
+		// The ladder goes into the column inside closest to the stake, against the ring
+		BlockPos ladder = new BlockPos(9, 0, 10);
+		helper.succeedWhen(() -> {
+			for (int x = 9; x < far; x++) {
+				for (int z = 9; z < far; z++) {
+					for (int y = ground - 2; y <= ground; y++) {
+						BlockPos pos = new BlockPos(x, y, z);
+						Block expected = x == ladder.getX() && z == ladder.getZ() ? Blocks.LADDER : Blocks.AIR;
+						// A torch on the floor
+						boolean torch = y == ground - 2 && helper.getBlockState(pos).is(Blocks.TORCH);
+						if (!helper.getBlockState(pos).is(expected) && !torch) {
+							throw helper.assertionException(pos, "Expected " + expected + ", found " + helper.getBlockState(pos) + "; worker: " + TestWorld.describe(worker)
+								+ " at " + helper.relativePos(worker.blockPosition()));
+						}
+					}
+					// The floor stays (grass may grow on it in the light)
+					BlockPos floor = new BlockPos(x, ground - 3, z);
+					helper.assertTrue(helper.getBlockState(floor).is(Blocks.DIRT) || helper.getBlockState(floor).is(Blocks.GRASS_BLOCK),
+						"The floor of the pit was dug at " + floor);
+				}
+			}
+			for (int i = 8; i <= far; i++) {
+				helper.assertBlockPresent(Blocks.GRASS_BLOCK, new BlockPos(i, ground, 8));
+				helper.assertBlockPresent(Blocks.GRASS_BLOCK, new BlockPos(8, ground, i));
+			}
+			TestWorld.assertHolds(helper, worker, output, stack -> stack.is(Items.DIRT), halfDug ? size * 3 - 1 : size * size * 3 - 1, "dirt in the output chest");
+			helper.assertFalse(Pit.find(helper.getLevel(), helper.absolutePos(gap), helper.absolutePos(stake)).left().isEmpty(), "The ring was damaged");
+			helper.assertTrue(worker.getY() > helper.absolutePos(new BlockPos(0, ground, 0)).getY(), "The pit digger is still in the pit: " + TestWorld.describe(worker));
+			int torches = 0;
+			for (BlockPos pos : BlockPos.betweenClosed(new BlockPos(9, ground - 2, 9), new BlockPos(far - 1, ground - 2, far - 1))) {
+				torches += helper.getBlockState(pos).is(Blocks.TORCH) ? 1 : 0;
+			}
+			helper.assertTrue(halfDug ? torches <= 1 : torches == 1, "Expected one torch on the floor, found " + torches);
+		});
+	}
+
+	/**
+	 * A pit as it was left in a played world by an earlier version: a 3×3 pit with a ring
+	 * without corners, the stake right next to the exit, dug out 4 deep except for two
+	 * columns (one of them the ladder column), no ladders, and leaves of a tree above those
+	 * columns. The pit digger finishes it.
+	 */
+	private static void pitDiggerFinishesPlayedPit(GameTestHelper helper) {
+		for (int x = 4; x <= 18; x++) {
+			for (int z = 5; z <= 18; z++) {
+				helper.setBlock(new BlockPos(x, 1, z), Blocks.STONE);
+				for (int y = 2; y <= 4; y++) {
+					helper.setBlock(new BlockPos(x, y, z), Blocks.DIRT);
+				}
+				helper.setBlock(new BlockPos(x, 5, z), Blocks.GRASS_BLOCK);
+			}
+		}
+		List<BlockPos> dug = new java.util.ArrayList<>(List.of(new BlockPos(11, 0, 12)));
+		for (int x = 9; x <= 10; x++) {
+			for (int z = 10; z <= 12; z++) {
+				dug.add(new BlockPos(x, 0, z));
+			}
+		}
+		for (BlockPos column : dug) {
+			for (int y = 2; y <= 5; y++) {
+				helper.setBlock(column.atY(y), Blocks.AIR);
+			}
+		}
+		List<BlockPos> ring = new java.util.ArrayList<>();
+		for (int i = 9; i <= 11; i++) {
+			ring.add(new BlockPos(i, 6, 9));
+			ring.add(new BlockPos(i, 6, 13));
+		}
+		for (int i = 10; i <= 12; i++) {
+			ring.add(new BlockPos(8, 6, i));
+			ring.add(new BlockPos(12, 6, i));
+		}
+		ring.forEach(string -> helper.setBlock(string, Blocks.TRIPWIRE));
+		// The crown of a tree hangs over the pit: it stays, the ground below is dug
+		BlockState leaves = Blocks.BIRCH_LEAVES.defaultBlockState().setValue(net.minecraft.world.level.block.LeavesBlock.PERSISTENT, true);
+		helper.setBlock(new BlockPos(11, 9, 10), leaves);
+		helper.setBlock(new BlockPos(11, 10, 11), leaves);
+		List<BlockPos> inside = new java.util.ArrayList<>();
+		for (int x = 9; x <= 11; x++) {
+			for (int z = 10; z <= 12; z++) {
+				inside.add(helper.absolutePos(new BlockPos(x, 6, z)));
+			}
+		}
+		BlockPos stake = new BlockPos(13, 6, 11);
+		helper.setBlock(stake, WorkingVillagers.PIT_STAKE.get().defaultBlockState().setValue(net.minecraft.world.level.block.HorizontalDirectionalBlock.FACING, Direction.WEST));
+		Pit pit = new Pit(ring.stream().map(helper::absolutePos).toList(), inside, helper.absolutePos(new BlockPos(12, 6, 11)),
+			helper.absolutePos(new BlockPos(11, 5, 11)), helper.absolutePos(new BlockPos(0, 6, 0)).getY());
+		Workstations.Station station = TestWorld.station(helper, stake);
+		station.setPit(pit);
+		BlockPos output = new BlockPos(15, 6, 15);
+		TestWorld.chest(helper, output);
+		TestWorld.link(helper, stake, output, ChestRole.OUTPUT);
+		Villager worker = TestWorld.hireVillager(helper, new BlockPos(15, 6, 11));
+		TestWorld.assign(helper, worker, stake);
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_SHOVEL), new ItemStack(Items.IRON_PICKAXE), new ItemStack(Items.LADDER, 8));
+		helper.failIfEver(() -> helper.assertFalse(((HiredVillager) worker).workingvillagers$getStuckWatch().isStuck(), "The pit digger got stuck: " + TestWorld.describe(worker)));
+		helper.succeedWhen(() -> {
+			for (int y = 2; y <= 5; y++) {
+				BlockPos pos = new BlockPos(11, y, 11);
+				if (!helper.getBlockState(pos).is(Blocks.LADDER) || !helper.getBlockState(new BlockPos(11, y, 10)).isAir()) {
+					throw helper.assertionException(pos, "Not dug yet; worker: " + TestWorld.describe(worker) + " at " + helper.relativePos(worker.blockPosition()));
+				}
+			}
+			helper.assertTrue(worker.getY() > helper.absolutePos(new BlockPos(0, 5, 0)).getY(), "The pit digger is still in the pit: " + TestWorld.describe(worker));
+		});
+	}
+
+	/**
+	 * Two composters on the floor, one set up with a chest: an ordinary unemployed villager
+	 * becomes a farmer at the other one.
+	 */
+	private static void ordinaryVillagerKeepsOffSetUpStation(GameTestHelper helper) {
+		BlockPos setUp = new BlockPos(8, 0, 8);
+		BlockPos plain = new BlockPos(14, 0, 14);
+		helper.setBlock(setUp, Blocks.COMPOSTER);
+		helper.setBlock(plain, Blocks.COMPOSTER);
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, setUp, OUTPUT, ChestRole.OUTPUT);
+		Villager villager = helper.spawn(EntityTypes.VILLAGER, new BlockPos(8, 0, 4));
+		helper.failIfEver(() -> helper.assertFalse(TestWorld.station(helper, setUp).occupant(helper.getLevel()).isPresent(), "The set-up composter was taken"));
+		helper.succeedWhen(() -> helper.assertTrue(villager.getVillagerData().profession().is(VillagerProfession.FARMER)
+			&& TestWorld.station(helper, plain).occupant(helper.getLevel()).isPresent(), "The villager did not become a farmer at the other composter"));
+	}
+
+	/**
+	 * An ordinary farmer that has never traded works at the composter: assigning a hired
+	 * villager makes it unemployed and gives the composter to the hired one.
+	 */
+	private static void assignDisplacesOrdinaryVillager(GameTestHelper helper) {
+		BlockPos composter = STATION.below();
+		helper.setBlock(composter, Blocks.COMPOSTER);
+		Villager farmer = helper.spawn(EntityTypes.VILLAGER, new BlockPos(6, 0, 8));
+		BlockPos absolute = helper.absolutePos(composter);
+		helper.getLevel().getPoiManager().take(poi -> true, (poi, pos) -> pos.equals(absolute), absolute, 1);
+		farmer.getBrain().setMemory(MemoryModuleType.JOB_SITE, net.minecraft.core.GlobalPos.of(helper.getLevel().dimension(), absolute));
+		farmer.setVillagerData(farmer.getVillagerData().withProfession(helper.getLevel().registryAccess(), VillagerProfession.FARMER));
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, composter);
+		helper.assertTrue(worker.getVillagerData().profession().is(WorkingVillagers.FARMER_PROFESSION), "The hired villager is no farmer");
+		helper.assertTrue(farmer.getVillagerData().profession().is(VillagerProfession.NONE), "The ordinary farmer kept its job");
+		helper.succeed();
+	}
+
+	/**
+	 * A vanilla farmer nearby buys 20 wheat for an emerald, up to 3 times: the shop assistant
+	 * sells it the wheat from the input chest and brings the emeralds to the output chest.
+	 * The stone it cannot sell stays in the input chest.
+	 */
+	private static void shopAssistantSellsWheat(GameTestHelper helper) {
+		helper.setBlock(STATION, WorkingVillagers.TRADING_COUNTER.get());
+		Villager farmer = helper.spawn(EntityTypes.VILLAGER, new BlockPos(14, 1, 12));
+		farmer.setVillagerData(farmer.getVillagerData().withProfession(helper.getLevel().registryAccess(), VillagerProfession.FARMER));
+		// Has traded before, so it keeps its job without a composter
+		farmer.setVillagerXp(1);
+		MerchantOffers offers = new MerchantOffers();
+		offers.add(new MerchantOffer(new ItemCost(Items.WHEAT, 20), new ItemStack(Items.EMERALD), 3, 2, 0.05F));
+		farmer.setOffers(offers);
+		Villager worker = processingStation(helper, new ItemStack(Items.WHEAT, 64), new ItemStack(Items.STONE, 10));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.EMERALD), 3, "emeralds in the output chest");
+			helper.assertTrue(offers.getFirst().isOutOfStock(), "The farmer's trade was not used up");
+			TestWorld.assertHolds(helper, worker, INPUT, stack -> stack.is(Items.WHEAT), 4, "unsold wheat back in the input chest");
+			TestWorld.assertHolds(helper, worker, INPUT, stack -> stack.is(Items.STONE), 10, "stone left in the input chest");
+			helper.assertTrue(farmer.getVillagerXp() > 1, "The farmer earned no experience");
+		});
+	}
+
+	/**
+	 * Earlier versions put name notes (text displays) on the stations, also under the old mod
+	 * name: they remove themselves. Other text displays stay.
+	 */
+	private static void oldStationNotesAreRemoved(GameTestHelper helper) {
+		Display.TextDisplay note = textDisplay(helper, new BlockPos(4, 2, 4), "workingvillagers_note");
+		Display.TextDisplay oldNote = textDisplay(helper, new BlockPos(6, 2, 4), "letmework_note");
+		Display.TextDisplay sign = textDisplay(helper, new BlockPos(8, 2, 4), "some_other_tag");
+		helper.succeedWhen(() -> {
+			helper.assertTrue(note.isRemoved() && oldNote.isRemoved(), "An old station note is still there");
+			helper.assertFalse(sign.isRemoved(), "Another text display was removed");
+		});
+	}
+
+	private static Display.TextDisplay textDisplay(GameTestHelper helper, BlockPos pos, String tag) {
+		Display.TextDisplay display = helper.spawn(EntityTypes.TEXT_DISPLAY, pos);
+		display.addTag(tag);
+		return display;
 	}
 
 	private static void carrierMovesItems(GameTestHelper helper) {

@@ -1,0 +1,7 @@
+{
+  "type": "workingvillagers:milling",
+  "ingredient": "minecraft:tuff",
+  "result": {
+    "id": "minecraft:gravel"
+  }
+}

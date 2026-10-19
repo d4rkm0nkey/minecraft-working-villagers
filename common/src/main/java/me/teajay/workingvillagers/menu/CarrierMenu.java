@@ -1,11 +1,13 @@
 package me.teajay.workingvillagers.menu;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.carrier.CarrierData;
 import me.teajay.workingvillagers.carrier.Route;
 import me.teajay.workingvillagers.carrier.RouteHolder;
+import me.teajay.workingvillagers.station.ContainerNames;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
@@ -23,17 +25,21 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * The carrier menu: the routes of a carrier (or of a basket in the hand), each with a button
- * to delete it, the carrier's wage and the contents of the basket.
+ * to delete it, the carrier's wage and the contents of the basket. The screen shows the routes
+ * and the basket on two tabs; the slots of the basket and the inventory are only there on the
+ * basket tab.
  */
 public class CarrierMenu extends AbstractContainerMenu {
 	public static final int BASKET_X = 62;
-	public static final int BASKET_Y = 145;
-	public static final int INVENTORY_Y = 176;
+	public static final int BASKET_Y = 30;
+	public static final int INVENTORY_Y = 84;
 	/** Button that switches between "only the employer" and "everybody" changing routes. */
 	public static final int SHARE_BUTTON = 50;
 	/** Button of a free route slot: closes the menu and lets the player pick the containers. */
 	public static final int NEW_ROUTE_BUTTON = 60;
 	private static final String TAG_ROUTES = "Routes";
+	/** The names of the containers of the routes: source and target of the first route, then of the second, ... */
+	private static final String TAG_NAMES = "Names";
 	private static final String TAG_ACTIVE = "Active";
 	private static final String TAG_CAN_EDIT = "CanEdit";
 	private static final String TAG_CAN_TAKE = "CanTake";
@@ -45,6 +51,8 @@ public class CarrierMenu extends AbstractContainerMenu {
 	private final @Nullable RouteHolder holder;
 	private final Player player;
 	private final InfoSlot info = new InfoSlot();
+	/** Client: whether the basket tab is open. */
+	private boolean slotsShown;
 
 	/** Client side. */
 	public CarrierMenu(int containerId, Inventory inventory) {
@@ -57,7 +65,7 @@ public class CarrierMenu extends AbstractContainerMenu {
 		this.player = inventory.player;
 		Container basket = holder != null ? holder.basket() : new SimpleContainer(CarrierData.CAPACITY);
 		for (int i = 0; i < CarrierData.CAPACITY; i++) {
-			this.addSlot(new Slot(basket, i, BASKET_X + i * 18, BASKET_Y) {
+			this.addSlot(new TabSlot(basket, i, BASKET_X + i * 18, BASKET_Y) {
 				@Override
 				public boolean mayPlace(ItemStack stack) {
 					return false;
@@ -69,9 +77,33 @@ public class CarrierMenu extends AbstractContainerMenu {
 				}
 			});
 		}
-		this.addStandardInventorySlots(inventory, 8, INVENTORY_Y);
+		for (int row = 0; row < 3; row++) {
+			for (int column = 0; column < 9; column++) {
+				this.addSlot(new TabSlot(inventory, column + row * 9 + 9, 8 + column * 18, INVENTORY_Y + row * 18));
+			}
+		}
+		for (int column = 0; column < 9; column++) {
+			this.addSlot(new TabSlot(inventory, column, 8 + column * 18, INVENTORY_Y + 58));
+		}
 		this.addSlot(this.info);
 		this.updateInfo();
+	}
+
+	/** A slot of the basket tab: on the client only there while that tab is open. */
+	private class TabSlot extends Slot {
+		TabSlot(Container container, int index, int x, int y) {
+			super(container, index, x, y);
+		}
+
+		@Override
+		public boolean isActive() {
+			return CarrierMenu.this.holder != null || CarrierMenu.this.slotsShown;
+		}
+	}
+
+	/** Client: shows or hides the basket and the inventory (the basket tab is open or not). */
+	public void showSlots(boolean shown) {
+		this.slotsShown = shown;
 	}
 
 	private void updateInfo() {
@@ -80,6 +112,12 @@ public class CarrierMenu extends AbstractContainerMenu {
 		}
 		CompoundTag tag = new CompoundTag();
 		tag.store(TAG_ROUTES, Route.LIST_CODEC, List.copyOf(this.holder.routes()));
+		List<Component> names = new ArrayList<>();
+		for (Route route : this.holder.routes()) {
+			names.add(ContainerNames.name(this.player.level(), route.source()));
+			names.add(ContainerNames.name(this.player.level(), route.target()));
+		}
+		tag.store(TAG_NAMES, ComponentSerialization.CODEC.listOf(), names);
 		tag.putInt(TAG_ACTIVE, this.holder.activeRoute());
 		tag.putBoolean(TAG_CAN_EDIT, this.holder.canEdit(this.player));
 		tag.putBoolean(TAG_CAN_TAKE, this.holder.canTakeFromBasket());
@@ -101,6 +139,13 @@ public class CarrierMenu extends AbstractContainerMenu {
 
 	public List<Route> getRoutes() {
 		return this.info.info().read(TAG_ROUTES, Route.LIST_CODEC).orElse(List.of());
+	}
+
+	/** The name of the source or the target container of a route. */
+	public Component getContainerName(int route, boolean target) {
+		List<Component> names = this.info.info().read(TAG_NAMES, ComponentSerialization.CODEC.listOf()).orElse(List.of());
+		int index = route * 2 + (target ? 1 : 0);
+		return index < names.size() ? names.get(index) : Component.empty();
 	}
 
 	/** The route the carrier carries items for right now, -1 if none. */

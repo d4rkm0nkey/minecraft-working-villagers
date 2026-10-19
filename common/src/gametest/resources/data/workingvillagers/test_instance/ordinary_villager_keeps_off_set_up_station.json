@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "workingvillagers:work_hours",
+  "function": "workingvillagers:ordinary_villager_keeps_off_set_up_station",
+  "max_ticks": 1200,
+  "setup_ticks": 1,
+  "structure": "workingvillagers:platform"
+}

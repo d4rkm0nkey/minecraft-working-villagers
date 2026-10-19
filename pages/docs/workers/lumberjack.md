@@ -51,8 +51,9 @@ better axe makes it faster; Efficiency does not.
 
 ### The axe
 
-The axe wears out like yours: one use per log, Unbreaking counts. When it breaks, it is
-gone and the lumberjack uses its second axe, if it carries one (it takes up to 2).
+The axe wears out like yours: one use per log, Unbreaking counts. Shortly before it
+breaks, the lumberjack gives it back (see [Worn tools](basics.md#worn-tools)) and uses its
+second axe, if it carries one (it takes up to 2). Wooden and stone axes are used up.
 Without an axe it waits ("needs an axe"). The menu shows the axe with its durability
 bar; the tooltip shows how much of it is left.
 

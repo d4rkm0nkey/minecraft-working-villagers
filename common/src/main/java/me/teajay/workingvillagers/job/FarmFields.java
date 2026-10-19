@@ -118,7 +118,7 @@ public class FarmFields extends Behavior<Villager> {
 		villager.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
 		villager.getBrain().eraseMemory(MemoryModuleType.LOOK_TARGET);
 		villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
-		this.supplies.stop();
+		this.supplies.stop(villager);
 		if (this.trip != null) {
 			this.trip.close(villager);
 			this.trip = null;
@@ -338,9 +338,10 @@ public class FarmFields extends Behavior<Villager> {
 		villager.getInventory().setChanged();
 	}
 
+	/** The hoe the farmer works with; a worn one it gives back instead (see {@link WorkerSupplies#isWorn}). */
 	private static ItemStack findHoe(SimpleContainer inventory) {
 		for (ItemStack stack : inventory) {
-			if (!stack.isEmpty() && isHoe(stack)) {
+			if (!stack.isEmpty() && isHoe(stack) && !WorkerSupplies.isWorn(stack)) {
 				return stack;
 			}
 		}
