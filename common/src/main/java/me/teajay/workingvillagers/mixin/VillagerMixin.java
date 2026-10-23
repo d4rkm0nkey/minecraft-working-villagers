@@ -33,6 +33,7 @@ import net.minecraft.world.entity.npc.villager.VillagerProfession;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.SwingAnimation;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.item.trading.TradeSet;
 import net.minecraft.world.level.block.Blocks;
@@ -106,6 +107,18 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 	private @Nullable MerchantOffers workingvillagers$keptOffers;
 	@Unique
 	private @Nullable String workingvillagers$keptFamily;
+	/**
+	 * How long a swing at work lasts. Longer than the swing of an item, so that the motion of
+	 * the work (see {@code WorkMotion}) can be seen; the jobs swing every 10 ticks or less often.
+	 */
+	@Unique
+	private static final int WORK_SWING_TICKS = 10;
+
+	/** Only workers swing: at work. Overrides {@code Mob.swingForAttack}. */
+	public void swingForAttack(InteractionHand hand) {
+		Villager self = (Villager) (Object) this;
+		self.swing(hand, new SwingAnimation(self.getItemInHand(hand).getAttackAnimation().type(), WORK_SWING_TICKS));
+	}
 
 	@Override
 	public StuckWorkers.Watch workingvillagers$getStuckWatch() {

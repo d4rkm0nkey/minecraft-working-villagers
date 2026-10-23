@@ -608,7 +608,7 @@ public class DigTunnel extends Behavior<Villager> {
 			this.finish(level, villager);
 			return;
 		}
-		if (this.stateTicks % 6 == 0) {
+		if (this.stateTicks % 10 == 0) {
 			villager.swingForAttack(InteractionHand.MAIN_HAND);
 			if (digs) {
 				level.playSound(null, pos, state.getSoundType().getHitSound(), SoundSource.NEUTRAL, 0.8F, 0.8F);
