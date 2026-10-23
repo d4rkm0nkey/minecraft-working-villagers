@@ -11,7 +11,7 @@ lumberjack:
     Workstation: ":mc-chopping_block: Chopping block"
     Needs: ":mc-any_axe: An axe (:mc-oak_sapling: saplings optional)"
     Makes: ":mc-any_log: Logs, :mc-oak_sapling: saplings"
-    Range: 16 blocks
+    Range: 24 blocks
     Per day: 64 logs
 
 sawyer:
@@ -216,7 +216,7 @@ pit_digger:
     Needs: ":mc-iron_shovel: A shovel, :mc-iron_pickaxe: a pickaxe, :mc-ladder: ladders (:mc-torch: torches optional; deeper than 8: :mc-oak_planks: planks and :mc-oak_log: logs)"
     Makes: ":mc-dirt: Dirt, :mc-sand: sand, :mc-gravel: gravel, :mc-cobblestone: cobblestone, ..."
     Pit: up to 64 blocks, 16 deep
-    Per day: 256 blocks
+    Per day: 160 blocks
 
 miner:
   name: Miner
@@ -230,7 +230,7 @@ miner:
     Needs: ":mc-iron_pickaxe: A pickaxe (:mc-oak_fence: fences, :mc-oak_planks: planks and :mc-torch: torches optional)"
     Makes: ":mc-cobblestone: Cobblestone, :mc-raw_iron: ores, :mc-gravel: gravel, ..."
     Tunnel: 3×3, up to 32 long, side tunnels up to 16
-    Per day: 256 blocks
+    Per day: 96 blocks
 
 kiln_operator:
   name: Kiln operator

@@ -20,7 +20,7 @@ the status does not help, go through this list.
 | *Cannot get to the post* / *the fletching table* / *the brewing stand* / *the cauldron* / *the grindstone* / *the enchanting table* / *the smoker* | The worker finds no way to its workstation. Clear a path and a free spot next to it. |
 | *Waiting: chests are full* | Empty the output chests or link another one. |
 | *Waiting: needs an axe (give them one)* | Right-click the lumberjack with an axe. |
-| *Waiting: no tree found* | No natural tree within 16 blocks of the chopping block, or none it can reach. |
+| *Waiting: no tree found* | No natural tree within 24 blocks of the chopping block, or none it can reach. |
 | *Done for today* | The lumberjack has felled 64 logs today. It goes on tomorrow. |
 | *Waiting for material* | The input chests have no material for the order, or not of the selected wood types. |
 | *Waiting for material: Oak Planks* | The carpenter's input chests lack this ingredient (or not enough of it) for one piece. |
@@ -110,7 +110,7 @@ the status does not help, go through this list.
 
 - [ ] At least one chest linked.
 - [ ] It carries an axe (right-click it with one).
-- [ ] Natural trees within 16 blocks of the chopping block. Trees with player-placed
+- [ ] Natural trees within 24 blocks of the chopping block. Trees with player-placed
   leaves or on stone are ignored.
 - [ ] Game rule `mob_griefing` is on.
 - [ ] Not already at 64 logs today.
@@ -165,7 +165,7 @@ the status does not help, go through this list.
 - [ ] At least one chest linked.
 - [ ] It carries a shovel, a pickaxe and ladders; for a pit deeper than 8 blocks also planks
   and logs.
-- [ ] Not already at 256 blocks today.
+- [ ] Not already at 160 blocks today.
 
 ### Kiln operator
 

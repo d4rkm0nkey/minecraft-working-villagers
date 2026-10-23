@@ -101,12 +101,12 @@ During work hours the pit digger:
 
 1. takes the top layer of the pit, starting next to the ladder,
 2. digs every block of the layer with the shovel or the pickaxe, whichever is faster. It
-   takes about **8 times** as long as you with the same tool, at least 2 seconds per block,
+   takes about **6 times** as long as you with the same tool, at least 1.5 seconds per block,
 3. puts a **ladder** against the wall as soon as the ladder column gets deeper, so the
    ladder always reaches the bottom,
 4. goes down the next layer, and so on until the depth is reached,
 5. climbs out and brings everything to its chest when its pockets are full, after
-   **256 blocks** a day and when the pit is done. At the end of the work day it climbs
+   **160 blocks** a day and when the pit is done. At the end of the work day it climbs
    out too.
 
 It only goes in and out **by the ladder**. The ladder goes into the column inside the ring

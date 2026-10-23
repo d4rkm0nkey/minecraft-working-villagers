@@ -28,13 +28,13 @@ the logs to a chest.
 During work hours the lumberjack:
 
 1. takes its wage from the emeralds it carries,
-2. looks for the nearest natural tree within **16 blocks** of the chopping block,
+2. looks for the nearest natural tree within **24 blocks** of the chopping block,
 3. walks to the trunk and hacks at it, then fells the whole tree,
 4. clears the leaves the tree leaves behind and keeps what they drop (saplings, sticks,
    apples),
 5. replants a sapling, if it carries one of that kind,
 6. brings the wood to the nearest linked chest,
-7. rests for 30 seconds and starts again.
+7. rests for 15 seconds and starts again.
 
 It stops for the day after **64 logs**. The chopping block menu shows how many it has
 felled today.

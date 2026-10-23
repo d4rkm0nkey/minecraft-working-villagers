@@ -32,10 +32,10 @@ default and its allowed range, so you can edit it with any text editor.
 | Option | Default | Range | What it does |
 | --- | --- | --- | --- |
 | `requireMobGriefing` | true | | Lumberjacks only work while the game rule `mob_griefing` is on. Set to `false` to let them work anyway. |
-| `searchRadius` | 16 | 4–32 | How far from the chopping block it looks for trees. |
+| `searchRadius` | 24 | 4–32 | How far from the chopping block it looks for trees. |
 | `dailyLogs` | 64 | 1–4096 | Logs per day, then it stops for the day. |
 | `chopSlowdown` | 8.0 | 1.0–32.0 | How many times as long as a player with the same axe it needs for a tree. `1.0` is as fast as you. |
-| `restSeconds` | 30 | 0–600 | Break after each delivery. |
+| `restSeconds` | 15 | 0–600 | Break after each delivery. |
 | `keepSaplings` | 16 | 1–64 | Saplings of each kind it carries for replanting (and takes when you give them). |
 
 ## Sawyer and stone sawyer (`sawyer`)
@@ -180,9 +180,9 @@ The herd size is no config option: set it at each loom (tab **Settings**).
 | `keepPlanks` | 64 | 1–64 | Planks it carries at most for the floors (only while its pit has floors). |
 | `keepLogs` | 16 | 1–64 | Logs it carries at most for the pillars (only while its pit has floors). |
 | `maxUnevenness` | 4 | 0–8 | How far apart in height the strings of a ring may lie. |
-| `dailyBlocks` | 256 | 1–4096 | Blocks per day, then it stops for the day. |
-| `digSlowdown` | 8.0 | 1.0–32.0 | How many times as long as a player with the same tool it needs for a block, but at least `minSecondsPerBlock`. `1.0` is as fast as you. |
-| `minSecondsPerBlock` | 2.0 | 0.25–20.0 | How long it needs at least for a block, however good its tool (dirt with an iron shovel). Plants take a quarter of it. |
+| `dailyBlocks` | 160 | 1–4096 | Blocks per day, then it stops for the day. |
+| `digSlowdown` | 6.0 | 1.0–32.0 | How many times as long as a player with the same tool it needs for a block, but at least `minSecondsPerBlock`. `1.0` is as fast as you. |
+| `minSecondsPerBlock` | 1.5 | 0.25–20.0 | How long it needs at least for a block, however good its tool (dirt with an iron shovel). Plants take a quarter of it. |
 | `keepLadders` | 64 | 1–64 | Ladders it carries at most (and takes when you give them). |
 | `keepTorches` | 16 | 0–64 | Torches it carries at most. **0**: it takes none and leaves the pit dark. |
 
@@ -192,8 +192,8 @@ The herd size is no config option: set it at each loom (tab **Settings**).
 | --- | --- | --- | --- |
 | `maxTunnelLength` | 32 | 4–64 | How long a tunnel may be at most. |
 | `maxBranchLength` | 16 | 0–32 | How long the side tunnels may be at most. **0**: no side tunnels. |
-| `dailyBlocks` | 256 | 1–4096 | Blocks per day, then it stops for the day. |
-| `digSlowdown` | 8.0 | 1.0–32.0 | How many times as long as a player with the same pickaxe it needs for a block, but at least `minSecondsPerBlock`. |
+| `dailyBlocks` | 96 | 1–4096 | Blocks per day, then it stops for the day. |
+| `digSlowdown` | 6.0 | 1.0–32.0 | How many times as long as a player with the same pickaxe it needs for a block, but at least `minSecondsPerBlock`. |
 | `minSecondsPerBlock` | 1.5 | 0.25–20.0 | How long it needs at least for a block, however good its pickaxe. |
 | `supports` | true | | Wooden supports every 4 blocks. `false`: none, torches straight on the wall. |
 | `keepFences` | 16 | 0–64 | Fences it carries at most. |

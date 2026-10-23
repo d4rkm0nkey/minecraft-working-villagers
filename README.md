@@ -46,9 +46,9 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
    block or the lumberjack with them), and right-click the lumberjack with an axe and
    optionally saplings (see below).
 5. During work hours (like other professions) the lumberjack looks for natural trees
-   within 16 blocks of the chopping block, walks up to the trunk and hacks at it, fells it, clears the leaves left without a log (keeping their saplings, sticks and apples), replants a sapling and brings the wood to the
+   within 24 blocks of the chopping block, walks up to the trunk and hacks at it, fells it, clears the leaves left without a log (keeping their saplings, sticks and apples), replants a sapling and brings the wood to the
    nearest chest. A tree takes eight times as long as for a player with the same axe (for now
-   all workers are novices; a master would need five times as long). After each delivery it rests for 30 seconds, and it stops for the day
+   all workers are novices; a master would need five times as long). After each delivery it rests for 15 seconds, and it stops for the day
    after 64 logs. Trees count as natural when they grow on dirt, grass, podzol, mycelium, mud or moss (`#minecraft:substrate_overworld`) and have non-persistent
    leaves, so builds made of logs are left alone. Needs the `mob_griefing` game rule.
 6. **Strip logs** (switch in the chopping block menu, off by default): the lumberjack
@@ -518,8 +518,8 @@ on pillars of logs in a grid every 4 blocks, which grow down with the pit from t
 to the first floor (`Pit.Storeys`).
 
 It digs top down, layer by layer from the ladder outwards, with the shovel or the pickaxe,
-whichever is faster (`pitDigger.digSlowdown`: 8 times a player's time, at least
-`pitDigger.minSecondsPerBlock` 2 seconds per block). As soon as the
+whichever is faster (`pitDigger.digSlowdown`: 6 times a player's time, at least
+`pitDigger.minSecondsPerBlock` 1.5 seconds per block). As soon as the
 ladder column (inside the ring next to the string closest to the stake, or where *Ladder*
 puts it) gets deeper it puts a ladder against the wall, and it only gets in and out of the
 pit by that ladder: vanilla villagers do not path over ladders, so climbing is moved by
@@ -527,7 +527,7 @@ hand. It only digs the block tag `workingvillagers:pit_diggable` (natural ground
 ores, leaves, plants); builds stay, and so does a column under one, blocks its pickaxe is
 too weak for and blocks next to water or lava. With torches it lights the floor about every
 six blocks. Everything it digs goes to its chest: when the drops of the next block would not
-fit into its inventory any more, after `pitDigger.dailyBlocks` 256 blocks a day and when
+fit into its inventory any more, after `pitDigger.dailyBlocks` 160 blocks a day and when
 the pit is done it climbs out and delivers; at the end of the work day it climbs out. The menu shows the size of the pit, the depth and the
 blocks dug today.
 
@@ -551,9 +551,9 @@ floor. It stands only in finished sections or in front of the tunnel. Behind the
 digs the ores (`workingvillagers:miner_ores`) next to the finished cells and the ores that
 hang on them (not next to liquids), puts up the supports (every 4th slice: fences at the
 sides, planks under the ceiling; `miner.supports`) and torches (every 8th block) when it has
-the material, and closes new holes in the floor. Digging takes `miner.digSlowdown` 8 times a
+the material, and closes new holes in the floor. Digging takes `miner.digSlowdown` 6 times a
 player's time with the same pickaxe, at least `miner.minSecondsPerBlock` 1.5 seconds. It
-delivers like the pit digger (when the next drops do not fit, after `miner.dailyBlocks` 256
+delivers like the pit digger (when the next drops do not fit, after `miner.dailyBlocks` 96
 blocks a day, when the tunnel is done) and keeps 16 cobblestone.
 
 For players the bench is a **mill** (`CutterMenu` with recipe type

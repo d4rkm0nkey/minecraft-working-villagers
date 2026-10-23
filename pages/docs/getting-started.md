@@ -29,7 +29,7 @@ lectern.
 ## 2. Place a chopping block
 
 Craft a **chopping block** (an axe above a log) and place it close to the trees. The
-lumberjack looks for trees within 16 blocks of it.
+lumberjack looks for trees within 24 blocks of it.
 
 [[craft: _ any_axe _ / _ any_log _ -> chopping_block]]
 

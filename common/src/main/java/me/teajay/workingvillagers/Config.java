@@ -50,13 +50,13 @@ public final class Config {
 
 	public static final BoolOption REQUIRE_MOB_GRIEFING = boolOption("lumberjack", "requireMobGriefing", true,
 		"Lumberjacks only work while the game rule mob_griefing is on.");
-	public static final IntOption TREE_SEARCH_RADIUS = intOption("lumberjack", "searchRadius", 16, 4, 32,
+	public static final IntOption TREE_SEARCH_RADIUS = intOption("lumberjack", "searchRadius", 24, 4, 32,
 		"How far from the chopping block (in blocks) the lumberjack looks for trees.");
 	public static final IntOption DAILY_LOGS = intOption("lumberjack", "dailyLogs", 64, 1, 4096,
 		"After this many logs a day the lumberjack stops for the day.");
 	public static final DoubleOption CHOP_SLOWDOWN = doubleOption("lumberjack", "chopSlowdown", 8.0, 1.0, 32.0,
 		"How many times as long as a player with the same axe a (novice) lumberjack needs for a tree.");
-	public static final IntOption REST_SECONDS = intOption("lumberjack", "restSeconds", 30, 0, 600,
+	public static final IntOption REST_SECONDS = intOption("lumberjack", "restSeconds", 15, 0, 600,
 		"How long the lumberjack rests after bringing the wood to a chest.");
 	public static final IntOption KEEP_SAPLINGS = intOption("lumberjack", "keepSaplings", 16, 1, 64,
 		"How many saplings of each kind the lumberjack carries for replanting.");
@@ -173,12 +173,12 @@ public final class Config {
 		"How deep a master pit digger digs at most.");
 	public static final IntOption PIT_MAX_UNEVENNESS = intOption("pitDigger", "maxUnevenness", 4, 0, 8,
 		"How far apart (in height) the strings of a ring may lie at most.");
-	public static final IntOption PIT_DAILY_BLOCKS = intOption("pitDigger", "dailyBlocks", 256, 1, 4096,
+	public static final IntOption PIT_DAILY_BLOCKS = intOption("pitDigger", "dailyBlocks", 160, 1, 4096,
 		"After this many blocks a day the pit digger stops for the day.");
-	public static final DoubleOption DIG_SLOWDOWN = doubleOption("pitDigger", "digSlowdown", 8.0, 1.0, 32.0,
+	public static final DoubleOption DIG_SLOWDOWN = doubleOption("pitDigger", "digSlowdown", 6.0, 1.0, 32.0,
 		"How many times as long as a player with the same tool a (novice) pit digger needs for a block,",
 		"but at least minSecondsPerBlock.");
-	public static final DoubleOption MIN_DIG_SECONDS = doubleOption("pitDigger", "minSecondsPerBlock", 2.0, 0.25, 20.0,
+	public static final DoubleOption MIN_DIG_SECONDS = doubleOption("pitDigger", "minSecondsPerBlock", 1.5, 0.25, 20.0,
 		"How long the pit digger needs at least for a block, however good its tool (plants take a quarter of it).");
 	public static final IntOption KEEP_LADDERS = intOption("pitDigger", "keepLadders", 64, 1, 64,
 		"How many ladders the pit digger carries at most.");
@@ -193,9 +193,9 @@ public final class Config {
 		"How long (in blocks) a tunnel may be at most. The miner carries every load out to its chests itself.");
 	public static final IntOption TUNNEL_MAX_BRANCH = intOption("miner", "maxBranchLength", 16, 0, 32,
 		"How long the side tunnels (every 4 blocks, left and right) may be at most. 0: no side tunnels.");
-	public static final IntOption MINER_DAILY_BLOCKS = intOption("miner", "dailyBlocks", 256, 1, 4096,
+	public static final IntOption MINER_DAILY_BLOCKS = intOption("miner", "dailyBlocks", 96, 1, 4096,
 		"After this many blocks a day the miner stops for the day.");
-	public static final DoubleOption MINER_DIG_SLOWDOWN = doubleOption("miner", "digSlowdown", 8.0, 1.0, 32.0,
+	public static final DoubleOption MINER_DIG_SLOWDOWN = doubleOption("miner", "digSlowdown", 6.0, 1.0, 32.0,
 		"How many times as long as a player with the same pickaxe a (novice) miner needs for a block,",
 		"but at least minSecondsPerBlock.");
 	public static final DoubleOption MINER_MIN_DIG_SECONDS = doubleOption("miner", "minSecondsPerBlock", 1.5, 0.25, 20.0,

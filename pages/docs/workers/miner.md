@@ -58,14 +58,14 @@ During work hours the miner:
 
 1. walks to the end of the tunnel,
 2. seals **water and lava** around the next block of the tunnel with cobblestone,
-3. digs the next block of the tunnel from the top down. It takes about **8 times** as
+3. digs the next block of the tunnel from the top down. It takes about **6 times** as
    long as you with the same pickaxe, at least 1.5 seconds per block,
 4. closes **holes in the floor** with cobblestone (a cave, a ravine), so the tunnel never
    ends in a drop,
 5. digs the **ores** in the walls, ceiling and floor, and the ores behind them, as far as
    it reaches from the tunnel,
 6. puts up the **supports** and **torches** where they are missing,
-7. brings everything to its chest when its pockets are full, after **256 blocks** a day
+7. brings everything to its chest when its pockets are full, after **96 blocks** a day
    and when the tunnel is done.
 
 Without fences, planks or torches it digs on and puts them up later, when it has some
