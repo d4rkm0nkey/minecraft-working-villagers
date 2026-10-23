@@ -81,6 +81,7 @@ public final class SimMonitor {
 		this.registry = registry;
 		this.out = out;
 		this.startDay = ChopTrees.today(level);
+		SimDeliveries.watch(registry);
 		try {
 			Files.createDirectories(out);
 			header("ticks.csv", "hour,day,time_of_day,ticks,mean_ms,p50_ms,p95_ms,p99_ms,max_ms,over_50ms,entities,villagers,workers_alive,monsters,animals,items,golems,chunks");
@@ -88,6 +89,7 @@ public final class SimMonitor {
 			header("economy.csv", "day,workers_alive,paid_today,unpaid_today,wage_boxes,village_chests,tills,storage,depots_relays,carried,total_emeralds,shop_earned,deaths_total");
 			header("storage.csv", "day,item,count");
 			header("production.csv", "day,job,worker,done");
+			header("deliveries.csv", "day,job,chest,item,count");
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
@@ -362,6 +364,42 @@ public final class SimMonitor {
 			}
 		});
 		row.put("storageAdded", added);
+		Map<String, Map<String, Integer>> deliveries = SimDeliveries.takeDay();
+		deliveries.forEach((job, items) -> items.forEach((key, count) -> {
+			String[] parts = key.split(" ", 2);
+			this.append("deliveries.csv", simDay + "," + csv(job) + "," + parts[0] + "," + parts[1] + "," + count);
+		}));
+		row.put("deliveries", deliveries);
+		Map<String, Integer> workersByJob = new TreeMap<>();
+		for (SimRegistry.Worker worker : this.registry.workers) {
+			if (level.getEntity(worker.uuid()) instanceof Villager villager && villager.isAlive()) {
+				workersByJob.merge(worker.job().equals("carrier") ? "Carrier" : worker.job(), 1, Integer::sum);
+			}
+		}
+		row.put("workersByJob", workersByJob);
+		// Every worker at the end of the day: what it is doing, where, and what it carries
+		List<Map<String, Object>> snapshot = new ArrayList<>();
+		for (SimRegistry.Worker worker : this.registry.workers) {
+			if (!(level.getEntity(worker.uuid()) instanceof Villager villager) || !villager.isAlive()) {
+				continue;
+			}
+			Map<String, Object> entry = new LinkedHashMap<>();
+			entry.put("job", worker.job());
+			entry.put("wing", worker.wing() + 1);
+			entry.put("status", key(WorkerStatus.describe(villager)));
+			entry.put("problem", ((HiredVillager) villager).workingvillagers$hasProblem());
+			entry.put("pos", villager.blockPosition().toShortString());
+			List<String> carries = new ArrayList<>();
+			for (ItemStack stack : villager.getInventory()) {
+				if (!stack.isEmpty()) {
+					carries.add(stack.getCount() + " " + BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath()
+						+ (stack.isDamageableItem() ? " (" + (stack.getMaxDamage() - stack.getDamageValue()) + "/" + stack.getMaxDamage() + ")" : ""));
+				}
+			}
+			entry.put("carries", carries);
+			snapshot.add(entry);
+		}
+		row.put("workers", snapshot);
 		this.storageLast = contents;
 		this.dayRows.add(row);
 		LOG.info("Day {} done: {} of {} workers paid, emeralds {} (shop earned {}), storage {} / {} slots", simDay, paid, alive, total, shopEarned, slotsUsed, slots);

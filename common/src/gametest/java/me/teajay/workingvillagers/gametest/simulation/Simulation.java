@@ -40,6 +40,8 @@ public final class Simulation {
 	private static final boolean AUTO = Boolean.getBoolean("wvsim.auto");
 	private static final int AUTO_WINGS = Integer.getInteger("wvsim.wings", 2);
 	private static final int AUTO_DAYS = Integer.getInteger("wvsim.days", 5);
+	/** The view distance of the stand-in player: the chunks loaded and ticked around it. */
+	private static final int VIEW = Integer.getInteger("wvsim.view", 6);
 	private static final boolean AUTO_WALLED = Boolean.getBoolean("wvsim.walled");
 	private static final boolean AUTO_SPRINT = Boolean.parseBoolean(System.getProperty("wvsim.sprint", "true"));
 
@@ -175,7 +177,7 @@ public final class Simulation {
 		ServerLevel level = server.overworld();
 		CommonListenerCookie cookie = CommonListenerCookie.createInitial(new GameProfile(UUID.nameUUIDFromBytes("wvsim".getBytes()), "Simulator"), false);
 		net.minecraft.server.level.ClientInformation info = net.minecraft.server.level.ClientInformation.createDefault();
-		info = new net.minecraft.server.level.ClientInformation(info.language(), 12, info.chatVisibility(), info.chatColors(), info.modelCustomisation(),
+		info = new net.minecraft.server.level.ClientInformation(info.language(), VIEW, info.chatVisibility(), info.chatColors(), info.modelCustomisation(),
 			info.mainHand(), info.textFilteringEnabled(), info.allowsListing(), info.particleStatus());
 		ServerPlayer player = new ServerPlayer(server, level, cookie.gameProfile(), info);
 		Connection connection = new Connection(PacketFlow.SERVERBOUND);

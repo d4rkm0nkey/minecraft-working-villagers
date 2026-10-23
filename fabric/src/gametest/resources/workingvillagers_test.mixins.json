@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "me.teajay.workingvillagers.fabric.gametest.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "HopperAddItemMixin",
+    "VillagerTickMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
