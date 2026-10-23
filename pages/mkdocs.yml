@@ -116,6 +116,7 @@ nav:
       - Shop assistant: workers/shop-assistant.md
   - Guides:
       - A wood workshop: guides/wood-workshop.md
+      - Tools that never break: guides/tool-repair.md
       - Worker does not work?: guides/troubleshooting.md
   - Reference:
       - Blocks and items: blocks-and-items.md

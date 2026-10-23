@@ -185,6 +185,7 @@ public final class WorkerTests {
 		registry.accept("guard_shoots_zombie", WorkerTests::guardShootsZombie);
 		registry.accept("guard_collects_arrows", WorkerTests::guardCollectsArrows);
 		registry.accept("guard_bottles_experience", WorkerTests::guardBottlesExperience);
+		registry.accept("guard_bottles_reach_smith", WorkerTests::guardBottlesReachSmith);
 		registry.accept("guard_hunts", WorkerTests::guardHunts);
 		registry.accept("guard_fights_raid_by_day", WorkerTests::guardFightsRaidByDay);
 		registry.accept("smith_repairs_bow_with_experience", WorkerTests::smithRepairsBowWithExperience);
@@ -523,6 +524,29 @@ public final class WorkerTests {
 			helper.assertTrue(((HiredVillager) guard).workingvillagers$getExperience() == 6, "Experience left: " + ((HiredVillager) guard).workingvillagers$getExperience());
 			helper.assertTrue(guard.getInventory().countItem(Items.GLASS_BOTTLE) == 1, "The guard did not keep its last glass bottle");
 		});
+	}
+
+	/**
+	 * One chest is the guard's output chest and the smith's input chest: the guard brings its
+	 * bottles o' enchanting there, the smith repairs a bow in it with them. (A village chest as
+	 * the guard's output chest would fill up with the loot of the guard.)
+	 */
+	private static void guardBottlesReachSmith(GameTestHelper helper) {
+		helper.setBlock(STATION, Blocks.SMITHING_TABLE);
+		ItemStack bow = new ItemStack(Items.BOW);
+		bow.setDamageValue(300);
+		Villager smith = processingStation(helper, bow);
+		BlockPos target = new BlockPos(14, 0, 10);
+		helper.setBlock(target, Blocks.TARGET);
+		TestWorld.link(helper, target, INPUT, ChestRole.OUTPUT);
+		Villager guard = TestWorld.hireVillager(helper, new BlockPos(14, 1, 12));
+		TestWorld.assign(helper, guard, target);
+		TestWorld.give(helper, guard, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.BOW), new ItemStack(Items.ARROW, 10), new ItemStack(Items.GLASS_BOTTLE, 10));
+		// Enough for 9 bottles; the bow takes 8
+		((HiredVillager) guard).workingvillagers$setExperience(63);
+		GuardPost.setTimeForTests(guard, 200);
+		helper.succeedWhen(() -> helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.BOW) && !stack.isDamaged()) == 1,
+			"The bow is not repaired with the guard's bottles: smith " + TestWorld.describe(smith) + ", guard " + TestWorld.describe(guard)));
 	}
 
 	/** A bow has no repair material: the smith repairs it with bottles o' enchanting, a tenth of the durability each. */

@@ -79,3 +79,5 @@ today. After 64 logs it calls it a day.
 - Add a [sawyer](workers/sawyer.md) to turn the logs into planks.
 - Let a [carrier](workers/carrier.md) bring the planks to a
   [carpenter](workers/carpenter.md): see [A wood workshop](guides/wood-workshop.md).
+- Keep your workers' tools going with a smith and a village chest: see
+  [Tools that never break](guides/tool-repair.md).

@@ -271,6 +271,9 @@ tools with [bottles o' enchanting](smith.md#bottles-o-enchanting)); or repair th
 at an anvil and put them back. Workers
 never take a worn tool, and you cannot give them one.
 
+How to set it all up, with the guards' experience for the repairs, is in the guide
+[Tools that never break](../guides/tool-repair.md).
+
 **Wooden and stone tools**, **shears** and **fishing rods** are cheap: they are used until they break, unless
 they are enchanted or renamed. The tooltip of the worker's supplies says when it carries a worn tool
 to give back. Both limits can be changed in the [config](../configuration.md#tools-tools).
