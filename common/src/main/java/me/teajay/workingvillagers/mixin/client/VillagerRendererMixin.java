@@ -3,6 +3,8 @@ package me.teajay.workingvillagers.mixin.client;
 import me.teajay.workingvillagers.client.UniformHolder;
 import me.teajay.workingvillagers.client.UniformLayer;
 import me.teajay.workingvillagers.client.WickerBasketLayer;
+import me.teajay.workingvillagers.client.WorkMotion;
+import me.teajay.workingvillagers.client.WorkPoseHolder;
 import net.minecraft.client.model.npc.VillagerModel;
 import net.minecraft.client.renderer.entity.AgeableMobRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -15,7 +17,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Adds the basket on the back of carriers and the uniform of guards.
+ * Adds the basket on the back of carriers and the uniform of guards, and lets villagers move
+ * their arms at work.
  */
 @Mixin(VillagerRenderer.class)
 public abstract class VillagerRendererMixin extends AgeableMobRenderer<Villager, VillagerRenderState, VillagerModel> {
@@ -33,5 +36,6 @@ public abstract class VillagerRendererMixin extends AgeableMobRenderer<Villager,
 		at = @At("TAIL"))
 	private void workingvillagers$extractUniform(Villager villager, VillagerRenderState state, float partialTicks, CallbackInfo ci) {
 		((UniformHolder) state).workingvillagers$setUniform(UniformLayer.colorOf(villager));
+		((WorkPoseHolder) state).workingvillagers$setWorkPose(WorkMotion.of(villager), villager.getSwingAnimation(partialTicks));
 	}
 }
