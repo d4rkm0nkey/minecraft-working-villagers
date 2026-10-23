@@ -1,6 +1,8 @@
 package me.teajay.workingvillagers.job;
 
 import com.google.common.collect.ImmutableMap;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +16,7 @@ import net.minecraft.core.GlobalPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.BlockTransformer;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -41,15 +44,17 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * The work of the lumberjack: find a tree near the job site, walk up to the trunk, hack at
- * it (slower than a player, see {@link #chopTicks}), fell it, replant a sapling and bring the wood to one
- * of the chests linked to the job site. After every delivery the lumberjack takes a break,
+ * it (slower than a player, see {@link #chopTicks}), fell it, clear the leaves left without
+ * a log (with what they drop: saplings, sticks, apples), replant a sapling and bring the wood
+ * to one of the chests linked to the job site. After every delivery the lumberjack takes a break,
  * and it stops for the day after {@link Config#DAILY_LOGS} logs. Without a linked chest the
  * lumberjack does not work at all.
  *
  * <p>It needs its wage and an axe, which the player gives it (see {@link WorkerSupplies}).
  * The axe wears out like a player's, one use per log; without an axe it waits. It only
  * replants with saplings it carries, and keeps up to {@link Config#KEEP_SAPLINGS} of each kind
- * (given to it, or picked up under the trees), handing in the rest.
+ * (given to it, or from the leaves), handing in the rest. Where it had too few saplings to
+ * replant, it plants later, once it has them (see {@link Planting}).
  *
  * <p>If the chopping block says so, it strips every log while felling the tree, the way
  * its axe strips a log for a player (the axe's block transformer, so wood from data packs
@@ -74,8 +79,31 @@ public class ChopTrees extends Behavior<Villager> {
 	private static final double TREE_CLOSE = 2.5;
 	/** How close is enough when it cannot get closer than that (its path ends there). */
 	private static final double TREE_REACH = 4.5;
+	/** Ticks after the last log until the leaves know they lost their tree (vanilla's leaf distance). */
+	private static final int LEAVES_SETTLE = 20;
+	private static final int LEAVES_PER_TICK = 2;
+	/** How many places to plant later the lumberjack remembers; it forgets the oldest. */
+	private static final int MAX_PLANTINGS = 64;
 
-	private enum State { SEARCH, WALK_TO_TREE, CHOP, FELL, DELIVER, WAIT }
+	private enum State { SEARCH, WALK_TO_TREE, CHOP, FELL, LEAVES, PLANT, DELIVER, WAIT }
+
+	/**
+	 * Where a felled tree stood that the lumberjack could not replant (too few saplings),
+	 * kept on the villager (see {@link HiredVillager#workingvillagers$getPlantings}) until it
+	 * planted there, or nothing can be planted there anymore.
+	 */
+	public record Planting(Block sapling, List<BlockPos> spots) {
+		public static final Codec<Planting> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+			BuiltInRegistries.BLOCK.byNameCodec().fieldOf("sapling").forGetter(Planting::sapling),
+			BlockPos.CODEC.listOf().fieldOf("spots").forGetter(Planting::spots)
+		).apply(instance, Planting::new));
+
+		/** Where a sapling can go right now. */
+		List<BlockPos> freeSpots(ServerLevel level) {
+			BlockState state = this.sapling.defaultBlockState();
+			return this.spots.stream().filter(pos -> level.getBlockState(pos).isAir() && state.canSurvive(level, pos)).toList();
+		}
+	}
 
 	private State state = State.SEARCH;
 	private int stateTicks;
@@ -86,6 +114,8 @@ public class ChopTrees extends Behavior<Villager> {
 	/** Why the lumberjack waits, for the status in the menu. */
 	private String waitReason = "lumberjack.no_tree";
 	private final List<BlockPos> logsLeft = new ArrayList<>();
+	private final List<BlockPos> leavesLeft = new ArrayList<>();
+	private @Nullable Planting planting;
 	private @Nullable ChestTrip trip;
 	private @Nullable Block sapling;
 	private final Map<BlockPos, Long> unreachable = new HashMap<>();
@@ -144,7 +174,15 @@ public class ChopTrees extends Behavior<Villager> {
 		this.supplies.stop(villager);
 		if (this.tree != null) {
 			level.destroyBlockProgress(villager.getId(), this.tree.base(), -1);
+			// Felled but not replanted yet: later
+			boolean felled = this.state == State.LEAVES || this.state == State.FELL && !level.getBlockState(this.tree.base()).is(BlockTags.LOGS);
+			if (felled && this.sapling != null) {
+				remember(villager, new Planting(this.sapling, this.tree.bottomLogs()));
+				this.tree = null;
+				this.setState(State.SEARCH);
+			}
 		}
+		this.planting = null;
 		if (this.trip != null) {
 			this.trip.close(villager);
 			this.trip = null;
@@ -170,6 +208,8 @@ public class ChopTrees extends Behavior<Villager> {
 			case WALK_TO_TREE -> this.walkToTree(level, villager, timestamp);
 			case CHOP -> this.chop(level, villager);
 			case FELL -> this.fell(level, villager);
+			case LEAVES -> this.clearLeaves(level, villager);
+			case PLANT -> this.walkToPlanting(level, villager, timestamp);
 			case DELIVER -> this.deliver(level, villager, workplace);
 			case WAIT -> {
 				if (this.stateTicks >= this.waitTicks) {
@@ -189,6 +229,11 @@ public class ChopTrees extends Behavior<Villager> {
 		boolean tired = ((HiredVillager) villager).workingvillagers$getWorkDone(today(level)) >= Config.DAILY_LOGS.get();
 		if (hasDeliverables(villager.getInventory()) && (tired || !villager.getInventory().canAddItem(new ItemStack(Items.OAK_LOG, 64)))) {
 			this.setState(State.DELIVER);
+			return;
+		}
+		this.planting = nextPlanting(level, villager, this.unreachable);
+		if (this.planting != null) {
+			this.setState(State.PLANT);
 			return;
 		}
 		Optional<Trees.Tree> found = tired ? Optional.empty() : Trees.findNearest(level, workplace.pos(), this.unreachable);
@@ -220,7 +265,7 @@ public class ChopTrees extends Behavior<Villager> {
 			return;
 		}
 		this.tree = current;
-		boolean there = this.treeSpot != null ? StandSpots.isAt(villager, this.treeSpot) : this.closeToTrunk(villager);
+		boolean there = this.treeSpot != null ? StandSpots.isAt(villager, this.treeSpot) : this.closeTo(villager, this.tree.base());
 		if (there) {
 			ItemStack axe = findAxe(villager.getInventory());
 			if (axe.isEmpty()) {
@@ -242,11 +287,10 @@ public class ChopTrees extends Behavior<Villager> {
 	}
 
 	/**
-	 * Without a spot next to the trunk: close to it, or as close as the path gets (the walk
-	 * target is dropped when the villager arrives or no path gets further).
+	 * Without a spot next to it: close to the trunk (or a place to plant), or as close as the
+	 * path gets (the walk target is dropped when the villager arrives or no path gets further).
 	 */
-	private boolean closeToTrunk(Villager villager) {
-		BlockPos base = this.tree.base();
+	private boolean closeTo(Villager villager, BlockPos base) {
 		if (base.closerToCenterThan(villager.position(), TREE_CLOSE)) {
 			return true;
 		}
@@ -310,10 +354,8 @@ public class ChopTrees extends Behavior<Villager> {
 			return;
 		}
 		if (this.logsLeft.isEmpty()) {
-			this.replant(level, villager);
 			villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
-			this.tree = null;
-			this.setState(State.DELIVER);
+			this.setState(State.LEAVES);
 			return;
 		}
 		BlockPos pos = this.logsLeft.removeFirst();
@@ -326,11 +368,48 @@ public class ChopTrees extends Behavior<Villager> {
 		level.destroyBlock(pos, false, villager);
 		((HiredVillager) villager).workingvillagers$addWorkDone(today(level), 1);
 		wearAxe(level, villager, 1);
+		collect(level, villager, drops);
+	}
+
+	private static void collect(ServerLevel level, Villager villager, List<ItemStack> drops) {
 		for (ItemStack drop : drops) {
 			ItemStack rest = villager.getInventory().addItem(drop);
 			if (!rest.isEmpty()) {
 				villager.spawnAtLocation(level, rest);
 			}
+		}
+	}
+
+	/**
+	 * Clears the leaves the felled tree leaves behind, before they decay with their saplings
+	 * where nobody picks them up, then replants: with the saplings of this tree too.
+	 */
+	private void clearLeaves(ServerLevel level, Villager villager) {
+		if (this.stateTicks < LEAVES_SETTLE) {
+			return;
+		}
+		if (this.stateTicks == LEAVES_SETTLE) {
+			this.leavesLeft.clear();
+			this.leavesLeft.addAll(Trees.looseLeaves(level, this.tree.logs()));
+		}
+		for (int i = 0; i < LEAVES_PER_TICK && !this.leavesLeft.isEmpty(); i++) {
+			BlockPos pos = this.leavesLeft.removeFirst();
+			BlockState state = level.getBlockState(pos);
+			if (Trees.isLooseLeaves(state)) {
+				List<ItemStack> drops = Block.getDrops(state, level, pos, null);
+				level.destroyBlock(pos, false, villager);
+				collect(level, villager, drops);
+			}
+		}
+		if (this.leavesLeft.isEmpty()) {
+			if (this.sapling != null) {
+				Planting planting = new Planting(this.sapling, this.tree.bottomLogs());
+				if (!plant(level, villager, planting)) {
+					remember(villager, planting);
+				}
+			}
+			this.tree = null;
+			this.setState(State.DELIVER);
 		}
 	}
 
@@ -371,27 +450,76 @@ public class ChopTrees extends Behavior<Villager> {
 	}
 
 	/**
-	 * Plants saplings of the felled tree where its trunk stood, if the lumberjack carries
-	 * enough of them (four for a 2×2 tree).
+	 * Plants saplings where a felled tree stood, if the lumberjack carries enough of them
+	 * (four for a 2×2 tree). False if it has too few: then it is still to do.
 	 */
-	private void replant(ServerLevel level, Villager villager) {
-		if (this.sapling == null) {
-			return;
-		}
-		BlockState saplingState = this.sapling.defaultBlockState();
-		List<BlockPos> spots = this.tree.bottomLogs().stream()
-			.filter(pos -> level.getBlockState(pos).isAir() && saplingState.canSurvive(level, pos))
-			.toList();
-		Item item = this.sapling.asItem();
+	private static boolean plant(ServerLevel level, Villager villager, Planting planting) {
+		List<BlockPos> spots = planting.freeSpots(level);
+		Item item = planting.sapling().asItem();
 		SimpleContainer inventory = villager.getInventory();
-		if (spots.isEmpty() || inventory.countItem(item) < spots.size()) {
-			return;
+		if (spots.isEmpty()) {
+			return true;
+		}
+		if (inventory.countItem(item) < spots.size()) {
+			return false;
 		}
 		inventory.removeItemType(item, spots.size());
 		for (BlockPos pos : spots) {
-			level.setBlockAndUpdate(pos, saplingState);
+			level.setBlockAndUpdate(pos, planting.sapling().defaultBlockState());
 		}
-		level.playSound(null, this.tree.base(), SoundEvents.GRASS_PLACE, SoundSource.NEUTRAL, 1.0F, 1.0F);
+		level.playSound(null, spots.getFirst(), SoundEvents.GRASS_PLACE, SoundSource.NEUTRAL, 1.0F, 1.0F);
+		return true;
+	}
+
+	private static void remember(Villager villager, Planting planting) {
+		List<Planting> plantings = ((HiredVillager) villager).workingvillagers$getPlantings();
+		plantings.remove(planting);
+		plantings.add(planting);
+		while (plantings.size() > MAX_PLANTINGS) {
+			plantings.removeFirst();
+		}
+	}
+
+	/**
+	 * The closest place to plant later that the lumberjack now has the saplings for. Forgets
+	 * the places where nothing can be planted anymore (a sapling or a block is there).
+	 */
+	private static @Nullable Planting nextPlanting(ServerLevel level, Villager villager, Map<BlockPos, Long> ignored) {
+		List<Planting> plantings = ((HiredVillager) villager).workingvillagers$getPlantings();
+		plantings.removeIf(planting -> planting.freeSpots(level).isEmpty());
+		Planting closest = null;
+		for (Planting planting : plantings) {
+			BlockPos spot = planting.spots().getFirst();
+			if (ignored.containsKey(spot) || villager.getInventory().countItem(planting.sapling().asItem()) < planting.freeSpots(level).size()) {
+				continue;
+			}
+			if (closest == null || spot.distToCenterSqr(villager.position()) < closest.spots().getFirst().distToCenterSqr(villager.position())) {
+				closest = planting;
+			}
+		}
+		return closest;
+	}
+
+	private void walkToPlanting(ServerLevel level, Villager villager, long timestamp) {
+		if (this.planting == null) {
+			this.setState(State.SEARCH);
+			return;
+		}
+		BlockPos spot = this.planting.spots().getFirst();
+		if (this.closeTo(villager, spot)) {
+			villager.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
+			if (plant(level, villager, this.planting)) {
+				((HiredVillager) villager).workingvillagers$getPlantings().remove(this.planting);
+			}
+			this.planting = null;
+			this.setState(State.SEARCH);
+		} else if (this.stateTicks > WALK_TIMEOUT) {
+			this.unreachable.put(spot, timestamp + UNREACHABLE_COOLDOWN);
+			this.planting = null;
+			this.setState(State.SEARCH);
+		} else if (this.stateTicks % 20 == 1) {
+			this.walkTo(villager, spot, 1);
+		}
 	}
 
 	static boolean isAxe(ItemStack stack) {
@@ -451,6 +579,8 @@ public class ChopTrees extends Behavior<Villager> {
 			case WALK_TO_TREE -> WorkerStatus.task(villager, "lumberjack.walk");
 			case CHOP -> WorkerStatus.task(villager, "lumberjack.chop", Math.min(99, this.stateTicks * 100 / Math.max(1, this.chopTicks)));
 			case FELL -> WorkerStatus.task(villager, this.stripping ? "lumberjack.fell_strip" : "lumberjack.fell");
+			case LEAVES -> WorkerStatus.task(villager, "lumberjack.leaves");
+			case PLANT -> WorkerStatus.task(villager, "lumberjack.plant");
 			case DELIVER -> WorkerStatus.task(villager, "deliver");
 			case WAIT -> WorkerStatus.task(villager, this.waitReason);
 		}

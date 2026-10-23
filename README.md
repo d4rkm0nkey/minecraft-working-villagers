@@ -46,7 +46,7 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
    block or the lumberjack with them), and right-click the lumberjack with an axe and
    optionally saplings (see below).
 5. During work hours (like other professions) the lumberjack looks for natural trees
-   within 16 blocks of the chopping block, walks up to the trunk and hacks at it, fells it, replants a sapling and brings the wood to the
+   within 16 blocks of the chopping block, walks up to the trunk and hacks at it, fells it, clears the leaves left without a log (keeping their saplings, sticks and apples), replants a sapling and brings the wood to the
    nearest chest. A tree takes eight times as long as for a player with the same axe (for now
    all workers are novices; a master would need five times as long). After each delivery it rests for 30 seconds, and it stops for the day
    after 64 logs. Trees count as natural when they grow on dirt, grass, podzol, mycelium, mud or moss (`#minecraft:substrate_overworld`) and have non-persistent
@@ -111,8 +111,10 @@ stays in the wage box.
   Unbreaking counts); shortly before it breaks it is given back (see *Worn tools* below);
   without one it waits ("needs an axe").
   Chopping speed depends on the axe. It only replants with saplings it carries (given,
-  or picked up under the trees) and hands in the rest; it never fetches saplings from
-  a chest. Without saplings it still fells, but does not replant.
+  or from the leaves of the felled trees) and hands in the rest; it never fetches saplings from
+  a chest. Without saplings it still fells, but remembers the place (saved per worker as
+  `WorkingVillagersPlantings`, at most 64) and plants there once it has the saplings,
+  before the next tree; after planting, or when the place is taken, it forgets it.
 - **Farmer:** needs a hoe (carries up to 2), which wears out one use per harvested crop;
   without one it waits ("needs a hoe"). It needs seeds to start with (up to 16 of each
   kind, `farmer.keepSeeds`); afterwards it replants from its harvest.

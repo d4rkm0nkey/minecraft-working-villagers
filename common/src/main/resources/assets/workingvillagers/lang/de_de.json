@@ -132,6 +132,8 @@
   "status.workingvillagers.lumberjack.chop": "Hackt einen Baum (%s %%)",
   "status.workingvillagers.lumberjack.fell": "Fällt den Baum",
   "status.workingvillagers.lumberjack.fell_strip": "Fällt und entrindet den Baum",
+  "status.workingvillagers.lumberjack.leaves": "Räumt das Laub ab",
+  "status.workingvillagers.lumberjack.plant": "Pflanzt Setzlinge",
   "status.workingvillagers.lumberjack.break": "Macht Pause",
   "status.workingvillagers.lumberjack.no_tree": "Wartet: findet keinen Baum",
   "status.workingvillagers.lumberjack.done_for_today": "Hat sein Tagespensum geschafft",

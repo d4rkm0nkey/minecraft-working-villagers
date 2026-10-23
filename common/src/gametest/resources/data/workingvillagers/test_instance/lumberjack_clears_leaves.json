@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "workingvillagers:work_hours",
+  "function": "workingvillagers:lumberjack_clears_leaves",
+  "max_ticks": 2400,
+  "setup_ticks": 1,
+  "structure": "workingvillagers:platform"
+}

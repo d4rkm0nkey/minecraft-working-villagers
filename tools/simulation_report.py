@@ -15,7 +15,7 @@ from pathlib import Path
 DEFAULT = Path(__file__).resolve().parent.parent / "fabric/run/simulation/world/simulation"
 
 # Statuses that mean the worker does what it should (or rests as planned)
-WORKING_HINTS = ("chopping", "cutting", "crafting", "carrying", "smelting", "firing", "digging", "harvesting", "planting",
+WORKING_HINTS = ("chopping", "cutting", "crafting", "carrying", "smelting", "firing", "digging", "harvesting", "planting", "clearing",
                  "selling", "trading", "fishing", "shearing", "brewing", "tanning", "enchanting", "forging", "fletching",
                  "repairing", "walking", "going", "fetching", "delivering", "bringing", "looking", "guarding", "feeding",
                  "slaughtering", "smoking", "filling", "taking", "putting", "rowing", "mining", "sealing", "climbing")

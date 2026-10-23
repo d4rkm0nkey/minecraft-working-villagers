@@ -25,6 +25,7 @@ import me.teajay.workingvillagers.station.StationType;
 import me.teajay.workingvillagers.station.Workstations.ChestRole;
 import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.core.registries.Registries;
 import org.jspecify.annotations.Nullable;
@@ -107,6 +108,8 @@ public final class WorkerTests {
 		registry.accept("lumberjack_hired_before_pays_late", WorkerTests::lumberjackHiredBeforePaysLate);
 		registry.accept("lumberjack_stands_at_trunk_on_path", WorkerTests::lumberjackStandsAtTrunkOnPath);
 		registry.accept("lumberjack_spares_builds", WorkerTests::lumberjackSparesBuilds);
+		registry.accept("lumberjack_clears_leaves", WorkerTests::lumberjackClearsLeaves);
+		registry.accept("lumberjack_replants_later", WorkerTests::lumberjackReplantsLater);
 		registry.accept("no_wage_no_work", WorkerTests::noWageNoWork);
 		registry.accept("stuck_worker_is_brought_back", WorkerTests::stuckWorkerIsBroughtBack);
 		registry.accept("sawyer_cuts_planks", WorkerTests::sawyerCutsPlanks);
@@ -1075,6 +1078,54 @@ public final class WorkerTests {
 		helper.runAfterDelay(600, () -> {
 			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> !stack.isEmpty()) == 0, "The lumberjack delivered something");
 			helper.succeed();
+		});
+	}
+
+	/**
+	 * The leaves of a felled tree come down with it, with their drops for the lumberjack,
+	 * instead of decaying where nobody picks up the saplings.
+	 */
+	private static void lumberjackClearsLeaves(GameTestHelper helper) {
+		BlockPos tree = new BlockPos(15, 1, 15);
+		TestWorld.oakTree(helper, tree, 5, true, Blocks.DIRT);
+		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_AXE));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_LOG), 5, "oak logs in the output chest");
+			BlockPos top = tree.above(4);
+			for (BlockPos pos : BlockPos.betweenClosed(top.offset(-1, -1, -1), top.offset(1, 1, 1))) {
+				helper.assertBlockNotPresent(Blocks.OAK_LEAVES, pos);
+			}
+		});
+	}
+
+	/**
+	 * Without a sapling of its kind (the leaves are birch leaves, so the tree drops none), the
+	 * lumberjack remembers where the tree stood and plants there once it has one, then forgets
+	 * the place.
+	 */
+	private static void lumberjackReplantsLater(GameTestHelper helper) {
+		BlockPos tree = new BlockPos(15, 1, 15);
+		TestWorld.oakTree(helper, tree, 5, true, Blocks.DIRT);
+		BlockPos top = tree.above(4);
+		for (BlockPos pos : BlockPos.betweenClosed(top.offset(-1, -1, -1), top.offset(1, 1, 1))) {
+			if (helper.getBlockState(pos).is(Blocks.OAK_LEAVES)) {
+				helper.setBlock(pos, Blocks.BIRCH_LEAVES.defaultBlockState().setValue(LeavesBlock.DISTANCE, 1));
+			}
+		}
+		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_AXE));
+		List<ChopTrees.Planting> plantings = ((HiredVillager) worker).workingvillagers$getPlantings();
+		boolean[] given = {false};
+		helper.onEachTick(() -> {
+			if (!given[0] && !plantings.isEmpty()) {
+				helper.assertTrue(plantings.getFirst().spots().equals(List.of(helper.absolutePos(tree))), "Remembered the wrong place: " + plantings);
+				TestWorld.give(helper, worker, new ItemStack(Items.OAK_SAPLING));
+				given[0] = true;
+			}
+		});
+		helper.succeedWhen(() -> {
+			helper.assertTrue(given[0], "The lumberjack did not remember where to plant");
+			helper.assertBlockPresent(Blocks.OAK_SAPLING, tree);
+			helper.assertTrue(plantings.isEmpty(), "The lumberjack did not forget the place it planted: " + plantings);
 		});
 	}
 

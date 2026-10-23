@@ -1,5 +1,6 @@
 package me.teajay.workingvillagers.job;
 
+import java.util.List;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import me.teajay.workingvillagers.carrier.CarrierData;
@@ -26,6 +27,12 @@ public interface HiredVillager {
 	int workingvillagers$getWorkDone(long day);
 
 	void workingvillagers$addWorkDone(long day, int amount);
+
+	/**
+	 * Where a lumberjack still has to plant saplings (see {@link ChopTrees.Planting}), the
+	 * oldest first. Changed in place.
+	 */
+	List<ChopTrees.Planting> workingvillagers$getPlantings();
 
 	/** Routes and basket of a carrier, null for every other villager. */
 	@Nullable CarrierData workingvillagers$getCarrier();

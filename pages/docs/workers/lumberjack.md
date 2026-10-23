@@ -30,9 +30,11 @@ During work hours the lumberjack:
 1. takes its wage from the emeralds it carries,
 2. looks for the nearest natural tree within **16 blocks** of the chopping block,
 3. walks to the trunk and hacks at it, then fells the whole tree,
-4. replants a sapling, if it carries one of that kind,
-5. brings the wood to the nearest linked chest,
-6. rests for 30 seconds and starts again.
+4. clears the leaves the tree leaves behind and keeps what they drop (saplings, sticks,
+   apples),
+5. replants a sapling, if it carries one of that kind,
+6. brings the wood to the nearest linked chest,
+7. rests for 30 seconds and starts again.
 
 It stops for the day after **64 logs**. The chopping block menu shows how many it has
 felled today.
@@ -60,9 +62,13 @@ bar; the tooltip shows how much of it is left.
 ### Saplings
 
 The lumberjack only replants with saplings it carries: the ones you give it and the
-ones it picks up below the trees. It keeps up to 16 of each kind and hands in the rest
-with the logs. It never fetches saplings from a chest. Without saplings it still
-fells trees but does not replant.
+ones from the leaves of the trees it fells. It keeps up to 16 of each kind and hands in
+the rest with the logs. It never fetches saplings from a chest.
+
+Without a sapling of the right kind it still fells the tree, but remembers the place.
+As soon as it has the saplings, it goes back and plants there first, before it looks
+for the next tree. Once it planted there, it forgets the place again; it also forgets it
+when something else took the place (a sapling you planted, a block).
 
 ## Stripping logs
 

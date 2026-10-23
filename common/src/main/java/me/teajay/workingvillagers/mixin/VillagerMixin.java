@@ -1,11 +1,14 @@
 package me.teajay.workingvillagers.mixin;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.carrier.CarrierData;
 import me.teajay.workingvillagers.carrier.Carriers;
 import me.teajay.workingvillagers.item.WickerBasketItem;
 import me.teajay.workingvillagers.item.WorkContractItem;
+import me.teajay.workingvillagers.job.ChopTrees;
 import me.teajay.workingvillagers.job.HiredVillager;
 import me.teajay.workingvillagers.job.StuckWorkers;
 import me.teajay.workingvillagers.job.TradeFamilies;
@@ -67,6 +70,10 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 	private long workingvillagers$workDay = -1L;
 	@Unique
 	private int workingvillagers$workDone;
+	@Unique
+	private static final String TAG_PLANTINGS = "WorkingVillagersPlantings";
+	@Unique
+	private final List<ChopTrees.Planting> workingvillagers$plantings = new ArrayList<>();
 	@Unique
 	private static final String TAG_CARRIER = "WorkingVillagersCarrier";
 	@Unique
@@ -199,6 +206,11 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 	}
 
 	@Override
+	public List<ChopTrees.Planting> workingvillagers$getPlantings() {
+		return this.workingvillagers$plantings;
+	}
+
+	@Override
 	public void workingvillagers$setOpenedContainer(@Nullable BlockPos pos) {
 		this.workingvillagers$openedContainer = pos;
 	}
@@ -262,6 +274,9 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 			output.putLong(TAG_WORK_DAY, this.workingvillagers$workDay);
 			output.putInt(TAG_WORK_DONE, this.workingvillagers$workDone);
 		}
+		if (!this.workingvillagers$plantings.isEmpty()) {
+			output.store(TAG_PLANTINGS, ChopTrees.Planting.CODEC.listOf(), this.workingvillagers$plantings);
+		}
 		if (this.workingvillagers$experience > 0) {
 			output.putInt(TAG_EXPERIENCE, this.workingvillagers$experience);
 		}
@@ -283,6 +298,8 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 		this.workingvillagers$workDay = input.getLongOr(TAG_WORK_DAY, -1L);
 		this.workingvillagers$workDone = input.getIntOr(TAG_WORK_DONE, 0);
 		this.workingvillagers$experience = input.getIntOr(TAG_EXPERIENCE, 0);
+		this.workingvillagers$plantings.clear();
+		input.read(TAG_PLANTINGS, ChopTrees.Planting.CODEC.listOf()).ifPresent(this.workingvillagers$plantings::addAll);
 		// Workers saved by 0.3.0 have no such entry: they still carry their wage themselves
 		this.workingvillagers$wageStored = this.workingvillagers$employer == null || input.getBooleanOr(TAG_WAGE_STORED, false);
 		this.workingvillagers$keptOffers = input.read(TAG_KEPT_OFFERS, MerchantOffers.CODEC).orElse(null);

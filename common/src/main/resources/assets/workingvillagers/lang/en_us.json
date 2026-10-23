@@ -132,6 +132,8 @@
   "status.workingvillagers.lumberjack.chop": "Chopping a tree (%s%%)",
   "status.workingvillagers.lumberjack.fell": "Felling the tree",
   "status.workingvillagers.lumberjack.fell_strip": "Fells and strips the tree",
+  "status.workingvillagers.lumberjack.leaves": "Clearing the leaves",
+  "status.workingvillagers.lumberjack.plant": "Planting saplings",
   "status.workingvillagers.lumberjack.break": "Taking a break",
   "status.workingvillagers.lumberjack.no_tree": "Waiting: no tree found",
   "status.workingvillagers.lumberjack.done_for_today": "Done for today",
