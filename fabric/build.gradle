@@ -72,6 +72,28 @@ loom {
 tasks.matching { it.name == "runSimulation" }.configureEach {
 	doFirst {
 		def dir = file("run/simulation")
+		// A simulation server still running here holds the world's session lock: do not delete
+		// the world under it
+		def lock = new File(dir, "world/session.lock")
+		if (lock.exists()) {
+			def channel = new RandomAccessFile(lock, "rw").getChannel()
+			try {
+				def held = channel.tryLock()
+				if (held == null) {
+					throw new GradleException("A simulation server is still running in ${dir}; stop it first")
+				}
+				held.release()
+			} finally {
+				channel.close()
+			}
+		}
+		// The lock alone is not enough: a server whose world was deleted holds the lock of the
+		// deleted file. A server on the port is just as good a sign.
+		try {
+			new ServerSocket(25565).close()
+		} catch (IOException ignored) {
+			throw new GradleException("Port 25565 is in use, probably by a running simulation server; stop it first")
+		}
 		if (!project.hasProperty("keepWorld")) {
 			delete(new File(dir, "world"))
 		}

@@ -821,6 +821,14 @@ public final class SimVillage {
 						}
 					}
 				}
+				// Nothing next to the fence: villagers jump onto a chest there and over the fence into the pen
+				for (int u = 19; u <= 29; u++) {
+					for (int vv = v0 - 1; vv <= v0 + 9; vv++) {
+						if ((u == 19 || u == 29 || vv == v0 - 1 || vv == v0 + 9) && v.isFree(this.at(u, vv).getX(), this.at(u, vv).getZ())) {
+							v.reserve(this.at(u, vv), "path around the pen");
+						}
+					}
+				}
 				BlockPos middle = this.at(24, v0 + 4);
 				BlockPos output = this.chest(names[i], 32, v0 + 2);
 				if (i == 0) {
