@@ -16,6 +16,7 @@ The renderer is a small orthographic projection of block model elements (with el
 and UV rotation), drawn back to front. It is good enough for workstation icons; it does
 not know about block entities, so the chests are built from their entity textures by hand.
 """
+import colorsys
 import json
 import math
 import pathlib
@@ -54,6 +55,8 @@ VANILLA_ITEMS = [
     "rabbit_hide", "rotten_flesh", "bundle", "saddle", "leather_chestplate", "leather_horse_armor", "red_dye", "water_bucket",
 ]
 MOD_ITEMS = ["work_contract", "wicker_basket"]
+# Items with the durability bar of the inventory: output name -> item, durability left.
+DAMAGED_ITEMS = {"iron_axe_worn": ("iron_axe", 0.1), "iron_axe_repaired": ("iron_axe", 1.0)}
 
 # Block icons: output name -> model, or several models drawn together (like the parts of a
 # multipart block state). The mod's own models come from its resources.
@@ -474,6 +477,22 @@ def grass_strip(assets):
     return side.crop((0, 0, 16, 6))
 
 
+def durability_bar(image, left):
+    """The item with the durability bar under it, as in the inventory: black, and on top a
+    line as long as the durability left, from red to green. Vanilla hides the bar of an
+    undamaged item; here a full green one shows a repaired tool."""
+    image = image.convert("RGBA").copy()
+    draw = ImageDraw.Draw(image)
+    draw.rectangle((2, 13, 14, 14), fill=(0, 0, 0, 255))
+    width = round(13 * left)
+    if width > 0:
+        # Hue from red (nothing left) to green (all left), like ItemStack#getBarColor
+        hue = max(0.0, left) / 3.0
+        red, green, blue = (round(c * 255) for c in colorsys.hsv_to_rgb(hue, 1.0, 1.0))
+        draw.rectangle((2, 13, 2 + width - 1, 13), fill=(red, green, blue, 255))
+    return image
+
+
 def pixel_svg(image):
     """A 16x16 texture as an SVG made of one rectangle per run of equal pixels."""
     w, h = image.size
@@ -517,6 +536,8 @@ def main():
         items[name.removesuffix("_00")] = image
     for name in MOD_ITEMS:
         items[name] = assets.texture(f"workingvillagers:item/{name}")
+    for name, (item, left) in DAMAGED_ITEMS.items():
+        items[name] = durability_bar(items[item], left)
     for name, image in items.items():
         image.save(OUT / "items" / f"{name}.png")
 

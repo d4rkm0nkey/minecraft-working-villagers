@@ -37,6 +37,8 @@ NAMES = {
     "carpenter_bench": "Carpenter's Bench",
     "clock": "Clock",
     "farmland": "Farmland",
+    "iron_axe_worn": "Iron Axe (worn)",
+    "iron_axe_repaired": "Iron Axe (repaired)",
     "raw_iron": "Raw Iron",
 }
 

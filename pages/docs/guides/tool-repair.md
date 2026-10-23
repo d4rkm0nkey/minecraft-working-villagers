@@ -10,11 +10,11 @@ by themselves, and where the experience your guards collect pays for the repairs
 
 <div class="wv-flow" role="img" aria-label="Workers give back worn tools into a village chest, the smith and the weaponsmith repair them there, and the workers take them again">
 <div class="wv-flow__step">:mc-head_lumberjack:Workers</div>
-<div class="wv-flow__node">:mc-iron_axe:Worn tools</div>
+<div class="wv-flow__node">:mc-iron_axe_worn:Worn tools</div>
 <div class="wv-flow__node">:mc-village_chest:Village chest</div>
 <div class="wv-flow__step">:mc-head_smith:Smith</div>
 <div class="wv-flow__step">:mc-head_weaponsmith:Weaponsmith</div>
-<div class="wv-flow__node">:mc-iron_axe:Repaired</div>
+<div class="wv-flow__node">:mc-iron_axe_repaired:Repaired</div>
 <div class="wv-flow__step">:mc-head_lumberjack:Workers</div>
 </div>
 
