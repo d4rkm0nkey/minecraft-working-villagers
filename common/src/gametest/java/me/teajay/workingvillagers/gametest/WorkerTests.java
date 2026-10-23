@@ -163,6 +163,7 @@ public final class WorkerTests {
 		registry.accept("butcher_slaughters_surplus", WorkerTests::butcherSlaughtersSurplus);
 		registry.accept("fisher_fishes_from_shore", WorkerTests::fisherFishesFromShore);
 		registry.accept("fisher_rows_out", WorkerTests::fisherRowsOut);
+		registry.accept("fisher_rows_out_past_pond", WorkerTests::fisherRowsOutPastPond);
 		registry.accept("fletcher_makes_arrows_from_gravel", WorkerTests::fletcherMakesArrowsFromGravel);
 		registry.accept("fletcher_makes_arrows_from_nuggets", WorkerTests::fletcherMakesArrowsFromNuggets);
 		registry.accept("fletcher_keeps_stock", WorkerTests::fletcherKeepsStock);
@@ -871,6 +872,28 @@ public final class WorkerTests {
 			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> !stack.is(Items.FISHING_ROD) && !stack.is(Items.OAK_BOAT), 3, "the catch in the output chest");
 			helper.assertTrue(worker.getVehicle() == null, "The fisher is still in the boat");
 			helper.assertTrue(worker.getInventory().countItem(Items.OAK_BOAT) == 1, "The fisher did not take its boat back");
+		});
+	}
+
+	/**
+	 * A small pond right next to the barrel and a lake a bit further: the fisher with a boat
+	 * walks past the pond and rows out on the lake.
+	 */
+	private static void fisherRowsOutPastPond(GameTestHelper helper) {
+		helper.setBlock(STATION.below(), Blocks.BARREL);
+		pond(helper, 4, 9, 6, 10);
+		pond(helper, 3, 14, 22, 22);
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, STATION.below(), OUTPUT, ChestRole.OUTPUT);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, STATION.below());
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.FISHING_ROD), new ItemStack(Items.OAK_BOAT));
+		boolean[] rowed = {false};
+		helper.onEachTick(() -> rowed[0] |= worker.getVehicle() instanceof net.minecraft.world.entity.vehicle.boat.AbstractBoat
+			&& worker.getVehicle().getZ() > helper.absoluteVec(new net.minecraft.world.phys.Vec3(0, 0, 16)).z);
+		helper.succeedWhen(() -> {
+			helper.assertTrue(rowed[0], "The fisher did not row out on the lake: " + TestWorld.describe(worker));
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> !stack.is(Items.FISHING_ROD) && !stack.is(Items.OAK_BOAT), 3, "the catch in the output chest");
 		});
 	}
 

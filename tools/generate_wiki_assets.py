@@ -7,7 +7,7 @@ Writes into pages/docs/assets/mc/:
 
 - items/<name>.png   16x16 item textures, from the jar and from this mod
 - blocks/<name>.png  blocks rendered like in the inventory, from their block models
-- heads/<name>.png   villager heads with the profession hats of this mod
+- heads/<name>.png   villager heads with the profession hats of the workers
 - ui/<name>.png      pieces of the Minecraft GUI used by the wiki's style sheet
 
 and into pages/overrides/.icons/wv/<name>.svg pixel art icons for the navigation.
@@ -402,13 +402,27 @@ def entity_box(image, u, v, size, origin, inflate=0.0, sides=("north", "west", "
     return [Face(face_corners(direction, f, t), image, list(regions[direction])) for direction in sides]
 
 
+# Workers with a vanilla job wear its vanilla clothes, as in the game (see WorkerSkins).
+VANILLA_LOOKS = {
+    "fisher": "fisherman", "farmer": "farmer", "butcher": "butcher", "shepherd": "shepherd",
+    "fletcher": "fletcher", "librarian": "librarian", "weaponsmith": "weaponsmith",
+    "tanner": "leatherworker", "apothecary": "cleric", "stonecutter": "mason", "smith": "armorer",
+}
+
+
+def profession_texture(profession):
+    if profession in VANILLA_LOOKS:
+        return f"minecraft:entity/villager/profession/{VANILLA_LOOKS[profession]}"
+    return f"workingvillagers:entity/villager/profession/{profession}"
+
+
 def villager_skin(assets, profession):
     """The skin of a plains villager; profession None gives an unemployed one."""
     empty = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
     layers = [
         assets.texture("minecraft:entity/villager/villager"),
         assets.texture("minecraft:entity/villager/type/plains"),
-        assets.texture(f"workingvillagers:entity/villager/profession/{profession}") if profession else empty,
+        assets.texture(profession_texture(profession)) if profession else empty,
     ]
     skin = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
     for layer in layers:

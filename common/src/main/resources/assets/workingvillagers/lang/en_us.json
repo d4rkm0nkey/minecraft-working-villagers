@@ -455,6 +455,7 @@
   "message.workingvillagers.contract.no_job": "There is no work for a %s in this mod yet.",
   "message.workingvillagers.contract.hired_here": "%s signed the contract and now works at the same block as a %s of this mod.",
   "entity.workingvillagers.villager.fisher": "Fisher",
+  "entity.workingvillagers.fisher_bobber": "Fisher's Bobber",
   "status.workingvillagers.fisher.search": "Going to the water",
   "status.workingvillagers.fisher.fish": "Fishing",
   "status.workingvillagers.fisher.fish_boat": "Fishing from the boat",

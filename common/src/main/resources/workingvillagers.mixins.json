@@ -43,6 +43,7 @@
     "client.SmithingScreenMixin",
     "client.SmokerScreenMixin",
     "client.VillagerModelMixin",
+    "client.VillagerProfessionLayerMixin",
     "client.VillagerRendererMixin",
     "client.VillagerRenderStateMixin"
   ],

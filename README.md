@@ -80,6 +80,12 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
   up (chests, order or worker): vanilla job acquisition skips it. *Assign* there makes an
   ordinary villager that works there and has never traded (villager XP 0) unemployed;
   one that has traded keeps its job.
+- These workers wear the clothes of the vanilla job (the fisher those of the fisherman,
+  the stone sawyer the mason's, the tanner the leatherworker's, the apothecary the
+  cleric's, the smith the armorer's), so a hired villager keeps its looks; the profession
+  layer maps the texture (`WorkerSkins`). Only the jobs that are new in this mod
+  (lumberjack, sawyer, carpenter, guard, pit digger, miner, kiln operator, shop assistant,
+  carrier) have clothes of their own.
 
 ## Wage and tools
 
@@ -447,11 +453,14 @@ From the shore it fishes at the closest bank of water within 16 blocks of the ba
 vanilla fishing loot (fish 85, junk 10, treasure 5 only on open water; Luck of the Sea
 helps). After 12 catches (`fisher.catchesPerTrip`) it brings them to the chest. With a
 **boat** it rows out to open water (7 × 7 blocks, two deep, only water on the way) within 32
-blocks (`fisher.seaRadius`): it puts the boat on the water at the bank, rows out, fishes
+blocks (`fisher.seaRadius`): it puts the boat on the water at a bank of that water (a pond
+closer to the barrel does not keep it there), rows out, fishes
 there, also treasure, rows back, gets out and takes the boat with it. Once in the boat it
 keeps going until it is back on land, also after work. Boat trips can be switched off at
 each barrel (tab *Settings*). The fisher trades like a vanilla fisherman. The menu shows the
-catches of today.
+catches of today. Its bobber (`fisher_bobber`, an entity only for the looks, not saved)
+floats on the water with the line to the rod and dips at a bite; the catch flies to the
+fisher like to a player and goes into its inventory when it arrives.
 
 ## Butcher
 
@@ -668,7 +677,8 @@ red, a guard puts on a chestplate it is given and boots from a village chest, th
 librarian enchants a book at a bare table and an iron pickaxe at level 30 for 10 bottles,
 the weaponsmith forges two iron axes, grinds two worn iron pickaxes from a village chest into
 one and disenchants a sword into bottles o' enchanting, the
-fisher fishes at a pond and rows out on a lake with its boat and takes it back, uses up a
+fisher fishes at a pond and rows out on a lake with its boat and takes it back, also past
+a pond closer to the barrel, uses up a
 plain rod but gives back an enchanted one, the
 butcher slaughters cows down to the herd size, breeds a piglet and smokes chicken, a
 vanilla farmer is hired and stays at its composter and gets farmer trades, one that has
