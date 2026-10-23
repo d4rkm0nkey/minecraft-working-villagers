@@ -133,7 +133,9 @@ public class FarmFields extends Behavior<Villager> {
 		}
 		this.stateTicks++;
 		this.unreachable.values().removeIf(until -> until < timestamp);
-		if (this.state == State.SEARCH && !hasDeliverables(villager.getInventory())
+		// Wage and hoe before work; with harvest in its pockets only when the hoe is worn or gone,
+		// or it would never give a worn hoe back and fetch a new one
+		if (this.state == State.SEARCH && (!hasDeliverables(villager.getInventory()) || findHoe(villager.getInventory()).isEmpty())
 			&& this.supplies.busy(level, villager, WorkerSupplies.HOE)) {
 			return; // the chest sets the status
 		}

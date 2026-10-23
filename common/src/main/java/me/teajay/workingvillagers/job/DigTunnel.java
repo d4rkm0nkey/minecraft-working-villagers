@@ -258,6 +258,11 @@ public class DigTunnel extends Behavior<Villager> {
 				this.setState(State.DELIVER);
 				return;
 			}
+			// Its pickaxe is worn or gone: give it back and fetch another before saying it is too weak
+			if (plan.blocked() == Blocked.TOOL && WorkerSupplies.count(villager.getInventory(), WorkerSupplies.PICKAXE.ready()) == 0) {
+				this.waitingForSupplies = this.supplies.busy(level, villager, WorkerSupplies.PICKAXE);
+				return;
+			}
 			BlockPos at = plan.at();
 			this.rest(villager, station, switch (plan.blocked()) {
 				case BUILD -> "miner.blocked";

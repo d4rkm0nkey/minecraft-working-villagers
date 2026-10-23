@@ -7,6 +7,7 @@ import me.teajay.workingvillagers.Config;
 import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.crafting.CuttingRecipes;
 import me.teajay.workingvillagers.job.HiredVillager;
+import me.teajay.workingvillagers.job.WorkerSupplies;
 import me.teajay.workingvillagers.station.Tunnel;
 import me.teajay.workingvillagers.station.Workstations.ChestRole;
 import net.minecraft.core.BlockPos;
@@ -45,6 +46,7 @@ final class MinerTests {
 
 	static void register(BiConsumer<String, Consumer<GameTestHelper>> registry) {
 		registry.accept("miner_digs_tunnel", MinerTests::minerDigsTunnel);
+		registry.accept("miner_swaps_worn_pickaxe", MinerTests::minerSwapsWornPickaxe);
 		registry.accept("miner_digs_ore_and_seals_lava", MinerTests::minerDigsOreAndSealsLava);
 		registry.accept("miner_stops_at_planks", MinerTests::minerStopsAtPlanks);
 		registry.accept("miner_digs_stairs", MinerTests::minerDigsStairs);
@@ -86,6 +88,33 @@ final class MinerTests {
 		helper.succeedWhen(() -> {
 			assertDug(helper, worker, tunnel);
 			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.COBBLESTONE), 16, "cobblestone in the output chest");
+		});
+	}
+
+	/**
+	 * A miner whose only pickaxe is worn gives it back (into its chest, no smith repairs from
+	 * the village chest), takes the new one from the village chest and digs the tunnel.
+	 */
+	private static void minerSwapsWornPickaxe(GameTestHelper helper) {
+		hill(helper, 5);
+		BlockPos villageChest = new BlockPos(2, 1, 8);
+		TestWorld.villageChest(helper, villageChest, new ItemStack(Items.IRON_PICKAXE));
+		helper.setBlock(STATION, WorkingVillagers.MINING_BENCH.get());
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, STATION, OUTPUT, ChestRole.OUTPUT);
+		Tunnel tunnel = tunnel(helper, START, 2);
+		TestWorld.station(helper, STATION).setTunnel(tunnel);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, STATION);
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2));
+		ItemStack worn = new ItemStack(Items.IRON_PICKAXE);
+		worn.setDamageValue(worn.getMaxDamage() - 20);
+		worker.getInventory().addItem(worn);
+		helper.succeedWhen(() -> {
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.IRON_PICKAXE) && WorkerSupplies.isWorn(stack)) == 1,
+				"The worn pickaxe is not in the chest: " + TestWorld.describe(worker));
+			assertDug(helper, worker, tunnel);
+			TestWorld.removeVillageChest(helper, villageChest);
 		});
 	}
 

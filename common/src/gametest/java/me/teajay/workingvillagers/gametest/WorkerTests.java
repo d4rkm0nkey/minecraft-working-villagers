@@ -196,6 +196,8 @@ public final class WorkerTests {
 		registry.accept("smith_waits_for_experience", WorkerTests::smithWaitsForExperience);
 		registry.accept("fisher_gives_back_enchanted_rod", WorkerTests::fisherGivesBackEnchantedRod);
 		registry.accept("butcher_breeds_pigs", WorkerTests::butcherBreedsPigs);
+		registry.accept("butcher_fetches_feed_of_its_animals", WorkerTests::butcherFetchesFeedOfItsAnimals);
+		registry.accept("farmer_swaps_worn_hoe", WorkerTests::farmerSwapsWornHoe);
 		registry.accept("butcher_smokes_meat", WorkerTests::butcherSmokesMeat);
 		for (StationType type : StationType.values()) {
 			String name = type.name().toLowerCase(Locale.ROOT);
@@ -946,6 +948,24 @@ public final class WorkerTests {
 		});
 	}
 
+	/**
+	 * A butcher of chickens carrying wheat, which chickens do not eat, and seeds in its input
+	 * chest: it fetches the seeds (16, as of every kind of feed) and the chickens get a chick.
+	 */
+	private static void butcherFetchesFeedOfItsAnimals(GameTestHelper helper) {
+		animalPen(helper, EntityTypes.CHICKEN, 2, Workstations.DEFAULT_HERD);
+		TestWorld.chest(helper, INPUT, new ItemStack(Items.WHEAT, 32), new ItemStack(Items.WHEAT_SEEDS, 32));
+		TestWorld.link(helper, STATION.below(), INPUT, ChestRole.INPUT);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, STATION.below());
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_SWORD), new ItemStack(Items.WHEAT, 16));
+		helper.succeedWhen(() -> {
+			List<net.minecraft.world.entity.animal.Animal> herd = TendAnimals.herd(helper.getLevel(), helper.absolutePos(STATION.below()));
+			helper.assertTrue(herd.stream().anyMatch(net.minecraft.world.entity.animal.Animal::isBaby), "No chick yet: " + TestWorld.describe(worker));
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.WHEAT)) == 32, "The butcher took wheat its chickens do not eat");
+		});
+	}
+
 	/** Three chickens, herd size 2, and coal: the butcher slaughters one and smokes the chicken in the smoker. */
 	private static void butcherSmokesMeat(GameTestHelper helper) {
 		animalPen(helper, EntityTypes.CHICKEN, 3, 2);
@@ -1556,6 +1576,40 @@ public final class WorkerTests {
 				helper.assertBlockPresent(Blocks.WHEAT, crop);
 			}
 			helper.assertBlockPresent(Blocks.WHEAT, empty);
+		});
+	}
+
+	/**
+	 * A farmer with wheat in its pockets and only a worn hoe: it gives the hoe back (into the
+	 * output chest, no smith repairs from the village chest), takes the new one from the
+	 * village chest and harvests with it, never without a hoe.
+	 */
+	private static void farmerSwapsWornHoe(GameTestHelper helper) {
+		helper.setBlock(STATION, Blocks.COMPOSTER);
+		List<BlockPos> crops = List.of(new BlockPos(10, 0, 10), new BlockPos(11, 0, 10), new BlockPos(12, 0, 10), new BlockPos(10, 0, 12));
+		for (BlockPos crop : crops) {
+			helper.setBlock(crop.below(), Blocks.FARMLAND.defaultBlockState().setValue(FarmlandBlock.MOISTURE, FarmlandBlock.MAX_MOISTURE));
+			helper.setBlock(crop, Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE, CropBlock.MAX_AGE));
+		}
+		TestWorld.villageChest(helper, VILLAGE_CHEST, new ItemStack(Items.IRON_HOE));
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, STATION, OUTPUT, ChestRole.OUTPUT);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, STATION);
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.WHEAT_SEEDS, 16));
+		ItemStack worn = new ItemStack(Items.IRON_HOE);
+		worn.setDamageValue(worn.getMaxDamage() - 20);
+		// Into its inventory: a worker does not accept a worn tool from a player
+		worker.getInventory().addItem(worn);
+		worker.getInventory().addItem(new ItemStack(Items.WHEAT, 20));
+		helper.succeedWhen(() -> {
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.IRON_HOE) && WorkerSupplies.isWorn(stack)) == 1,
+				"The worn hoe is not in the output chest: " + TestWorld.describe(worker));
+			int harvested = ((HiredVillager) worker).workingvillagers$getWorkDone(me.teajay.workingvillagers.job.ChopTrees.today(helper.getLevel()));
+			helper.assertTrue(harvested >= crops.size(), "Harvested " + harvested + " of " + crops.size());
+			int wear = worker.getInventory().getItems().stream().filter(stack -> stack.is(Items.IRON_HOE)).mapToInt(ItemStack::getDamageValue).sum();
+			helper.assertTrue(wear == harvested, "Harvested " + harvested + " crops, but the hoe wore only " + wear + ": harvested without a hoe");
+			TestWorld.removeVillageChest(helper, VILLAGE_CHEST);
 		});
 	}
 

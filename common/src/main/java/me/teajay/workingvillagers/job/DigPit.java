@@ -326,6 +326,16 @@ public class DigPit extends Behavior<Villager> {
 			}
 			return;
 		}
+		// Its shovel or pickaxe is worn or gone: give it back and fetch another before saying it is too weak
+		if (plan.target() == null && !tired && plan.blocked() == Blocked.TOOL
+			&& this.missingSupplies(level, villager, WorkerSupplies.SHOVEL, WorkerSupplies.PICKAXE)) {
+			if (deep) {
+				this.leavePit(level, villager, pit);
+			} else {
+				this.waitingForSupplies = this.supplies.busy(level, villager, WorkerSupplies.SHOVEL, WorkerSupplies.PICKAXE);
+			}
+			return;
+		}
 		if (plan.target() == null) {
 			String reason = tired ? "pit_digger.done_for_today" : switch (plan.blocked()) {
 				case NONE -> this.unreachable.isEmpty() ? "pit_digger.done" : "pit_digger.unreachable";
