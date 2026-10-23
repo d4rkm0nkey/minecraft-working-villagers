@@ -41,3 +41,54 @@ publishMods {
 		requires("fabric-api")
 	}
 }
+
+// The village simulation (common/src/gametest/.../simulation): a dedicated server with the test
+// mod that builds a big village on a flat world, sprints through some in-game days and writes
+// its measurements into run/simulation/world/simulation.
+//   ./gradlew :fabric:runSimulation -Pwings=2 -Pdays=5
+// A client (runClient) can join it on localhost to look around; /wvsim works in any world with
+// the test mod (runClientGameTest's mods, or this server).
+loom {
+	runs {
+		simulation {
+			server()
+			name = "Village simulation"
+			source sourceSets.gametest
+			runDir = "run/simulation"
+			property("wvsim.auto", "true")
+			property("wvsim.wings", project.findProperty("wings") ?: "2")
+			property("wvsim.days", project.findProperty("days") ?: "5")
+			property("wvsim.sprint", project.findProperty("sprint") ?: "true")
+			property("wvsim.walled", project.findProperty("walled") ?: "false")
+			vmArg("-Xmx6G")
+			// -Pjfr: a Java Flight Recorder profile of the run, run/simulation/simulation.jfr
+			if (project.hasProperty("jfr")) {
+				vmArg("-XX:StartFlightRecording=filename=simulation.jfr,settings=profile,dumponexit=true")
+			}
+		}
+	}
+}
+
+tasks.matching { it.name == "runSimulation" }.configureEach {
+	doFirst {
+		def dir = file("run/simulation")
+		if (!project.hasProperty("keepWorld")) {
+			delete(new File(dir, "world"))
+		}
+		dir.mkdirs()
+		new File(dir, "eula.txt").text = "eula=true\n"
+		// A flat world on 60 blocks of stone, deep enough for the pits; no structures
+		new File(dir, "server.properties").text = """\
+			level-type=minecraft\\:flat
+			generator-settings={"layers"\\:[{"block"\\:"minecraft\\:bedrock","height"\\:1},{"block"\\:"minecraft\\:stone","height"\\:60},{"block"\\:"minecraft\\:dirt","height"\\:3},{"block"\\:"minecraft\\:grass_block","height"\\:1}],"biome"\\:"minecraft\\:plains"}
+			generate-structures=false
+			online-mode=false
+			difficulty=normal
+			view-distance=12
+			simulation-distance=10
+			spawn-protection=0
+			max-tick-time=-1
+			sync-chunk-writes=false
+			""".stripIndent()
+	}
+}
