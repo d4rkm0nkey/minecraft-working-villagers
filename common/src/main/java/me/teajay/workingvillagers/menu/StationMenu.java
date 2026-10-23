@@ -234,7 +234,7 @@ public class StationMenu extends AbstractContainerMenu {
 	private List<StoneFamilies.Family> clientFamilies = List.of();
 	/** Server side, pit stake: why the ring at the stake is no pit, and when it was last looked at. */
 	private Optional<Component> pitProblem = Optional.empty();
-	private long ringCheckedAt = Long.MIN_VALUE;
+	private long ringCheckedAt = Long.MIN_VALUE / 2;
 
 	/** Client side. */
 	public StationMenu(StationType type, int containerId, Inventory inventory) {
