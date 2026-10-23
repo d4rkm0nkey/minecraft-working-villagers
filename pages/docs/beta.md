@@ -13,7 +13,8 @@ Working Villagers is in an early beta. Thanks for testing!
 
 ## Known limitations
 
-- All workers are **novices**. Levels are planned.
+- Workers that trade like a vanilla villager level up by trading; all others stay
+  **novices**. Levels through work are planned.
 - Carriers have **no filters** yet: they carry everything.
 - Workers only work while their chunks are loaded, i.e. while a player is nearby.
 - A worker that gets stuck (in a hole, boxed in) is brought back to its workstation after
@@ -26,9 +27,10 @@ Working Villagers is in an early beta. Thanks for testing!
   copper and iron nuggets, and the [guards](workers/guard.md#experience) get the experience
   of the monsters they kill.
 - The cartographer has no job in this mod yet: cartographers cannot be hired.
-- Saves from 0.4.0 should load, but this has not been tested in many worlds. **Back up
-  first.** An order now holds several products; a station from 0.4.0 keeps its one product.
-  A world saved with 0.5.0 cannot go back to 0.4.0: the workstations would lose their settings.
+- Saves from 0.6.0 should load, but this has not been tested in many worlds. **Back up
+  first.** In the config, `pitDigger.maxArea` and `maxDepth` are replaced by
+  `noviceArea`/`masterArea` and `noviceDepth`/`masterDepth`; set the new ones if you had
+  changed the old ones.
 - The [apothecary](workers/apothecary.md) still brews one potion at a time; the other
   workers with an order take [several products](workers/basics.md#several-products).
 

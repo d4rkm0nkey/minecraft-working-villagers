@@ -213,7 +213,7 @@ pit_digger:
   facts:
     Hired with: ":mc-work_contract: Work contract"
     Workstation: ":mc-pit_stake: Pit stake"
-    Needs: ":mc-iron_shovel: A shovel, :mc-iron_pickaxe: a pickaxe, :mc-ladder: ladders (:mc-torch: torches optional)"
+    Needs: ":mc-iron_shovel: A shovel, :mc-iron_pickaxe: a pickaxe, :mc-ladder: ladders (:mc-torch: torches optional; deeper than 8: :mc-oak_planks: planks and :mc-oak_log: logs)"
     Makes: ":mc-dirt: Dirt, :mc-sand: sand, :mc-gravel: gravel, :mc-cobblestone: cobblestone, ..."
     Pit: up to 64 blocks, 16 deep
     Per day: 256 blocks

@@ -305,5 +305,8 @@ station. So make sure the front of every linked chest can be reached.
 
 ## Experience
 
-For now all workers are **novices**. Levels that make workers faster or let them carry
-more are planned.
+Workers that trade like a vanilla villager (see above) keep their level and rise by
+trading. All others stay **novices** for now. Levels through work, which make workers
+faster or let them carry more, are [planned](../planned.md); the
+[pit digger](pit-digger.md#size-and-level) already digs bigger and deeper pits with a
+higher level.

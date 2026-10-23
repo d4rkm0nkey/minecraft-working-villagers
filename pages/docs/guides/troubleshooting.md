@@ -17,6 +17,7 @@ the status does not help, go through this list.
 | *Cannot work (chest or order missing)* | Link the chests (lumberjack and farmer: one chest; others: an input and an output) and, at a cutter or the bench, set an order. A lumberjack also shows this when the game rule `mob_griefing` is off. |
 | *Waiting: cannot reach the chest* | Clear the front of the chest, or move it to where the worker can walk. |
 | *Waiting: cannot reach the saw* / *the bench* / *the blast furnace* / *the smithing table* / *the kiln* | Clear the front of the workstation. |
+| *Cannot get to the post* / *the fletching table* / *the brewing stand* / *the cauldron* / *the grindstone* / *the enchanting table* / *the smoker* | The worker finds no way to its workstation. Clear a path and a free spot next to it. |
 | *Waiting: chests are full* | Empty the output chests or link another one. |
 | *Waiting: needs an axe (give them one)* | Right-click the lumberjack with an axe. |
 | *Waiting: no tree found* | No natural tree within 16 blocks of the chopping block, or none it can reach. |
@@ -44,6 +45,7 @@ the status does not help, go through this list.
 | *No water in the cauldron (needs a bucket and water nearby)* | Give the tanner a bucket, with water within 16 blocks of the cauldron, or fill the cauldron yourself. |
 | *Tanning, done in 3 min* | Rotten flesh is tanning in the cauldron and nothing else is left to do. |
 | *Waiting for Glass Bottle* (or another material) | The apothecary's input chests lack it: glass bottles or glass, or an ingredient of the next brewing step. |
+| *No brewing recipe leads to the order* | No chain of brewing steps from a water bottle makes the ordered potion (with data packs or other mods, some potions only come from other sources). Order another potion. |
 | *Waiting for blaze powder* | The brewing stand has no fuel left. Put blaze powder into the apothecary's input chest. |
 | *No water near the brewing stand* | No water within 8 blocks of the brewing stand, or no bank next to it to stand on. |
 | *Waiting: the brewing stand is in use* | Someone else brews at the brewing stand, or it holds items the apothecary cannot carry. |
@@ -68,11 +70,15 @@ the status does not help, go through this list.
 | *Waiting: The pit is too big (…)* and other ring problems | The ring at the stake is no pit yet: too big, not closed or too uneven. Hold string to see the strings that are wrong in red. Make the ring smaller or mend it; how big a pit may be grows with the pit digger's [level](../workers/pit-digger.md#size-and-level). |
 | *Waiting: the string ring is broken* | A string of the ring is gone. Put it back where it was, or lay a new closed ring at the stake. |
 | *Waiting: needs a shovel* / *a pickaxe* / *ladders (give them ...)* | Right-click the pit digger with it. It needs ladders once the pit is deeper than one block. |
+| *Waiting: needs planks for the floor* / *logs for the pillars (give them some)* | The pit is deeper than 8 blocks and gets [storeys](../workers/pit-digger.md#storeys). Give the pit digger planks or logs, or put them into a village chest. |
 | *Waiting: needs a better pickaxe* | Only blocks are left that its pickaxe cannot mine (e.g. diamond ore with a stone pickaxe). Give it a better one. |
 | *Waiting: water or lava in the pit* | Only blocks next to water or lava are left. Remove the liquid, then it digs on. |
 | *Pit finished, some pillars stay* | Blocks it does not dig (builds, logs) and everything under them stay. |
 | *Waiting: cannot reach the pit at x y z* | It found no way to the block at these coordinates, e.g. because of pillars or steps it cannot climb. It tries again after a while. |
+| *Waiting: the ladder is blocked* | Something is in the ladder column or on the string above it, so the pit digger cannot climb. Clear the ladder column from the exit down to the bottom. |
+| *Waiting: the pit is not loaded* | Part of the ring lies in chunks that are not loaded, because no player is near enough. Stay closer to the pit. |
 | *Waiting: no tunnel picked* | Click **Pick tunnel** at the mining bench, then right-click the side of the block where the tunnel starts. |
+| *Waiting: the tunnel is too far from players (not loaded)* | The end of the tunnel lies in chunks that are not loaded. Go closer, the miner goes on by itself. |
 | *Waiting: the tunnel is blocked at x y z* | A block the miner does not dig (planks, rails, a chest of a mineshaft, bricks) is in the way. Take it away. |
 | *Waiting: needs cobblestone to seal off water or lava* | Give the miner some cobblestone. Afterwards it keeps 16 of what it digs. |
 | *Tunnel finished* | Make the tunnel longer with **+**, or pick a new one. |
@@ -157,7 +163,8 @@ the status does not help, go through this list.
 - [ ] The overview shows the size of the pit: the ring of string is closed and touches the
   stake. Hold string to see the pit's outline, or the strings that are wrong in red.
 - [ ] At least one chest linked.
-- [ ] It carries a shovel, a pickaxe and ladders.
+- [ ] It carries a shovel, a pickaxe and ladders; for a pit deeper than 8 blocks also planks
+  and logs.
 - [ ] Not already at 256 blocks today.
 
 ### Kiln operator

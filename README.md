@@ -117,8 +117,10 @@ stays in the wage box.
   without one it waits ("needs a hoe"). It needs seeds to start with (up to 16 of each
   kind, `farmer.keepSeeds`); afterwards it replants from its harvest.
 - **Pit digger:** needs a shovel and a pickaxe (up to 2 of each) and ladders (up to 64,
-  `pitDigger.keepLadders`), optionally torches (up to 16, `pitDigger.keepTorches`). The
-  tools wear out one use per block.
+  `pitDigger.keepLadders`), optionally torches (up to 16, `pitDigger.keepTorches`); for a
+  pit with storeys also planks (up to 64, `pitDigger.keepPlanks`) and logs (up to 16,
+  `pitDigger.keepLogs`), which it only takes while its pit has floors. The tools wear out
+  one use per block.
 - **Miner:** needs a pickaxe (up to 2); optionally fences and planks for the supports (up
   to 16 each, `miner.keepFences`, `miner.keepPlanks`) and torches (up to 16,
   `miner.keepTorches`). It keeps up to 16 cobblestone of what it digs
@@ -160,9 +162,10 @@ that has what it wants. Giving directly still works.
 
 **Worn tools:** once a tool has 10 % of its durability left (`tools.returnBelow`, at least
 2 uses), the lumberjack, farmer, pit digger and miner stop using it and, before their next
-piece of work, give it back: into the closest village chest with a free slot (taking a new
-tool on the same walk), else into an output chest of their workstation, else they keep it
-and try again a minute later. So tools never break. Wooden and stone tools are used up
+piece of work, give it back: into the closest village chest with a free slot where a hired
+smith or weaponsmith repairs it (taking a new tool on the same walk), else into an output
+chest of their workstation so the player sees it, else into any village chest with room,
+else they keep it and try again a minute later. So tools never break. Wooden and stone tools are used up
 unless enchanted or renamed (`tools.returnCheap`). Workers never take a worn tool and
 refuse one from a player. A smith at a smithing table repairs them (see *Smith*).
 
@@ -487,14 +490,21 @@ them back where they came from.
 ## Pit digger
 
 A hired villager at the **pit stake** (string, stick and planks) becomes a **pit digger**.
-The player lays **string** on the ground as a closed ring (strings connect straight only,
-each on solid ground, up to `pitDigger.maxUnevenness` 4 blocks up and down), clicks *Pick
-pit* in the stake's overview and right-clicks a string of the ring. Everything inside the
-ring (seen from above, any shape, 2 to `pitDigger.maxArea` 64 blocks, the whole ring within
-the chest distance of the stake) is dug out down to the depth set with *-* / *+* (1 to
-`pitDigger.maxDepth` 16), counted from the highest string; the height is stored when the
-pit is picked. The blocks under the strings stay as the rim; while a string is missing the
-pit digger waits.
+The player lays **string** on the ground as a closed ring that touches the stake (strings
+connect straight only, each on solid ground, up to `pitDigger.maxUnevenness` 4 blocks up
+and down); the stake takes the ring as its pit by itself. Everything inside the ring (seen
+from above, any shape, at least 2 blocks) is dug out down to the depth set with *-* / *+*,
+counted from the highest string. How big and deep grows with the pit digger's level, from
+`pitDigger.noviceArea` 64 blocks and `noviceDepth` 8 to `masterArea` 256 and `masterDepth`
+16, the side of the pit growing evenly. The blocks under the strings stay as the rim; while
+a string is missing the pit digger waits. A player holding string sees the pit at every
+stake within 24 blocks as an outline (`PitPreviews`, drawn on the client with gizmos), or
+the strings at fault in red; the overview and the status say what is wrong with a ring.
+
+Below the novice depth the pit gets **storeys**: every 4 blocks a floor of planks across the
+pit (the ladder column stays open), laid from below once the three layers under it are dug,
+on pillars of logs in a grid every 4 blocks, which grow down with the pit from the bottom up
+to the first floor (`Pit.Storeys`).
 
 It digs top down, layer by layer from the ladder outwards, with the shovel or the pickaxe,
 whichever is faster (`pitDigger.digSlowdown`: 8 times a player's time, at least
@@ -662,12 +672,13 @@ butcher slaughters cows down to the herd size, breeds a piglet and smokes chicke
 vanilla farmer is hired and stays at its composter and gets farmer trades, one that has
 traded keeps its trades and experience, a cartographer is not hired, hired villagers do not trample farmland, the smith smelts raw iron, the kiln operator
 fires glass but leaves meat and raw iron alone and fires cobblestone twice for smooth stone,
-the pit digger digs a pit with a ladder down to its bottom without touching the ring, the
+the pit digger digs a pit with a ladder down to its bottom without touching the ring and
+lays floors on log pillars in pits 10 and 14 deep, the
 shop assistant sells wheat to a farmer until its trade is sold out, ordinary villagers do
 not take a set-up composter and *Assign* makes room at one, a boxed-in worker is brought
 back, a lumberjack takes its wage, the more worn axe and saplings from a village chest but
-leaves a renamed axe there, a lumberjack gives back a worn axe into the village chest (or
-the output chest) instead of breaking it while a stone axe is used up, the smith repairs a
+leaves a renamed axe there, a lumberjack gives back a worn axe into the output chest
+(without a smith at the village chest) instead of breaking it while a stone axe is used up, the smith repairs a
 worn axe from a village chest and an enchanted pickaxe from its input chest, the miner digs a 3×3 tunnel with supports and a torch, side
 tunnels and stairs, digs iron ore in the wall and the one behind it, seals lava and stops
 at planks in its way, and the mill turns cobblestone into gravel and gravel into sand and
