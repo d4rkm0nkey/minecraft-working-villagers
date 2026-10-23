@@ -66,6 +66,29 @@ The pit digger does not trade, so for now it stays a novice; levels for work are
 [planned](../planned.md). Without a pit digger at the stake the novice's limits apply.
 A depth set deeper than the pit digger may dig is kept; it digs as deep as it may.
 
+## Storeys
+
+A pit deeper than **8 blocks** gets storeys: at a depth of 8, 12, ... the pit digger lays
+a **floor of planks** across the whole pit (the ladder column stays open), carried by
+**pillars of logs** every 4 blocks. Each floor is a level you can use, and nobody stands
+above a deep hole. A floor only comes where at least 2 layers are left below it.
+
+- Once the three layers below a floor are dug, it lays the floor from below before it digs
+  on. Where a pillar goes, it puts a log into every block it digs, so the pillars grow down
+  with the pit, from the bottom up to the first floor.
+- Give it **planks** and **logs** like ladders, or put them into a village chest. It only
+  takes them while its pit gets floors. Without them it climbs out and waits (*needs planks
+  for the floor*, *needs logs for the pillars*).
+- The overview says what the storeys take, e.g. *1 floor(s): 99 planks, 8 logs*; holding
+  string shows the floors and pillars in orange.
+
+| Pit | Floors | Planks | Logs |
+| --- | --- | --- | --- |
+| 10×10, 10 deep | 1 | 99 | 8 |
+| 12×12, 12 deep | 1 | 143 | 36 |
+| 14×14, 14 deep | 2 | 381 | 54 |
+| 16×16, 16 deep | 2 | 494 | 128 |
+
 ## Depth
 
 The depth counts from the **highest string** of the ring: with a depth of 4 the pit goes

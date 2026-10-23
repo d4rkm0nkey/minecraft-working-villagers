@@ -1,6 +1,6 @@
 # Beruf: Grubenarbeiter
 
-[← Berufe](README.md) · Station: **Grubenpflock** (neu) · Phase: **umgesetzt** (ohne Master-Fähigkeit), mit [Verständlichkeit](#verständlichkeit) und [Grenzen nach Level](#grenzen-nach-level); in Planung: [Ausbau tiefer Gruben](#ausbau-tiefer-gruben-geplant)
+[← Berufe](README.md) · Station: **Grubenpflock** (neu) · Phase: **umgesetzt** (ohne Master-Fähigkeit), mit [Verständlichkeit](#verständlichkeit) und [Grenzen nach Level](#grenzen-nach-level); mit [Etagen tiefer Gruben](#ausbau-tiefer-gruben)
 
 Der Grubenarbeiter hebt eine Grube aus, die der Spieler mit Schnur umrandet: Er gräbt alles innerhalb des Rings Schicht für Schicht bis zur eingestellten Tiefe ab, setzt dabei eine Leiter als Ausgang und bringt den Aushub in die Zielkiste. Gut für Keller, Fundamente, Sand- und Tongruben und als einfacher Steinbruch vor der [Mine](../grundlagen/mine.md).
 
@@ -144,7 +144,7 @@ Fläche und Tiefe wachsen mit dem Level des Grubenarbeiters, die Seitenlänge um
 - Ohne Arbeiter am Pflock (oder wenn er nicht geladen ist) gelten die Anfängerwerte (`PitLimits`). Die eingestellte Tiefe bleibt gespeichert (bis zum Meisterwert); gegraben und angezeigt wird höchstens die Tiefe des Arbeiters, und **+** geht nur bis dahin.
 - Der Grubenarbeiter handelt nicht und bleibt deshalb Anfänger, bis Arbeiter durch Arbeit aufsteigen ([Anheuern & Lohn](../wirtschaft/anheuern-und-lohn.md)). Die Grenzen hängen trotzdem schon jetzt am Level, so wie das Grabtempo.
 
-## Ausbau tiefer Gruben (geplant)
+## Ausbau tiefer Gruben
 
 Tiefe Gruben bekommen **Etagen**: Unterhalb der Anfängertiefe (`pitDigger.noviceDepth`, 8) zieht der Grubenarbeiter alle 4 Blöcke eine Decke aus **Brettern** ein, getragen von Säulen aus **Stämmen**. Die Anfängergrube bleibt so, wie sie ist; eine tiefe Grube wird zum Keller mit mehreren Geschossen und kostet Holz aus der Kette [Holzfäller](holzfaeller.md) → [Holzsäger](holzsaeger.md). Kein Wandverbau.
 
@@ -167,26 +167,27 @@ Tiefe Gruben bekommen **Etagen**: Unterhalb der Anfängertiefe (`pitDigger.novic
 ```
 
 - **Decken:** bei 8, 12, … Blöcken Tiefe (ab `noviceDepth`, dann alle 4), nicht auf der Sohle. Eine Decke ist die ganze Grubenfläche aus Brettern (jede Holzart), nur die **Leiterspalte bleibt offen**. Jedes Geschoss ist damit nutzbar (Lager, Farmen), und Spieler stehen nie über einem tiefen Loch.
-- **Säulen:** aus Stämmen (jede Holzart), im Raster etwa **alle 4 Blöcke** in beide Richtungen, mindestens 4 je Geschoss, nie in der Leiterspalte. Sie stehen auf der nächsten Decke oder der Sohle und reichen bis unter die Decke darüber. Bei 8×8 sind es 4, bei 16×16 etwa 9 bis 16. Bei freien Formen gilt dasselbe Raster, Säulen nur auf Feldern innerhalb des Rings.
-- **Ablauf:** Er gräbt ein Geschoss (die 4 Schichten unter einer künftigen Decke) aus, stellt von unten die Säulen auf und legt dann die Decke darüber; die Schicht der Decke wird also erst ausgehoben und dann mit Brettern geschlossen. Danach steigt er durch die Leiterspalte und gräbt das nächste Geschoss. Fehlen Bretter oder Stämme, bleibt er an der Decke stehen und wartet („Wartet: braucht Bretter“ / „... Stämme“); bis zur Anfängertiefe braucht er nie welche.
-- **Mitnahme** wie Leitern: Bretter und Stämme gibt man ihm direkt oder er holt sie aus einer Dorfkiste (neue Vorräte wie `PLANKS` beim [Minenarbeiter](minenarbeiter.md)).
+- Eine Decke gibt es nur, wenn darunter noch mindestens 2 Schichten zum Stehen bleiben (bei 12 also erst ab 14 Tiefe).
+- **Säulen:** aus Stämmen (jede Holzart), im Raster **alle 4 Blöcke** in beide Richtungen (Spalten 2, 6, 10, 14 ab der Ecke der Grube), nie in der Leiterspalte. Eine Säule ist eine durchgehende Spalte aus Stämmen von der Sohle bis unter die oberste Decke; tiefere Decken liegen um sie herum (`Pit.Storeys`). Bei 8×8 und 10×10 sind es 4, bei 12×12 und 14×14 9, bei 16×16 16. Bei freien Formen gilt dasselbe Raster, Säulen nur auf Feldern innerhalb des Rings.
+- **Ablauf** (`DigPit`): Er gräbt Schicht für Schicht wie bisher. Ab der ersten Decke setzt er in jeden Block einer Säulenspalte, den er gräbt, sofort einen Stamm; so wächst die Säule mit der Grube nach unten und trägt jede Decke, sobald sie liegt. Sind die drei Schichten unter einer Decke (oder alle bis zur Sohle) gegraben, legt er die Decke von unten, bevor er weitergräbt: Er steht im Geschoss darunter und erreicht die Decke bis 4,5 Blöcke weit. Die Schicht der Decke wird also erst ausgehoben und dann mit Brettern geschlossen. Durch Decken gräbt und baut er nicht. Fehlen Bretter oder Stämme, steigt er aus und wartet („Wartet: braucht Bretter für die Decke“ / „... Stämme für die Säulen“); bis zur Anfängertiefe braucht er nie welche.
+- **Mitnahme** wie Leitern: Bretter und Stämme gibt man ihm direkt oder er holt sie aus einer Dorfkiste, Vorräte `pitDigger.keepPlanks` (64) und `keepLogs` (16). Er nimmt sie nur an, solange seine Grube Decken bekommt; sonst bleiben seine 8 Inventarplätze für Werkzeug, Leitern, Fackeln und Aushub.
 - **Bedarf** (größte Grube je Level, Raster alle 4 Blöcke):
 
 | Level | Grube | Decken | Bretter | Stämme |
 | --- | --- | --- | --- | --- |
 | Novice | 8×8, 8 tief | – | – | – |
-| Apprentice | 10×10, 10 tief | 1 (bei 8) | ~99 | ~8 (4 Säulen × 2) |
-| Journeyman | 12×12, 12 tief | 1 (bei 8) | ~143 | ~36 (9 Säulen × 4) |
-| Expert | 14×14, 14 tief | 2 (bei 8 und 12) | ~390 | ~45 (9 Säulen × (3 + 2)) |
-| Master | 16×16, 16 tief | 2 (bei 8 und 12) | ~510 | ~112 (16 Säulen × (3 + 4)) |
+| Apprentice | 10×10, 10 tief | 1 (bei 8) | 99 | 8 (4 Säulen × 2) |
+| Journeyman | 12×12, 12 tief | 1 (bei 8) | 143 | 36 (9 Säulen × 4) |
+| Expert | 14×14, 14 tief | 2 (bei 8 und 12) | 381 | 54 (9 Säulen × 6) |
+| Master | 16×16, 16 tief | 2 (bei 8 und 12) | 494 | 128 (16 Säulen × 8) |
 
-  Werte zum Abschätzen, genau rechnen bei der Umsetzung. Eine Decke gibt es nur, wenn die Grube tiefer reicht (bei 12 also ab 13 Tiefe). Die Säulen sind so hoch wie das Geschoss darunter: zwischen zwei Decken 3, im untersten Geschoss bis zur Sohle 1 bis 4.
-- **Übersicht:** Im Einstellungs-Tab steht unter der Tiefe, wie viele Decken die Grube bekommt und was sie kostet („2 Decken: 510 Bretter, 96 Stämme“), die Vorschau mit Schnur in der Hand zeigt die Decken als Linien.
+  Bretter: Fläche ohne Leiterspalte je Decke, ab der zweiten Decke ohne die Säulen, die durch sie gehen. Stämme: Säulen × Höhe von der Sohle bis unter die oberste Decke.
+- **Übersicht:** Im Einstellungs-Tab steht unter der Tiefe, wie viele Decken die Grube bekommt und was sie kostet („2 Decke(n): 494 Bretter, 128 Stämme“), die Vorschau mit Schnur in der Hand zeigt Decken und Säulen orange, durch den Boden hindurch.
 - **Abbau:** Decken, Säulen und Leitern bleiben in der fertigen Grube.
 
-Entschieden: Etagen statt Wandverbau, ganze Decke (nicht nur ein Rundgang am Rand), Säulen im Raster alle 4 Blöcke, Stämme und Bretter, erst das Geschoss graben, dann bauen, ab der Anfängertiefe aus der Config.
+Entschieden: Etagen statt Wandverbau, ganze Decke (nicht nur ein Rundgang am Rand), Säulen im Raster alle 4 Blöcke, Stämme und Bretter, erst das Geschoss graben, dann bauen, ab der Anfängertiefe aus der Config. Umgesetzt mit Gametests `pit_digger_builds_storeys` (eine Decke) und `pit_digger_builds_two_storeys` (zwei Decken, Säule durch die untere).
 
-Offene Fragen:
+Offene Fragen (vorerst: kein Schalter, Säulen bleiben im Raster):
 
 - Darf der Spieler die Decken abschalten (Einstellung am Pflock), z. B. für einen offenen Steinbruch? Dann wäre die Grube unter 8 nicht tiefer erlaubt, oder doch?
 - Säulen im Raster stehen mitten im Raum. Sollen sie bei kleinen Gruben (bis 6 breit) an den Rand rücken?
@@ -203,7 +204,7 @@ Gräbt behutsam: Gras, Myzel und Podsol landen als Block in der Zielkiste statt 
 
 ## Abgrenzung zum Minenarbeiter
 
-Der [Minenarbeiter](minenarbeiter.md) hat einen Steinbruch-Modus mit markiertem Quader. Der Grubenarbeiter ist die einfache, frühe Variante davon: freie Form per Schnur, nur nach unten; Etagen und Säulen nur unter den Decken tiefer Gruben ([Ausbau](#ausbau-tiefer-gruben-geplant)). Kommt der Minenarbeiter, kann sein Steinbruch-Modus diese Logik übernehmen.
+Der [Minenarbeiter](minenarbeiter.md) hat einen Steinbruch-Modus mit markiertem Quader. Der Grubenarbeiter ist die einfache, frühe Variante davon: freie Form per Schnur, nur nach unten; Etagen und Säulen nur unter den Decken tiefer Gruben ([Ausbau](#ausbau-tiefer-gruben)). Kommt der Minenarbeiter, kann sein Steinbruch-Modus diese Logik übernehmen.
 
 ## Sonderfälle & offene Fragen
 

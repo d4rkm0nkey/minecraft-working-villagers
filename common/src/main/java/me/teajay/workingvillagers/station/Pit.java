@@ -38,6 +38,8 @@ import org.jspecify.annotations.Nullable;
  */
 public record Pit(List<BlockPos> ring, List<BlockPos> inside, BlockPos exit, BlockPos ladder, int top) {
 	public static final int DEFAULT_DEPTH = 4;
+	/** How high a storey of a deep pit is, floor included, and how far apart its pillars stand. */
+	public static final int STOREY = 4;
 	/** Bedrock and the bottom of the world stay out of reach. */
 	private static final int ABOVE_BOTTOM = 5;
 	/** More strings than this are not followed, the ring is too big anyway. */
@@ -59,6 +61,55 @@ public record Pit(List<BlockPos> ring, List<BlockPos> inside, BlockPos exit, Blo
 	/** The lowest layer that is dug; the block below stays as the floor of the pit. */
 	public int bottom(ServerLevel level, int depth) {
 		return Math.max(this.top - depth, level.getMinY() + ABOVE_BOTTOM);
+	}
+
+	/**
+	 * The storeys of a pit dug {@code depth} deep: from the novice depth ({@link Config#PIT_NOVICE_DEPTH})
+	 * on, a floor of planks every {@link #STOREY} blocks, as long as at least 2 layers are left
+	 * below it to stand in. The floors rest on pillars of logs in a grid every {@link #STOREY}
+	 * blocks, which go from the bottom up to the first floor, through the floors below it. The
+	 * ladder column stays open. A pit no deeper than the novice depth has no storeys.
+	 */
+	public Storeys storeys(ServerLevel level, int depth) {
+		int bottom = this.bottom(level, depth);
+		List<Integer> floors = new ArrayList<>();
+		for (int y = this.top - Config.PIT_NOVICE_DEPTH.get(); y - bottom >= 2; y -= STOREY) {
+			floors.add(y);
+		}
+		if (floors.isEmpty()) {
+			return new Storeys(List.of(), List.of(), bottom, 0, 0);
+		}
+		int minX = this.inside.stream().mapToInt(BlockPos::getX).min().orElse(0);
+		int minZ = this.inside.stream().mapToInt(BlockPos::getZ).min().orElse(0);
+		List<BlockPos> pillars = this.inside.stream()
+			.filter(column -> Math.floorMod(column.getX() - minX, STOREY) == 2 && Math.floorMod(column.getZ() - minZ, STOREY) == 2)
+			.filter(column -> column.getX() != this.ladder.getX() || column.getZ() != this.ladder.getZ())
+			.toList();
+		int cells = this.inside.size() - 1;
+		// The first floor lies on the pillars, the ones below have them going through
+		int planks = cells + (floors.size() - 1) * (cells - pillars.size());
+		int logs = pillars.size() * (floors.getFirst() - bottom);
+		return new Storeys(List.copyOf(floors), pillars, bottom, planks, logs);
+	}
+
+	/**
+	 * The storeys of a deep pit (see {@link #storeys}): the heights of the floors from the top
+	 * down, the columns of the pillars (at the height of the highest string), the lowest layer
+	 * dug, and the planks and logs it all takes.
+	 */
+	public record Storeys(List<Integer> floors, List<BlockPos> pillars, int bottom, int planks, int logs) {
+		/** No storeys at all. */
+		public static final Storeys NONE = new Storeys(List.of(), List.of(), Integer.MIN_VALUE, 0, 0);
+
+		public boolean isFloor(int y) {
+			return this.floors.contains(y);
+		}
+
+		/** Whether a log of a pillar goes at the position: in a pillar column, below the first floor. */
+		public boolean isPillar(BlockPos pos) {
+			return !this.floors.isEmpty() && pos.getY() < this.floors.getFirst() && pos.getY() >= this.bottom
+				&& this.pillars.stream().anyMatch(column -> column.getX() == pos.getX() && column.getZ() == pos.getZ());
+		}
 	}
 
 	/** Whether the column (x and z of the position) is inside the ring. */

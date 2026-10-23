@@ -20,6 +20,9 @@ import net.minecraft.core.GlobalPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -31,6 +34,7 @@ import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.BaseTorchBlock;
 import net.minecraft.world.level.block.Block;
@@ -56,6 +60,11 @@ import org.jspecify.annotations.Nullable;
  * step of its own here: to the top of the ladder, then straight up or down. With torches
  * it lights the floor of the pit, about every six blocks.
  *
+ * <p>A pit deeper than the novice depth gets storeys ({@link Pit.Storeys}): once the three
+ * layers below a floor are dug, it lays the floor with planks from below before it digs on,
+ * and where a pillar goes it puts a log into each block it digs, so the pillars grow down with
+ * the pit and carry the floors. Without planks or logs it digs no further there.
+ *
  * <p>It delivers once what the next block drops does not fit any more, when it has dug its
  * blocks for the day ({@link Config#PIT_DAILY_BLOCKS}) or the pit is done. When the work
  * hours end it first climbs out of the pit.
@@ -77,8 +86,11 @@ public class DigPit extends Behavior<Villager> {
 	/** No torch closer than this to another one on the floor of the pit. */
 	private static final int TORCH_SPACING = 5;
 	private static final int RING_CHECK_INTERVAL = 40;
+	/** How far (from its feet to the middle of the block) it reaches up to lay a floor. */
+	private static final double PLACE_REACH = 4.5;
+	private static final int PLACE_TICKS = 6;
 
-	private enum State { PLAN, MOVE, DIG, DELIVER, WAIT }
+	private enum State { PLAN, MOVE, DIG, BUILD, DELIVER, WAIT }
 
 	/** A part of the way somewhere: a walk, or climbing the ladder. */
 	private record Leg(Kind kind, BlockPos pos) {
@@ -151,11 +163,25 @@ public class DigPit extends Behavior<Villager> {
 	}
 
 	private Workstations.@Nullable Station getWorkplace(ServerLevel level, Villager villager) {
+		return workplace(level, villager);
+	}
+
+	private static Workstations.@Nullable Station workplace(ServerLevel level, Villager villager) {
 		Optional<GlobalPos> jobSite = villager.getBrain().getMemory(MemoryModuleType.JOB_SITE);
 		if (jobSite.isEmpty() || jobSite.get().dimension() != level.dimension()) {
 			return null;
 		}
 		return Workstations.find(level, jobSite.get().pos()).orElse(null);
+	}
+
+	/** Whether the pit at the pit digger's stake gets storeys, so that it carries planks and logs. */
+	static boolean hasStoreys(Villager villager) {
+		if (!(villager.level() instanceof ServerLevel level)) {
+			return false;
+		}
+		Workstations.Station station = workplace(level, villager);
+		Pit pit = station == null ? null : station.pit();
+		return pit != null && !pit.storeys(level, depth(villager, station)).floors().isEmpty();
 	}
 
 	@Override
@@ -202,7 +228,8 @@ public class DigPit extends Behavior<Villager> {
 		if (pit != null && villager.tickCount % RING_CHECK_INTERVAL == 0) {
 			this.ringIntact = pit.isIntact(level);
 		}
-		boolean towardsWork = this.state == State.DIG || this.state == State.MOVE && this.afterMove == State.DIG;
+		boolean towardsWork = this.state == State.DIG || this.state == State.BUILD
+			|| this.state == State.MOVE && (this.afterMove == State.DIG || this.afterMove == State.BUILD);
 		if (!villager.getBrain().isActive(Activity.WORK) && towardsWork && !this.climbing && !this.escaping) {
 			// The work hours are over: no more digging, out of the pit
 			if (this.target != null) {
@@ -218,6 +245,7 @@ public class DigPit extends Behavior<Villager> {
 			case PLAN -> this.plan(level, villager, station, pit);
 			case MOVE -> this.move(level, villager, pit);
 			case DIG -> this.dig(level, villager, station, pit);
+			case BUILD -> this.build(level, villager);
 			case DELIVER -> this.deliver(level, villager, station);
 			case WAIT -> {
 				if (this.stateTicks >= IDLE_TICKS) {
@@ -247,6 +275,7 @@ public class DigPit extends Behavior<Villager> {
 					WorkerStatus.task(villager, "pit_digger.dig", layer, depth(villager, station));
 				}
 			}
+			case BUILD -> WorkerStatus.task(villager, "pit_digger.build_floor", pit == null || this.target == null ? 0 : pit.top() - this.target.getY());
 			case DELIVER -> WorkerStatus.task(villager, "deliver");
 			case WAIT -> WorkerStatus.task(villager, this.waitReason, this.waitArgs);
 		}
@@ -279,8 +308,14 @@ public class DigPit extends Behavior<Villager> {
 			this.restOutside(level, villager, station, pit, "pit_digger.ring_broken");
 			return;
 		}
+		Pit.Storeys storeys = pit.storeys(level, depth(villager, station));
 		boolean tired = ((HiredVillager) villager).workingvillagers$getWorkDone(ChopTrees.today(level)) >= Config.PIT_DAILY_BLOCKS.get();
-		Plan plan = tired ? new Plan(null, Blocked.NONE) : this.nextBlock(level, villager, station, pit);
+		Plan plan = tired ? new Plan(null, Blocked.NONE) : this.nextBlock(level, villager, station, pit, storeys);
+		// A storey dug: its floor before the next block
+		List<BlockPos> floor = tired ? List.of() : this.dueFloor(level, pit, storeys, plan);
+		if (!floor.isEmpty() && this.layFloor(level, villager, pit, storeys, floor, deep)) {
+			return;
+		}
 		// Its pockets are full when what the next block drops does not fit any more
 		boolean full = plan.target() != null && !Digging.fits(inventory, Digging.drops(level, villager, plan.target()));
 		if (hasDeliverables(villager) && (tired || full || plan.target() == null)) {
@@ -305,18 +340,19 @@ public class DigPit extends Behavior<Villager> {
 			return;
 		}
 		// Wage and tools before the next block; out of the pit to wait for them
-		if (this.missingSupplies(level, villager, pit, plan.target())) {
+		WorkerSupplies.Need[] needs = this.needs(pit, storeys, plan.target());
+		if (this.missingSupplies(level, villager, needs)) {
 			if (deep) {
 				this.leavePit(level, villager, pit);
 			} else {
-				this.waitingForSupplies = this.supplies.busy(level, villager, this.needs(pit, plan.target()));
+				this.waitingForSupplies = this.supplies.busy(level, villager, needs);
 			}
 			return;
 		}
 		if (this.placeMissingLadders(level, villager, station, pit)) {
 			return;
 		}
-		Optional<BlockPos> spot = this.standSpot(level, villager, pit, plan.target());
+		Optional<BlockPos> spot = this.standSpot(level, villager, pit, storeys, plan.target());
 		// Down the ladder column it digs itself down the shaft (on the block, under its feet),
 		// unless it gets at the block from where it is without climbing (down in a hole)
 		boolean shaft = isLadderColumn(pit, plan.target()) && plan.target().getY() < pit.ladder().getY()
@@ -337,20 +373,24 @@ public class DigPit extends Behavior<Villager> {
 		}
 	}
 
-	/** The tools it needs for the block (and ladders once the pit gets deep). */
-	private WorkerSupplies.Need[] needs(Pit pit, BlockPos target) {
-		boolean ladder = target.getY() <= pit.exit().getY() - 2;
-		return ladder
-			? new WorkerSupplies.Need[] {WorkerSupplies.SHOVEL, WorkerSupplies.PICKAXE, WorkerSupplies.LADDERS}
-			: new WorkerSupplies.Need[] {WorkerSupplies.SHOVEL, WorkerSupplies.PICKAXE};
+	/** The tools it needs for the block (and ladders once the pit gets deep, a log where a pillar goes). */
+	private WorkerSupplies.Need[] needs(Pit pit, Pit.Storeys storeys, BlockPos target) {
+		List<WorkerSupplies.Need> needs = new ArrayList<>(List.of(WorkerSupplies.SHOVEL, WorkerSupplies.PICKAXE));
+		if (target.getY() <= pit.exit().getY() - 2) {
+			needs.add(WorkerSupplies.LADDERS);
+		}
+		if (storeys.isPillar(target)) {
+			needs.add(WorkerSupplies.PIT_LOGS);
+		}
+		return needs.toArray(WorkerSupplies.Need[]::new);
 	}
 
-	private boolean missingSupplies(ServerLevel level, Villager villager, Pit pit, BlockPos target) {
+	private boolean missingSupplies(ServerLevel level, Villager villager, WorkerSupplies.Need... needs) {
 		SimpleContainer inventory = villager.getInventory();
 		if (Config.DAILY_WAGE.get() > 0 && !WorkerSupplies.isPaid(level, villager) || this.supplies.refillDue(level, villager)) {
 			return true;
 		}
-		for (WorkerSupplies.Need need : this.needs(pit, target)) {
+		for (WorkerSupplies.Need need : needs) {
 			if (!inventory.hasAnyMatching(stack -> !stack.isEmpty() && need.ready().test(stack))) {
 				return true;
 			}
@@ -366,7 +406,7 @@ public class DigPit extends Behavior<Villager> {
 	 * dug first, from the top, skipping what it cannot reach. Columns are dug from the top;
 	 * a column stops at the first block that has to stay.
 	 */
-	private Plan nextBlock(ServerLevel level, Villager villager, Workstations.Station station, Pit pit) {
+	private Plan nextBlock(ServerLevel level, Villager villager, Workstations.Station station, Pit pit, Pit.Storeys storeys) {
 		int bottom = pit.bottom(level, depth(villager, station));
 		List<BlockPos> candidates = new ArrayList<>();
 		Blocked blocked = Blocked.NONE;
@@ -379,7 +419,7 @@ public class DigPit extends Behavior<Villager> {
 				// Its own ladders, torches on the floor (torches higher up are picked up again), and
 				// above the rim what hangs in the air (the crown of a tree): only a hill is dug away
 				if (state.isAir() || state.is(Blocks.LADDER) && isLadderColumn(pit, pos) || y == bottom && state.getBlock() instanceof BaseTorchBlock
-					|| y >= pit.top() && !restsOnGround(level, pos, pit)) {
+					|| y >= pit.top() && !restsOnGround(level, pos, pit) || isStoreyPart(storeys, pos, state)) {
 					above = Blocked.NONE;
 					continue;
 				}
@@ -416,6 +456,101 @@ public class DigPit extends Behavior<Villager> {
 			}
 		}
 		return new Plan(best, blocked);
+	}
+
+	/** Its own floors and pillars, which it digs past. */
+	private static boolean isStoreyPart(Pit.Storeys storeys, BlockPos pos, BlockState state) {
+		return storeys.isPillar(pos) ? state.is(BlockTags.LOGS) : storeys.isFloor(pos.getY()) && state.is(BlockTags.PLANKS);
+	}
+
+	/**
+	 * The blocks of the floor that is due: the first floor (from the top) with blocks missing
+	 * whose storey below is dug, the three layers under it or down to the bottom. Empty if no
+	 * floor is due. Blocks it could not get at a while ago are left out for now.
+	 */
+	private List<BlockPos> dueFloor(ServerLevel level, Pit pit, Pit.Storeys storeys, Plan plan) {
+		for (int floor : storeys.floors()) {
+			int storeyDug = Math.max(floor - (Pit.STOREY - 1), storeys.bottom());
+			if (plan.target() != null && plan.target().getY() >= storeyDug) {
+				return List.of();
+			}
+			List<BlockPos> missing = new ArrayList<>();
+			for (BlockPos column : pit.inside()) {
+				BlockPos pos = column.atY(floor);
+				if (!isLadderColumn(pit, pos) && level.getBlockState(pos).isAir() && !this.unreachable.containsKey(pos)) {
+					missing.add(pos);
+				}
+			}
+			if (!missing.isEmpty()) {
+				return missing;
+			}
+		}
+		return List.of();
+	}
+
+	/**
+	 * Lays the due floor from below: a block within reach right away, else it walks below the
+	 * closest one. With no planks it goes for them (out of the pit to wait). Returns false if
+	 * it gets at none of the blocks; then it digs on.
+	 */
+	private boolean layFloor(ServerLevel level, Villager villager, Pit pit, Pit.Storeys storeys, List<BlockPos> floor, boolean deep) {
+		if (this.missingSupplies(level, villager, WorkerSupplies.PIT_PLANKS)) {
+			if (deep) {
+				this.leavePit(level, villager, pit);
+			} else {
+				this.waitingForSupplies = this.supplies.busy(level, villager, WorkerSupplies.PIT_PLANKS);
+			}
+			return true;
+		}
+		BlockPos feet = villager.blockPosition();
+		Optional<BlockPos> near = floor.stream()
+			.filter(pos -> feet.getY() < pos.getY() && !separated(storeys, feet, pos) && Vec3.atBottomCenterOf(feet).closerThan(Vec3.atCenterOf(pos), PLACE_REACH))
+			.min(Comparator.comparingDouble(pos -> horizontalDistance(pos, feet)));
+		if (near.isPresent()) {
+			this.target = near.get();
+			this.setState(State.BUILD);
+			return true;
+		}
+		List<BlockPos> byDistance = new ArrayList<>(floor);
+		byDistance.sort(Comparator.comparingDouble(pos -> horizontalDistance(pos, feet)));
+		for (BlockPos pos : byDistance) {
+			Optional<BlockPos> spot = this.buildSpot(level, villager, pit, storeys, pos);
+			if (spot.isPresent()) {
+				this.target = pos;
+				this.goTo(level, villager, pit, spot.get(), State.BUILD);
+				return true;
+			}
+			this.unreachable.put(pos, level.getGameTime() + UNREACHABLE_COOLDOWN);
+		}
+		return false;
+	}
+
+	/** Where to stand to lay a block of a floor: below it, in the storey under it, within reach. */
+	private Optional<BlockPos> buildSpot(ServerLevel level, Villager villager, Pit pit, Pit.Storeys storeys, BlockPos block) {
+		List<BlockPos> candidates = new ArrayList<>();
+		for (int dx = -2; dx <= 2; dx++) {
+			for (int dz = -2; dz <= 2; dz++) {
+				for (int dy = -Pit.STOREY + 1; dy <= -2; dy++) {
+					BlockPos spot = block.offset(dx, dy, dz);
+					if (pit.contains(spot) && !isLadderColumn(pit, spot) && !this.badSpots.containsKey(spot) && !separated(storeys, spot, block)
+						&& Vec3.atBottomCenterOf(spot).closerThan(Vec3.atCenterOf(block), PLACE_REACH) && Digging.isStandable(level, spot)) {
+						candidates.add(spot);
+					}
+				}
+			}
+		}
+		Vec3 at = villager.position();
+		return candidates.stream().min(Comparator.comparingDouble(spot -> Vec3.atBottomCenterOf(spot).distanceToSqr(at)));
+	}
+
+	/** Whether a floor lies between where it stands and the block (it does not dig or build through floors). */
+	private static boolean separated(Pit.Storeys storeys, BlockPos spot, BlockPos block) {
+		for (int floor : storeys.floors()) {
+			if (spot.getY() > floor && block.getY() < floor || spot.getY() <= floor && block.getY() > floor) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/** Whether the block above the rim stands on the ground without a gap, like a hill. */
@@ -465,7 +600,7 @@ public class DigPit extends Behavior<Villager> {
 	 * Where to stand to dig the block: two free blocks above solid ground, inside the ring or
 	 * on it, within reach, not on the block itself. The closest to where it is now.
 	 */
-	private Optional<BlockPos> standSpot(ServerLevel level, Villager villager, Pit pit, BlockPos target) {
+	private Optional<BlockPos> standSpot(ServerLevel level, Villager villager, Pit pit, Pit.Storeys storeys, BlockPos target) {
 		List<BlockPos> candidates = new ArrayList<>();
 		int range = (int) Math.ceil(REACH);
 		for (int dx = -range; dx <= range; dx++) {
@@ -476,7 +611,7 @@ public class DigPit extends Behavior<Villager> {
 				}
 				for (int dy = -2; dy <= 2; dy++) {
 					BlockPos spot = column.above(dy);
-					if (!spot.below().equals(target) && !this.badSpots.containsKey(spot)
+					if (!spot.below().equals(target) && !this.badSpots.containsKey(spot) && !separated(storeys, spot, target)
 						&& Vec3.atBottomCenterOf(spot).closerThan(Vec3.atCenterOf(target), REACH) && Digging.isStandable(level, spot)) {
 						candidates.add(spot);
 					}
@@ -526,7 +661,7 @@ public class DigPit extends Behavior<Villager> {
 		BlockPos foot = ladderBottom(level, pit);
 		if (foot.getY() > villager.getBlockY() + 1) {
 			BlockPos block = foot.below();
-			Optional<BlockPos> spot = this.standSpot(level, villager, pit, block);
+			Optional<BlockPos> spot = this.standSpot(level, villager, pit, Pit.Storeys.NONE, block);
 			if (spot.isPresent() && this.whyNot(level, villager, block, level.getBlockState(block)) == Blocked.NONE) {
 				this.target = block;
 				this.escaping = true;
@@ -560,6 +695,8 @@ public class DigPit extends Behavior<Villager> {
 			this.climbing = false;
 			if (this.afterMove == State.DIG && this.target != null) {
 				this.startDigging(level, villager);
+			} else if (this.afterMove == State.BUILD && this.target != null) {
+				this.setState(State.BUILD);
 			} else {
 				this.setState(State.PLAN);
 			}
@@ -571,7 +708,7 @@ public class DigPit extends Behavior<Villager> {
 					villager.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
 					this.nextLeg();
 				} else if (this.stateTicks > WALK_TIMEOUT) {
-					boolean toSpot = this.legs.size() == 1 && this.afterMove == State.DIG;
+					boolean toSpot = this.legs.size() == 1 && (this.afterMove == State.DIG || this.afterMove == State.BUILD);
 					this.legs.clear();
 					villager.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
 					if (toSpot) {
@@ -719,11 +856,47 @@ public class DigPit extends Behavior<Villager> {
 		this.target = null;
 		if (isLadderColumn(pit, pos)) {
 			this.placeLadder(level, villager, pit, pos);
+		} else if (pit.storeys(level, depth(villager, station)).isPillar(pos)) {
+			this.placeBlock(level, villager, pos, ItemTags.LOGS);
 		} else if (pos.getY() == pit.bottom(level, depth(villager, station))) {
 			this.placeTorch(level, villager, pit, pos);
 		}
 		villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
 		this.setState(State.PLAN);
+	}
+
+	/** Lays a block of the due floor, from below. */
+	private void build(ServerLevel level, Villager villager) {
+		BlockPos pos = this.target;
+		if (pos == null || !level.getBlockState(pos).isAir() || !Vec3.atCenterOf(pos).closerThan(villager.position(), PLACE_REACH + 1.0)) {
+			this.target = null;
+			this.setState(State.PLAN);
+			return;
+		}
+		villager.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(pos));
+		if (this.stateTicks < PLACE_TICKS) {
+			return;
+		}
+		this.placeBlock(level, villager, pos, ItemTags.PLANKS);
+		this.target = null;
+		this.setState(State.PLAN);
+	}
+
+	/** Puts a block it carries (planks for a floor, a log for a pillar) into the free position. */
+	private void placeBlock(ServerLevel level, Villager villager, BlockPos pos, TagKey<Item> tag) {
+		SimpleContainer inventory = villager.getInventory();
+		for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+			ItemStack stack = inventory.getItem(slot);
+			if (!stack.isEmpty() && stack.is(tag) && stack.getItem() instanceof BlockItem item && level.getBlockState(pos).isAir()) {
+				BlockState state = item.getBlock().defaultBlockState();
+				level.setBlockAndUpdate(pos, state);
+				stack.shrink(1);
+				inventory.setChanged();
+				villager.swingForAttack(InteractionHand.MAIN_HAND);
+				level.playSound(null, pos, state.getSoundType().getPlaceSound(), SoundSource.BLOCKS, 1.0F, 0.8F);
+				return;
+			}
+		}
 	}
 
 	/** Puts a ladder into the dug block of the ladder column, against the wall below the exit. */

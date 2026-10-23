@@ -184,6 +184,10 @@ public final class Config {
 		"How many ladders the pit digger carries at most.");
 	public static final IntOption KEEP_TORCHES = intOption("pitDigger", "keepTorches", 16, 0, 64,
 		"How many torches the pit digger carries at most (0: it takes none).");
+	public static final IntOption PIT_KEEP_PLANKS = intOption("pitDigger", "keepPlanks", 64, 1, 64,
+		"How many planks the pit digger carries at most for the floors of a deep pit (only while its pit has floors).");
+	public static final IntOption PIT_KEEP_LOGS = intOption("pitDigger", "keepLogs", 16, 1, 64,
+		"How many logs the pit digger carries at most for the pillars of a deep pit (only while its pit has floors).");
 
 	public static final IntOption TUNNEL_MAX_LENGTH = intOption("miner", "maxTunnelLength", 32, 4, 64,
 		"How long (in blocks) a tunnel may be at most. The miner carries every load out to its chests itself.");

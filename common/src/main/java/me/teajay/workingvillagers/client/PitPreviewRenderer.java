@@ -19,11 +19,13 @@ import net.minecraft.world.phys.Vec3;
 /**
  * Draws the pits at the pit stakes nearby while the player holds string, like the outline of
  * a structure block: a pit as the outline of what is dug (at the top of the ring, and through
- * the ground the floor and the corners), a ring that is no pit as a frame around each string, red where the problem is. The
+ * the ground the floor, the corners and, in a deep pit, its floors and pillars), a ring that is no pit as a frame around each string, red where the problem is. The
  * server sends what to draw ({@link PitPreviewPayload}); the outline is drawn anew every tick.
  */
 public final class PitPreviewRenderer {
 	private static final int PIT_COLOR = 0xFFFFFFFF;
+	/** The floors and pillars of a deep pit, in the ground as well. */
+	private static final int STOREY_COLOR = 0xCCD8A060;
 	/** The floor and the corners lie in the ground: drawn through it, fainter. */
 	private static final int BELOW_COLOR = 0x99FFFFFF;
 	private static final int STRING_COLOR = 0xFFB0B0B0;
@@ -88,9 +90,20 @@ public final class PitPreviewRenderer {
 				double toZ = z + along.getStepZ() * 0.5;
 				Gizmos.line(new Vec3(fromX, topY, fromZ), new Vec3(toX, topY, toZ), PIT_COLOR, WIDTH);
 				Gizmos.line(new Vec3(fromX, floorY, fromZ), new Vec3(toX, floorY, toZ), BELOW_COLOR, WIDTH).setAlwaysOnTop();
+				for (int floor : stake.floors()) {
+					// The top of the floor
+					Gizmos.line(new Vec3(fromX, floor + 1.02, fromZ), new Vec3(toX, floor + 1.02, toZ), STOREY_COLOR, WIDTH).setAlwaysOnTop();
+				}
 				int axis = along.getAxis() == Direction.Axis.X ? 1 : 2;
 				corners.merge(column(Math.round(fromX * 2), Math.round(fromZ * 2)), axis, (a, b) -> a | b);
 				corners.merge(column(Math.round(toX * 2), Math.round(toZ * 2)), axis, (a, b) -> a | b);
+			}
+		}
+		// The pillars, from the bottom up to the first floor
+		if (!stake.floors().isEmpty()) {
+			for (BlockPos pillar : stake.pillars()) {
+				Gizmos.cuboid(new AABB(pillar.getX() + 0.3, floorY, pillar.getZ() + 0.3, pillar.getX() + 0.7, stake.floors().getFirst(), pillar.getZ() + 0.7),
+					GizmoStyle.stroke(STOREY_COLOR, WIDTH)).setAlwaysOnTop();
 			}
 		}
 		// Upright where the edge turns

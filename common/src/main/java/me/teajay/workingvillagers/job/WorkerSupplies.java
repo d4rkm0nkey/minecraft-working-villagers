@@ -140,6 +140,9 @@ public final class WorkerSupplies {
 	public static final Stock BOTTLES = new Stock("bottles", stack -> stack.is(Items.GLASS_BOTTLE), () -> 16, "", false);
 	/** The tanner's bucket, to fill its cauldron. */
 	public static final Stock BUCKET = new Stock("bucket", stack -> stack.is(Items.BUCKET) || stack.is(Items.WATER_BUCKET), () -> 1, "", false);
+	/** The pit digger's floors and pillars of a deep pit: without them it digs no deeper than the novice depth. */
+	public static final Stock PIT_PLANKS = new Stock("planks", stack -> stack.is(ItemTags.PLANKS), Config.PIT_KEEP_PLANKS::get, "pit_digger.no_planks", true);
+	public static final Stock PIT_LOGS = new Stock("logs", stack -> stack.is(ItemTags.LOGS), Config.PIT_KEEP_LOGS::get, "pit_digger.no_logs", true);
 	public static final Stock LADDERS = new Stock("ladders", stack -> stack.is(Items.LADDER), Config.KEEP_LADDERS::get, "pit_digger.no_ladders", true);
 	public static final Stock TORCHES = new Stock("torches", WorkerSupplies::isTorch, Config.KEEP_TORCHES::get, "", false);
 	public static final Stock MINER_TORCHES = new Stock("torches", WorkerSupplies::isTorch, Config.MINER_KEEP_TORCHES::get, "", false);
@@ -543,7 +546,16 @@ public final class WorkerSupplies {
 			return List.of(BOTTLES);
 		}
 		if (profession.is(WorkingVillagers.PIT_DIGGER_PROFESSION)) {
-			return Config.KEEP_TORCHES.get() > 0 ? List.of(LADDERS, TORCHES) : List.of(LADDERS);
+			List<Stock> stocks = new ArrayList<>(List.of(LADDERS));
+			if (Config.KEEP_TORCHES.get() > 0) {
+				stocks.add(TORCHES);
+			}
+			// Only while its pit has storeys: its pockets are small
+			if (DigPit.hasStoreys(villager)) {
+				stocks.add(PIT_PLANKS);
+				stocks.add(PIT_LOGS);
+			}
+			return List.copyOf(stocks);
 		}
 		if (profession.is(WorkingVillagers.MINER_PROFESSION)) {
 			List<Stock> stocks = new ArrayList<>(List.of(SEAL_BLOCKS));

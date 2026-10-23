@@ -24,16 +24,19 @@ public record PitPreviewPayload(List<Stake> stakes) implements CustomPacketPaylo
 
 	/**
 	 * One stake: the strings that touch it, the ones that are the problem (red), and for a
-	 * pit the columns inside (at the height of the highest string) and the lowest layer dug.
-	 * {@code inside} is empty if the strings are no pit.
+	 * pit the columns inside (at the height of the highest string), the lowest layer dug and
+	 * its storeys (the heights of the floors, the columns of the pillars). {@code inside} is
+	 * empty if the strings are no pit.
 	 */
-	public record Stake(BlockPos stake, List<BlockPos> strings, List<BlockPos> spots, List<BlockPos> inside, int bottom) {
+	public record Stake(BlockPos stake, List<BlockPos> strings, List<BlockPos> spots, List<BlockPos> inside, int bottom, List<Integer> floors, List<BlockPos> pillars) {
 		static final StreamCodec<ByteBuf, Stake> CODEC = StreamCodec.composite(
 			BlockPos.STREAM_CODEC, Stake::stake,
 			POSITIONS, Stake::strings,
 			POSITIONS, Stake::spots,
 			POSITIONS, Stake::inside,
 			ByteBufCodecs.INT, Stake::bottom,
+			ByteBufCodecs.INT.apply(ByteBufCodecs.list()), Stake::floors,
+			POSITIONS, Stake::pillars,
 			Stake::new
 		);
 

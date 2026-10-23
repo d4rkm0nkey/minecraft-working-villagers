@@ -9,6 +9,10 @@ import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.npc.villager.Villager;
+import me.teajay.workingvillagers.job.WorkerJobs;
+import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -22,7 +26,7 @@ import net.minecraft.world.level.block.Blocks;
  */
 public class PitPreviewScreenshots implements FabricClientGameTest {
 	/** On a mound of stone, so the pit has room to go down in the flat world. */
-	private static final BlockPos ORIGIN = new BlockPos(40, -52, 40);
+	private static final BlockPos ORIGIN = new BlockPos(40, -44, 40);
 
 	@Override
 	public void runTest(ClientGameTestContext context) {
@@ -30,7 +34,7 @@ public class PitPreviewScreenshots implements FabricClientGameTest {
 			world.getConnection().waitForChunksRender();
 			world.getServer().runCommand("gamemode creative @a");
 			world.getServer().runCommand("time set noon");
-			world.getServer().runOnServer(server -> setUp(server.overworld()));
+			world.getServer().runOnServer(server -> setUp(server.overworld(), server.getPlayerList().getPlayers().getFirst()));
 			world.getServer().runOnServer(server -> {
 				var player = server.getPlayerList().getPlayers().getFirst();
 				player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.STRING));
@@ -69,13 +73,20 @@ public class PitPreviewScreenshots implements FabricClientGameTest {
 		context.waitTicks(2);
 	}
 
-	private static void setUp(ServerLevel level) {
-		for (BlockPos pos : BlockPos.betweenClosed(ORIGIN.offset(-2, -8, -2), ORIGIN.offset(30, -1, 30))) {
+	private static void setUp(ServerLevel level, ServerPlayer player) {
+		for (BlockPos pos : BlockPos.betweenClosed(ORIGIN.offset(-2, -14, -2), ORIGIN.offset(30, -1, 30))) {
 			level.setBlockAndUpdate(pos, pos.getY() == ORIGIN.getY() - 1 ? Blocks.GRASS_BLOCK.defaultBlockState() : Blocks.DIRT.defaultBlockState());
 		}
 		// A closed ring around 4×5, the stake next to it
 		ring(level, ORIGIN, 6, 7, null);
-		level.setBlockAndUpdate(ORIGIN.offset(-1, 0, 3), WorkingVillagers.PIT_STAKE.get().defaultBlockState());
+		BlockPos stake = ORIGIN.offset(-1, 0, 3);
+		level.setBlockAndUpdate(stake, WorkingVillagers.PIT_STAKE.get().defaultBlockState());
+		// A master digs it 12 deep: with a floor at 8 on a pillar
+		Villager master = MenuScreenshots.hire(level, player, ORIGIN.offset(-1, 0, 5));
+		WorkerJobs.assign(level, master, stake);
+		master.setVillagerData(master.getVillagerData().withLevel(5));
+		master.setNoAi(true);
+		Workstations.find(level, stake).orElseThrow().setDepth(12);
 		// An open ring
 		BlockPos open = ORIGIN.offset(10, 0, 0);
 		ring(level, open, 6, 6, open.offset(5, 0, 3));

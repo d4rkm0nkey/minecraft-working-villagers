@@ -65,6 +65,8 @@ import net.minecraft.world.level.block.TripWireBlock;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.FarmlandBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.BaseTorchBlock;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -134,6 +136,8 @@ public final class WorkerTests {
 		registry.accept("pit_digger_finishes_played_pit", WorkerTests::pitDiggerFinishesPlayedPit);
 		registry.accept("pit_stake_takes_ring_it_touches", WorkerTests::pitStakeTakesRingItTouches);
 		registry.accept("pit_limits_grow_with_level", WorkerTests::pitLimitsGrowWithLevel);
+		registry.accept("pit_digger_builds_storeys", helper -> pitDiggerBuildsStoreys(helper, 10));
+		registry.accept("pit_digger_builds_two_storeys", helper -> pitDiggerBuildsStoreys(helper, 14));
 		registry.accept("shop_assistant_sells_wheat", WorkerTests::shopAssistantSellsWheat);
 		registry.accept("ordinary_villager_keeps_off_set_up_station", WorkerTests::ordinaryVillagerKeepsOffSetUpStation);
 		registry.accept("assign_displaces_ordinary_villager", WorkerTests::assignDisplacesOrdinaryVillager);
@@ -233,6 +237,9 @@ public final class WorkerTests {
 		// Rotten flesh tans in a few seconds
 		Config.TANNING_SECONDS.set(5);
 		MinerTests.configure();
+		// The pit digger digs as fast as a player
+		Config.DIG_SLOWDOWN.set(1.0);
+		Config.MIN_DIG_SECONDS.set(0.25);
 	}
 
 	private static void contractHiresUnemployed(GameTestHelper helper) {
@@ -1651,6 +1658,67 @@ public final class WorkerTests {
 		helper.assertTrue(stake.inside().size() == 9 && stake.spots().isEmpty(), "Wrong pit in the preview: " + stake);
 		helper.assertTrue(stake.bottom() == helper.absolutePos(new BlockPos(0, ground + 1 - Pit.DEFAULT_DEPTH, 0)).getY(), "Wrong floor in the preview: " + stake.bottom());
 		helper.succeed();
+	}
+
+	/**
+	 * A master pit digger digs a 3×3 pit {@code depth} deep into a mound of dirt: from the
+	 * novice depth (8) on it lays a floor of planks every 4 blocks (10 deep: one, 14 deep: two),
+	 * leaving the ladder column open, on a pillar of logs in the corner of the grid that goes
+	 * from the bottom up to the first floor, through the floor below it.
+	 */
+	private static void pitDiggerBuildsStoreys(GameTestHelper helper, int depth) {
+		int ground = depth + 3;
+		for (BlockPos pos : BlockPos.betweenClosed(new BlockPos(4, 1, 4), new BlockPos(16, ground, 16))) {
+			helper.setBlock(pos, pos.getY() == ground ? Blocks.GRASS_BLOCK : Blocks.DIRT);
+		}
+		for (int i = 8; i <= 12; i++) {
+			for (BlockPos string : List.of(new BlockPos(i, ground + 1, 8), new BlockPos(i, ground + 1, 12), new BlockPos(8, ground + 1, i), new BlockPos(12, ground + 1, i))) {
+				helper.setBlock(string, Blocks.TRIPWIRE);
+			}
+		}
+		BlockPos stake = new BlockPos(7, ground + 1, 10);
+		helper.setBlock(stake, WorkingVillagers.PIT_STAKE.get());
+		Workstations.Station station = TestWorld.station(helper, stake);
+		helper.assertTrue(Pit.attach(helper.getLevel(), station).isEmpty() && station.pit() != null, "The stake did not take the ring");
+		station.setDepth(depth);
+		BlockPos output = new BlockPos(6, ground + 1, 13);
+		TestWorld.chest(helper, output);
+		TestWorld.link(helper, stake, output, ChestRole.OUTPUT);
+		Villager worker = TestWorld.hireVillager(helper, new BlockPos(5, ground + 1, 6));
+		TestWorld.assign(helper, worker, stake);
+		worker.setVillagerData(worker.getVillagerData().withLevel(5));
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_SHOVEL), new ItemStack(Items.IRON_PICKAXE), new ItemStack(Items.LADDER, 16),
+			new ItemStack(Items.OAK_PLANKS, 32), new ItemStack(Items.OAK_LOG, 8));
+		Pit.Storeys storeys = station.pit().storeys(helper.getLevel(), depth);
+		int floors = depth == 10 ? 1 : 2;
+		helper.assertTrue(storeys.floors().size() == floors && storeys.pillars().size() == 1 && storeys.planks() == 8 + (floors - 1) * 7
+			&& storeys.logs() == depth - 8, "Wrong storeys: " + storeys);
+		// The floors at depth 8 and 12, the bottom 4 blocks above the ground of the platform
+		int floor = ground + 1 - 8;
+		int lowerFloor = ground + 1 - 12;
+		// The test may be rotated: compare columns in the world
+		BlockPos ladder = station.pit().ladder();
+		BlockPos pillar = storeys.pillars().getFirst();
+		helper.succeedWhen(() -> {
+			for (int x = 9; x <= 11; x++) {
+				for (int z = 9; z <= 11; z++) {
+					for (int y = ground + 1 - depth; y <= ground; y++) {
+						BlockPos pos = new BlockPos(x, y, z);
+						BlockPos at = helper.absolutePos(pos);
+						BlockState state = helper.getBlockState(pos);
+						boolean pillarColumn = at.getX() == pillar.getX() && at.getZ() == pillar.getZ();
+						boolean ok = at.getX() == ladder.getX() && at.getZ() == ladder.getZ() ? state.is(Blocks.LADDER)
+							: y == floor ? state.is(BlockTags.PLANKS)
+							: pillarColumn && y < floor ? state.is(BlockTags.LOGS)
+							: y == lowerFloor && floors == 2 ? state.is(BlockTags.PLANKS)
+							: state.isAir() || state.getBlock() instanceof BaseTorchBlock;
+						if (!ok) {
+							throw helper.assertionException(pos, "Unexpected " + state + "; worker: " + TestWorld.describe(worker));
+						}
+					}
+				}
+			}
+		});
 	}
 
 	/** From 8×8 and 8 deep for a novice to 16×16 and 16 deep for a master, the side growing by 2 a level. */

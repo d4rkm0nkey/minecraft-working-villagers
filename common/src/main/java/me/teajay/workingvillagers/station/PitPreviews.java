@@ -79,11 +79,12 @@ public final class PitPreviews {
 			if (earlier != null && problem.strings().isEmpty()) {
 				pit = Optional.of(earlier);
 			} else {
-				return new PitPreviewPayload.Stake(stake, problem.strings(), problem.spots(), List.of(), 0);
+				return new PitPreviewPayload.Stake(stake, problem.strings(), problem.spots(), List.of(), 0, List.of(), List.of());
 			}
 		}
 		int depth = Math.min(station.map(Workstations.Station::depth).orElse(Pit.DEFAULT_DEPTH), limits.depth());
-		return new PitPreviewPayload.Stake(stake, pit.get().ring(), List.of(), pit.get().inside(), pit.get().bottom(level, depth));
+		Pit.Storeys storeys = pit.get().storeys(level, depth);
+		return new PitPreviewPayload.Stake(stake, pit.get().ring(), List.of(), pit.get().inside(), storeys.bottom(), storeys.floors(), storeys.pillars());
 	}
 
 	/** Particles at the stakes whose pit or problem changed since the last preview. */

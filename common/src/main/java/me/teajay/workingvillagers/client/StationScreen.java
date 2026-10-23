@@ -959,8 +959,14 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 					8, y, COLUMN_WIDTH, GuiPanels.MUTED_COLOR);
 				GuiPanels.scrollingText(graphics, this.font, Component.translatable("gui.workingvillagers.pit.depth", this.menu.getDepth()).getString(), 8,
 					this.settingRowY(0) + textY, COLUMN_WIDTH - 2 * BIG - 6, GuiPanels.TEXT_COLOR);
-				this.hint(graphics, Component.translatable("gui.workingvillagers.pit.hint"),
-					this.settingRowY(this.menu.getPit().isPresent() ? 2 : 1) + 2);
+				int below = this.settingRowY(this.menu.getPit().isPresent() ? 2 : 1) + 2;
+				Optional<int[]> storeys = this.menu.getStoreys();
+				if (storeys.isPresent()) {
+					GuiPanels.scrollingText(graphics, this.font, Component.translatable("gui.workingvillagers.pit.storeys",
+						storeys.get()[0], storeys.get()[1], storeys.get()[2]).getString(), 8, below, COLUMN_WIDTH, GuiPanels.TEXT_COLOR);
+					below += LINE + 4;
+				}
+				this.hint(graphics, Component.translatable("gui.workingvillagers.pit.hint"), below);
 			}
 			case MINING_BENCH -> {
 				Optional<StationMenu.TunnelInfo> tunnel = this.menu.getTunnel();

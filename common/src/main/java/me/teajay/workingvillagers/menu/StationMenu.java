@@ -193,6 +193,9 @@ public class StationMenu extends AbstractContainerMenu {
 	private static final String TAG_DEPTH = "Depth";
 	private static final String TAG_MAX_DEPTH = "MaxDepth";
 	private static final String TAG_MAX_AREA = "MaxArea";
+	private static final String TAG_STOREYS = "Storeys";
+	private static final String TAG_PLANKS = "Planks";
+	private static final String TAG_PILLAR_LOGS = "PillarLogs";
 	private static final String TAG_HERD = "Herd";
 	private static final String TAG_TAB_FLAGS = "TabFlags";
 	private static final String TAG_BOAT = "Boat";
@@ -434,6 +437,11 @@ public class StationMenu extends AbstractContainerMenu {
 					pitTag.putInt(TAG_WIDTH, pit.width());
 					pitTag.putInt(TAG_LENGTH, pit.length());
 					pitTag.putInt(TAG_AREA, pit.inside().size());
+					// What the storeys below the novice depth take
+					Pit.Storeys storeys = pit.storeys(serverLevel, Math.min(station.depth(), limits.depth()));
+					pitTag.putInt(TAG_STOREYS, storeys.floors().size());
+					pitTag.putInt(TAG_PLANKS, storeys.planks());
+					pitTag.putInt(TAG_PILLAR_LOGS, storeys.logs());
 					tag.put(TAG_PIT, pitTag);
 				}
 			}
@@ -710,6 +718,12 @@ public class StationMenu extends AbstractContainerMenu {
 	/** Pit stake: the size of the picked pit (width, length, blocks of ground), empty if none. */
 	public Optional<int[]> getPit() {
 		return this.info.info().getCompound(TAG_PIT).map(pit -> new int[] {pit.getIntOr(TAG_WIDTH, 0), pit.getIntOr(TAG_LENGTH, 0), pit.getIntOr(TAG_AREA, 0)});
+	}
+
+	/** Pit stake: the floors of the pit and the planks and logs they take, empty without floors. */
+	public Optional<int[]> getStoreys() {
+		return this.info.info().getCompound(TAG_PIT).filter(pit -> pit.getIntOr(TAG_STOREYS, 0) > 0)
+			.map(pit -> new int[] {pit.getIntOr(TAG_STOREYS, 0), pit.getIntOr(TAG_PLANKS, 0), pit.getIntOr(TAG_PILLAR_LOGS, 0)});
 	}
 
 	/** Pit stake: why the ring at the stake is no pit, empty if it is one. */
