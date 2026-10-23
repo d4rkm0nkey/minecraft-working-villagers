@@ -256,10 +256,13 @@ Workers do not break their tools. Once a tool has only **10 %** of its durabilit
 (at least 2 uses), the worker stops using it and, before its next piece of work, gives it
 back ("Giving back a worn tool"):
 
-1. into the closest **village chest** with a free slot, taking a new tool from it on the
-   same walk if it needs one,
-2. otherwise into an **output chest** of its workstation,
-3. otherwise it keeps the tool and tries again a minute later.
+1. into the closest **village chest** with a free slot where a [smith](smith.md#repairing-tools)
+   or [weaponsmith](weaponsmith.md#grinding-together) repairs it, taking a new tool from it
+   on the same walk if it needs one,
+2. otherwise into an **output chest** of its workstation, so you see there that it needs a
+   new tool,
+3. otherwise into any village chest with a free slot,
+4. otherwise it keeps the tool and tries again a minute later.
 
 Then it works on with its spare tool, or waits for a new one ("needs an axe"). A
 [smith at a smithing table](smith.md#repairing-tools) repairs the worn tools in the

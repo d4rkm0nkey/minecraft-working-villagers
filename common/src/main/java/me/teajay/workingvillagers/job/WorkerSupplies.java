@@ -58,9 +58,9 @@ import org.jspecify.annotations.Nullable;
  * has no workstation, carries its emeralds itself.
  *
  * <p>A tool that is about to break ({@link #isWorn}) counts as no tool: the worker stops
- * using it and, before its next piece of work, gives it back instead of breaking it, into a
- * village chest or else an output chest of its workstation. Going to a village chest it
- * takes a new tool at once.
+ * using it and, before its next piece of work, gives it back instead of breaking it: into a
+ * village chest where a smith repairs it, or else an output chest of its workstation, or else
+ * any village chest. Going to a village chest it takes a new tool at once.
  *
  * <p>An instance belongs to one work behavior and runs the waiting; the static part decides
  * what a worker accepts.
@@ -257,21 +257,27 @@ public final class WorkerSupplies {
 	}
 
 	/**
-	 * Sets off with the worn tools to the closest village chest in reach with room, or else to
-	 * the closest output chest of the workstation with room. Returns false if there is none:
-	 * then the worker keeps them for a while.
+	 * Sets off with the worn tools to the closest village chest in reach with room where a
+	 * smith repairs them, or else to the closest output chest of the workstation with room, so
+	 * the player sees that the worker needs a new tool, or else to any village chest with room.
+	 * Returns false if there is none: then the worker keeps them for a while.
 	 */
 	private boolean giveBack(ServerLevel level, Villager villager) {
 		BlockPos anchor = anchor(level, villager);
-		Optional<BlockPos> chest = VillageChests.inReach(level, anchor).stream()
+		List<BlockPos> villageChests = VillageChests.inReach(level, anchor).stream()
 			.filter(pos -> !this.skipped.containsKey(pos) && hasRoom(Workstations.getContainer(level, pos)))
-			.findFirst();
+			.toList();
+		Optional<BlockPos> chest = villageChests.stream().filter(pos -> VillageChests.repairsWornTools(level, pos)).findFirst();
 		this.toVillageChest = chest.isPresent();
 		if (chest.isEmpty()) {
 			chest = Workstations.find(level, anchor).stream()
 				.flatMap(station -> station.validOutputs(level).stream())
 				.filter(pos -> hasRoom(Workstations.getContainer(level, pos)))
 				.min(Comparator.comparingDouble(pos -> pos.distToCenterSqr(villager.position())));
+		}
+		if (chest.isEmpty()) {
+			chest = villageChests.stream().findFirst();
+			this.toVillageChest = chest.isPresent();
 		}
 		if (chest.isEmpty()) {
 			this.giveBackRetry = level.getGameTime() + GIVE_BACK_RETRY_TICKS;

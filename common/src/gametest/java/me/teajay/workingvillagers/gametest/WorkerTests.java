@@ -1105,7 +1105,7 @@ public final class WorkerTests {
 
 	/**
 	 * A lumberjack with a worn axe and a spare fells the tree with the spare and puts the worn
-	 * axe into the village chest, where it does not take it again.
+	 * axe into the output chest: no smith repairs from the village chest, so the player sees it.
 	 */
 	private static void lumberjackGivesBackWornAxe(GameTestHelper helper) {
 		BlockPos tree = new BlockPos(15, 1, 15);
@@ -1115,16 +1115,16 @@ public final class WorkerTests {
 		carryWornAxe(worker);
 		helper.succeedWhen(() -> {
 			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_LOG), 5, "oak logs in the output chest");
-			helper.assertTrue(TestWorld.count(helper, VILLAGE_CHEST, WorkerTests::isWornAxe) == 1,
-				"The worn axe is not in the village chest: " + TestWorld.describe(worker));
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, WorkerTests::isWornAxe) == 1,
+				"The worn axe is not in the output chest: " + TestWorld.describe(worker));
 			helper.assertTrue(WorkerSupplies.count(worker.getInventory(), stack -> stack.is(Items.IRON_AXE)) == 1, "The lumberjack lost its spare axe");
 			TestWorld.removeVillageChest(helper, VILLAGE_CHEST);
 		});
 	}
 
 	/**
-	 * A lumberjack whose only axe is worn takes a new one from the village chest and leaves
-	 * the worn one there, in one walk, and fells the tree.
+	 * A lumberjack whose only axe is worn puts it into the output chest (no smith repairs from
+	 * the village chest), takes a new one from the village chest and fells the tree.
 	 */
 	private static void lumberjackSwapsWornAxe(GameTestHelper helper) {
 		BlockPos tree = new BlockPos(15, 1, 15);
@@ -1134,9 +1134,9 @@ public final class WorkerTests {
 		carryWornAxe(worker);
 		helper.succeedWhen(() -> {
 			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_LOG), 5, "oak logs in the output chest");
-			helper.assertTrue(TestWorld.count(helper, VILLAGE_CHEST, WorkerTests::isWornAxe) == 1,
-				"The worn axe is not in the village chest: " + TestWorld.describe(worker));
-			helper.assertTrue(TestWorld.count(helper, VILLAGE_CHEST, stack -> stack.is(Items.IRON_AXE)) == 1, "The lumberjack did not take the new axe");
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, WorkerTests::isWornAxe) == 1,
+				"The worn axe is not in the output chest: " + TestWorld.describe(worker));
+			helper.assertTrue(TestWorld.count(helper, VILLAGE_CHEST, stack -> stack.is(Items.IRON_AXE)) == 0, "The lumberjack did not take the new axe");
 			TestWorld.removeVillageChest(helper, VILLAGE_CHEST);
 		});
 	}

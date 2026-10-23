@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import me.teajay.workingvillagers.Config;
 import me.teajay.workingvillagers.WorkingVillagers;
+import me.teajay.workingvillagers.station.StationType;
 import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
@@ -70,6 +71,16 @@ public final class VillageChests {
 		AABB area = new AABB(chest).inflate(radius + 32, VERTICAL_REACH + 16, radius + 32);
 		return level.getEntitiesOfClass(Villager.class, area, villager -> ((HiredVillager) villager).workingvillagers$isHired()
 			&& !villager.isBaby() && inReach(WorkerSupplies.anchor(level, villager), chest));
+	}
+
+	/**
+	 * Whether a hired smith (smithing table) or weaponsmith (grindstone that grinds tools
+	 * together) has the village chest in reach and so repairs the worn tools given back there.
+	 */
+	public static boolean repairsWornTools(ServerLevel level, BlockPos chest) {
+		return served(level, chest).stream().anyMatch(worker -> Workstations.find(level, workplace(level, worker))
+			.filter(station -> station.type() == StationType.SMITHING_TABLE || station.type() == StationType.GRINDSTONE && station.merges())
+			.isPresent());
 	}
 
 	/** Where the worker works: its workstation, the source of a carrier's first route. */
