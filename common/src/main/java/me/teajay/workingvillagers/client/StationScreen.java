@@ -863,8 +863,24 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	 * below the line that tells which pit or tunnel is picked.
 	 */
 	private int settingRowY(int row) {
-		int summary = this.type() == StationType.PIT_STAKE || this.type() == StationType.MINING_BENCH ? LINE + 4 : 0;
+		int summary = switch (this.type()) {
+			// the pit or what is wrong with the ring, then the limits of the pit digger
+			case PIT_STAKE -> (this.pitLines().size() + 1) * LINE + 4;
+			case MINING_BENCH -> LINE + 4;
+			default -> 0;
+		};
 		return CONTENT_Y + summary + row * SETTING_STEP;
+	}
+
+	/**
+	 * Pit stake: the size of the pit, or what is wrong with the ring (which wins over the size
+	 * of the pit picked before, which the pit digger keeps waiting for), wrapped.
+	 */
+	private List<FormattedCharSequence> pitLines() {
+		Component pit = this.menu.getPitProblem().or(() -> this.menu.getPit()
+				.map(size -> (Component) Component.translatable("gui.workingvillagers.pit.size", size[0], size[1], size[2])))
+			.orElse(Component.translatable("gui.workingvillagers.pit.none"));
+		return this.limit(this.font.split(pit, COLUMN_WIDTH), 6);
 	}
 
 	/** A − and a + button at the right edge. */
@@ -933,17 +949,24 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 				this.hint(graphics, Component.translatable("gui.workingvillagers.chopping_block.strip.tooltip2"), CONTENT_Y + BIG + 8);
 			}
 			case PIT_STAKE -> {
-				// a problem with the ring wins over the size of the pit picked before, which the pit digger keeps waiting for
-				Optional<Component> problem = this.menu.getPitProblem();
-				Component pit = problem.or(() -> this.menu.getPit()
-						.map(size -> (Component) Component.translatable("gui.workingvillagers.pit.size", size[0], size[1], size[2])))
-					.orElse(Component.translatable("gui.workingvillagers.pit.none"));
-				GuiPanels.scrollingText(graphics, this.font, pit.getString(), 8, CONTENT_Y + 1, COLUMN_WIDTH,
-					problem.isEmpty() && this.menu.getPit().isPresent() ? GuiPanels.TEXT_COLOR : GuiPanels.WARNING_COLOR);
+				int color = this.menu.getPitProblem().isEmpty() && this.menu.getPit().isPresent() ? GuiPanels.TEXT_COLOR : GuiPanels.WARNING_COLOR;
+				int y = CONTENT_Y + 1;
+				for (FormattedCharSequence line : this.pitLines()) {
+					graphics.text(this.font, line, 8, y, color, false);
+					y += LINE;
+				}
+				GuiPanels.scrollingText(graphics, this.font, Component.translatable("gui.workingvillagers.pit.limits", this.menu.getMaxArea(), this.menu.getMaxDepth()).getString(),
+					8, y, COLUMN_WIDTH, GuiPanels.MUTED_COLOR);
 				GuiPanels.scrollingText(graphics, this.font, Component.translatable("gui.workingvillagers.pit.depth", this.menu.getDepth()).getString(), 8,
 					this.settingRowY(0) + textY, COLUMN_WIDTH - 2 * BIG - 6, GuiPanels.TEXT_COLOR);
-				this.hint(graphics, Component.translatable("gui.workingvillagers.pit.hint"),
-					this.settingRowY(this.menu.getPit().isPresent() ? 2 : 1) + 2);
+				int below = this.settingRowY(this.menu.getPit().isPresent() ? 2 : 1) + 2;
+				Optional<int[]> storeys = this.menu.getStoreys();
+				if (storeys.isPresent()) {
+					GuiPanels.scrollingText(graphics, this.font, Component.translatable("gui.workingvillagers.pit.storeys",
+						storeys.get()[0], storeys.get()[1], storeys.get()[2]).getString(), 8, below, COLUMN_WIDTH, GuiPanels.TEXT_COLOR);
+					below += LINE + 4;
+				}
+				this.hint(graphics, Component.translatable("gui.workingvillagers.pit.hint"), below);
 			}
 			case MINING_BENCH -> {
 				Optional<StationMenu.TunnelInfo> tunnel = this.menu.getTunnel();

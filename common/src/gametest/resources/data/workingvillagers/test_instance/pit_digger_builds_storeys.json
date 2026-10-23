@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "workingvillagers:work_hours",
+  "function": "workingvillagers:pit_digger_builds_storeys",
+  "max_ticks": 8000,
+  "setup_ticks": 1,
+  "structure": "workingvillagers:tall_platform"
+}

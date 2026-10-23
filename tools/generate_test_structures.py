@@ -19,6 +19,7 @@ OUT = Path(__file__).resolve().parent.parent / "common/src/gametest/resources/da
 PLATFORMS = [
     ("platform", 24, 10, 24),
     ("small_platform", 12, 6, 12),
+    ("tall_platform", 24, 20, 24),
 ]
 
 TAG_END, TAG_BYTE, TAG_INT, TAG_STRING, TAG_LIST, TAG_COMPOUND = 0, 1, 3, 8, 9, 10

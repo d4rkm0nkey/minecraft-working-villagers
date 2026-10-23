@@ -38,6 +38,8 @@ import org.jspecify.annotations.Nullable;
  */
 public record Pit(List<BlockPos> ring, List<BlockPos> inside, BlockPos exit, BlockPos ladder, int top) {
 	public static final int DEFAULT_DEPTH = 4;
+	/** How high a storey of a deep pit is, floor included, and how far apart its pillars stand. */
+	public static final int STOREY = 4;
 	/** Bedrock and the bottom of the world stay out of reach. */
 	private static final int ABOVE_BOTTOM = 5;
 	/** More strings than this are not followed, the ring is too big anyway. */
@@ -59,6 +61,55 @@ public record Pit(List<BlockPos> ring, List<BlockPos> inside, BlockPos exit, Blo
 	/** The lowest layer that is dug; the block below stays as the floor of the pit. */
 	public int bottom(ServerLevel level, int depth) {
 		return Math.max(this.top - depth, level.getMinY() + ABOVE_BOTTOM);
+	}
+
+	/**
+	 * The storeys of a pit dug {@code depth} deep: from the novice depth ({@link Config#PIT_NOVICE_DEPTH})
+	 * on, a floor of planks every {@link #STOREY} blocks, as long as at least 2 layers are left
+	 * below it to stand in. The floors rest on pillars of logs in a grid every {@link #STOREY}
+	 * blocks, which go from the bottom up to the first floor, through the floors below it. The
+	 * ladder column stays open. A pit no deeper than the novice depth has no storeys.
+	 */
+	public Storeys storeys(ServerLevel level, int depth) {
+		int bottom = this.bottom(level, depth);
+		List<Integer> floors = new ArrayList<>();
+		for (int y = this.top - Config.PIT_NOVICE_DEPTH.get(); y - bottom >= 2; y -= STOREY) {
+			floors.add(y);
+		}
+		if (floors.isEmpty()) {
+			return new Storeys(List.of(), List.of(), bottom, 0, 0);
+		}
+		int minX = this.inside.stream().mapToInt(BlockPos::getX).min().orElse(0);
+		int minZ = this.inside.stream().mapToInt(BlockPos::getZ).min().orElse(0);
+		List<BlockPos> pillars = this.inside.stream()
+			.filter(column -> Math.floorMod(column.getX() - minX, STOREY) == 2 && Math.floorMod(column.getZ() - minZ, STOREY) == 2)
+			.filter(column -> column.getX() != this.ladder.getX() || column.getZ() != this.ladder.getZ())
+			.toList();
+		int cells = this.inside.size() - 1;
+		// The first floor lies on the pillars, the ones below have them going through
+		int planks = cells + (floors.size() - 1) * (cells - pillars.size());
+		int logs = pillars.size() * (floors.getFirst() - bottom);
+		return new Storeys(List.copyOf(floors), pillars, bottom, planks, logs);
+	}
+
+	/**
+	 * The storeys of a deep pit (see {@link #storeys}): the heights of the floors from the top
+	 * down, the columns of the pillars (at the height of the highest string), the lowest layer
+	 * dug, and the planks and logs it all takes.
+	 */
+	public record Storeys(List<Integer> floors, List<BlockPos> pillars, int bottom, int planks, int logs) {
+		/** No storeys at all. */
+		public static final Storeys NONE = new Storeys(List.of(), List.of(), Integer.MIN_VALUE, 0, 0);
+
+		public boolean isFloor(int y) {
+			return this.floors.contains(y);
+		}
+
+		/** Whether a log of a pillar goes at the position: in a pillar column, below the first floor. */
+		public boolean isPillar(BlockPos pos) {
+			return !this.floors.isEmpty() && pos.getY() < this.floors.getFirst() && pos.getY() >= this.bottom
+				&& this.pillars.stream().anyMatch(column -> column.getX() == pos.getX() && column.getZ() == pos.getZ());
+		}
 	}
 
 	/** Whether the column (x and z of the position) is inside the ring. */
@@ -112,29 +163,24 @@ public record Pit(List<BlockPos> ring, List<BlockPos> inside, BlockPos exit, Blo
 	}
 
 	/**
-	 * Finds the ring of string the player clicked (a string, or the block below one) and the
-	 * pit inside it, for the station at {@code station}. Returns the pit, or why there is none.
+	 * Why the strings at a stake are no pit: the message, the strings that are the problem
+	 * (shown red, may be empty) and all strings that touch the stake.
 	 */
-	public static Either<Pit, Component> find(ServerLevel level, BlockPos clicked, BlockPos station) {
-		BlockPos start = stringAt(level, clicked);
-		if (start == null) {
-			return Either.right(Component.translatable("message.workingvillagers.pit.no_string"));
+	public record Problem(Component message, List<BlockPos> spots, List<BlockPos> strings) {
+		private static Problem of(Component message, List<BlockPos> spots, Map<Long, BlockPos> strings, BlockPos stake) {
+			return new Problem(message, List.copyOf(spots), strings.values().stream().filter(string -> !string.equals(stake)).toList());
 		}
-		Map<Long, BlockPos> strings = new LinkedHashMap<>();
-		if (isOnGround(level, start)) {
-			strings.put(column(start), start);
-		}
-		return trace(level, strings, station, null);
 	}
 
 	/**
 	 * The ring of string that touches the pit stake and the pit inside it, or why there is
-	 * none. The stake may stand in the ring like a string, or right next to it.
+	 * none. The stake may stand in the ring like a string, or right next to it. The pit may
+	 * have at most {@code maxArea} blocks of ground (see {@link PitLimits}).
 	 */
-	public static Either<Pit, Component> fromStake(ServerLevel level, BlockPos stake) {
+	public static Either<Pit, Problem> fromStake(ServerLevel level, BlockPos stake, int maxArea) {
 		Map<Long, BlockPos> strings = new LinkedHashMap<>();
 		strings.put(column(stake), stake.immutable());
-		return trace(level, strings, stake, stake);
+		return trace(level, strings, stake.immutable(), maxArea);
 	}
 
 	private static boolean touchesString(ServerLevel level, BlockPos stake) {
@@ -149,11 +195,10 @@ public record Pit(List<BlockPos> ring, List<BlockPos> inside, BlockPos exit, Blo
 	}
 
 	/**
-	 * Follows the strings from {@code strings} (the start) and finds the pit they enclose.
-	 * {@code stake}: the pit stake, if it is part of the start; it closes the ring like a
-	 * string but is no string of the ring itself.
+	 * Follows the strings from the pit stake (the start) and finds the pit they enclose. The
+	 * stake closes the ring like a string but is no string of the ring itself.
 	 */
-	private static Either<Pit, Component> trace(ServerLevel level, Map<Long, BlockPos> strings, BlockPos station, @Nullable BlockPos stake) {
+	private static Either<Pit, Problem> trace(ServerLevel level, Map<Long, BlockPos> strings, BlockPos stake, int maxArea) {
 		// The strings that touch each other (straight, maybe one block up or down), on ground
 		Deque<BlockPos> open = new ArrayDeque<>(strings.values());
 		while (!open.isEmpty()) {
@@ -163,7 +208,8 @@ public record Pit(List<BlockPos> ring, List<BlockPos> inside, BlockPos exit, Blo
 					BlockPos next = string.relative(side).above(dy);
 					if (!strings.containsKey(column(next)) && level.isLoaded(next) && level.getBlockState(next).is(Blocks.TRIPWIRE) && isOnGround(level, next)) {
 						if (strings.size() >= MAX_STRINGS) {
-							return Either.right(Component.translatable("message.workingvillagers.pit.too_big", "> " + Config.PIT_MAX_AREA.get(), Config.PIT_MAX_AREA.get()));
+							return Either.right(Problem.of(Component.translatable("message.workingvillagers.pit.too_big", "> " + maxArea, maxArea),
+								List.copyOf(strings.values()), strings, stake));
 						}
 						strings.put(column(next), next);
 						open.add(next);
@@ -172,22 +218,23 @@ public record Pit(List<BlockPos> ring, List<BlockPos> inside, BlockPos exit, Blo
 			}
 		}
 
-		if (stake != null && strings.size() == 1) {
-			return Either.right(Component.translatable("message.workingvillagers.pit.no_ring"));
+		if (strings.size() == 1) {
+			return Either.right(Problem.of(Component.translatable("message.workingvillagers.pit.no_ring"), List.of(), strings, stake));
 		}
 		List<BlockPos> inside = inside(strings.keySet());
 		if (inside.isEmpty()) {
-			BlockPos end = openEnd(strings, station, stake);
+			BlockPos end = openEnd(strings, stake);
 			return Either.right(end == null
-				? Component.translatable("message.workingvillagers.pit.not_closed")
-				: Component.translatable("message.workingvillagers.pit.not_closed_at", end.getX(), end.getY(), end.getZ()));
+				? Problem.of(Component.translatable("message.workingvillagers.pit.not_closed"), List.of(), strings, stake)
+				: Problem.of(Component.translatable("message.workingvillagers.pit.not_closed_at", end.getX(), end.getY(), end.getZ()), List.of(end), strings, stake));
 		}
-		int max = Config.PIT_MAX_AREA.get();
-		if (inside.size() > max) {
-			return Either.right(Component.translatable("message.workingvillagers.pit.too_big", inside.size(), max));
+		if (inside.size() > maxArea) {
+			return Either.right(Problem.of(Component.translatable("message.workingvillagers.pit.too_big", inside.size(), maxArea),
+				strings.values().stream().filter(string -> !string.equals(stake)).toList(), strings, stake));
 		}
 		if (inside.size() < 2) {
-			return Either.right(Component.translatable("message.workingvillagers.pit.too_small"));
+			return Either.right(Problem.of(Component.translatable("message.workingvillagers.pit.too_small"),
+				strings.values().stream().filter(string -> !string.equals(stake)).toList(), strings, stake));
 		}
 		// The ring: the strings next to the inside; strings hanging off it do not count
 		Set<Long> insideColumns = columns(inside);
@@ -196,25 +243,22 @@ public record Pit(List<BlockPos> ring, List<BlockPos> inside, BlockPos exit, Blo
 			.filter(string -> Direction.Plane.HORIZONTAL.stream().anyMatch(side -> insideColumns.contains(column(string.relative(side)))))
 			.toList();
 		if (ring.isEmpty()) {
-			return Either.right(Component.translatable("message.workingvillagers.pit.not_closed"));
+			return Either.right(Problem.of(Component.translatable("message.workingvillagers.pit.not_closed"), List.of(), strings, stake));
 		}
 		int top = ring.stream().mapToInt(BlockPos::getY).max().orElseThrow();
 		int low = ring.stream().mapToInt(BlockPos::getY).min().orElseThrow();
 		if (top - low > Config.PIT_MAX_UNEVENNESS.get()) {
-			return Either.right(Component.translatable("message.workingvillagers.pit.uneven", top - low, Config.PIT_MAX_UNEVENNESS.get()));
+			return Either.right(Problem.of(Component.translatable("message.workingvillagers.pit.uneven", top - low, Config.PIT_MAX_UNEVENNESS.get()),
+				ring.stream().filter(string -> string.getY() == top || string.getY() == low).toList(), strings, stake));
 		}
-		int reach = Config.CHEST_DISTANCE.get();
-		if (ring.stream().anyMatch(string -> !string.closerThan(station, reach))) {
-			return Either.right(Component.translatable("message.workingvillagers.pit.too_far", reach));
-		}
-		// The ladder: on the edge, in the column inside closest to the station
+		// The ladder: on the edge, in the column inside closest to the stake
 		BlockPos exit = null;
 		BlockPos ladder = null;
 		for (BlockPos string : ring) {
 			for (Direction side : Direction.Plane.HORIZONTAL) {
 				BlockPos column = string.relative(side).below();
 				if (insideColumns.contains(column(column))
-					&& (ladder == null || column.distSqr(station) < ladder.distSqr(station))) {
+					&& (ladder == null || column.distSqr(stake) < ladder.distSqr(stake))) {
 					exit = string;
 					ladder = column;
 				}
@@ -230,10 +274,11 @@ public record Pit(List<BlockPos> ring, List<BlockPos> inside, BlockPos exit, Blo
 	 * is still part of the ring. Without a closed ring the pit picked before stays, so the pit
 	 * digger waits for the ring to be mended instead of forgetting the pit. Returns why there
 	 * is no pit at the stake, if there is none; nothing for a pit picked in an earlier version,
-	 * whose ring does not touch the stake.
+	 * whose ring does not touch the stake. The pit digger at the stake decides how big the pit
+	 * may be ({@link PitLimits}).
 	 */
-	public static Optional<Component> attach(ServerLevel level, Workstations.Station station) {
-		Either<Pit, Component> found = fromStake(level, station.pos());
+	public static Optional<Problem> attach(ServerLevel level, Workstations.Station station) {
+		Either<Pit, Problem> found = fromStake(level, station.pos(), PitLimits.at(level, station).area());
 		Optional<Pit> pit = found.left();
 		if (pit.isEmpty()) {
 			boolean earlierPick = station.pit() != null && !touchesString(level, station.pos());
@@ -274,19 +319,18 @@ public record Pit(List<BlockPos> ring, List<BlockPos> inside, BlockPos exit, Blo
 	}
 
 	/**
-	 * Where an open ring ends: the string with fewer than two neighbours, closest to
-	 * {@code near}, so the player knows where to look for the gap; the stake counts as a
-	 * neighbour. Null if every string has two neighbours (e.g. strings that only touch at a
-	 * corner).
+	 * Where an open ring ends: the string with fewer than two neighbours, closest to the stake,
+	 * so the player knows where to look for the gap; the stake counts as a neighbour. Null if
+	 * every string has two neighbours (e.g. strings that only touch at a corner).
 	 */
-	private static @Nullable BlockPos openEnd(Map<Long, BlockPos> strings, BlockPos near, @Nullable BlockPos stake) {
+	private static @Nullable BlockPos openEnd(Map<Long, BlockPos> strings, BlockPos stake) {
 		BlockPos end = null;
 		for (BlockPos string : strings.values()) {
 			if (string.equals(stake)) {
 				continue;
 			}
 			long neighbours = Direction.Plane.HORIZONTAL.stream().filter(side -> strings.containsKey(column(string.relative(side)))).count();
-			if (neighbours < 2 && (end == null || string.distSqr(near) < end.distSqr(near))) {
+			if (neighbours < 2 && (end == null || string.distSqr(stake) < end.distSqr(stake))) {
 				end = string;
 			}
 		}

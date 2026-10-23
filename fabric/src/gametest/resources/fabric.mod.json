@@ -9,7 +9,8 @@
       "me.teajay.workingvillagers.fabric.gametest.WorkingVillagersFabricTests"
     ],
     "fabric-client-gametest": [
-      "me.teajay.workingvillagers.fabric.gametest.MenuScreenshots"
+      "me.teajay.workingvillagers.fabric.gametest.MenuScreenshots",
+      "me.teajay.workingvillagers.fabric.gametest.PitPreviewScreenshots"
     ]
   },
   "depends": {

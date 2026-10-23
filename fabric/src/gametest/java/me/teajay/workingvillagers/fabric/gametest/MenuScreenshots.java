@@ -394,7 +394,7 @@ public class MenuScreenshots implements FabricClientGameTest {
 		return villager;
 	}
 
-	private static Villager hire(ServerLevel level, ServerPlayer player, BlockPos pos) {
+	static Villager hire(ServerLevel level, ServerPlayer player, BlockPos pos) {
 		Villager villager = spawnVillager(level, pos);
 		ItemStack contract = new ItemStack(WorkingVillagers.WORK_CONTRACT.get());
 		player.setItemInHand(InteractionHand.MAIN_HAND, contract);

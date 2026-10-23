@@ -27,6 +27,7 @@ import me.teajay.workingvillagers.job.WorkerJobs;
 import me.teajay.workingvillagers.job.WorkerStatus;
 import me.teajay.workingvillagers.station.ContainerNames;
 import me.teajay.workingvillagers.station.Pit;
+import me.teajay.workingvillagers.station.PitLimits;
 import me.teajay.workingvillagers.station.StationPicks;
 import me.teajay.workingvillagers.station.StationType;
 import me.teajay.workingvillagers.station.Tunnel;
@@ -191,6 +192,10 @@ public class StationMenu extends AbstractContainerMenu {
 	private static final String TAG_AREA = "Area";
 	private static final String TAG_DEPTH = "Depth";
 	private static final String TAG_MAX_DEPTH = "MaxDepth";
+	private static final String TAG_MAX_AREA = "MaxArea";
+	private static final String TAG_STOREYS = "Storeys";
+	private static final String TAG_PLANKS = "Planks";
+	private static final String TAG_PILLAR_LOGS = "PillarLogs";
 	private static final String TAG_HERD = "Herd";
 	private static final String TAG_TAB_FLAGS = "TabFlags";
 	private static final String TAG_BOAT = "Boat";
@@ -353,7 +358,7 @@ public class StationMenu extends AbstractContainerMenu {
 			if (this.type == StationType.PIT_STAKE && serverLevel.getGameTime() - this.ringCheckedAt >= RING_INTERVAL) {
 				// The ring at the stake is the pit; while the menu is open, changes to it show up
 				this.ringCheckedAt = serverLevel.getGameTime();
-				this.pitProblem = Pit.attach(serverLevel, station);
+				this.pitProblem = Pit.attach(serverLevel, station).map(Pit.Problem::message);
 			}
 			CompoundTag tag = new CompoundTag();
 			tag.store(TAG_STATION, BlockPos.CODEC, pos);
@@ -420,8 +425,11 @@ public class StationMenu extends AbstractContainerMenu {
 				tag.putInt(TAG_SHEEP, this.type == StationType.LOOM ? TendSheep.herd(serverLevel, pos).size() : TendAnimals.herd(serverLevel, pos).size());
 			}
 			if (this.type == StationType.PIT_STAKE) {
-				tag.putInt(TAG_DEPTH, station.depth());
-				tag.putInt(TAG_MAX_DEPTH, Config.PIT_MAX_DEPTH.get());
+				// What the pit digger at the stake may dig (a novice's without one)
+				PitLimits limits = PitLimits.at(serverLevel, station);
+				tag.putInt(TAG_DEPTH, Math.min(station.depth(), limits.depth()));
+				tag.putInt(TAG_MAX_DEPTH, limits.depth());
+				tag.putInt(TAG_MAX_AREA, limits.area());
 				Pit pit = station.pit();
 				this.pitProblem.ifPresent(problem -> tag.store(TAG_PIT_PROBLEM, ComponentSerialization.CODEC, problem));
 				if (pit != null) {
@@ -429,6 +437,11 @@ public class StationMenu extends AbstractContainerMenu {
 					pitTag.putInt(TAG_WIDTH, pit.width());
 					pitTag.putInt(TAG_LENGTH, pit.length());
 					pitTag.putInt(TAG_AREA, pit.inside().size());
+					// What the storeys below the novice depth take
+					Pit.Storeys storeys = pit.storeys(serverLevel, Math.min(station.depth(), limits.depth()));
+					pitTag.putInt(TAG_STOREYS, storeys.floors().size());
+					pitTag.putInt(TAG_PLANKS, storeys.planks());
+					pitTag.putInt(TAG_PILLAR_LOGS, storeys.logs());
 					tag.put(TAG_PIT, pitTag);
 				}
 			}
@@ -707,6 +720,12 @@ public class StationMenu extends AbstractContainerMenu {
 		return this.info.info().getCompound(TAG_PIT).map(pit -> new int[] {pit.getIntOr(TAG_WIDTH, 0), pit.getIntOr(TAG_LENGTH, 0), pit.getIntOr(TAG_AREA, 0)});
 	}
 
+	/** Pit stake: the floors of the pit and the planks and logs they take, empty without floors. */
+	public Optional<int[]> getStoreys() {
+		return this.info.info().getCompound(TAG_PIT).filter(pit -> pit.getIntOr(TAG_STOREYS, 0) > 0)
+			.map(pit -> new int[] {pit.getIntOr(TAG_STOREYS, 0), pit.getIntOr(TAG_PLANKS, 0), pit.getIntOr(TAG_PILLAR_LOGS, 0)});
+	}
+
 	/** Pit stake: why the ring at the stake is no pit, empty if it is one. */
 	public Optional<Component> getPitProblem() {
 		return this.info.info().read(TAG_PIT_PROBLEM, ComponentSerialization.CODEC);
@@ -738,7 +757,12 @@ public class StationMenu extends AbstractContainerMenu {
 	}
 
 	public int getMaxDepth() {
-		return this.info.info().getIntOr(TAG_MAX_DEPTH, 16);
+		return this.info.info().getIntOr(TAG_MAX_DEPTH, 8);
+	}
+
+	/** Pit stake: how many blocks of ground the pit may have at most. */
+	public int getMaxArea() {
+		return this.info.info().getIntOr(TAG_MAX_AREA, 64);
 	}
 
 	/** Carpenter's bench and kiln: how many products to keep in stock, 0 for no limit. */
@@ -958,7 +982,9 @@ public class StationMenu extends AbstractContainerMenu {
 			return true;
 		}
 		if (this.type == StationType.PIT_STAKE && (buttonId == DEPTH_LESS_BUTTON || buttonId == DEPTH_MORE_BUTTON)) {
-			station.setDepth(station.depth() + (buttonId == DEPTH_MORE_BUTTON ? 1 : -1));
+			// Up to the depth of the pit digger at the stake; a deeper one set before counts from there
+			int max = PitLimits.at(level, station).depth();
+			station.setDepth(Math.clamp(Math.min(station.depth(), max) + (buttonId == DEPTH_MORE_BUTTON ? 1 : -1), 1, max));
 			return true;
 		}
 		if (this.type == StationType.BREWING_STAND) {

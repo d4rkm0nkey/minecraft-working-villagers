@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "workingvillagers:work_hours",
+  "function": "workingvillagers:pit_limits_grow_with_level",
+  "max_ticks": 100,
+  "setup_ticks": 1,
+  "structure": "workingvillagers:platform"
+}

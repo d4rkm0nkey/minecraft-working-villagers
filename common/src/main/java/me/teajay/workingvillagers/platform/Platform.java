@@ -50,6 +50,15 @@ public interface Platform {
 	);
 
 	/**
+	 * Registers a packet from the server to the client. The client side registers what it
+	 * does with it in the loader's client entrypoint.
+	 */
+	<T extends CustomPacketPayload> void registerClientbound(CustomPacketPayload.Type<T> type, StreamCodec<RegistryFriendlyByteBuf, T> codec);
+
+	/** Sends the packet to the player, if its client has the mod (a vanilla client would be disconnected). */
+	void sendToClient(ServerPlayer player, CustomPacketPayload payload);
+
+	/**
 	 * The block transforms of a tool (an axe stripping logs, ...), including the ones other
 	 * mods add. NeoForge adds those from a data map when the tool is used.
 	 */

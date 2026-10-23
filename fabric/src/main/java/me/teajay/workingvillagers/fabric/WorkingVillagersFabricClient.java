@@ -5,9 +5,13 @@ import me.teajay.workingvillagers.client.CarpenterScreen;
 import me.teajay.workingvillagers.client.CarrierScreen;
 import me.teajay.workingvillagers.client.CutterScreen;
 import me.teajay.workingvillagers.client.KilnScreen;
+import me.teajay.workingvillagers.client.PitPreviewRenderer;
 import me.teajay.workingvillagers.client.StationScreen;
 import me.teajay.workingvillagers.client.VillageChestRenderer;
 import me.teajay.workingvillagers.client.VillageChestScreen;
+import me.teajay.workingvillagers.network.PitPreviewPayload;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.gui.screens.MenuScreens;
@@ -44,5 +48,7 @@ public class WorkingVillagersFabricClient implements ClientModInitializer {
 		MenuScreens.register(WorkingVillagers.VILLAGE_CHEST_MENU.get(), VillageChestScreen::new);
 		MenuScreens.register(WorkingVillagers.VILLAGE_CHEST_DOUBLE_MENU.get(), VillageChestScreen::new);
 		BlockEntityRendererRegistry.register(WorkingVillagers.VILLAGE_CHEST_BLOCK_ENTITY.get(), VillageChestRenderer::new);
+		ClientPlayNetworking.registerGlobalReceiver(PitPreviewPayload.TYPE, (payload, context) -> PitPreviewRenderer.receive(payload));
+		ClientTickEvents.END_CLIENT_TICK.register(PitPreviewRenderer::tick);
 	}
 }

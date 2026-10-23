@@ -65,7 +65,7 @@ the status does not help, go through this list.
 | *Waiting for something to fire* | The kiln operator's input chests have nothing the kiln can fire, or nothing for the picked product. |
 | *Stock is full (16/16)* at a kiln | The output chests hold as many of the product as set. Take some out or raise the stock. |
 | *Waiting: no ring of string at the stake* | Lay a closed ring of string that touches the pit stake. The stake's overview says what is wrong with the ring. |
-| *Waiting: The pit is too big (…)* and other ring problems | The ring at the stake is no pit yet: too big, not closed, too uneven or too far from the stake. Make the ring smaller or mend it; the limits are in the [config](../configuration.md). |
+| *Waiting: The pit is too big (…)* and other ring problems | The ring at the stake is no pit yet: too big, not closed or too uneven. Hold string to see the strings that are wrong in red. Make the ring smaller or mend it; how big a pit may be grows with the pit digger's [level](../workers/pit-digger.md#size-and-level). |
 | *Waiting: the string ring is broken* | A string of the ring is gone. Put it back where it was, or lay a new closed ring at the stake. |
 | *Waiting: needs a shovel* / *a pickaxe* / *ladders (give them ...)* | Right-click the pit digger with it. It needs ladders once the pit is deeper than one block. |
 | *Waiting: needs a better pickaxe* | Only blocks are left that its pickaxe cannot mine (e.g. diamond ore with a stone pickaxe). Give it a better one. |
@@ -154,8 +154,8 @@ the status does not help, go through this list.
 
 ### Pit digger
 
-- [ ] The overview shows the size of the pit: the ring of string is closed, touches the
-  stake and lies within 16 blocks of it.
+- [ ] The overview shows the size of the pit: the ring of string is closed and touches the
+  stake. Hold string to see the pit's outline, or the strings that are wrong in red.
 - [ ] At least one chest linked.
 - [ ] It carries a shovel, a pickaxe and ladders.
 - [ ] Not already at 256 blocks today.

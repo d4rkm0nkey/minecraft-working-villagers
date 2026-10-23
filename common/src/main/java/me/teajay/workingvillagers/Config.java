@@ -161,10 +161,16 @@ public final class Config {
 	public static final DoubleOption SECONDS_PER_TRADE = doubleOption("shopAssistant", "secondsPerTrade", 2.0, 0.25, 20.0,
 		"How long one trade with a villager takes.");
 
-	public static final IntOption PIT_MAX_AREA = intOption("pitDigger", "maxArea", 64, 4, 256,
-		"How many blocks of ground (inside the string ring) a pit may have at most.");
-	public static final IntOption PIT_MAX_DEPTH = intOption("pitDigger", "maxDepth", 16, 1, 64,
-		"How deep (in blocks, below the highest string of the ring) a pit may be at most.");
+	public static final IntOption PIT_NOVICE_AREA = intOption("pitDigger", "noviceArea", 64, 4, 1024,
+		"How many blocks of ground (inside the string ring) the pit of a novice pit digger may have at most.",
+		"Up to the master the side of the pit grows evenly (8×8 to 16×16 by default).");
+	public static final IntOption PIT_MASTER_AREA = intOption("pitDigger", "masterArea", 256, 4, 1024,
+		"How many blocks of ground the pit of a master pit digger may have at most.");
+	public static final IntOption PIT_NOVICE_DEPTH = intOption("pitDigger", "noviceDepth", 8, 1, 64,
+		"How deep (in blocks, below the highest string of the ring) a novice pit digger digs at most.",
+		"Up to the master it grows evenly.");
+	public static final IntOption PIT_MASTER_DEPTH = intOption("pitDigger", "masterDepth", 16, 1, 64,
+		"How deep a master pit digger digs at most.");
 	public static final IntOption PIT_MAX_UNEVENNESS = intOption("pitDigger", "maxUnevenness", 4, 0, 8,
 		"How far apart (in height) the strings of a ring may lie at most.");
 	public static final IntOption PIT_DAILY_BLOCKS = intOption("pitDigger", "dailyBlocks", 256, 1, 4096,
@@ -178,6 +184,10 @@ public final class Config {
 		"How many ladders the pit digger carries at most.");
 	public static final IntOption KEEP_TORCHES = intOption("pitDigger", "keepTorches", 16, 0, 64,
 		"How many torches the pit digger carries at most (0: it takes none).");
+	public static final IntOption PIT_KEEP_PLANKS = intOption("pitDigger", "keepPlanks", 64, 1, 64,
+		"How many planks the pit digger carries at most for the floors of a deep pit (only while its pit has floors).");
+	public static final IntOption PIT_KEEP_LOGS = intOption("pitDigger", "keepLogs", 16, 1, 64,
+		"How many logs the pit digger carries at most for the pillars of a deep pit (only while its pit has floors).");
 
 	public static final IntOption TUNNEL_MAX_LENGTH = intOption("miner", "maxTunnelLength", 32, 4, 64,
 		"How long (in blocks) a tunnel may be at most. The miner carries every load out to its chests itself.");

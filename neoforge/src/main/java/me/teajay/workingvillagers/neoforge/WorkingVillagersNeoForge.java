@@ -35,6 +35,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.common.DataMapHooks;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -104,6 +105,19 @@ public class WorkingVillagersNeoForge {
 					handler.accept(payload, player);
 				}
 			}));
+		}
+
+		@Override
+		public <T extends CustomPacketPayload> void registerClientbound(CustomPacketPayload.Type<T> type, StreamCodec<RegistryFriendlyByteBuf, T> codec) {
+			// The client registers its handler in RegisterClientPayloadHandlersEvent
+			this.payloads.add(registrar -> registrar.playToClient(type, codec));
+		}
+
+		@Override
+		public void sendToClient(ServerPlayer player, CustomPacketPayload payload) {
+			if (player.connection.hasChannel(payload)) {
+				PacketDistributor.sendToPlayer(player, payload);
+			}
 		}
 
 		@Override
