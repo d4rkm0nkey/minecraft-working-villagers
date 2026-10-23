@@ -20,6 +20,5 @@ next:
     summary: Takes goods to neighbouring villages by caravan and sells them where they are wanted.
 
 later:
-  tanner: {name: Tanner, workstation: cauldron, work: ":mc-leather: Works leather"}
   cartographer: {name: Cartographer, workstation: cartography_table, work: ":mc-filled_map: Explores the land and finds villages"}
   librarian: {name: Librarian, workstation: lectern, work: ":mc-book: Keeps a list of what is in your storage"}
