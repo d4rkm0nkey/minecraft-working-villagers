@@ -173,8 +173,10 @@ The herd size is no config option: set it at each loom (tab **Settings**).
 
 | Option | Default | Range | What it does |
 | --- | --- | --- | --- |
-| `maxArea` | 64 | 4–256 | Blocks of ground a pit may have at most (inside the ring). |
-| `maxDepth` | 16 | 1–64 | The deepest depth that can be set at the pit stake. |
+| `noviceArea` | 64 | 4–1024 | Blocks of ground (inside the ring) the pit of a novice may have at most. Up to the master the side of the pit grows evenly, see [Size and level](workers/pit-digger.md#size-and-level). |
+| `masterArea` | 256 | 4–1024 | The same for a master. |
+| `noviceDepth` | 8 | 1–64 | How deep a novice digs at most. |
+| `masterDepth` | 16 | 1–64 | How deep a master digs at most. |
 | `maxUnevenness` | 4 | 0–8 | How far apart in height the strings of a ring may lie. |
 | `dailyBlocks` | 256 | 1–4096 | Blocks per day, then it stops for the day. |
 | `digSlowdown` | 8.0 | 1.0–32.0 | How many times as long as a player with the same tool it needs for a block, but at least `minSecondsPerBlock`. `1.0` is as fast as you. |

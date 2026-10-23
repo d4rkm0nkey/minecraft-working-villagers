@@ -17,7 +17,10 @@ import me.teajay.workingvillagers.job.TendSheep;
 import me.teajay.workingvillagers.job.WorkerStatus;
 import me.teajay.workingvillagers.job.WorkerSupplies;
 import me.teajay.workingvillagers.job.ChopTrees;
+import me.teajay.workingvillagers.network.PitPreviewPayload;
 import me.teajay.workingvillagers.station.Pit;
+import me.teajay.workingvillagers.station.PitLimits;
+import me.teajay.workingvillagers.station.PitPreviews;
 import me.teajay.workingvillagers.station.StationType;
 import me.teajay.workingvillagers.station.Workstations.ChestRole;
 import me.teajay.workingvillagers.station.Workstations;
@@ -130,6 +133,7 @@ public final class WorkerTests {
 		registry.accept("pit_digger_climbs_out_of_half_dug_pit", WorkerTests::pitDiggerClimbsOutOfHalfDugPit);
 		registry.accept("pit_digger_finishes_played_pit", WorkerTests::pitDiggerFinishesPlayedPit);
 		registry.accept("pit_stake_takes_ring_it_touches", WorkerTests::pitStakeTakesRingItTouches);
+		registry.accept("pit_limits_grow_with_level", WorkerTests::pitLimitsGrowWithLevel);
 		registry.accept("shop_assistant_sells_wheat", WorkerTests::shopAssistantSellsWheat);
 		registry.accept("ordinary_villager_keeps_off_set_up_station", WorkerTests::ordinaryVillagerKeepsOffSetUpStation);
 		registry.accept("assign_displaces_ordinary_villager", WorkerTests::assignDisplacesOrdinaryVillager);
@@ -1606,7 +1610,7 @@ public final class WorkerTests {
 		BlockPos outside = new BlockPos(7, ground + 1, 10);
 		helper.setBlock(outside, WorkingVillagers.PIT_STAKE.get());
 		helper.assertTrue(helper.getBlockState(new BlockPos(8, ground + 1, 10)).getValue(TripWireBlock.WEST), "The string does not connect to the stake");
-		Pit pit = Pit.fromStake(level, helper.absolutePos(outside)).left()
+		Pit pit = Pit.fromStake(level, helper.absolutePos(outside), 64).left()
 			.orElseThrow(() -> helper.assertionException(outside, "The ring next to the stake is no pit"));
 		helper.assertTrue(pit.inside().size() == 9, "The pit has " + pit.inside().size() + " blocks instead of 9");
 		Workstations.Station station = TestWorld.station(helper, outside);
@@ -1616,7 +1620,7 @@ public final class WorkerTests {
 		// The stake in the ring, instead of a string
 		BlockPos inRing = new BlockPos(8, ground + 1, 10);
 		helper.setBlock(inRing, WorkingVillagers.PIT_STAKE.get());
-		pit = Pit.fromStake(level, helper.absolutePos(inRing)).left()
+		pit = Pit.fromStake(level, helper.absolutePos(inRing), 64).left()
 			.orElseThrow(() -> helper.assertionException(inRing, "The ring through the stake is no pit"));
 		helper.assertTrue(pit.inside().size() == 9, "The pit has " + pit.inside().size() + " blocks instead of 9");
 		helper.assertFalse(pit.ring().contains(helper.absolutePos(inRing)), "The stake is taken as a string of the ring");
@@ -1624,10 +1628,38 @@ public final class WorkerTests {
 
 		// An open ring tells where it ends
 		helper.setBlock(new BlockPos(12, ground + 1, 10), Blocks.AIR);
-		Component problem = Pit.fromStake(level, helper.absolutePos(inRing)).right()
+		Pit.Problem open = Pit.fromStake(level, helper.absolutePos(inRing), 64).right()
 			.orElseThrow(() -> helper.assertionException(inRing, "An open ring was taken as a pit"));
+		Component problem = open.message();
 		helper.assertTrue(problem.getContents() instanceof TranslatableContents contents && contents.getKey().equals("message.workingvillagers.pit.not_closed_at"),
 			"Wrong problem for an open ring: " + problem.getString());
+		helper.assertTrue(open.spots().equals(List.of(helper.absolutePos(new BlockPos(12, ground + 1, 9)))) || open.spots().equals(List.of(helper.absolutePos(new BlockPos(12, ground + 1, 11)))),
+			"The open end is not marked: " + open.spots());
+
+		// Too big for the pit digger: every string is marked
+		helper.setBlock(new BlockPos(12, ground + 1, 10), Blocks.TRIPWIRE);
+		Pit.Problem tooBig = Pit.fromStake(level, helper.absolutePos(inRing), 8).right()
+			.orElseThrow(() -> helper.assertionException(inRing, "A ring around 9 blocks was taken as a pit of at most 8"));
+		helper.assertTrue(tooBig.message().getContents() instanceof TranslatableContents contents && contents.getKey().equals("message.workingvillagers.pit.too_big"),
+			"Wrong problem for a ring that is too big: " + tooBig.message().getString());
+		helper.assertTrue(tooBig.spots().size() == 15, "Not every string of the ring is marked: " + tooBig.spots().size());
+
+		// The preview for a player nearby: the pit, dug 4 deep (the default) below the strings
+		PitPreviewPayload preview = PitPreviews.preview(level, helper.absolutePos(new BlockPos(4, ground + 1, 4)));
+		helper.assertTrue(preview.stakes().size() == 1 && preview.stakes().getFirst().isPit(), "No pit in the preview: " + preview);
+		PitPreviewPayload.Stake stake = preview.stakes().getFirst();
+		helper.assertTrue(stake.inside().size() == 9 && stake.spots().isEmpty(), "Wrong pit in the preview: " + stake);
+		helper.assertTrue(stake.bottom() == helper.absolutePos(new BlockPos(0, ground + 1 - Pit.DEFAULT_DEPTH, 0)).getY(), "Wrong floor in the preview: " + stake.bottom());
+		helper.succeed();
+	}
+
+	/** From 8×8 and 8 deep for a novice to 16×16 and 16 deep for a master, the side growing by 2 a level. */
+	private static void pitLimitsGrowWithLevel(GameTestHelper helper) {
+		int[][] expected = {{64, 8}, {100, 10}, {144, 12}, {196, 14}, {256, 16}};
+		for (int level = 1; level <= 5; level++) {
+			PitLimits limits = PitLimits.forLevel(level);
+			helper.assertTrue(limits.area() == expected[level - 1][0] && limits.depth() == expected[level - 1][1], "Wrong limits for level " + level + ": " + limits);
+		}
 		helper.succeed();
 	}
 
@@ -1690,12 +1722,12 @@ public final class WorkerTests {
 				helper.setBlock(pos, Blocks.AIR);
 			}
 		}
-		BlockPos stake = new BlockPos(6, ground + 1, 10);
+		// Next to the ring
+		BlockPos stake = new BlockPos(7, ground + 1, 10);
 		helper.setBlock(stake, WorkingVillagers.PIT_STAKE.get());
-		helper.assertTrue(Pit.find(helper.getLevel(), helper.absolutePos(new BlockPos(8, ground + 1, 8)), helper.absolutePos(stake)).left().isEmpty(),
-			"An open ring was taken as a pit");
+		helper.assertTrue(Pit.fromStake(helper.getLevel(), helper.absolutePos(stake), 64).left().isEmpty(), "An open ring was taken as a pit");
 		helper.setBlock(gap, Blocks.TRIPWIRE);
-		Pit pit = Pit.find(helper.getLevel(), helper.absolutePos(new BlockPos(8, ground + 1, 8)), helper.absolutePos(stake))
+		Pit pit = Pit.fromStake(helper.getLevel(), helper.absolutePos(stake), 64)
 			.left().orElseThrow(() -> helper.assertionException(gap, "The closed ring is no pit"));
 		helper.assertTrue(pit.inside().size() == size * size, "The pit has " + pit.inside().size() + " blocks instead of " + size * size);
 		Workstations.Station station = TestWorld.station(helper, stake);
@@ -1740,7 +1772,7 @@ public final class WorkerTests {
 				helper.assertBlockPresent(Blocks.GRASS_BLOCK, new BlockPos(8, ground, i));
 			}
 			TestWorld.assertHolds(helper, worker, output, stack -> stack.is(Items.DIRT), halfDug ? size * 3 - 1 : size * size * 3 - 1, "dirt in the output chest");
-			helper.assertFalse(Pit.find(helper.getLevel(), helper.absolutePos(gap), helper.absolutePos(stake)).left().isEmpty(), "The ring was damaged");
+			helper.assertFalse(Pit.fromStake(helper.getLevel(), helper.absolutePos(stake), 64).left().isEmpty(), "The ring was damaged");
 			helper.assertTrue(worker.getY() > helper.absolutePos(new BlockPos(0, ground, 0)).getY(), "The pit digger is still in the pit: " + TestWorld.describe(worker));
 			int torches = 0;
 			for (BlockPos pos : BlockPos.betweenClosed(new BlockPos(9, ground - 2, 9), new BlockPos(far - 1, ground - 2, far - 1))) {

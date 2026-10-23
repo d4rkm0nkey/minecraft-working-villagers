@@ -22,6 +22,7 @@
     "LoomMenuMixin",
     "ServerLevelMixin",
     "ServerPlayerGameModeMixin",
+    "ServerPlayerMixin",
     "SetRaidStatusMixin",
     "SmithingMenuMixin",
     "SmokerMenuMixin",

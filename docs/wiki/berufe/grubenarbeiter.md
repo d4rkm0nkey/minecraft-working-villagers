@@ -1,13 +1,13 @@
 # Beruf: Grubenarbeiter
 
-[← Berufe](README.md) · Station: **Grubenpflock** (neu) · Phase: **umgesetzt** (ohne Master-Fähigkeit, ohne Partikel-Umriss)
+[← Berufe](README.md) · Station: **Grubenpflock** (neu) · Phase: **umgesetzt** (ohne Master-Fähigkeit), mit [Verständlichkeit](#verständlichkeit) und [Grenzen nach Level](#grenzen-nach-level); in Planung: [Ausbau tiefer Gruben](#ausbau-tiefer-gruben-geplant)
 
 Der Grubenarbeiter hebt eine Grube aus, die der Spieler mit Schnur umrandet: Er gräbt alles innerhalb des Rings Schicht für Schicht bis zur eingestellten Tiefe ab, setzt dabei eine Leiter als Ausgang und bringt den Aushub in die Zielkiste. Gut für Keller, Fundamente, Sand- und Tongruben und als einfacher Steinbruch vor der [Mine](../grundlagen/mine.md).
 
 ## Stand der Umsetzung
 
 - **Grubenpflock:** Pfosten mit aufgewickelter Schnur, Rezept Schnur über Stock über Brett. Rechtsklick öffnet die Übersicht mit Größe der Grube (oder was am Ring nicht stimmt), **Tiefe − / +**, **Leiter** und „Heute gegraben x / 256“. Schnur verbindet sich mit dem Pflock wie mit einem Haken (`TripWireBlockMixin`).
-- **Ring** (`Pit.fromStake`, `Pit.attach`): Der Ring, der den Pflock berührt, ist die Grube; der Pflock darf im Ring stehen (zählt dann wie eine Schnur, gehört aber nicht zum Ring) oder direkt daneben. Übernommen wird er beim Öffnen der Übersicht (alle 10 Ticks, solange sie offen ist) und alle 40 Ticks durch den Grubenarbeiter; eine verschobene Leiter bleibt, solange ihre Schnur zum Ring gehört. Ohne geschlossenen Ring bleibt die alte Grube, damit der Grubenarbeiter auf die Reparatur wartet. Schnüre verbinden sich gerade (N/S/O/W), auch einen Block höher oder tiefer, und zählen nur auf Boden mit Kollision (auch Trampelpfad, Ackerboden, Stufen). Innen ist, was vom Rand nicht erreichbar ist; der Rand darf dabei auch schräg gehen, eine fehlende Ecke ist also eine Lücke. Zum Ring gehören nur die Schnüre, die ans Innere grenzen. Prüfungen mit Meldung: keine Schnur am Pflock, nicht geschlossen (mit der Stelle, an der der Ring endet), zu groß (Config `pitDigger.maxArea`, 64), zu klein (unter 2), zu uneben (`pitDigger.maxUnevenness`, 4), zu weit (Kistenreichweite). Gespeichert werden Ring, Innenfläche, Leiterplatz und die Höhe der höchsten Schnur, bei der Station in `Workstations`.
+- **Ring** (`Pit.fromStake`, `Pit.attach`): Der Ring, der den Pflock berührt, ist die Grube; der Pflock darf im Ring stehen (zählt dann wie eine Schnur, gehört aber nicht zum Ring) oder direkt daneben. Übernommen wird er beim Öffnen der Übersicht (alle 10 Ticks, solange sie offen ist; bis 0.6.1 lief diese Prüfung wegen eines Überlaufs nie, die Übersicht zeigte dann nur „Noch keine Grube“) und alle 40 Ticks durch den Grubenarbeiter; eine verschobene Leiter bleibt, solange ihre Schnur zum Ring gehört. Ohne geschlossenen Ring bleibt die alte Grube, damit der Grubenarbeiter auf die Reparatur wartet. Schnüre verbinden sich gerade (N/S/O/W), auch einen Block höher oder tiefer, und zählen nur auf Boden mit Kollision (auch Trampelpfad, Ackerboden, Stufen). Innen ist, was vom Rand nicht erreichbar ist; der Rand darf dabei auch schräg gehen, eine fehlende Ecke ist also eine Lücke. Zum Ring gehören nur die Schnüre, die ans Innere grenzen. Prüfungen mit Meldung: keine Schnur am Pflock, nicht geschlossen (mit der Stelle, an der der Ring endet), zu groß (nach [Level](#grenzen-nach-level), Anfänger 64), zu klein (unter 2), zu uneben (`pitDigger.maxUnevenness`, 4). Zu jedem Problem merkt sich `Pit.Problem` die Schnüre, an denen es liegt (offenes Ende; bei zu groß/zu klein der ganze Ring; bei zu uneben höchste und tiefste Schnur), für Vorschau und Partikel. Gespeichert werden Ring, Innenfläche, Leiterplatz und die Höhe der höchsten Schnur, bei der Station in `Workstations`.
 - **Tiefe** 1 bis `pitDigger.maxDepth` (16), Standard 4, ab der höchsten Schnur; nie tiefer als 5 Blöcke über der Welt-Untergrenze.
 - **Graben** (`DigPit`): unter dem Rand streng Schicht für Schicht. Er gräbt nie tiefer, solange in der aktuellen Schicht noch ein Block offen ist (auch der, auf dem er steht – dafür wechselt er den Platz – oder einer, an den er gerade nicht herankommt – dann versucht er erst andere Standplätze und wartet nur, wenn keiner geht, mit „Wartet: kommt in der Grube nicht an x y z heran“). In jeder Schicht zuerst die Leiterspalte, dann vom Leiterplatz weg. Die Leiterspalte gräbt er ab der zweiten Schicht von oben im Schacht: Er steht auf dem Block, gräbt ihn unter sich weg, setzt die Leiter und rutscht nach. Kommt er von seinem Platz aus ohne Klettern an den Block der Leiterspalte heran (er steht unten im Loch daneben), gräbt er ihn von der Seite. Muss er aus der Grube und die Leiterspalte endet über ihm, gräbt er sie erst bis zu sich herunter, auch nach Feierabend. So entsteht nie ein Loch, aus dem die Leiter nicht herausführt. Hügel bis 8 Blöcke über der höchsten Schnur werden vorher von oben abgetragen; was er dort nicht erreicht, lässt er aus. Als Hügel zählt nur, was ohne Lücke auf dem Boden steht: Eine Baumkrone über der Grube bleibt hängen, darunter gräbt er weiter. Gräbt nur `workingvillagers:pit_diggable` (Erde, Gras, Sand, Kies, Ton, Schlamm, Schnee, Stein und Sorten, Erze, Laub, Pflanzen). Ein anderer Block sperrt die Spalte darunter nur, wenn er direkt aufliegt (eine Brücke mit Luft darunter nicht). Nicht gegraben: Blöcke neben Wasser/Lava, Blöcke, für die die Spitzhacke zu schwach ist, der Block, auf dem er steht (außer in der Leiterspalte, dort hält ihn die Leiter). Zeit: Spielerzeit mit dem Werkzeug × `pitDigger.digSlowdown` (8 für Anfänger, wie beim Holzfäller bis 5 für Meister), mindestens `pitDigger.minSecondsPerBlock` (2 Sekunden) pro Block, Pflanzen ein Viertel davon. Werkzeug: Schaufel oder Spitzhacke, was schneller ist; eine Nutzung pro Block. Drops wie beim Spieler mit diesem Werkzeug (Verzauberungen zählen).
 - **Leiter:** Sobald ein Block der Leiterspalte gegraben ist, setzt er dort eine Leiter an die Wand; fehlende Leitern holt er nach. Die Leiterspalte ist die Innenspalte neben der Schnur, die der Station am nächsten liegt, oder die mit **Leiter** gewählte. Ab 2 Blöcken unter der Ausstiegsschnur ist die Grube „tief“: Dann steigt er nur über die Leiter hinein und heraus. Das Klettern bewegt ihn direkt (hinüber und senkrecht), weil Vanilla keine Wege über Leitern plant. Ab dieser Tiefe sind Leitern Pflicht.
@@ -15,7 +15,7 @@ Der Grubenarbeiter hebt eine Grube aus, die der Spieler mit Schnur umrandet: Er 
 - **Fackeln** (optional, `pitDigger.keepTorches`): auf der Sohle, wenn im Umkreis von 5 Blöcken keine steht. Fackeln einer früheren Sohle hebt er beim Tiefergraben wieder auf.
 - **Status:** u. a. „Gräbt Schicht x von y“, „Ebnet den Boden“, „Steigt die Leiter hinunter/hinauf“, „Wartet: Schnur unterbrochen“, „Wartet: Flüssigkeit in der Grube“, „Wartet: braucht eine bessere Spitzhacke“, „Grube fertig“, „Grube fertig, einige Säulen bleiben stehen“, „Feierabend für heute“, „Wartet: braucht eine Schaufel / Spitzhacke / Leitern“.
 - Profession `workingvillagers:pit_digger` mit eigener Kleidung (braune Arbeitshose mit Latz, gelber Helm).
-- **Nicht umgesetzt:** Master-Fähigkeit (behutsames Graben), Partikel-Umriss der Grube (beim Wählen gibt es nur kurz Partikel auf dem Ring und am Leiterplatz).
+- **Nicht umgesetzt:** Master-Fähigkeit (behutsames Graben).
 - **Offene Fragen entschieden:** Gruben stapeln ist erlaubt. Kann die Wand keine Leiter halten (Luft, Sand), setzt er dort keine; das Klettern funktioniert trotzdem, für den Spieler fehlt dann eine Sprosse.
 
 ## Workstation: Grubenpflock
@@ -37,12 +37,13 @@ Regeln für den Ring:
 - Die Schnüre dürfen dem Gelände folgen, also auf unterschiedlicher Höhe liegen, aber höchstens **4 Blöcke** auseinander (Startwert, Config). Sonst kommt „Ring zu uneben“.
 - Jede Schnur muss auf einem festen Block liegen. Eine Schnur über einem Loch zählt nicht.
 - Der Block unter jeder Schnur bleibt stehen. Er ist der Rand der Grube, die Schnur bleibt so liegen und die Leiter hat eine Wand.
-- Größe: höchstens **64 Blöcke** Grundfläche innen, z. B. 8×8 oder 4×16 (Startwert, Config). Ist der Ring größer, kommt „Grube zu groß (x von 64)“. Der ganze Ring muss in der Reichweite der Station liegen (wie bei den Kisten: Standard 16 Blöcke, per Config höchstens 32).
+- Größe: höchstens **64 Blöcke** Grundfläche innen für einen Anfänger, z. B. 8×8 oder 4×16; mehr mit höherem Level, siehe [Grenzen nach Level](#grenzen-nach-level-geplant). Ist der Ring größer, kommt „Grube zu groß (x von 64)“.
+- Keine eigene Reichweite mehr. Bisher musste jede Schnur näher als die Kistenreichweite (16) am Pflock liegen; ein 16×12-Ring direkt am Pflock scheiterte so mit 17,9 Blöcken an der fernen Ecke, ohne dass man es verstand. Der Ring muss den Pflock ohnehin berühren, und die Fläche begrenzt seine Größe.
 - Wird eine Schnur entfernt, pausiert der Grubenarbeiter mit „Wartet: Schnur unterbrochen“. Sobald der Ring wieder geschlossen ist, geht es weiter; ein geänderter Ring wird automatisch übernommen.
 
 ## Tiefe
 
-- Im Menü stellt der Spieler die **Tiefe** ein: 1 bis **x** Blöcke. Das Maximum steht in der Config, Startwert **16**.
+- Im Menü stellt der Spieler die **Tiefe** ein: 1 bis **x** Blöcke. Bisher Config, Startwert **16**; *geplant:* **8** für einen Anfänger, mehr mit höherem Level (siehe [Grenzen nach Level](#grenzen-nach-level-geplant)).
 - Gezählt wird ab der **höchsten** Schnur des Rings: Die Sohle der Grube liegt *Tiefe* Blöcke unter dem Boden dieser Schnur. Was innerhalb des Rings höher liegt (ein Hügel), wird auch abgetragen.
 - Die Sohle wird beim Wählen der Grube als feste Höhe gespeichert. Nur eine höhere Tiefe im Menü (bis zum Maximum) senkt sie, nie eine Änderung am Ring.
 
@@ -115,7 +116,49 @@ Er gräbt nie den Block, auf dem er steht (außer in der Leiterspalte: Dort grä
 - Status, Arbeiter, Zeile „Lohn und Werkzeug“ (Emeralds, Schaufel, Spitzhacke, Leitern, Fackeln) und Zielkisten wie bei den anderen Stationen.
 - **Grube wählen**, **Leiterplatz wählen**, **Tiefe** (− / +).
 - Anzeige: Größe der Grube, aktuelle Schicht von *Tiefe*, Aushub heute.
-- Optional: Umriss und Leiterplatz kurz mit Partikeln anzeigen.
+- Umriss als Vorschau, solange man Schnur in der Hand hält, siehe [Verständlichkeit](#verständlichkeit-geplant).
+
+## Verständlichkeit
+
+Anlass: Ein Ring mit 125 Blöcken Fläche, dessen ferne Ecke 17,9 Blöcke vom Pflock lag, blieb rot. Der Grund stand nur als laufende Zeile im Einstellungs-Tab, der Status sagte „kein Schnurring am Pflock“ (seit 0.6.1 steht dort der Grund). Keine Actionbar-Meldungen, sie wirken nicht wie Vanilla.
+
+Umgesetzt (`PitPreviews`, `PitPreviewPayload`, `PitPreviewRenderer`, Screenshots per `PitPreviewScreenshots` im Client-Gametest):
+
+- **Umriss-Vorschau:** Hält der Spieler Schnur in der Hand, zeigt der Client an jedem Grubenpflock im Umkreis von 24 Blöcken den Ring als Linien (`Gizmos`, wie der Umriss des Konstruktionsblocks). Gültige Grube: weißer Umriss des Aushubs oben am Ring, Sohle und Ecken blasser durch den Boden hindurch (Tiefe des Arbeiters). Ungültiger Ring: Rahmen um jede Schnur, die Schnüre mit dem Problem rot (offenes Ende, zu große Grube: der ganze Ring, zu uneben: höchste und tiefste Schnur). Der Server prüft alle 10 Ticks die Ringe an den Pflöcken in Reichweite (POI-Suche, `ServerPlayerMixin`), eine Quelle der Wahrheit ohne Config auf dem Client, und schickt die Vorschau nur, wenn sie sich ändert; nur an Clients mit dem Mod.
+- **Partikel:** Ändert sich der Ring, zeigen Partikel das Ergebnis an der Stelle, an der der Spieler die Schnur legt: grüne auf dem übernommenen Ring (wie bisher), verärgerte Dorfbewohner-Partikel auf den Schnüren mit dem Problem.
+- **Menü:** Der Einstellungs-Tab zeigt die Meldung umbrochen (bis 6 Zeilen) statt als laufende Zeile, bei zu großem Ring mit Fläche und Grenze („zu groß (125 von 64 Blöcken)“), darunter grau die Grenzen des Arbeiters („Höchstens 64 Blöcke, 8 tief“). Der Status des Grubenarbeiters nennt das Problem ebenfalls (seit 0.6.1).
+
+## Grenzen nach Level
+
+Fläche und Tiefe wachsen mit dem Level des Grubenarbeiters, die Seitenlänge um 2 je Level, die Tiefe um 2:
+
+| Level | Fläche (Seite) | Tiefe |
+| --- | --- | --- |
+| Novice | 64 (8×8) | 8 |
+| Apprentice | 100 (10×10) | 10 |
+| Journeyman | 144 (12×12) | 12 |
+| Expert | 196 (14×14) | 14 |
+| Master | 256 (16×16) | 16 |
+
+- Config: Anfänger- und Meisterwert je für Fläche und Tiefe (`pitDigger.noviceArea` 64, `masterArea` 256, `noviceDepth` 8, `masterDepth` 16); dazwischen wächst die Seitenlänge gleichmäßig. Neue Schlüssel, damit vorhandene Config-Dateien mit `maxDepth: 16` nicht den Anfänger auf 16 setzen.
+- Ohne Arbeiter am Pflock (oder wenn er nicht geladen ist) gelten die Anfängerwerte (`PitLimits`). Die eingestellte Tiefe bleibt gespeichert (bis zum Meisterwert); gegraben und angezeigt wird höchstens die Tiefe des Arbeiters, und **+** geht nur bis dahin.
+- Der Grubenarbeiter handelt nicht und bleibt deshalb Anfänger, bis Arbeiter durch Arbeit aufsteigen ([Anheuern & Lohn](../wirtschaft/anheuern-und-lohn.md)). Die Grenzen hängen trotzdem schon jetzt am Level, so wie das Grabtempo.
+
+## Ausbau tiefer Gruben (geplant)
+
+Tiefere Gruben kosten Material: Unterhalb von **8 Blöcken** (der Anfängertiefe) baut der Grubenarbeiter die Grube aus. So bleibt die Anfängergrube einfach, und eine tiefe Grube braucht Holz aus der Kette Holzfäller → Holzsäger.
+
+- **Wandverbau:** Unterhalb von 8 Blöcken kleidet er die Wand mit **Brettern** aus, wo sie aus losem Material besteht (alles, was er mit der Schaufel gräbt: Erde, Sand, Kies, Ton, Schlamm). Die äußerste Spalte innerhalb des Rings wird dafür nicht ausgehoben, sondern mit Brettern gefüllt; Steinwände brauchen keinen Verbau. Kies und Sand rieseln so nicht mehr nach, die Wand hält Leitern. Bedarf: Umfang × Schichten mit loser Wand, bei 8×8 und 16 Tiefe in Erde höchstens 28 × 8 = 224 Bretter.
+- **Bühnen:** Alle 4 Blöcke unterhalb von 8 setzt er neben der Leiter eine **Holzstufe** als Bühne an die Wand, zum Ausruhen beim Klettern, wie in Schächten. Er braucht eine Stufe je Bühne.
+- Mitnahme wie Leitern: Bretter und Stufen gibt man ihm direkt oder er holt sie aus einer Dorfkiste (neue Vorräte wie `PLANKS` beim Minenarbeiter). Fehlen sie, gräbt er bis 8 Blöcke tief weiter und wartet dann mit „Wartet: braucht Bretter“ bzw. „... Holzstufen“.
+- Abbau: Verbau und Bühnen bleiben in der fertigen Grube, wie die Leitern.
+
+Offene Fragen zum Ausbau:
+
+- Verbau nur bei loser Wand (Vorschlag) oder bei jeder Wand?
+- Füllt der Verbau die äußerste Spalte der Grube (die Grube wird innen kleiner, nichts außerhalb des Rings ändert sich) oder ersetzt er lose Blöcke der Wand außerhalb des Rings (die Grube bleibt so groß, verändert aber den Rand)?
+- Bühnen alle 4 Blöcke oder nur an Stellen, an denen die Leiter keine Wand hat?
+- Ab welcher Tiefe: fest 8, oder ab der Anfängertiefe aus der Config?
 
 ## Master-Fähigkeit
 
@@ -129,7 +172,7 @@ Gräbt behutsam: Gras, Myzel und Podsol landen als Block in der Zielkiste statt 
 
 ## Abgrenzung zum Minenarbeiter
 
-Der [Minenarbeiter](minenarbeiter.md) hat einen Steinbruch-Modus mit markiertem Quader. Der Grubenarbeiter ist die einfache, frühe Variante davon: freie Form per Schnur, keine Stützen, keine Etagen, nur nach unten. Kommt der Minenarbeiter, kann sein Steinbruch-Modus diese Logik übernehmen.
+Der [Minenarbeiter](minenarbeiter.md) hat einen Steinbruch-Modus mit markiertem Quader. Der Grubenarbeiter ist die einfache, frühe Variante davon: freie Form per Schnur, keine Etagen, nur nach unten; Stützen nur als [Ausbau tiefer Gruben](#ausbau-tiefer-gruben-geplant). Kommt der Minenarbeiter, kann sein Steinbruch-Modus diese Logik übernehmen.
 
 ## Sonderfälle & offene Fragen
 

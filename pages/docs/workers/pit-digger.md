@@ -15,14 +15,18 @@ basements, foundations, sand and clay pits and as a simple quarry.
 1. Place a [pit stake](../blocks-and-items.md#pit-stake) at the edge of the area to dig.
 2. Lay **string** on the ground in a **closed ring** around the area that **touches the
    stake**: the stake may stand in the ring like a piece of string, or right next to it.
-   The string connects to the stake, and the stake takes the ring as its pit by itself;
-   green particles show the ring. Strings only connect straight (north, south, east,
+   The string connects to the stake, and the stake takes the ring as its pit by itself.
+   **While you hold string**, every pit stake within 24 blocks shows its pit as a white
+   outline, down to the floor; a ring that is no pit yet shows its strings, the ones that
+   are the problem in red (the open end, or the whole ring if it is too big). Green
+   particles show a ring that just became a pit, angry ones where the problem is. Strings only connect straight (north, south, east,
    west), not diagonally, at most one block up or down, and each one has to lie on
    ground (dirt paths, farmland and slabs count too). The ring may follow the terrain,
    up and down by up to 4 blocks.
 3. Right-click the stake to open its overview. It shows the size of the pit, e.g.
-   *Pit: 8×8, 64 blocks*, or what is wrong with the ring.
-4. Set the **depth** with **-** and **+** (1 to 16 blocks).
+   *Pit: 8×8, 64 blocks*, or what is wrong with the ring, and how big and deep the pit
+   digger may dig (*At most 64 blocks, 8 deep*).
+4. Set the **depth** with **-** and **+** (1 to 8 blocks for a novice).
 5. Link at least one **chest** (**+ Chest**). A hired villager without a job finds the
    stake by itself; **Assign** picks a specific one.
 6. Right-click the pit digger with its wage (emeralds), a **shovel**, a **pickaxe** and
@@ -36,15 +40,31 @@ basements, foundations, sand and clay pits and as a simple quarry.
   rectangles.
 - The blocks **under the strings stay**: they are the rim of the pit, and the strings
   stay where they are.
-- At most **64 blocks** of ground inside, e.g. 8×8 or 4×16, and at least 2.
-- The whole ring has to be within **16 blocks** of the stake.
+- At most **64 blocks** of ground inside for a novice, e.g. 8×8 or 4×16, and at least 2.
+  See [Size and level](#size-and-level).
 - Make the ring bigger or change its shape whenever you like: the stake takes the new
   ring the next time you open its overview or the pit digger looks at it.
 - If a string is taken away, the pit digger waits (*the string ring is broken*) until it
   is back in the same place.
 
-If the ring is not right, the overview says why: not closed (with the place where it
-ends), too big, too uneven or too far.
+If the ring is not right, the overview and the pit digger's status say why: not closed
+(with the place where it ends), too big or too uneven.
+
+## Size and level
+
+How big and how deep a pit may be grows with the pit digger's level:
+
+| Level | Ground inside | Depth |
+| --- | --- | --- |
+| Novice | 64 (8×8) | 8 |
+| Apprentice | 100 (10×10) | 10 |
+| Journeyman | 144 (12×12) | 12 |
+| Expert | 196 (14×14) | 14 |
+| Master | 256 (16×16) | 16 |
+
+The pit digger does not trade, so for now it stays a novice; levels for work are
+[planned](../planned.md). Without a pit digger at the stake the novice's limits apply.
+A depth set deeper than the pit digger may dig is kept; it digs as deep as it may.
 
 ## Depth
 

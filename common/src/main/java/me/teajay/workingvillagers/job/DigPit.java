@@ -12,11 +12,11 @@ import java.util.Optional;
 import me.teajay.workingvillagers.Config;
 import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.station.Pit;
+import me.teajay.workingvillagers.station.PitLimits;
 import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -97,7 +97,7 @@ public class DigPit extends Behavior<Villager> {
 	private String waitReason = "pit_digger.no_pit";
 	private Object[] waitArgs = {};
 	/** Why the ring at the stake is no pit (too big, not closed, ...); empty if it is one. */
-	private Optional<Component> ringProblem = Optional.empty();
+	private Optional<Pit.Problem> ringProblem = Optional.empty();
 	private final WorkerSupplies supplies = new WorkerSupplies();
 	private final Deque<Leg> legs = new ArrayDeque<>();
 	/** What comes after the legs: DIG or PLAN. */
@@ -244,7 +244,7 @@ public class DigPit extends Behavior<Villager> {
 				if (layer <= 0) {
 					WorkerStatus.task(villager, "pit_digger.level");
 				} else {
-					WorkerStatus.task(villager, "pit_digger.dig", layer, station.depth());
+					WorkerStatus.task(villager, "pit_digger.dig", layer, depth(villager, station));
 				}
 			}
 			case DELIVER -> WorkerStatus.task(villager, "deliver");
@@ -268,7 +268,7 @@ public class DigPit extends Behavior<Villager> {
 		if (pit == null) {
 			// Without a ring the stake says so; a ring that is no pit says why
 			this.rest(villager, station, this.ringProblem.isPresent() ? "pit_digger.bad_ring" : "pit_digger.no_pit");
-			this.ringProblem.ifPresent(problem -> this.waitArgs = new Object[] {problem});
+			this.ringProblem.ifPresent(problem -> this.waitArgs = new Object[] {problem.message()});
 			return;
 		}
 		if (!pit.isLoaded(level)) {
@@ -367,7 +367,7 @@ public class DigPit extends Behavior<Villager> {
 	 * a column stops at the first block that has to stay.
 	 */
 	private Plan nextBlock(ServerLevel level, Villager villager, Workstations.Station station, Pit pit) {
-		int bottom = pit.bottom(level, station.depth());
+		int bottom = pit.bottom(level, depth(villager, station));
 		List<BlockPos> candidates = new ArrayList<>();
 		Blocked blocked = Blocked.NONE;
 		for (BlockPos column : pit.inside()) {
@@ -719,7 +719,7 @@ public class DigPit extends Behavior<Villager> {
 		this.target = null;
 		if (isLadderColumn(pit, pos)) {
 			this.placeLadder(level, villager, pit, pos);
-		} else if (pos.getY() == pit.bottom(level, station.depth())) {
+		} else if (pos.getY() == pit.bottom(level, depth(villager, station))) {
 			this.placeTorch(level, villager, pit, pos);
 		}
 		villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
@@ -747,7 +747,7 @@ public class DigPit extends Behavior<Villager> {
 			return false;
 		}
 		BlockState ladder = Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING, pit.ladderFacing());
-		for (int y = pit.ladder().getY(); y >= pit.bottom(level, station.depth()); y--) {
+		for (int y = pit.ladder().getY(); y >= pit.bottom(level, depth(villager, station)); y--) {
 			BlockPos pos = new BlockPos(pit.ladder().getX(), y, pit.ladder().getZ());
 			BlockState state = level.getBlockState(pos);
 			if (!state.isAir()) {
@@ -851,6 +851,11 @@ public class DigPit extends Behavior<Villager> {
 		this.waitReason = reason;
 		this.waitArgs = new Object[0];
 		this.setState(State.WAIT);
+	}
+
+	/** How deep it digs: the depth set at the stake, at most as deep as its level allows. */
+	private static int depth(Villager villager, Workstations.Station station) {
+		return Math.min(station.depth(), PitLimits.of(villager).depth());
 	}
 
 	private void setState(State state) {

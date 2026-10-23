@@ -78,6 +78,18 @@ public class WorkingVillagersFabric implements ModInitializer {
 		}
 
 		@Override
+		public <T extends CustomPacketPayload> void registerClientbound(CustomPacketPayload.Type<T> type, StreamCodec<RegistryFriendlyByteBuf, T> codec) {
+			PayloadTypeRegistry.clientboundPlay().register(type, codec);
+		}
+
+		@Override
+		public void sendToClient(ServerPlayer player, CustomPacketPayload payload) {
+			if (ServerPlayNetworking.canSend(player, payload.type())) {
+				ServerPlayNetworking.send(player, payload);
+			}
+		}
+
+		@Override
 		public <T extends AbstractContainerMenu> Supplier<MenuType<T>> registerMenu(String name, MenuFactory<T> factory) {
 			MenuType<T> value = Registry.register(BuiltInRegistries.MENU, WorkingVillagers.id(name), new MenuType<>(factory::create, FeatureFlags.VANILLA_SET));
 			return () -> value;

@@ -679,13 +679,16 @@ public class Workstations extends SavedData {
 			}
 		}
 
-		/** Pit stake: how deep to dig, below the highest string of the ring. */
+		/**
+		 * Pit stake: how deep to dig, below the highest string of the ring. The pit digger digs
+		 * at most as deep as its level allows ({@link PitLimits}).
+		 */
 		public int depth() {
-			return Math.clamp(this.depth, 1, Config.PIT_MAX_DEPTH.get());
+			return Math.clamp(this.depth, 1, PitLimits.maxDepth());
 		}
 
 		public void setDepth(int depth) {
-			int clamped = Math.clamp(depth, 1, Config.PIT_MAX_DEPTH.get());
+			int clamped = Math.clamp(depth, 1, PitLimits.maxDepth());
 			if (this.depth != clamped) {
 				this.depth = clamped;
 				this.setDirty();

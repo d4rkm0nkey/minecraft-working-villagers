@@ -5,14 +5,20 @@ import me.teajay.workingvillagers.client.CarpenterScreen;
 import me.teajay.workingvillagers.client.CarrierScreen;
 import me.teajay.workingvillagers.client.CutterScreen;
 import me.teajay.workingvillagers.client.KilnScreen;
+import me.teajay.workingvillagers.client.PitPreviewRenderer;
 import me.teajay.workingvillagers.client.StationScreen;
 import me.teajay.workingvillagers.client.VillageChestRenderer;
 import me.teajay.workingvillagers.client.VillageChestScreen;
+import me.teajay.workingvillagers.network.PitPreviewPayload;
+import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.network.event.RegisterClientPayloadHandlersEvent;
+import net.neoforged.neoforge.common.NeoForge;
 
 @Mod(value = WorkingVillagers.MOD_ID, dist = Dist.CLIENT)
 public class WorkingVillagersNeoForgeClient {
@@ -49,5 +55,8 @@ public class WorkingVillagersNeoForgeClient {
 		});
 		modBus.addListener(EntityRenderersEvent.RegisterRenderers.class,
 			event -> event.registerBlockEntityRenderer(WorkingVillagers.VILLAGE_CHEST_BLOCK_ENTITY.get(), VillageChestRenderer::new));
+		modBus.addListener(RegisterClientPayloadHandlersEvent.class,
+			event -> event.register(PitPreviewPayload.TYPE, (payload, context) -> PitPreviewRenderer.receive(payload)));
+		NeoForge.EVENT_BUS.addListener(ClientTickEvent.Post.class, event -> PitPreviewRenderer.tick(Minecraft.getInstance()));
 	}
 }
