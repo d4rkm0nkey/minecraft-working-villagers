@@ -1,8 +1,10 @@
 package me.teajay.workingvillagers.client;
 
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+
 /**
- * The swing of a villager at work in its render state (see {@code VillagerRenderStateMixin}),
- * moved into its arms by {@code VillagerModelMixin}.
+ * The work of a villager in its render state (see {@code VillagerRenderStateMixin}): how
+ * {@code VillagerModelMixin} poses its arms and what {@link WorkItemLayer} puts in its hand.
  */
 public interface WorkPoseHolder {
 	WorkMotion workingvillagers$getWorkMotion();
@@ -11,4 +13,7 @@ public interface WorkPoseHolder {
 	float workingvillagers$getWorkSwing();
 
 	void workingvillagers$setWorkPose(WorkMotion motion, float swing);
+
+	/** The held item as players hold it, shown when the arms are apart. */
+	ItemStackRenderState workingvillagers$getHandItem();
 }

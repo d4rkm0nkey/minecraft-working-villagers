@@ -41,6 +41,14 @@ public interface HiredVillager {
 	void workingvillagers$setTask(@Nullable Component task);
 
 	/**
+	 * On the client: the tick count of the villager when it was last seen swinging, so that a
+	 * worker keeps its arms apart between two strokes (see {@code WorkMotion}). Not saved.
+	 */
+	int workingvillagers$getLastSwing();
+
+	void workingvillagers$setLastSwing(int tick);
+
+	/**
 	 * Whether the current task is a problem the player has to solve (no wage, no tool, full
 	 * chests, ...). Not saved.
 	 */

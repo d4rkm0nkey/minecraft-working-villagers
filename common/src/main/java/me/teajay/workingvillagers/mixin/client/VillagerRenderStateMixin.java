@@ -4,10 +4,11 @@ import me.teajay.workingvillagers.client.UniformHolder;
 import me.teajay.workingvillagers.client.WorkMotion;
 import me.teajay.workingvillagers.client.WorkPoseHolder;
 import net.minecraft.client.renderer.entity.state.VillagerRenderState;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
-/** Carries the color of a guard's uniform to {@code UniformLayer} and the swing at work to {@code VillagerModelMixin}. */
+/** Carries the color of a guard's uniform to {@code UniformLayer} and the work to {@code VillagerModelMixin}. */
 @Mixin(VillagerRenderState.class)
 public abstract class VillagerRenderStateMixin implements UniformHolder, WorkPoseHolder {
 	@Unique
@@ -16,6 +17,8 @@ public abstract class VillagerRenderStateMixin implements UniformHolder, WorkPos
 	private WorkMotion workingvillagers$workMotion = WorkMotion.NONE;
 	@Unique
 	private float workingvillagers$workSwing;
+	@Unique
+	private final ItemStackRenderState workingvillagers$handItem = new ItemStackRenderState();
 
 	@Override
 	public int workingvillagers$getUniform() {
@@ -41,5 +44,10 @@ public abstract class VillagerRenderStateMixin implements UniformHolder, WorkPos
 	public void workingvillagers$setWorkPose(WorkMotion motion, float swing) {
 		this.workingvillagers$workMotion = motion;
 		this.workingvillagers$workSwing = swing;
+	}
+
+	@Override
+	public ItemStackRenderState workingvillagers$getHandItem() {
+		return this.workingvillagers$handItem;
 	}
 }
