@@ -80,6 +80,8 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 	@Unique
 	private @Nullable Component workingvillagers$task;
 	@Unique
+	private int workingvillagers$lastSwing = Integer.MIN_VALUE / 2;
+	@Unique
 	private boolean workingvillagers$problem;
 	@Unique
 	private long workingvillagers$paidDay = -1L;
@@ -163,6 +165,16 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 	@Override
 	public void workingvillagers$setTask(@Nullable Component task) {
 		this.workingvillagers$task = task;
+	}
+
+	@Override
+	public int workingvillagers$getLastSwing() {
+		return this.workingvillagers$lastSwing;
+	}
+
+	@Override
+	public void workingvillagers$setLastSwing(int tick) {
+		this.workingvillagers$lastSwing = tick;
 	}
 
 	@Override
