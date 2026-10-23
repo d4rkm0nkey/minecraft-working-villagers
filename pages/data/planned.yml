@@ -18,6 +18,9 @@ next:
     icon: map
     station: Trading office (new block)
     summary: Takes goods to neighbouring villages by caravan and sells them where they are wanted.
-
-later:
-  cartographer: {name: Cartographer, workstation: cartography_table, work: ":mc-filled_map: Explores the land and finds villages"}
+  cartographer:
+    name: Cartographer
+    icon: filled_map
+    workstation: cartography_table
+    station: Cartography table
+    summary: Explores the land around the village and finds other villages.

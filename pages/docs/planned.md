@@ -14,17 +14,10 @@ what is planned. Nothing here is in the game yet.
 
 ## Planned workers
 
-These workers are planned next. Most of them get a new workstation, like the lumberjack
+These workers are planned next. Some of them get a new workstation, like the lumberjack
 and its chopping block.
 
 [[planned_workers]]
-
-### Later
-
-These follow later. Most of them work at the vanilla workstation of their villager
-profession.
-
-[[later_workers]]
 
 ## For the workers you already have
 
