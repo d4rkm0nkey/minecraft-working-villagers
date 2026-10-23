@@ -55,7 +55,8 @@ VANILLA_ITEMS = [
 ]
 MOD_ITEMS = ["work_contract", "wicker_basket"]
 
-# Block icons: output name -> model. The mod's own models come from its resources.
+# Block icons: output name -> model, or several models drawn together (like the parts of a
+# multipart block state). The mod's own models come from its resources.
 BLOCKS = {
     "oak_log": "minecraft:block/oak_log",
     "birch_log": "minecraft:block/birch_log",
@@ -93,6 +94,8 @@ BLOCKS = {
     "soul_sand": "minecraft:block/soul_sand",
     "grindstone": "minecraft:block/grindstone",
     "enchanting_table": "minecraft:block/enchanting_table",
+    "brewing_stand": ("minecraft:block/brewing_stand", "minecraft:block/brewing_stand_bottle0",
+                      "minecraft:block/brewing_stand_bottle1", "minecraft:block/brewing_stand_bottle2"),
     "cartography_table": "minecraft:block/cartography_table",
     "smithing_table": "minecraft:block/smithing_table",
     "chopping_block": "workingvillagers:block/chopping_block",
@@ -517,9 +520,10 @@ def main():
     for name, image in items.items():
         image.save(OUT / "items" / f"{name}.png")
 
-    for name, ref in BLOCKS.items():
+    for name, refs in BLOCKS.items():
         tint = GRASS_TINT if name == "grass_block" else None
-        render(model_faces(assets, ref, tint), bounds=CUBE).save(OUT / "blocks" / f"{name}.png", optimize=True)
+        faces = [face for ref in ((refs,) if isinstance(refs, str) else refs) for face in model_faces(assets, ref, tint)]
+        render(faces, bounds=CUBE).save(OUT / "blocks" / f"{name}.png", optimize=True)
     chest(assets).save(OUT / "blocks" / "chest.png", optimize=True)
     chest(assets, "workingvillagers:entity/chest/village").save(OUT / "blocks" / "village_chest.png", optimize=True)
 

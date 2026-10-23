@@ -33,7 +33,7 @@ hide:
 <span class="wv-villager" style="--delay: .15s"><img src="assets/mc/heads/fisher.png" alt=""><img src="assets/mc/blocks/barrel.png" alt=""></span>
 <span class="wv-villager" style="--delay: .65s"><img src="assets/mc/heads/fletcher.png" alt=""><img src="assets/mc/blocks/fletching_table.png" alt=""></span>
 <span class="wv-villager" style="--delay: .35s"><img src="assets/mc/heads/guard.png" alt=""><img src="assets/mc/blocks/target.png" alt=""></span>
-<span class="wv-villager" style="--delay: .95s"><img src="assets/mc/heads/apothecary.png" alt=""><img src="assets/mc/items/brewing_stand.png" alt=""></span>
+<span class="wv-villager" style="--delay: .95s"><img src="assets/mc/heads/apothecary.png" alt=""><img src="assets/mc/blocks/brewing_stand.png" alt=""></span>
 <span class="wv-villager" style="--delay: .55s"><img src="assets/mc/heads/tanner.png" alt=""><img src="assets/mc/blocks/cauldron.png" alt=""></span>
 <span class="wv-villager" style="--delay: .25s"><img src="assets/mc/heads/weaponsmith.png" alt=""><img src="assets/mc/blocks/grindstone.png" alt=""></span>
 <span class="wv-villager" style="--delay: .75s"><img src="assets/mc/heads/librarian.png" alt=""><img src="assets/mc/blocks/lectern.png" alt=""></span>
