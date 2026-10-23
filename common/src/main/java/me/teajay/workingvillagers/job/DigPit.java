@@ -16,6 +16,7 @@ import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -95,6 +96,8 @@ public class DigPit extends Behavior<Villager> {
 	private int stateTicks;
 	private String waitReason = "pit_digger.no_pit";
 	private Object[] waitArgs = {};
+	/** Why the ring at the stake is no pit (too big, not closed, ...); empty if it is one. */
+	private Optional<Component> ringProblem = Optional.empty();
 	private final WorkerSupplies supplies = new WorkerSupplies();
 	private final Deque<Leg> legs = new ArrayDeque<>();
 	/** What comes after the legs: DIG or PLAN. */
@@ -193,7 +196,7 @@ public class DigPit extends Behavior<Villager> {
 		this.badSpots.values().removeIf(until -> until < timestamp);
 		if (villager.tickCount % RING_CHECK_INTERVAL == 0) {
 			// The ring at the stake is the pit: a new or changed ring is taken over
-			Pit.attach(level, station);
+			this.ringProblem = Pit.attach(level, station);
 		}
 		Pit pit = station.pit();
 		if (pit != null && villager.tickCount % RING_CHECK_INTERVAL == 0) {
@@ -263,7 +266,9 @@ public class DigPit extends Behavior<Villager> {
 			return;
 		}
 		if (pit == null) {
-			this.rest(villager, station, "pit_digger.no_pit");
+			// Without a ring the stake says so; a ring that is no pit says why
+			this.rest(villager, station, this.ringProblem.isPresent() ? "pit_digger.bad_ring" : "pit_digger.no_pit");
+			this.ringProblem.ifPresent(problem -> this.waitArgs = new Object[] {problem});
 			return;
 		}
 		if (!pit.isLoaded(level)) {

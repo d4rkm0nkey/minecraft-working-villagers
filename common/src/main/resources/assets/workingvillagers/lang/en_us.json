@@ -248,6 +248,7 @@
   "status.workingvillagers.pit_digger.level": "Levelling the ground",
   "status.workingvillagers.pit_digger.dig": "Digging layer %s of %s",
   "status.workingvillagers.pit_digger.no_pit": "Waiting: no ring of string at the stake",
+  "status.workingvillagers.pit_digger.bad_ring": "Waiting: %s",
   "status.workingvillagers.pit_digger.not_loaded": "Waiting: the pit is not loaded",
   "status.workingvillagers.pit_digger.ring_broken": "Waiting: the string ring is broken",
   "status.workingvillagers.pit_digger.done": "Pit finished",

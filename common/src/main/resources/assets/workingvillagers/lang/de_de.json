@@ -248,6 +248,7 @@
   "status.workingvillagers.pit_digger.level": "Ebnet den Boden",
   "status.workingvillagers.pit_digger.dig": "Gräbt Schicht %s von %s",
   "status.workingvillagers.pit_digger.no_pit": "Wartet: kein Schnurring am Pflock",
+  "status.workingvillagers.pit_digger.bad_ring": "Wartet: %s",
   "status.workingvillagers.pit_digger.not_loaded": "Wartet: Grube ist nicht geladen",
   "status.workingvillagers.pit_digger.ring_broken": "Wartet: Schnur unterbrochen",
   "status.workingvillagers.pit_digger.done": "Grube fertig",
