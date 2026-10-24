@@ -157,7 +157,8 @@ that has what it wants. Giving directly still works.
   only what it cannot work without (no wage, its tool is worn, no ladders). If no village
   chest has it, it waits as before.
 - **What:** emeralds for 3 days (`villageChests.wageDays`, into the wage box of its
-  workstation) once it has less than a day's wage; a spare tool once it has none or only one with a tenth of its durability left (the
+  workstation) once it has less than a day's wage, but no more than its share of the
+  emeralds in the chest (divided among the workers it serves) and at least today's wage; a spare tool once it has none or only one with a tenth of its durability left (the
   most worn one first, so tools get used up; never a worn one, see below);
   saplings, seeds, ladders and torches up to the amount it keeps once it has less than a
   quarter of it (kinds it already has first).

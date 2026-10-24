@@ -234,7 +234,7 @@ The herd size is no config option: set it at each loom (tab **Settings**).
 | --- | --- | --- | --- |
 | `enabled` | true | | Workers take their supplies from village chests. `false`: village chests are ordinary chests. |
 | `radius` | 48 | 8–128 | How far (horizontally) a village chest may be from a worker's workstation. Up or down it is always 24 blocks. |
-| `wageDays` | 3 | 1–16 | For how many days a worker takes its wage at once. |
+| `wageDays` | 3 | 1–16 | For how many days a worker takes its wage at once. When emeralds run short, only its share of them, at least today's wage. |
 | `takeEnchanted` | false | | Workers also take enchanted and renamed tools. |
 
 ## Tools (`tools`)

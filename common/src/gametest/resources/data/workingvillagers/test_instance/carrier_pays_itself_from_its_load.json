@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "workingvillagers:work_hours",
+  "function": "workingvillagers:carrier_pays_itself_from_its_load",
+  "max_ticks": 3000,
+  "setup_ticks": 1,
+  "structure": "workingvillagers:platform"
+}

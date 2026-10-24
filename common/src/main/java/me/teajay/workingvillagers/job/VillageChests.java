@@ -19,6 +19,7 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.village.poi.PoiManager;
 import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
@@ -173,7 +174,7 @@ public final class VillageChests {
 			return takes;
 		}
 		SimpleContainer inventory = villager.getInventory();
-		int wage = wageWanted(villager);
+		int wage = fairShare(villager, container, wageWanted(villager));
 		for (int slot = 0; slot < container.getContainerSize() && wage > 0; slot++) {
 			ItemStack stack = container.getItem(slot);
 			if (!stack.isEmpty() && WorkerSupplies.isWage(stack)) {
@@ -259,6 +260,25 @@ public final class VillageChests {
 		Workstations.Station box = WorkerSupplies.wageBox(level, villager);
 		int room = box == null ? WorkerSupplies.MAX_EMERALDS : Workstations.MAX_WAGE;
 		return Math.max(0, Math.min(wage * Config.VILLAGE_CHEST_WAGE_DAYS.get(), room) - has);
+	}
+
+	/**
+	 * The emeralds it takes of the {@code wanted} ones: the wage for a few days only while the
+	 * chest holds that much for every worker it serves, otherwise its share of them, but at
+	 * least what it needs for today. So no worker fills its wage box for days while the others
+	 * find the chest empty.
+	 */
+	private static int fairShare(Villager villager, Container container, int wanted) {
+		if (wanted <= 0 || !(villager.level() instanceof ServerLevel level) || !(container instanceof BlockEntity chest)) {
+			return wanted;
+		}
+		int today = Math.max(0, Config.DAILY_WAGE.get() - WorkerSupplies.emeralds(level, villager));
+		if (wanted <= today) {
+			return wanted;
+		}
+		int stored = WorkerSupplies.count(container, WorkerSupplies::isWage);
+		int workers = Math.max(1, served(level, chest.getBlockPos()).size());
+		return Math.max(today, Math.min(wanted, stored / workers));
 	}
 
 	/** No tool of the kind it can work with, or only one that is almost used up. */

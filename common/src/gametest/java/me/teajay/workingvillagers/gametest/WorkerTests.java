@@ -134,6 +134,8 @@ public final class WorkerTests {
 		registry.accept("kiln_operator_keeps_finished_order", WorkerTests::kilnOperatorKeepsFinishedOrder);
 		registry.accept("fletcher_makes_arrows_for_spectral_arrows", WorkerTests::fletcherMakesArrowsForSpectralArrows);
 		registry.accept("carrier_moves_items", WorkerTests::carrierMovesItems);
+		registry.accept("carrier_pays_itself_from_its_load", WorkerTests::carrierPaysItselfFromItsLoad);
+		registry.accept("village_chest_shares_scarce_wages", WorkerTests::villageChestSharesScarceWages);
 		registry.accept("farmer_harvests_and_replants", WorkerTests::farmerHarvestsAndReplants);
 		registry.accept("workers_do_not_trample_farmland", WorkerTests::workersDoNotTrampleFarmland);
 		registry.accept("worker_finds_workplace", WorkerTests::workerFindsWorkplace);
@@ -2331,6 +2333,57 @@ public final class WorkerTests {
 		helper.succeedWhen(() -> {
 			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.COBBLESTONE), 74, "cobblestone in the target");
 			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> !stack.isEmpty()) == 0, "The source is not empty");
+		});
+	}
+
+	/**
+	 * A carrier without a wage and no village chest: it fetches the emeralds of its route (the
+	 * till of a shop), pays itself the day's wage out of them and delivers the rest, instead of
+	 * waiting for a wage only its own load could bring.
+	 */
+	private static void carrierPaysItselfFromItsLoad(GameTestHelper helper) {
+		TestWorld.chest(helper, INPUT, new ItemStack(Items.EMERALD, 10));
+		TestWorld.chest(helper, OUTPUT);
+		ItemStack basket = new ItemStack(WorkingVillagers.WICKER_BASKET.get());
+		CarrierData.writeRoutes(basket, List.of(new Route(helper.absolutePos(INPUT), helper.absolutePos(OUTPUT))));
+		Villager worker = helper.spawn(EntityTypes.VILLAGER, WORKER);
+		Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+		player.setItemInHand(InteractionHand.MAIN_HAND, basket);
+		Carriers.appoint(worker, player, basket, InteractionHand.MAIN_HAND);
+		helper.succeedWhen(() -> {
+			helper.assertTrue(WorkerSupplies.isPaid(helper.getLevel(), worker), "The carrier is not paid: " + TestWorld.describe(worker));
+			int delivered = TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.EMERALD));
+			helper.assertTrue(delivered == 10 - Config.DAILY_WAGE.get(), "Emeralds delivered: " + delivered);
+		});
+	}
+
+	/**
+	 * Three sawyers and a village chest with the wage for three days of one of them: each takes
+	 * its share, a day's wage, instead of the first taking all three days and the others none.
+	 */
+	private static void villageChestSharesScarceWages(GameTestHelper helper) {
+		TestWorld.villageChest(helper, new BlockPos(10, 1, 4), new ItemStack(Items.EMERALD, 3 * Config.DAILY_WAGE.get()));
+		List<Villager> workers = new java.util.ArrayList<>();
+		for (int x : new int[] {6, 10, 14}) {
+			BlockPos station = new BlockPos(x, 1, 8);
+			BlockPos input = new BlockPos(x, 1, 11);
+			BlockPos output = new BlockPos(x, 1, 13);
+			helper.setBlock(station, WorkingVillagers.WOODCUTTER_BLOCK.get());
+			TestWorld.station(helper, station).setWood("oak", true);
+			TestWorld.station(helper, station).setShape("planks");
+			TestWorld.chest(helper, input, new ItemStack(Items.OAK_LOG, 4));
+			TestWorld.chest(helper, output);
+			TestWorld.link(helper, station, input, ChestRole.INPUT);
+			TestWorld.link(helper, station, output, ChestRole.OUTPUT);
+			Villager worker = TestWorld.hireVillager(helper, new BlockPos(x, 1, 6));
+			TestWorld.assign(helper, worker, station);
+			workers.add(worker);
+		}
+		helper.succeedWhen(() -> {
+			for (Villager worker : workers) {
+				helper.assertTrue(WorkerSupplies.isPaid(helper.getLevel(), worker), "Not every sawyer is paid: " + TestWorld.describe(worker));
+			}
+			TestWorld.removeVillageChest(helper, new BlockPos(10, 1, 4));
 		});
 	}
 }

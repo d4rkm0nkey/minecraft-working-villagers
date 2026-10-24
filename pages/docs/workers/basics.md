@@ -247,7 +247,9 @@ what it wants ("Fetching supplies from a village chest").
 - **Before its first work of the day** it fetches whatever runs low. **During the day**
   it only goes when it cannot go on otherwise: no wage, its tool is worn, no ladders left.
 - **Emeralds:** once its wage box holds less than a day's wage, it takes the wage for
-  **3 days** and puts it into the wage box.
+  **3 days** and puts it into the wage box. When emeralds run short, it takes only its share
+  (the emeralds in the chest divided among the workers the chest serves), but at least
+  today's wage, so no worker fills its wage box while the others find the chest empty.
 - **Tools:** once it has none, or only one that is about to break, it takes one. It takes
   the **most worn** one first, so half used tools get used up and the new ones wait. It
   never takes one that is [worn](#worn-tools).

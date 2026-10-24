@@ -21,7 +21,9 @@ becomes a carrier. No work contract needed: the basket is contract and
 workstation at once.
 
 Like every worker the carrier needs [its wage](basics.md#wage-and-tools): right-click
-it with emeralds. It needs no tool.
+it with emeralds. It needs no tool. A carrier that carries emeralds, e.g. the earnings of a
+[shop assistant](shop-assistant.md) to a village chest, takes its day's wage out of its load
+when it has none left and no village chest in reach has any.
 
 ## The carrier menu
 

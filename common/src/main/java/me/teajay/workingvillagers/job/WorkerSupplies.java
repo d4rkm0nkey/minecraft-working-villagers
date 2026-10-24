@@ -245,6 +245,11 @@ public final class WorkerSupplies {
 		return true;
 	}
 
+	/** Whether a village chest in reach has the worker's wage. */
+	public boolean offersWage(ServerLevel level, Villager villager) {
+		return this.villageChest(level, villager, WorkerSupplies::isWage) != null;
+	}
+
 	/** Whether the worker carries a worn tool to give back, and has not just failed to find room for it. */
 	private boolean giveBackDue(ServerLevel level, Villager villager) {
 		return level.getGameTime() >= this.giveBackRetry && villager.getInventory().hasAnyMatching(stack -> isToGiveBack(villager, stack));
