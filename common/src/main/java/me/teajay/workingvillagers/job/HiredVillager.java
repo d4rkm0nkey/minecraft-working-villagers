@@ -121,6 +121,9 @@ public interface HiredVillager {
 
 	void workingvillagers$setDoneUntil(int tick);
 
+	/** The worker's purse, hunger and lunch bag, see {@link Meals}. */
+	MealData workingvillagers$getMeals();
+
 	/** Whether the worker is stuck, see {@link StuckWorkers}. Not saved. */
 	StuckWorkers.Watch workingvillagers$getStuckWatch();
 

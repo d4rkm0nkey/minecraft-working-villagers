@@ -103,8 +103,8 @@ Throwing needs the `mob_griefing` game rule (like vanilla mobs picking up items)
 right-clicking always works. The limits below count for both: a worker only takes what it
 still wants and leaves the rest on the ground. Giving shows happy villager particles; a
 worker that already has enough shakes its head and takes nothing. Workers never hand in their emeralds or their tool to the output
-chests. A hired worker that dies drops everything it carries (tools, material); its wage
-stays in the wage box.
+chests. A hired worker that dies drops everything it carries (tools, material, its food
+and purse); its wage stays in the wage box.
 
 - **Wage:** each day the worker takes `dailyWage` (default 1) emerald from the wage box,
   then from its pockets, with its first piece of work (a log, a crafted item, a repaired
@@ -114,6 +114,23 @@ stays in the wage box.
   `WorkingVillagersWageStored`). Without an
   emerald it does not work and waits next to its workstation ("Waiting for wages"),
   checking every few seconds.
+- **Meals** (`meals.enabled`): of each wage, `meals.upkeep` (default 50) percent is the
+  worker's upkeep and gone; the rest goes into its purse (at most the food money of 3
+  days; with a full purse the rest of the wage stays in the wage box). At work it gets
+  hungry by `meals.dailyFood` (default 10) food points per work day (2000 to 9000) and eats
+  from its lunch bag (4 stacks, apart from its pockets) once it misses half of that. With
+  less than a day's food in the bag it buys food at a village chest for two days, as far
+  as its purse pays (a day's food money buys `meals.foodBudget`, default 150, percent of a
+  day's food), and puts the emeralds into the chest. Missing a whole day's food with an
+  empty bag, it eats out: an emerald of its purse buys a day's food money's worth of food
+  points (100 %) and is gone; the station menu, its status and the village chest say so,
+  and the village chest's wage forecast counts the food money of workers fed there as
+  coming back. Hunger never slows work. Food the player gives or throws goes into the bag
+  for free. Variety: food of a kind (item tags `workingvillagers:meals/field`,
+  `meals/meat`, `meals/fish`, `meals/fruit`; a meal out is a kind of its own) it had in one
+  of its last 2 meals counts 25 % less per such meal; it buys the kinds it has least of,
+  never food that counts less for its emeralds than eating out, and eats what counts most.
+  Saved per worker as `WorkingVillagersMeals`.
 - **Lumberjack:** needs an axe (carries up to 2), optionally saplings (up to 16 of each
   kind, `lumberjack.keepSaplings`). The axe wears out like a player's (one use per log,
   Unbreaking counts); shortly before it breaks it is given back (see *Worn tools* below);
@@ -157,7 +174,8 @@ that has what it wants. Giving directly still works.
   only what it cannot work without (no wage, its tool is worn, no ladders). If no village
   chest has it, it waits as before.
 - **What:** emeralds for 3 days (`villageChests.wageDays`, into the wage box of its
-  workstation) once it has less than a day's wage; a spare tool once it has none or only one with a tenth of its durability left (the
+  workstation) once it has less than a day's wage, but no more than its share of the
+  emeralds in the chest (divided among the workers it serves) and at least today's wage; a spare tool once it has none or only one with a tenth of its durability left (the
   most worn one first, so tools get used up; never a worn one, see below);
   saplings, seeds, ladders and torches up to the amount it keeps once it has less than a
   quarter of it (kinds it already has first).

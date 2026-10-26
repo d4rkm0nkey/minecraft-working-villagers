@@ -125,6 +125,7 @@ public final class WorkerJobs {
 			if (loseJobWithoutSite(level, villager)) {
 				return;
 			}
+			Meals.tick(level, villager, CHECK_INTERVAL);
 		}
 		if (!unemployed) {
 			// Keep the station's note up to date (renamed worker, worker from before names existed)

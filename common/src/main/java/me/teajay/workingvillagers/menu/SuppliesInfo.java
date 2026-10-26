@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import me.teajay.workingvillagers.Config;
+import me.teajay.workingvillagers.job.MealData;
+import me.teajay.workingvillagers.job.Meals;
 import me.teajay.workingvillagers.job.VillageChests;
 import me.teajay.workingvillagers.job.WorkerLevels;
 import me.teajay.workingvillagers.job.WorkerSupplies;
@@ -30,8 +32,10 @@ import net.minecraft.world.item.Items;
  *     it carries none)
  * @param villageChests how many village chests the worker has in reach (see {@link VillageChests})
  * @param worn how many worn tools the worker carries to give back (see {@link WorkerSupplies#isWorn})
+ * @param lunch what the worker has for its meals; empty if workers do not eat ({@link Config#MEALS})
  */
-public record SuppliesInfo(int emeralds, int wage, boolean paid, List<Slot> tools, List<Slot> stocks, int villageChests, int worn) {
+public record SuppliesInfo(int emeralds, int wage, boolean paid, List<Slot> tools, List<Slot> stocks, int villageChests, int worn,
+	Optional<Lunch> lunch) {
 	private static final String TAG = "Supplies";
 	private static final String TAG_EMERALDS = "Emeralds";
 	private static final String TAG_WAGE = "Wage";
@@ -45,6 +49,22 @@ public record SuppliesInfo(int emeralds, int wage, boolean paid, List<Slot> tool
 	private static final String TAG_REQUIRED = "Required";
 	private static final String TAG_VILLAGE_CHESTS = "VillageChests";
 	private static final String TAG_WORN = "Worn";
+	private static final String TAG_LUNCH = "Lunch";
+	private static final String TAG_PURSE = "Purse";
+	private static final String TAG_FOOD = "Food";
+	private static final String TAG_DAILY_FOOD = "DailyFood";
+	private static final String TAG_UPKEEP = "Upkeep";
+	private static final String TAG_EATS_OUT = "EatsOut";
+	private static final String TAG_HUNGRY = "Hungry";
+
+	/**
+	 * What the worker has for its meals (see {@link Meals}): the emeralds in its purse, the
+	 * food points in its lunch bag (with {@code meal}, the food it has most of, standing for
+	 * them), the food points it eats a day, the percent of its wage that is upkeep and whether
+	 * it eats out or is hungry.
+	 */
+	public record Lunch(int purse, int food, ItemStack meal, int dailyFood, int upkeep, boolean eatsOut, boolean hungry) {
+	}
 
 	/**
 	 * A tool or something the worker uses up: its kind ({@code "axe"}, {@code "ladders"},
@@ -110,6 +130,33 @@ public record SuppliesInfo(int emeralds, int wage, boolean paid, List<Slot> tool
 		tag.put(TAG_STOCKS, stocks);
 		tag.putInt(TAG_VILLAGE_CHESTS, VillageChests.inReach(level, VillageChests.workplace(level, worker)).size());
 		tag.putInt(TAG_WORN, WorkerSupplies.count(inventory, stack -> WorkerSupplies.isToGiveBack(worker, stack)));
+		if (Meals.enabled()) {
+			MealData meals = Meals.of(worker);
+			CompoundTag lunch = new CompoundTag();
+			lunch.putInt(TAG_PURSE, meals.purse());
+			int food = 0;
+			Item most = Items.AIR;
+			int mostCount = 0;
+			for (ItemStack stack : meals.bag()) {
+				if (Meals.isMeal(stack)) {
+					food += Meals.nutrition(stack) * stack.getCount();
+					if (stack.getCount() > mostCount) {
+						most = stack.getItem();
+						mostCount = stack.getCount();
+					}
+				}
+			}
+			lunch.putInt(TAG_FOOD, food);
+			if (most != Items.AIR) {
+				lunch.putString(TAG_ITEM, BuiltInRegistries.ITEM.getKey(most).toString());
+				lunch.putInt(TAG_COUNT, Meals.count(meals));
+			}
+			lunch.putInt(TAG_DAILY_FOOD, Meals.dailyFood());
+			lunch.putInt(TAG_UPKEEP, Config.UPKEEP.get());
+			lunch.putBoolean(TAG_EATS_OUT, Meals.eatsOut(worker));
+			lunch.putBoolean(TAG_HUNGRY, Meals.isHungry(worker));
+			tag.put(TAG_LUNCH, lunch);
+		}
 		info.put(TAG, tag);
 	}
 
@@ -136,7 +183,16 @@ public record SuppliesInfo(int emeralds, int wage, boolean paid, List<Slot> tool
 				List.copyOf(tools),
 				List.copyOf(stocks),
 				tag.getIntOr(TAG_VILLAGE_CHESTS, 0),
-				tag.getIntOr(TAG_WORN, 0)
+				tag.getIntOr(TAG_WORN, 0),
+				tag.getCompound(TAG_LUNCH).map(lunch -> new Lunch(
+					lunch.getIntOr(TAG_PURSE, 0),
+					lunch.getIntOr(TAG_FOOD, 0),
+					stack(lunch.getStringOr(TAG_ITEM, ""), lunch.getIntOr(TAG_COUNT, 0)),
+					lunch.getIntOr(TAG_DAILY_FOOD, 10),
+					lunch.getIntOr(TAG_UPKEEP, 0),
+					lunch.getBooleanOr(TAG_EATS_OUT, false),
+					lunch.getBooleanOr(TAG_HUNGRY, false)
+				))
 			);
 		});
 	}

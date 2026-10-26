@@ -92,6 +92,9 @@ public class CarryItems extends Behavior<Villager> {
 			return;
 		}
 		this.stateTicks++;
+		if (this.state == State.PLAN && this.payFromLoad(level, villager, data)) {
+			return;
+		}
 		if (this.state == State.PLAN && this.supplies.busy(level, villager)) {
 			return; // wage first, the chest sets the status
 		}
@@ -101,6 +104,10 @@ public class CarryItems extends Behavior<Villager> {
 				Route route = loadRoute(data);
 				int stacks = route == null ? 0 : Math.max(1, Chests.emptySlots(level, route.target()));
 				int taken = takeStacks(container, data.basket(), Math.min(stacks, Config.STACKS_PER_TRIP.get()));
+				if (taken > 0) {
+					// The first load of the day pays the wage: out of the load, if that is where it is
+					this.payFromLoad(level, villager, data);
+				}
 				((HiredVillager) villager).workingvillagers$addWorkDone(ChopTrees.today(level), taken);
 			});
 			case DELIVER -> this.visit(level, villager, container -> Chests.deposit(data.basket(), container, stack -> true));
@@ -114,6 +121,48 @@ public class CarryItems extends Behavior<Villager> {
 			}
 		}
 		this.report(villager, data);
+	}
+
+	/**
+	 * A carrier that has no wage for today and none in reach still carries emeralds, e.g. the
+	 * earnings of a shop assistant to a village chest: it takes its wage out of its basket, or
+	 * first fetches a load from a route whose source holds emeralds. Otherwise it would wait
+	 * for its wage for good, and with it everybody who is paid with what it carries. Returns
+	 * true while that keeps it busy.
+	 */
+	private boolean payFromLoad(ServerLevel level, Villager villager, CarrierData data) {
+		int wage = WorkerLevels.dailyWage(villager);
+		if (wage <= 0 || WorkerSupplies.isPaid(level, villager) || WorkerSupplies.emeralds(level, villager) >= wage) {
+			return false;
+		}
+		SimpleContainer basket = data.basket();
+		int missing = wage - WorkerSupplies.emeralds(level, villager);
+		for (int slot = 0; slot < basket.getContainerSize() && missing > 0; slot++) {
+			ItemStack stack = basket.getItem(slot);
+			if (!stack.isEmpty() && WorkerSupplies.isWage(stack)) {
+				ItemStack taken = stack.split(Math.min(missing, stack.getCount()));
+				missing -= taken.getCount();
+				villager.getInventory().addItem(taken);
+			}
+		}
+		if (missing <= 0) {
+			basket.setChanged();
+			return false; // paid by the next check
+		}
+		// Something else to deliver first, or a village chest with its wage
+		if (!basket.isEmpty() || this.supplies.offersWage(level, villager)) {
+			return false;
+		}
+		List<Route> routes = data.routes();
+		for (int index = 0; index < routes.size(); index++) {
+			Route route = routes.get(index);
+			if (Chests.contains(level, route.source(), WorkerSupplies::isWage) && Chests.hasRoom(level, route.target())) {
+				data.setLoadRoute(index);
+				this.go(level, villager, route.source(), State.FETCH);
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/** Tells the menu what the carrier is doing. */

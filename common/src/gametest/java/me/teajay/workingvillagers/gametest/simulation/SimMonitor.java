@@ -18,6 +18,8 @@ import java.util.TreeMap;
 import java.util.UUID;
 import me.teajay.workingvillagers.job.ChopTrees;
 import me.teajay.workingvillagers.job.HiredVillager;
+import me.teajay.workingvillagers.job.MealData;
+import me.teajay.workingvillagers.job.Meals;
 import me.teajay.workingvillagers.job.WorkerStatus;
 import me.teajay.workingvillagers.job.WorkerSupplies;
 import me.teajay.workingvillagers.station.Workstations;
@@ -65,6 +67,9 @@ public final class SimMonitor {
 	private final Map<String, Map<String, Integer>> daySamples = new TreeMap<>();
 	private final Map<String, Integer> dayWorkSamples = new TreeMap<>();
 	private final Map<String, Integer> dayProblemSamples = new TreeMap<>();
+	private final Map<String, Integer> dayHungrySamples = new TreeMap<>();
+	/** The food and emeralds in the pantries at the end of the last day, to see what was bought. */
+	private Map<String, Integer> pantryLast = Map.of();
 	private final Map<UUID, Integer> lastWorkDone = new HashMap<>();
 	private final Set<UUID> dead = new HashSet<>();
 	private long day = -1;
@@ -86,7 +91,8 @@ public final class SimMonitor {
 			Files.createDirectories(out);
 			header("ticks.csv", "hour,day,time_of_day,ticks,mean_ms,p50_ms,p95_ms,p99_ms,max_ms,over_50ms,entities,villagers,workers_alive,monsters,animals,items,golems,chunks");
 			header("workers.csv", "day,job,status,samples");
-			header("economy.csv", "day,workers_alive,paid_today,unpaid_today,wage_boxes,village_chests,tills,storage,depots_relays,carried,total_emeralds,shop_earned,deaths_total");
+			header("economy.csv", "day,workers_alive,paid_today,unpaid_today,wage_boxes,village_chests,tills,storage,depots_relays,carried,purses,total_emeralds,shop_earned,deaths_total");
+			header("meals.csv", "day,purses,hungry_at_end,mean_hunger,bag_food_points,hungry_work_share,pantry_food,pantry_emeralds,eating_out_at_end");
 			header("storage.csv", "day,item,count");
 			header("production.csv", "day,job,worker,done");
 			header("deliveries.csv", "day,job,chest,item,count");
@@ -132,6 +138,40 @@ public final class SimMonitor {
 		this.hourTicks[this.hourTickCount++] = took;
 		if (level.getGameTime() % SAMPLE_TICKS == 0) {
 			this.sample(level);
+		}
+		if (level.getGameTime() % HOUR == 0) {
+			this.sortPantries(level);
+		}
+	}
+
+	/**
+	 * The player's chore: the carriers bring everything of the fisher and the chicken butcher
+	 * to the pantry (they have no filters), so what is no food goes on to a depot.
+	 */
+	private void sortPantries(ServerLevel level) {
+		String feed = System.getProperty("wvsim.feed", "");
+		net.minecraft.world.item.Item fed = feed.isEmpty() ? null
+			: BuiltInRegistries.ITEM.getValue(net.minecraft.resources.Identifier.withDefaultNamespace(feed));
+		for (BlockPos pos : this.registry.pantries) {
+			Container pantry = Workstations.getContainer(level, pos);
+			// A player's auto farm: tops the pantry up to 64 of its food
+			if (fed != null && pantry != null) {
+				int missing = 64 - WorkerSupplies.count(pantry, stack -> stack.is(fed));
+				if (missing > 0) {
+					net.minecraft.world.level.block.entity.HopperBlockEntity.addItem(null, pantry, new ItemStack(fed, missing), null);
+				}
+			}
+			BlockPos depot = this.registry.depots.stream().min(java.util.Comparator.comparingDouble(other -> other.distSqr(pos))).orElse(null);
+			Container target = depot == null ? null : Workstations.getContainer(level, depot);
+			if (pantry == null || target == null) {
+				continue;
+			}
+			for (int slot = 0; slot < pantry.getContainerSize(); slot++) {
+				ItemStack stack = pantry.getItem(slot);
+				if (!stack.isEmpty() && !Meals.isMeal(stack) && !stack.is(Items.EMERALD)) {
+					pantry.setItem(slot, net.minecraft.world.level.block.entity.HopperBlockEntity.addItem(null, target, stack, null));
+				}
+			}
 		}
 	}
 
@@ -186,6 +226,9 @@ public final class SimMonitor {
 			if (hired.workingvillagers$hasProblem() || hired.workingvillagers$getStuckWatch().isStuck()) {
 				this.dayProblemSamples.merge(worker.job(), 1, Integer::sum);
 			}
+			if (Meals.isHungry(villager)) {
+				this.dayHungrySamples.merge(worker.job(), 1, Integer::sum);
+			}
 		}
 	}
 
@@ -193,6 +236,9 @@ public final class SimMonitor {
 	static String key(Component component) {
 		if (component.getContents() instanceof TranslatableContents contents) {
 			String key = contents.getKey();
+			if (key.endsWith(".hungry") && contents.getArgs().length > 0 && contents.getArgs()[0] instanceof Component task) {
+				return "hungry/" + key(task);
+			}
 			int at = key.indexOf("workingvillagers.");
 			return at >= 0 ? key.substring(at + "workingvillagers.".length()) : key;
 		}
@@ -261,12 +307,17 @@ public final class SimMonitor {
 		}
 		Map<String, Map<String, Integer>> statuses = new TreeMap<>();
 		this.daySamples.forEach((job, map) -> statuses.put(job, new TreeMap<>(map)));
+		int workSamples = this.dayWorkSamples.values().stream().mapToInt(Integer::intValue).sum();
+		int hungrySamples = this.dayHungrySamples.values().stream().mapToInt(Integer::intValue).sum();
+		Map<String, Integer> hungryByJob = new TreeMap<>(this.dayHungrySamples);
+		this.dayHungrySamples.clear();
 		this.daySamples.clear();
 		this.dayWorkSamples.clear();
 		this.dayProblemSamples.clear();
 
 		// Production: what each worker did today (logs, crops, emeralds earned, ...)
-		int paid = 0, unpaid = 0, shopEarned = 0, alive = 0, carried = 0;
+		int paid = 0, unpaid = 0, shopEarned = 0, alive = 0, carried = 0, purses = 0, hungryAtEnd = 0, eatingOut = 0, bagPoints = 0;
+		float hunger = 0.0F;
 		Map<String, Integer> production = new TreeMap<>();
 		for (SimRegistry.Worker worker : this.registry.workers) {
 			if (!(level.getEntity(worker.uuid()) instanceof Villager villager) || !villager.isAlive()) {
@@ -286,6 +337,16 @@ public final class SimMonitor {
 				unpaid++;
 			}
 			carried += WorkerSupplies.count(villager.getInventory(), WorkerSupplies::isWage);
+			MealData meals = Meals.of(villager);
+			purses += meals.purse();
+			hunger += meals.hunger();
+			hungryAtEnd += Meals.isHungry(villager) ? 1 : 0;
+			eatingOut += Meals.eatsOut(villager) ? 1 : 0;
+			for (ItemStack stack : meals.bag()) {
+				if (!stack.isEmpty() && stack.get(net.minecraft.core.component.DataComponents.FOOD) instanceof net.minecraft.world.food.FoodProperties food) {
+					bagPoints += food.nutrition() * stack.getCount();
+				}
+			}
 		}
 		int wageBoxes = 0;
 		Set<BlockPos> stations = new HashSet<>();
@@ -300,9 +361,15 @@ public final class SimMonitor {
 		List<BlockPos> transit = new ArrayList<>(this.registry.depots);
 		transit.addAll(this.registry.relays);
 		int depots = emeralds(level, transit);
-		int total = wageBoxes + villageChests + tills + storage + depots + carried;
-		this.append("economy.csv", String.format(Locale.ROOT, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d", simDay, alive, paid, unpaid, wageBoxes, villageChests, tills,
-			storage, depots, carried, total, shopEarned, this.dead.size()));
+		int total = wageBoxes + villageChests + tills + storage + depots + carried + purses;
+		this.append("economy.csv", String.format(Locale.ROOT, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d", simDay, alive, paid, unpaid, wageBoxes, villageChests, tills,
+			storage, depots, carried, purses, total, shopEarned, this.dead.size()));
+		Map<String, Integer> pantry = contents(level, this.registry.pantries);
+		int pantryEmeralds = pantry.getOrDefault("emerald", 0);
+		int pantryFood = pantry.entrySet().stream().filter(entry -> !entry.getKey().equals("emerald")).mapToInt(Map.Entry::getValue).sum();
+		float meanHunger = alive == 0 ? 0.0F : hunger / alive;
+		double hungryShare = workSamples == 0 ? 0.0 : (double) hungrySamples / workSamples;
+		this.append("meals.csv", String.format(Locale.ROOT, "%d,%d,%d,%.2f,%d,%.3f,%d,%d,%d", simDay, purses, hungryAtEnd, meanHunger, bagPoints, hungryShare, pantryFood, pantryEmeralds, eatingOut));
 
 		// Storage contents
 		Map<String, Integer> contents = contents(level, this.registry.storage);
@@ -348,7 +415,22 @@ public final class SimMonitor {
 		row.put("storageEmeralds", storage);
 		row.put("transit", depots);
 		row.put("carried", carried);
+		row.put("purses", purses);
 		row.put("total", total);
+		Map<String, Object> mealsRow = new LinkedHashMap<>();
+		mealsRow.put("hungryAtEnd", hungryAtEnd);
+		mealsRow.put("eatingOutAtEnd", eatingOut);
+		mealsRow.put("meanHunger", meanHunger);
+		mealsRow.put("bagFoodPoints", bagPoints);
+		mealsRow.put("hungryWorkShare", hungryShare);
+		mealsRow.put("hungrySamplesByJob", hungryByJob);
+		mealsRow.put("pantry", pantry);
+		Map<String, Integer> pantryChange = new TreeMap<>();
+		pantry.forEach((item, count) -> pantryChange.put(item, count - this.pantryLast.getOrDefault(item, 0)));
+		this.pantryLast.forEach((item, count) -> pantryChange.putIfAbsent(item, -count));
+		mealsRow.put("pantryChange", pantryChange);
+		this.pantryLast = pantry;
+		row.put("meals", mealsRow);
 		row.put("shopEarned", shopEarned);
 		row.put("deaths", this.dead.size());
 		row.put("storageSlotsUsed", slotsUsed);
@@ -397,12 +479,23 @@ public final class SimMonitor {
 				}
 			}
 			entry.put("carries", carries);
+			MealData meals = Meals.of(villager);
+			entry.put("purse", meals.purse());
+			entry.put("hunger", meals.hunger());
+			List<String> bag = new ArrayList<>();
+			for (ItemStack stack : meals.bag()) {
+				if (!stack.isEmpty()) {
+					bag.add(stack.getCount() + " " + BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath());
+				}
+			}
+			entry.put("bag", bag);
 			snapshot.add(entry);
 		}
 		row.put("workers", snapshot);
 		this.storageLast = contents;
 		this.dayRows.add(row);
-		LOG.info("Day {} done: {} of {} workers paid, emeralds {} (shop earned {}), storage {} / {} slots", simDay, paid, alive, total, shopEarned, slotsUsed, slots);
+		LOG.info("Day {} done: {} of {} workers paid, emeralds {} (shop earned {}, in purses {}), storage {} / {} slots; hungry {} and eating out {} at the end, {} % of work hungry, pantry {} food {} emeralds",
+			simDay, paid, alive, total, shopEarned, purses, slotsUsed, slots, hungryAtEnd, eatingOut, String.format(Locale.ROOT, "%.1f", 100 * hungryShare), pantryFood, pantryEmeralds);
 	}
 
 	static int emeralds(ServerLevel level, List<BlockPos> chests) {

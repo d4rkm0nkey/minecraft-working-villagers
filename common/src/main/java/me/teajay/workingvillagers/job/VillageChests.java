@@ -19,6 +19,7 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.village.poi.PoiManager;
 import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
@@ -90,8 +91,8 @@ public final class VillageChests {
 
 	/**
 	 * What the worker cannot work without and finds in none of its village chests, as the
-	 * kind of the supply ({@code "wage"}, {@code "axe"}, {@code "ladders"}, ...); empty if it
-	 * lacks nothing (or knows where to get it).
+	 * kind of the supply ({@code "wage"}, {@code "axe"}, {@code "ladders"}, ...), or
+	 * {@code "food"} if it eats out; empty if it lacks nothing (or knows where to get it).
 	 */
 	public static Optional<String> missing(ServerLevel level, Villager worker) {
 		SimpleContainer inventory = worker.getInventory();
@@ -109,6 +110,10 @@ public final class VillageChests {
 				lacking.add(Map.entry(stock.kind(), stock.item()));
 			}
 		}
+		if (Meals.eatsOut(worker)) {
+			// It can work without, but its food money leaves the village
+			lacking.add(Map.entry("food", Meals::isMeal));
+		}
 		if (lacking.isEmpty()) {
 			return Optional.empty();
 		}
@@ -125,9 +130,10 @@ public final class VillageChests {
 			.findFirst();
 	}
 
-	/** Whether the worker would take something from the container now; with {@code only}, something of that. */
+	/** Whether the worker would take something from the container now (or buy food there); with {@code only}, something of that. */
 	static boolean offers(Villager villager, Container container, Predicate<ItemStack> only) {
-		return plan(villager, container).stream().anyMatch(take -> only.test(container.getItem(take.slot())));
+		return plan(villager, container).stream().anyMatch(take -> only.test(container.getItem(take.slot())))
+			|| Meals.plan(villager, container).stream().anyMatch(take -> only.test(container.getItem(take.slot())));
 	}
 
 	/** Whether the worker runs low on anything it could take from a village chest. */
@@ -146,7 +152,8 @@ public final class VillageChests {
 				return true;
 			}
 		}
-		return Uniforms.wearsArmor(villager) && Uniforms.SLOTS.stream().anyMatch(slot -> Uniforms.lacks(villager, slot));
+		return Uniforms.wearsArmor(villager) && Uniforms.SLOTS.stream().anyMatch(slot -> Uniforms.lacks(villager, slot))
+			|| Meals.wantsFood(villager);
 	}
 
 	/** Moves what the worker wants out of the container into its inventory. Returns how many items it took. */
@@ -163,7 +170,7 @@ public final class VillageChests {
 		if (taken > 0) {
 			container.setChanged();
 		}
-		return taken;
+		return taken + Meals.buy(villager, container);
 	}
 
 	/** What the worker would take out of the container now, slot by slot. */
@@ -173,7 +180,7 @@ public final class VillageChests {
 			return takes;
 		}
 		SimpleContainer inventory = villager.getInventory();
-		int wage = wageWanted(villager);
+		int wage = fairShare(villager, container, wageWanted(villager));
 		for (int slot = 0; slot < container.getContainerSize() && wage > 0; slot++) {
 			ItemStack stack = container.getItem(slot);
 			if (!stack.isEmpty() && WorkerSupplies.isWage(stack)) {
@@ -259,6 +266,25 @@ public final class VillageChests {
 		Workstations.Station box = WorkerSupplies.wageBox(level, villager);
 		int room = box == null ? WorkerSupplies.MAX_EMERALDS : Workstations.MAX_WAGE;
 		return Math.max(0, Math.min(wage * Config.VILLAGE_CHEST_WAGE_DAYS.get(), room) - has);
+	}
+
+	/**
+	 * The emeralds it takes of the {@code wanted} ones: the wage for a few days only while the
+	 * chest holds that much for every worker it serves, otherwise its share of them, but at
+	 * least what it needs for today. So no worker fills its wage box for days while the others
+	 * find the chest empty.
+	 */
+	private static int fairShare(Villager villager, Container container, int wanted) {
+		if (wanted <= 0 || !(villager.level() instanceof ServerLevel level) || !(container instanceof BlockEntity chest)) {
+			return wanted;
+		}
+		int today = Math.max(0, WorkerLevels.dailyWage(villager) - WorkerSupplies.emeralds(level, villager));
+		if (wanted <= today) {
+			return wanted;
+		}
+		int stored = WorkerSupplies.count(container, WorkerSupplies::isWage);
+		int workers = Math.max(1, served(level, chest.getBlockPos()).size());
+		return Math.max(today, Math.min(wanted, stored / workers));
 	}
 
 	/** No tool of the kind it can work with, or only one that is almost used up. */

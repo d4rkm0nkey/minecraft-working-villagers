@@ -12,6 +12,10 @@ import me.teajay.workingvillagers.carrier.Route;
 import me.teajay.workingvillagers.item.WorkContractItem;
 import me.teajay.workingvillagers.job.GuardPost;
 import me.teajay.workingvillagers.job.HiredVillager;
+import me.teajay.workingvillagers.job.Meals;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.Container;
+import me.teajay.workingvillagers.job.MealData;
 import me.teajay.workingvillagers.job.TendAnimals;
 import me.teajay.workingvillagers.job.TendSheep;
 import me.teajay.workingvillagers.job.WorkerLevels;
@@ -134,6 +138,13 @@ public final class WorkerTests {
 		registry.accept("kiln_operator_keeps_finished_order", WorkerTests::kilnOperatorKeepsFinishedOrder);
 		registry.accept("fletcher_makes_arrows_for_spectral_arrows", WorkerTests::fletcherMakesArrowsForSpectralArrows);
 		registry.accept("carrier_moves_items", WorkerTests::carrierMovesItems);
+		registry.accept("carrier_pays_itself_from_its_load", WorkerTests::carrierPaysItselfFromItsLoad);
+		registry.accept("village_chest_shares_scarce_wages", WorkerTests::villageChestSharesScarceWages);
+		registry.accept("worker_buys_varied_food", WorkerTests::workerBuysVariedFood);
+		registry.accept("worker_eats_what_it_had_least", WorkerTests::workerEatsWhatItHadLeast);
+		registry.accept("full_purse_leaves_wage_in_box", WorkerTests::fullPurseLeavesWageInBox);
+		registry.accept("worker_eats_out_without_food", WorkerTests::workerEatsOutWithoutFood);
+		registry.accept("worker_skips_monotone_food", WorkerTests::workerSkipsMonotoneFood);
 		registry.accept("farmer_harvests_and_replants", WorkerTests::farmerHarvestsAndReplants);
 		registry.accept("workers_do_not_trample_farmland", WorkerTests::workersDoNotTrampleFarmland);
 		registry.accept("worker_finds_workplace", WorkerTests::workerFindsWorkplace);
@@ -2331,6 +2342,138 @@ public final class WorkerTests {
 		helper.succeedWhen(() -> {
 			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.COBBLESTONE), 74, "cobblestone in the target");
 			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> !stack.isEmpty()) == 0, "The source is not empty");
+		});
+	}
+
+	/**
+	 * A carrier without a wage and no village chest: it fetches the emeralds of its route (the
+	 * till of a shop), pays itself the day's wage out of them and delivers the rest, instead of
+	 * waiting for a wage only its own load could bring.
+	 */
+	private static void carrierPaysItselfFromItsLoad(GameTestHelper helper) {
+		TestWorld.chest(helper, INPUT, new ItemStack(Items.EMERALD, 10));
+		TestWorld.chest(helper, OUTPUT);
+		ItemStack basket = new ItemStack(WorkingVillagers.WICKER_BASKET.get());
+		CarrierData.writeRoutes(basket, List.of(new Route(helper.absolutePos(INPUT), helper.absolutePos(OUTPUT))));
+		Villager worker = helper.spawn(EntityTypes.VILLAGER, WORKER);
+		Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+		player.setItemInHand(InteractionHand.MAIN_HAND, basket);
+		Carriers.appoint(worker, player, basket, InteractionHand.MAIN_HAND);
+		helper.succeedWhen(() -> {
+			helper.assertTrue(WorkerSupplies.isPaid(helper.getLevel(), worker), "The carrier is not paid: " + TestWorld.describe(worker));
+			int delivered = TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.EMERALD));
+			helper.assertTrue(delivered == 10 - Config.DAILY_WAGE.get(), "Emeralds delivered: " + delivered);
+		});
+	}
+
+	/**
+	 * Three sawyers and a village chest with the wage for three days of one of them: each takes
+	 * its share, a day's wage, instead of the first taking all three days and the others none.
+	 */
+	private static void villageChestSharesScarceWages(GameTestHelper helper) {
+		TestWorld.villageChest(helper, new BlockPos(10, 1, 4), new ItemStack(Items.EMERALD, 3 * Config.DAILY_WAGE.get()));
+		List<Villager> workers = new java.util.ArrayList<>();
+		for (int x : new int[] {6, 10, 14}) {
+			BlockPos station = new BlockPos(x, 1, 8);
+			BlockPos input = new BlockPos(x, 1, 11);
+			BlockPos output = new BlockPos(x, 1, 13);
+			helper.setBlock(station, WorkingVillagers.WOODCUTTER_BLOCK.get());
+			TestWorld.station(helper, station).setWood("oak", true);
+			TestWorld.station(helper, station).setShape("planks");
+			TestWorld.chest(helper, input, new ItemStack(Items.OAK_LOG, 4));
+			TestWorld.chest(helper, output);
+			TestWorld.link(helper, station, input, ChestRole.INPUT);
+			TestWorld.link(helper, station, output, ChestRole.OUTPUT);
+			Villager worker = TestWorld.hireVillager(helper, new BlockPos(x, 1, 6));
+			TestWorld.assign(helper, worker, station);
+			workers.add(worker);
+		}
+		helper.succeedWhen(() -> {
+			for (Villager worker : workers) {
+				helper.assertTrue(WorkerSupplies.isPaid(helper.getLevel(), worker), "Not every sawyer is paid: " + TestWorld.describe(worker));
+			}
+			TestWorld.removeVillageChest(helper, new BlockPos(10, 1, 4));
+		});
+	}
+
+	/**
+	 * A paid worker without food buys some at a village chest with its purse: a mix of the
+	 * kinds there, for the food points a day's food money buys, and the emerald goes into the chest.
+	 */
+	private static void workerBuysVariedFood(GameTestHelper helper) {
+		BlockPos chest = TestWorld.villageChest(helper, new BlockPos(10, 1, 4),
+			new ItemStack(Items.BREAD, 16), new ItemStack(Items.COOKED_COD, 4), new ItemStack(Items.APPLE, 4));
+		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 5), new ItemStack(Items.IRON_AXE));
+		Meals.of(worker).setPurse(1);
+		helper.succeedWhen(() -> {
+			MealData meals = Meals.of(worker);
+			helper.assertTrue(meals.bag().countItem(Items.COOKED_COD) > 0 && meals.bag().countItem(Items.APPLE) > 0 && meals.bag().countItem(Items.BREAD) > 0,
+				"The worker did not buy a mix of food: " + meals.bag());
+			helper.assertTrue(meals.purse() == 0, "The worker did not pay from its purse: " + meals.purse());
+			Container container = (Container) helper.getBlockEntity(chest, BlockEntity.class);
+			helper.assertTrue(WorkerSupplies.count(container, WorkerSupplies::isWage) == 1, "The emerald is not in the village chest");
+			TestWorld.removeVillageChest(helper, chest);
+		});
+	}
+
+	/** A hungry worker eats the food of the kind it had least of lately first: it counts more. */
+	private static void workerEatsWhatItHadLeast(GameTestHelper helper) {
+		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 5), new ItemStack(Items.IRON_AXE));
+		MealData meals = Meals.of(worker);
+		meals.setHunger(Meals.dailyFood());
+		meals.recent().addAll(List.of("meals/field", "meals/field"));
+		meals.bag().addItem(new ItemStack(Items.BREAD, 3));
+		meals.bag().addItem(new ItemStack(Items.COOKED_COD, 1));
+		helper.succeedWhen(() -> {
+			helper.assertTrue(meals.bag().countItem(Items.COOKED_COD) == 0, "The worker did not eat the fish first: " + meals.bag());
+			helper.assertTrue(meals.hunger() < Meals.dailyFood() / 2.0F, "The worker is still hungry: " + meals.hunger());
+		});
+	}
+
+	/** A worker whose purse is full spends only the upkeep of its wage and leaves the rest in the wage box. */
+	private static void fullPurseLeavesWageInBox(GameTestHelper helper) {
+		Villager worker = lumberjack(helper, new ItemStack(Items.IRON_AXE));
+		Meals.of(worker).setPurse(64);
+		TestWorld.station(helper, STATION).setWage(5);
+		// The wage is taken with the first piece of work
+		WorkerSupplies.earned(helper.getLevel(), worker);
+		helper.succeedWhen(() -> {
+			helper.assertTrue(WorkerSupplies.isPaid(helper.getLevel(), worker), "The worker took no wage");
+			int spent = 5 - TestWorld.station(helper, STATION).wage();
+			// The upkeep of a wage of 1 at 50 %: nothing the first day, an emerald the next
+			helper.assertTrue(spent <= 1, "The worker took the food money although its purse is full: " + spent);
+			helper.assertTrue(Meals.of(worker).purse() == 64, "The purse changed: " + Meals.of(worker).purse());
+		});
+	}
+
+	/** A hungry worker that finds no food eats out: it pays from its purse and says so in its status. */
+	private static void workerEatsOutWithoutFood(GameTestHelper helper) {
+		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 5), new ItemStack(Items.IRON_AXE));
+		MealData meals = Meals.of(worker);
+		meals.setHunger(Meals.dailyFood());
+		meals.setPurse(3);
+		helper.succeedWhen(() -> {
+			helper.assertTrue(meals.ateOut() && meals.hunger() < Meals.dailyFood(), "The worker did not eat out: " + meals.hunger());
+			helper.assertTrue(meals.purse() < 4, "The worker did not pay from its purse: " + meals.purse());
+			helper.assertTrue(
+				WorkerStatus.describe(worker).getContents() instanceof TranslatableContents contents && contents.getKey().equals("status.workingvillagers.eats_out"),
+				"The status does not say the worker eats out: " + TestWorld.describe(worker));
+		});
+	}
+
+	/** Food of the kind a worker just had twice counts less for its emeralds than eating out: it does not buy it. */
+	private static void workerSkipsMonotoneFood(GameTestHelper helper) {
+		BlockPos chest = TestWorld.villageChest(helper, new BlockPos(10, 1, 4), new ItemStack(Items.BREAD, 16));
+		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 5), new ItemStack(Items.IRON_AXE));
+		MealData meals = Meals.of(worker);
+		meals.setPurse(3);
+		meals.recent().addAll(List.of("meals/field", "meals/field"));
+		helper.runAfterDelay(600, () -> {
+			helper.assertTrue(meals.bag().isEmpty(), "The worker bought bread although it had field food twice: " + meals.bag());
+			Container container = (Container) helper.getBlockEntity(chest, BlockEntity.class);
+			helper.assertTrue(container.countItem(Items.BREAD) == 16, "Bread left the village chest: " + container.countItem(Items.BREAD));
+			TestWorld.removeVillageChest(helper, chest);
+			helper.succeed();
 		});
 	}
 }

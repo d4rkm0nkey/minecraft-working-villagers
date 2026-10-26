@@ -234,8 +234,17 @@ The herd size is no config option: set it at each loom (tab **Settings**).
 | --- | --- | --- | --- |
 | `enabled` | true | | Workers take their supplies from village chests. `false`: village chests are ordinary chests. |
 | `radius` | 48 | 8–128 | How far (horizontally) a village chest may be from a worker's workstation. Up or down it is always 24 blocks. |
-| `wageDays` | 3 | 1–16 | For how many days a worker takes its wage at once. |
+| `wageDays` | 3 | 1–16 | For how many days a worker takes its wage at once. When emeralds run short, only its share of them, at least today's wage. |
 | `takeEnchanted` | false | | Workers also take enchanted and renamed tools. |
+
+## Meals (`meals`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `enabled` | true | | Workers get hungry at work and buy their food at village chests, or eat out (the emeralds are gone), see [Meals](workers/basics.md#meals). `false`: the whole wage is spent and workers never get hungry. |
+| `upkeep` | 50 | 0–100 | Percent of each wage spent on the worker's upkeep: these emeralds are gone. The rest goes into its purse and buys its food, so it comes back into the village chests. `100`: food from village chests is free. |
+| `dailyFood` | 10 | 1–40 | Food points a worker eats per work day. |
+| `foodBudget` | 150 | 50–400 | Percent of a day's food that a day's food money buys at village chests. Eating out it buys 100 %, so above 100 food from the village is cheaper. A worker buys food there only while it counts (with the variety) at least as much as eating out: at 100 only food of a kind it did not just have, at 200 also a third meal of the same kind. |
 
 ## Tools (`tools`)
 

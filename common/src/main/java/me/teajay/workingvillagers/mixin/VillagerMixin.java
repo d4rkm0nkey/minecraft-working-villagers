@@ -10,6 +10,8 @@ import me.teajay.workingvillagers.item.WickerBasketItem;
 import me.teajay.workingvillagers.item.WorkContractItem;
 import me.teajay.workingvillagers.job.ChopTrees;
 import me.teajay.workingvillagers.job.HiredVillager;
+import me.teajay.workingvillagers.job.MealData;
+import me.teajay.workingvillagers.job.Meals;
 import me.teajay.workingvillagers.job.StuckWorkers;
 import me.teajay.workingvillagers.job.TradeFamilies;
 import me.teajay.workingvillagers.job.WorkerJobs;
@@ -115,6 +117,10 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 	private static final String TAG_CAREER = "WorkingVillagersCareer";
 	@Unique
 	private @Nullable String workingvillagers$career;
+	@Unique
+	private static final String TAG_MEALS = "WorkingVillagersMeals";
+	@Unique
+	private MealData workingvillagers$meals = new MealData();
 	@Unique
 	private static final String TAG_KEPT_OFFERS = "WorkingVillagersKeptOffers";
 	@Unique
@@ -319,6 +325,11 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 	}
 
 	@Override
+	public MealData workingvillagers$getMeals() {
+		return this.workingvillagers$meals;
+	}
+
+	@Override
 	public boolean workingvillagers$isWageStored() {
 		return this.workingvillagers$wageStored;
 	}
@@ -358,6 +369,9 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 		if (this.workingvillagers$employer != null) {
 			output.putBoolean(TAG_WAGE_STORED, this.workingvillagers$wageStored);
 		}
+		if (!this.workingvillagers$meals.isEmpty()) {
+			output.store(TAG_MEALS, MealData.CODEC, this.workingvillagers$meals);
+		}
 		if (this.workingvillagers$keptOffers != null && this.workingvillagers$keptFamily != null) {
 			output.store(TAG_KEPT_OFFERS, MerchantOffers.CODEC, this.workingvillagers$keptOffers);
 			output.putString(TAG_KEPT_FAMILY, this.workingvillagers$keptFamily);
@@ -379,6 +393,7 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 		input.read(TAG_PLANTINGS, ChopTrees.Planting.CODEC.listOf()).ifPresent(this.workingvillagers$plantings::addAll);
 		// Workers saved by 0.3.0 have no such entry: they still carry their wage themselves
 		this.workingvillagers$wageStored = this.workingvillagers$employer == null || input.getBooleanOr(TAG_WAGE_STORED, false);
+		this.workingvillagers$meals = input.read(TAG_MEALS, MealData.CODEC).orElseGet(MealData::new);
 		this.workingvillagers$keptOffers = input.read(TAG_KEPT_OFFERS, MerchantOffers.CODEC).orElse(null);
 		this.workingvillagers$keptFamily = input.getString(TAG_KEPT_FAMILY).orElse(null);
 	}
@@ -450,7 +465,7 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 
 	/**
 	 * A carrier drops its basket with everything in it, every worker what it carries: its
-	 * emeralds, tools and what it was working with. A workstation it was walking to is free
+	 * emeralds, tools and what it was working with, its food and its purse. A workstation it was walking to is free
 	 * again.
 	 */
 	@Inject(method = "die", at = @At("HEAD"))
@@ -463,6 +478,7 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 			for (ItemStack stack : villager.getInventory().removeAllItems()) {
 				villager.spawnAtLocation(level, stack);
 			}
+			Meals.drop(level, villager);
 		}
 	}
 

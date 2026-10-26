@@ -183,7 +183,9 @@ public class VillageChestScreen extends ContainerScreen {
 				x, footer, textWidth, GuiPanels.MUTED_COLOR);
 		}
 		this.villageChest.getWageDays().ifPresent(days -> GuiPanels.scrollingText(graphics, this.font,
-			Component.translatable("gui.workingvillagers.village_chest.wage_days", days).getString(), x, footer + 10,
+			this.villageChest.getFedWageDays()
+				.map(fed -> Component.translatable("gui.workingvillagers.village_chest.wage_days_fed", days, fed))
+				.orElse(Component.translatable("gui.workingvillagers.village_chest.wage_days", days)).getString(), x, footer + 10,
 			textWidth, days < 1 ? GuiPanels.WARNING_COLOR : GuiPanels.MUTED_COLOR));
 	}
 

@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "workingvillagers:work_hours",
+  "function": "workingvillagers:worker_eats_what_it_had_least",
+  "max_ticks": 1200,
+  "setup_ticks": 1,
+  "structure": "workingvillagers:platform"
+}

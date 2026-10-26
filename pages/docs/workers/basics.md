@@ -213,15 +213,16 @@ vanilla mobs picking up items); right-clicking always works.
   piece of work: the first log, the first crafted item, the first load carried; a guard
   when it takes up its post. A worker that gets nothing done all day, because material is
   missing for example, costs nothing that day. The emerald has to be there before it starts.
-  64 emeralds pay for 64 work days. Without an emerald it does not work. It waits next
+  64 emeralds pay for 64 work days. Half of the wages is its upkeep and gone, the other
+  half goes into its purse for its [meals](#meals). Without an emerald it does not work. It waits next
   to its workstation ("Waiting for wages") and checks again every few seconds, so you
   can pay it late.
 - **Tools:** the lumberjack needs an axe, the farmer a hoe, the shepherd shears, the butcher a sword or an axe, the fisher a fishing rod, the guard a bow and arrows, the pit digger a shovel, a
   pickaxe and ladders. The sawyer, stone sawyer, carpenter, smith, kiln operator, shop
   assistant and carrier only need emeralds.
 - Workers never hand in their emeralds or their tool to the output chests.
-- **A hired worker that dies drops everything it carries:** tools and material. Its
-  wage stays in the wage box.
+- **A hired worker that dies drops everything it carries:** tools and material, its food
+  and the emeralds in its purse. Its wage stays in the wage box.
 
 !!! note
     With `dailyWage` set to 0 in the [configuration](../configuration.md) workers work
@@ -247,14 +248,19 @@ what it wants ("Fetching supplies from a village chest").
 - **Before its first work of the day** it fetches whatever runs low. **During the day**
   it only goes when it cannot go on otherwise: no wage, its tool is worn, no ladders left.
 - **Emeralds:** once its wage box holds less than a day's wage, it takes the wage for
-  **3 days** and puts it into the wage box.
+  **3 days** and puts it into the wage box. When emeralds run short, it takes only its share
+  (the emeralds in the chest divided among the workers the chest serves), but at least
+  today's wage, so no worker fills its wage box while the others find the chest empty.
 - **Tools:** once it has none, or only one that is about to break, it takes one. It takes
   the **most worn** one first, so half used tools get used up and the new ones wait. It
   never takes one that is [worn](#worn-tools).
 - **Saplings, seeds, ladders, torches:** once it has less than a quarter of what it
   keeps, it fills up to that amount, kinds it already carries first.
 - It never takes **enchanted or renamed tools**: give those directly.
-- Workers put nothing into a village chest except their [worn tools](#worn-tools). Hoppers
+- **Food:** once it carries less than a day's food, it buys some with its purse, see
+  [Meals](#meals).
+- Workers put nothing into a village chest except their [worn tools](#worn-tools) and the
+  emeralds they pay for food. Hoppers
   and [carriers](carrier.md) can fill it like any chest, e.g. with the saplings from the
   lumberjack's chest.
 - If no village chest has what it needs, it waits as before.
@@ -265,6 +271,58 @@ marks the ones that lack something no village chest has (*Needs an axe!*) and sa
 **how many days** the emeralds (in their village chests and wage boxes) pay all their
 wages. If workers gave back worn tools, it says how many lie in the chest. A red dot on
 the tab means some worker lacks something. More workers than fit are shown page by page.
+
+## Meals
+
+Workers get **hungry** at work. A worker eats **10 food points** a work day (as on the
+hunger bar: :mc-bread: bread is 5, :mc-cooked_beef: cooked beef 8) from its **lunch bag**,
+4 stacks next to its pockets. Hunger never slows a worker down or stops it; what it eats
+decides **where its wage ends up**.
+
+Of every wage, half is the worker's **upkeep** and gone. The other half is **food money**
+and goes into its **purse**. Then:
+
+- **It buys food at a village chest:** the emeralds go into the chest and pay wages again.
+  Food there is cheap: a day's food money buys one and a half days' food (with a wage of 1,
+  an emerald buys 30 food points). Put the food of your farmers, butchers and fishers into
+  the village chests (or let [carriers](carrier.md) bring it), and the workers pay the
+  village for it.
+- **It finds no food there and eats out:** once it misses a whole day's food and has none
+  left, it pays an emerald from its purse for a meal out. Those emeralds are **gone**, and a
+  day's food money buys only a day's food.
+- **You give it food:** right-click a worker with food or throw it to it. It goes into the
+  lunch bag and costs nothing.
+
+A purse holds at most the food money of three days; a worker whose purse is full leaves the
+rest of its wage in the wage box. Food it buys is never handed in to an output chest.
+
+**Variety:** workers know four kinds of food: **field crops** (bread, carrots, potatoes,
+baked potatoes, beetroot, pumpkin pie, cookies), **meat**, **fish** (and dried kelp) and
+**fruit** (apples, berries, melon slices). Food of a kind it had in one of its last two
+meals counts a quarter less per such meal. Workers that only get bread get half of its
+food points; with three kinds in turns every meal counts in full. A meal out is a kind of
+its own. A worker buys a mix of what the chest has and eats what counts most, but it does
+not buy food that counts less for its emeralds than eating out: after two meals of field
+crops it rather eats out than buy more bread. So a village that offers only one kind of food
+gets back only part of the food money. Data packs can change which food counts as
+which kind, see [Data packs](../data-packs.md#meals).
+
+!!! tip "How it adds up: food saves money"
+    A worker that eats out costs the village its whole wage, one emerald a day. A worker
+    that buys varied food at the village chests costs only its upkeep, half an emerald: the
+    rest comes back. Food in the village chests halves your wages.
+
+**Where you see it:**
+
+- The **station menu** shows a lunch bag slot next to the emeralds, red while the worker
+  eats out. Its tooltip shows the purse, the food in the bag and whether the food money
+  comes back to the village or is gone. The line next to the slots says *Eats out* when it
+  does, and the worker's status says *(eats out: no food at the village chests)*.
+- The **village chest** lists workers that eat out as lacking food, and its forecast of
+  how long the wages last counts what comes back: *Wages last ~4 days, ~8 if all ate here*.
+
+Upkeep, food per day and how much the food money buys at village chests can be changed in
+the [configuration](../configuration.md#meals-meals); meals can also be turned off.
 
 ## Worn tools
 

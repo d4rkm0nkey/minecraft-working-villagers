@@ -81,6 +81,10 @@ public final class WorkerSupplies {
 	private static final int RETRY_TICKS = 100;
 	/** How long the worker tries to get to a village chest; they may be farther off than its own chests. */
 	private static final int VILLAGE_CHEST_WALK_TICKS = 1200;
+	/** How long a worker leaves out a village chest that had nothing for it. */
+	private static final int EMPTY_CHEST_RETRY_TICKS = 1200;
+	/** How long a worker that found no food to buy waits before it looks again. */
+	private static final int FOOD_RETRY_TICKS = 600;
 	/** How long a worker that found no room for a worn tool waits before it looks again. */
 	private static final int GIVE_BACK_RETRY_TICKS = 1200;
 
@@ -160,9 +164,14 @@ public final class WorkerSupplies {
 	private boolean toVillageChest;
 	/** Until when (game time) a worker that found no room for a worn tool keeps it. */
 	private long giveBackRetry;
+	/** Until when (game time) a worker that found no food to buy does not look for it. */
+	private long foodRetry;
 	/** The day the worker last looked for what runs low (see {@link VillageChests}). */
 	private long checkedDay = -1;
-	/** Village chests it could not get at or got nothing from, with the day; it tries them again the next day. */
+	/**
+	 * Village chests it could not get at (until the next day) or got nothing from (for a
+	 * minute: a carrier may fill it), with the game time until when it leaves them out.
+	 */
 	private final Map<BlockPos, Long> skipped = new HashMap<>();
 
 	/**
@@ -198,7 +207,18 @@ public final class WorkerSupplies {
 				return true;
 			}
 		}
+		if (this.foodDue(level, villager)) {
+			if (this.fetch(level, villager, Meals::isMeal)) {
+				return true;
+			}
+			this.foodRetry = level.getGameTime() + FOOD_RETRY_TICKS;
+		}
 		return this.refillDue(level, villager) && this.fetch(level, villager, stack -> true);
+	}
+
+	/** Whether the worker wants to buy food and has not just failed to find any. */
+	private boolean foodDue(ServerLevel level, Villager villager) {
+		return level.getGameTime() >= this.foodRetry && Meals.wantsFood(villager);
 	}
 
 	/**
@@ -207,7 +227,7 @@ public final class WorkerSupplies {
 	 * this, too.
 	 */
 	public boolean refillDue(ServerLevel level, Villager villager) {
-		if (this.trip != null || this.giveBackDue(level, villager)) {
+		if (this.trip != null || this.giveBackDue(level, villager) || this.foodDue(level, villager)) {
 			return true;
 		}
 		long today = ChopTrees.today(level);
@@ -243,6 +263,11 @@ public final class WorkerSupplies {
 		this.toVillageChest = true;
 		WorkerStatus.task(villager, "village_chest.fetch");
 		return true;
+	}
+
+	/** Whether a village chest in reach has the worker's wage. */
+	public boolean offersWage(ServerLevel level, Villager villager) {
+		return this.villageChest(level, villager, WorkerSupplies::isWage) != null;
 	}
 
 	/** Whether the worker carries a worn tool to give back, and has not just failed to find room for it. */
@@ -313,8 +338,8 @@ public final class WorkerSupplies {
 	}
 
 	private @Nullable BlockPos villageChest(ServerLevel level, Villager villager, Predicate<ItemStack> wanted) {
-		long today = ChopTrees.today(level);
-		this.skipped.values().removeIf(day -> day != today);
+		long now = level.getGameTime();
+		this.skipped.values().removeIf(until -> until <= now);
 		if (!VillageChests.runsLow(villager)) {
 			return null;
 		}
@@ -353,8 +378,10 @@ public final class WorkerSupplies {
 			this.giveBackRetry = level.getGameTime() + GIVE_BACK_RETRY_TICKS;
 		}
 		if (villageChest) {
-			if (result == ChestTrip.Result.FAILED || moved[0] + moved[1] == 0) {
-				this.skipped.put(trip.chest(), ChopTrees.today(level));
+			if (result == ChestTrip.Result.FAILED) {
+				this.skipped.put(trip.chest(), level.getGameTime() + 24000L - level.getOverworldClockTime() % 24000L);
+			} else if (moved[0] + moved[1] == 0) {
+				this.skipped.put(trip.chest(), level.getGameTime() + EMPTY_CHEST_RETRY_TICKS);
 			}
 			// What runs low is fetched once a day; anything still missing waits for the next check
 			this.checkedDay = ChopTrees.today(level);
@@ -414,6 +441,11 @@ public final class WorkerSupplies {
 			box.setWage(box.wage() - fromBox);
 		}
 		villager.getInventory().removeItemType(WAGE, wage - fromBox);
+		// What does not fit into the purse goes back
+		ItemStack back = store(villager, new ItemStack(WAGE, Meals.paid(villager, wage)));
+		if (!back.isEmpty()) {
+			villager.getInventory().addItem(back);
+		}
 		((HiredVillager) villager).workingvillagers$setPaidDay(ChopTrees.today(level));
 		level.sendParticles(ParticleTypes.HAPPY_VILLAGER, villager.getX(), villager.getY() + 1.8, villager.getZ(), 5, 0.3, 0.2, 0.3, 0.0);
 	}
@@ -624,6 +656,9 @@ public final class WorkerSupplies {
 			wanted = isWorn(stack) ? 0 : MAX_TOOLS - count(inventory, tool.get().ready());
 		} else if (stock.isPresent()) {
 			wanted = stock.get().keep().getAsInt() - count(inventory, other -> other.is(stack.getItem()));
+		} else if (Meals.isBagged(villager, stack)) {
+			// Into the lunch bag, as much as fits
+			return Math.min(stack.getCount(), Meals.room(villager, stack));
 		} else {
 			return 0;
 		}
@@ -631,7 +666,7 @@ public final class WorkerSupplies {
 		return amount > 0 && inventory.canAddItem(stack.copyWithCount(amount)) ? amount : 0;
 	}
 
-	/** Whether the item is something the worker carries for its work: wage, tool or what it uses up. */
+	/** Whether the item is something the worker carries for its work: wage, tool, what it uses up or food. */
 	public static boolean isSupply(Villager villager, ItemStack stack) {
 		if (!((HiredVillager) villager).workingvillagers$isHired()) {
 			return false;
@@ -639,7 +674,8 @@ public final class WorkerSupplies {
 		return isWage(stack)
 			|| toolsOf(villager).stream().anyMatch(tool -> tool.item().test(stack))
 			|| stocksOf(villager).stream().anyMatch(stock -> stock.item().test(stack))
-			|| Uniforms.wearsArmor(villager) && Uniforms.isArmor(stack);
+			|| Uniforms.wearsArmor(villager) && Uniforms.isArmor(stack)
+			|| Meals.isBagged(villager, stack);
 	}
 
 	/**
@@ -701,8 +737,14 @@ public final class WorkerSupplies {
 		return InteractionResult.SUCCESS_SERVER;
 	}
 
-	/** Gives the worker the stack: emeralds into the wage box of its workstation, anything else into its inventory. Returns what is left. */
+	/**
+	 * Gives the worker the stack: emeralds into the wage box of its workstation, food into its
+	 * lunch bag, anything else into its inventory. Returns what is left.
+	 */
 	static ItemStack store(Villager villager, ItemStack stack) {
+		if (Meals.isBagged(villager, stack)) {
+			return Meals.of(villager).bag().addItem(stack);
+		}
 		Workstations.Station box = isWage(stack) && villager.level() instanceof ServerLevel level ? wageBox(level, villager) : null;
 		if (box == null) {
 			return villager.getInventory().addItem(stack);

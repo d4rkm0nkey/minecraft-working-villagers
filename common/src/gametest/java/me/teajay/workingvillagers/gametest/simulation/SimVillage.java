@@ -690,6 +690,10 @@ public final class SimVillage {
 			BlockPos wages = v.villageChest(this.at(38, 50), this.toSpine, "Wages " + (w + 1),
 				new ItemStack(Items.EMERALD, 64), new ItemStack(Items.EMERALD, 64));
 			BlockPos made = v.villageChest(this.at(38, 53), this.toSpine, "Made " + (w + 1));
+			// The pantry: what the farmer, the chicken butcher and the fisher bring, where the workers buy their food
+			BlockPos pantry = v.villageChest(this.at(46, 50), this.toSpine, "Pantry " + (w + 1));
+			v.registry.pantries.add(pantry);
+			this.chests.put("Pantry", pantry);
 			this.chests.put("Wages", wages);
 			for (BlockPos till : this.tills) {
 				this.flows.add(new Flow(till, wages, "Wages"));
@@ -844,7 +848,7 @@ public final class SimVillage {
 					v.worker("Butcher " + names[i].toLowerCase(), w, smoker, 3, new ItemStack(Items.IRON_SWORD),
 						new ItemStack(i == 1 ? Items.WHEAT : Items.WHEAT_SEEDS, 16), new ItemStack(Items.COAL, 16));
 					v.animals(i == 1 ? EntityTypes.COW : EntityTypes.CHICKEN, middle, 10, 3);
-					this.flow(names[i], this.chests.get("Depot N"), i == 1 ? "Beef and leather" : "Chicken");
+					this.flow(names[i], this.chests.get(i == 1 ? "Depot N" : "Pantry"), i == 1 ? "Beef and leather" : "Chicken");
 				}
 			}
 			this.chests.put("Feed", feed);
@@ -988,11 +992,12 @@ public final class SimVillage {
 		// Two fields: one feeds the animals, the other is sold
 
 		void fields() {
-			this.field("Crops feed", 73, this.chests.get("Feed"));
-			this.field("Crops", 91, this.chests.get("Depot S"));
+			this.field("Crops feed", 73, this.chests.get("Feed"), Blocks.WHEAT, Blocks.WHEAT, new ItemStack(Items.WHEAT_SEEDS, 16));
+			// Food for the pantry: carrots and potatoes in turns
+			this.field("Crops", 91, this.chests.get("Pantry"), Blocks.CARROTS, Blocks.POTATOES, new ItemStack(Items.CARROT, 16), new ItemStack(Items.POTATO, 16));
 		}
 
-		void field(String name, int v0, BlockPos deliverTo) {
+		void field(String name, int v0, BlockPos deliverTo, Block crop, Block otherCrop, ItemStack... seeds) {
 			SimVillage v = this.village;
 			BlockPos composter = this.at(29, v0);
 			for (int u = 22; u <= 36; u++) {
@@ -1007,14 +1012,17 @@ public final class SimVillage {
 						v.level.setBlock(pos.below(), Blocks.WATER.defaultBlockState(), Block.UPDATE_ALL);
 					} else {
 						v.level.setBlock(pos.below(), Blocks.FARMLAND.defaultBlockState().setValue(FarmlandBlock.MOISTURE, FarmlandBlock.MAX_MOISTURE), Block.UPDATE_CLIENTS);
-						v.level.setBlock(pos, Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE, v.random.nextInt(CropBlock.MAX_AGE + 1)), Block.UPDATE_CLIENTS);
+						Block planted = (u - 22) % 2 == 0 ? crop : otherCrop;
+						v.level.setBlock(pos, planted.defaultBlockState().setValue(CropBlock.AGE, v.random.nextInt(CropBlock.MAX_AGE + 1)), Block.UPDATE_CLIENTS);
 					}
 				}
 			}
 			v.set(composter, Blocks.COMPOSTER);
 			BlockPos output = this.chest(name, 38, v0);
 			v.link(composter, output, ChestRole.OUTPUT);
-			v.worker("Farmer", this.index, composter, 3, new ItemStack(Items.IRON_HOE), new ItemStack(Items.WHEAT_SEEDS, 16));
+			List<ItemStack> supplies = new ArrayList<>(List.of(new ItemStack(Items.IRON_HOE)));
+			supplies.addAll(List.of(seeds));
+			v.worker("Farmer", this.index, composter, 3, supplies.toArray(ItemStack[]::new));
 			this.flow(name, deliverTo, name);
 		}
 
@@ -1031,7 +1039,7 @@ public final class SimVillage {
 			BlockPos output = this.chest("Fish", 41, 89);
 			v.link(barrel, output, ChestRole.OUTPUT);
 			v.worker("Fisher", this.index, barrel, 3, new ItemStack(Items.FISHING_ROD));
-			this.flow("Fish", this.chests.get("Depot S"), "Fish");
+			this.flow("Fish", this.chests.get("Pantry"), "Fish");
 		}
 
 		/** Four guards on targets around the middle of the wing; their loot and bottles go to the hub. */

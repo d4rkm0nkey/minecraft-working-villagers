@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.Set;
 import me.teajay.workingvillagers.Config;
 import me.teajay.workingvillagers.WorkingVillagers;
+import me.teajay.workingvillagers.job.Meals;
 import me.teajay.workingvillagers.job.VillageChests;
 import me.teajay.workingvillagers.job.WorkerLevels;
 import me.teajay.workingvillagers.job.WorkerSupplies;
@@ -47,6 +48,9 @@ public class VillageChestMenu extends ChestMenu {
 	private static final String TAG_PROFESSION = "Profession";
 	private static final String TAG_MISSING = "Missing";
 	private static final String TAG_WAGE_DAYS = "WageDays";
+	private static final String TAG_FED_WAGE_DAYS = "FedWageDays";
+	/** What the wage days show at most: the workers cost (next to) nothing. */
+	private static final int MAX_WAGE_DAYS = 999;
 	private static final String TAG_WORN_TOOLS = "WornTools";
 	private static final String TAG_RADIUS = "Radius";
 	private static final String TAG_ENABLED = "Enabled";
@@ -151,6 +155,9 @@ public class VillageChestMenu extends ChestMenu {
 		Set<BlockPos> chests = new HashSet<>();
 		int carried = 0;
 		int wage = 0;
+		double cost = 0.0;
+		double fedCost = 0.0;
+		int eatingOut = 0;
 		for (Villager worker : workers) {
 			wage += WorkerLevels.dailyWage(worker);
 			CompoundTag entry = new CompoundTag();
@@ -163,6 +170,10 @@ public class VillageChestMenu extends ChestMenu {
 			list.add(entry);
 			chests.addAll(VillageChests.inReach(level, VillageChests.workplace(level, worker)));
 			carried += WorkerSupplies.emeralds(level, worker);
+			boolean eatsOut = Meals.eatsOut(worker);
+			eatingOut += eatsOut ? 1 : 0;
+			cost += Meals.dailyCost(worker, !eatsOut);
+			fedCost += Meals.dailyCost(worker, true);
 		}
 		tag.put(TAG_WORKERS, list);
 		tag.putInt(TAG_WORN_TOOLS, WorkerSupplies.count(this.getContainer(), WorkerSupplies::isWorn));
@@ -174,9 +185,17 @@ public class VillageChestMenu extends ChestMenu {
 					emeralds += container.countItem(WorkerSupplies.WAGE);
 				}
 			}
-			tag.putInt(TAG_WAGE_DAYS, emeralds / wage);
+			// The food money of a worker that buys its food here comes back; of one that eats out it is gone
+			tag.putInt(TAG_WAGE_DAYS, wageDays(emeralds, cost));
+			if (eatingOut > 0) {
+				tag.putInt(TAG_FED_WAGE_DAYS, wageDays(emeralds, fedCost));
+			}
 		}
 		this.info.setInfo(tag);
+	}
+
+	private static int wageDays(int emeralds, double daily) {
+		return daily <= 0.0 ? MAX_WAGE_DAYS : (int) Math.min(MAX_WAGE_DAYS, emeralds / daily);
 	}
 
 	/** Client: the workers the village chest serves. */
@@ -194,9 +213,18 @@ public class VillageChestMenu extends ChestMenu {
 		return workers;
 	}
 
-	/** Client: for how many days the emeralds of the workers and their village chests pay them all; empty without wage. */
+	/**
+	 * Client: for how many days the emeralds of the workers and their village chests pay them
+	 * all, counting the food money of those that buy their food at village chests as coming
+	 * back (see {@link Meals}); empty without wage.
+	 */
 	public Optional<Integer> getWageDays() {
 		return this.info.info().getInt(TAG_WAGE_DAYS);
+	}
+
+	/** Client: for how many days they would if those that eat out bought their food at village chests too; empty if none eats out. */
+	public Optional<Integer> getFedWageDays() {
+		return this.info.info().getInt(TAG_FED_WAGE_DAYS);
 	}
 
 	/** Client: how many worn tools lie in the chest, given back by workers (see {@link WorkerSupplies#isWorn}). */
