@@ -104,6 +104,10 @@ public class CarryItems extends Behavior<Villager> {
 				Route route = loadRoute(data);
 				int stacks = route == null ? 0 : Math.max(1, Chests.emptySlots(level, route.target()));
 				int taken = takeStacks(container, data.basket(), Math.min(stacks, Config.STACKS_PER_TRIP.get()));
+				if (taken > 0) {
+					// The first load of the day pays the wage: out of the load, if that is where it is
+					this.payFromLoad(level, villager, data);
+				}
 				((HiredVillager) villager).workingvillagers$addWorkDone(ChopTrees.today(level), taken);
 			});
 			case DELIVER -> this.visit(level, villager, container -> Chests.deposit(data.basket(), container, stack -> true));
@@ -127,7 +131,7 @@ public class CarryItems extends Behavior<Villager> {
 	 * true while that keeps it busy.
 	 */
 	private boolean payFromLoad(ServerLevel level, Villager villager, CarrierData data) {
-		int wage = Config.DAILY_WAGE.get();
+		int wage = WorkerLevels.dailyWage(villager);
 		if (wage <= 0 || WorkerSupplies.isPaid(level, villager) || WorkerSupplies.emeralds(level, villager) >= wage) {
 			return false;
 		}

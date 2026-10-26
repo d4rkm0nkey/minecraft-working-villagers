@@ -2404,6 +2404,7 @@ public final class WorkerTests {
 		BlockPos chest = TestWorld.villageChest(helper, new BlockPos(10, 1, 4),
 			new ItemStack(Items.BREAD, 16), new ItemStack(Items.COOKED_COD, 4), new ItemStack(Items.APPLE, 4));
 		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 5), new ItemStack(Items.IRON_AXE));
+		Meals.of(worker).setPurse(1);
 		helper.succeedWhen(() -> {
 			MealData meals = Meals.of(worker);
 			helper.assertTrue(meals.bag().countItem(Items.COOKED_COD) > 0 && meals.bag().countItem(Items.APPLE) > 0 && meals.bag().countItem(Items.BREAD) > 0,
@@ -2434,6 +2435,8 @@ public final class WorkerTests {
 		Villager worker = lumberjack(helper, new ItemStack(Items.IRON_AXE));
 		Meals.of(worker).setPurse(64);
 		TestWorld.station(helper, STATION).setWage(5);
+		// The wage is taken with the first piece of work
+		WorkerSupplies.earned(helper.getLevel(), worker);
 		helper.succeedWhen(() -> {
 			helper.assertTrue(WorkerSupplies.isPaid(helper.getLevel(), worker), "The worker took no wage");
 			int spent = 5 - TestWorld.station(helper, STATION).wage();

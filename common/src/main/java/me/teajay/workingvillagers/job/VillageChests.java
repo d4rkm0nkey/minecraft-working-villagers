@@ -278,7 +278,7 @@ public final class VillageChests {
 		if (wanted <= 0 || !(villager.level() instanceof ServerLevel level) || !(container instanceof BlockEntity chest)) {
 			return wanted;
 		}
-		int today = Math.max(0, Config.DAILY_WAGE.get() - WorkerSupplies.emeralds(level, villager));
+		int today = Math.max(0, WorkerLevels.dailyWage(villager) - WorkerSupplies.emeralds(level, villager));
 		if (wanted <= today) {
 			return wanted;
 		}
