@@ -57,6 +57,11 @@ final class TestWorld {
 		}
 	}
 
+	/** Makes the worker a worker of the level, e.g. a journeyman that may hunt (see {@code Unlocks}). */
+	static void setLevel(Villager villager, int level) {
+		villager.setVillagerData(villager.getVillagerData().withLevel(level));
+	}
+
 	static Workstations.Station station(GameTestHelper helper, BlockPos pos) {
 		return Workstations.find(helper.getLevel(), helper.absolutePos(pos))
 			.orElseThrow(() -> helper.assertionException(pos, "No workstation here"));

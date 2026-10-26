@@ -240,7 +240,7 @@ public class SellGoods extends Behavior<Villager> {
 	private Optional<Sale> findSale(ServerLevel level, Villager villager, Workstations.Station station, List<ItemStack> stock) {
 		boolean soldOut = false;
 		boolean buyer = false;
-		AABB area = new AABB(station.pos()).inflate(Config.TRADE_RADIUS.get());
+		AABB area = new AABB(station.pos()).inflate(WorkerLevels.area(villager, Config.TRADE_RADIUS.get()));
 		List<Villager> customers = level.getEntitiesOfClass(Villager.class, area, SellGoods::isCustomer);
 		customers.sort(Comparator.comparingDouble(customer -> customer.distanceToSqr(villager)));
 		for (Villager customer : customers) {
@@ -374,7 +374,7 @@ public class SellGoods extends Behavior<Villager> {
 			this.setState(State.WALK);
 			return;
 		}
-		int interval = Math.max(1, (int) Math.round(Config.SECONDS_PER_TRADE.get() * 20.0));
+		int interval = WorkerLevels.ticks(villager, (int) Math.round(Config.SECONDS_PER_TRADE.get() * 20.0));
 		if (this.stateTicks % interval != 0) {
 			return;
 		}

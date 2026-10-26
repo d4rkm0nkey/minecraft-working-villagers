@@ -25,7 +25,9 @@ the status does not help, go through this list.
 | *Waiting for material* | The input chests have no material for the order, or not of the selected wood types. |
 | *Waiting for material: Oak Planks* | The carpenter's input chests lack this ingredient (or not enough of it) for one piece. |
 | *Waiting: no recipe for the order* | The carpenter's bench has no recipe for the ordered product (e.g. a data pack removed it). Pick another order. |
+| *Missing 18× Oak Planks* | The carpenter has made what it could of an ordered product (or a stock); for the rest this much is missing in its input chests and the village chests in reach. It shows a red **!** above its head until there is more. |
 | *Stock is full (16/16)* | The carpenter has as many products in its output chests as set. Take some out or raise the stock. |
+| *Order done* | Everything ordered is in the output chests. Order more in the **Order** tab. |
 | *Waiting: cannot carry more* | The carpenter's inventory is full. Make room in the input chests so it can put back what it cannot use. |
 | *Waiting for the crops to grow* | No ripe crops and no empty farmland within 8 blocks of the composter. |
 | *Waiting: no seeds for the empty farmland (give them some)* | Right-click the farmer with seeds (or carrots, potatoes). |

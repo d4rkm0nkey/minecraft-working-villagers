@@ -22,7 +22,7 @@ public interface HiredVillager {
 
 	/**
 	 * How much the worker has done on the given day (e.g. logs chopped). Starts at 0 on
-	 * every new day.
+	 * every new day. Adding work takes the wage of the day (see {@link WorkerSupplies#earned}).
 	 */
 	int workingvillagers$getWorkDone(long day);
 
@@ -63,6 +63,27 @@ public interface HiredVillager {
 
 	void workingvillagers$setProblem(boolean problem);
 
+	/**
+	 * Whether the current task is work that teaches (not waiting, not a problem), see
+	 * {@link WorkerLevels#tick}. Not saved.
+	 */
+	boolean workingvillagers$isWorking();
+
+	void workingvillagers$setWorking(boolean working);
+
+	/** The seconds of work not yet turned into villager experience (see {@link WorkerLevels#tick}). */
+	float workingvillagers$getLearned();
+
+	void workingvillagers$setLearned(float seconds);
+
+	/**
+	 * The profession the worker learned its level in, null if it never had a job of this
+	 * mod. A worker that takes another job starts as a novice (see {@link WorkerJobs#takeJob}).
+	 */
+	@Nullable String workingvillagers$getCareer();
+
+	void workingvillagers$setCareer(@Nullable String career);
+
 	/** A guard, a weaponsmith: the experience it has not bottled yet. */
 	int workingvillagers$getExperience();
 
@@ -89,6 +110,16 @@ public interface HiredVillager {
 	long workingvillagers$getHiredDay();
 
 	void workingvillagers$setHiredDay(long day);
+
+	/** The sign above the worker's head, see {@link WorkerNotice}. Not saved. */
+	byte workingvillagers$getNotice();
+
+	void workingvillagers$setNotice(byte notice);
+
+	/** Until when (tick count) the worker shows that an order is done, see {@link WorkerNotice#done}. Not saved. */
+	int workingvillagers$getDoneUntil();
+
+	void workingvillagers$setDoneUntil(int tick);
 
 	/** Whether the worker is stuck, see {@link StuckWorkers}. Not saved. */
 	StuckWorkers.Watch workingvillagers$getStuckWatch();

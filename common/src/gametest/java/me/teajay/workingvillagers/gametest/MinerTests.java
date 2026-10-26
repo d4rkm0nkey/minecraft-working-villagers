@@ -7,6 +7,7 @@ import me.teajay.workingvillagers.Config;
 import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.crafting.CuttingRecipes;
 import me.teajay.workingvillagers.job.HiredVillager;
+import me.teajay.workingvillagers.job.WorkerLevels;
 import me.teajay.workingvillagers.job.WorkerSupplies;
 import me.teajay.workingvillagers.station.Tunnel;
 import me.teajay.workingvillagers.station.Workstations.ChestRole;
@@ -123,6 +124,8 @@ final class MinerTests {
 		hill(helper, 6);
 		Tunnel tunnel = tunnel(helper, START, 6).withBranches(4);
 		Villager worker = miner(helper, tunnel, new ItemStack(Items.OAK_FENCE, 8), new ItemStack(Items.OAK_PLANKS, 8));
+		// A journeyman digs side tunnels
+		TestWorld.setLevel(worker, WorkerLevels.JOURNEYMAN);
 		helper.succeedWhen(() -> {
 			assertDug(helper, worker, tunnel);
 			helper.assertBlockPresent(Blocks.AIR, new BlockPos(3, 1, 13));
@@ -158,6 +161,8 @@ final class MinerTests {
 		helper.setBlock(behind, Blocks.IRON_ORE);
 		helper.setBlock(lava, Blocks.LAVA);
 		Villager worker = miner(helper, tunnel(helper, START, 3), new ItemStack(Items.COBBLESTONE, 4));
+		// An expert follows the ore vein
+		TestWorld.setLevel(worker, WorkerLevels.EXPERT);
 		helper.succeedWhen(() -> {
 			helper.assertBlockPresent(Blocks.AIR, ore);
 			helper.assertBlockPresent(Blocks.AIR, behind);
@@ -198,6 +203,8 @@ final class MinerTests {
 		TestWorld.link(helper, bench, output, ChestRole.OUTPUT);
 		TestWorld.station(helper, bench).setTunnel(stairs);
 		Villager worker = TestWorld.hireVillager(helper, new BlockPos(8, 5, 9));
+		// An apprentice digs stairs
+		TestWorld.setLevel(worker, WorkerLevels.APPRENTICE);
 		TestWorld.assign(helper, worker, bench);
 		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.DIAMOND_PICKAXE));
 		helper.succeedWhen(() -> {

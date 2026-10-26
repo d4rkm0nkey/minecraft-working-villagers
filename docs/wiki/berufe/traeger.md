@@ -1,6 +1,6 @@
 # Beruf: Träger
 
-[← Berufe](README.md) · Station: **keine – der Weidenkorb ist die Workstation** · Phase: **umgesetzt** (ohne Level)
+[← Berufe](README.md) · Station: **keine – der Weidenkorb ist die Workstation** · Phase: **umgesetzt** (zweiter Weg ab Lehrling, dritter ab Geselle, siehe [Level](../grundlagen/level.md))
 
 Der Träger bewegt Items zwischen Kisten. Er hat keinen Arbeitsblock: Sein Weidenkorb auf dem Rücken ist Workstation und Arbeitsvertrag zugleich.
 
@@ -56,7 +56,7 @@ Er öffnet Kisten wie alle Arbeiter von vorne, mit sichtbarem Deckel.
 ## Kapazität
 
 - Novize: **6 Stacks** im Korb.
-- Später soll die Kapazität mit dem Level wachsen. In der Demo sind alle Träger Novizen.
+- Mit dem Level wachsen die Weglänge (Neuling die Hälfte von `carrier.maxRouteLength`) und die Zahl der Wege, die er bedient; die Kapazität des Korbs bleibt.
 
 ## Kein Filter
 

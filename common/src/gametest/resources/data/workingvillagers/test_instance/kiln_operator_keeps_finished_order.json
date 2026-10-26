@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "workingvillagers:work_hours",
+  "function": "workingvillagers:kiln_operator_keeps_finished_order",
+  "max_ticks": 1600,
+  "setup_ticks": 1,
+  "structure": "workingvillagers:platform"
+}

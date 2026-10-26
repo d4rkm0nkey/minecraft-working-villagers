@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import me.teajay.workingvillagers.Config;
 import me.teajay.workingvillagers.job.VillageChests;
+import me.teajay.workingvillagers.job.WorkerLevels;
 import me.teajay.workingvillagers.job.WorkerSupplies;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -70,7 +71,7 @@ public record SuppliesInfo(int emeralds, int wage, boolean paid, List<Slot> tool
 		CompoundTag tag = new CompoundTag();
 		SimpleContainer inventory = worker.getInventory();
 		tag.putInt(TAG_EMERALDS, WorkerSupplies.emeralds(level, worker));
-		tag.putInt(TAG_WAGE, Config.DAILY_WAGE.get());
+		tag.putInt(TAG_WAGE, WorkerLevels.dailyWage(worker));
 		tag.putBoolean(TAG_PAID, WorkerSupplies.isPaid(level, worker));
 		ListTag tools = new ListTag();
 		for (WorkerSupplies.Tool tool : WorkerSupplies.toolsOf(worker)) {

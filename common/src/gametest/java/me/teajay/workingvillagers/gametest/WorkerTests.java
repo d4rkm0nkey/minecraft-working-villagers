@@ -14,6 +14,8 @@ import me.teajay.workingvillagers.job.GuardPost;
 import me.teajay.workingvillagers.job.HiredVillager;
 import me.teajay.workingvillagers.job.TendAnimals;
 import me.teajay.workingvillagers.job.TendSheep;
+import me.teajay.workingvillagers.job.WorkerLevels;
+import me.teajay.workingvillagers.job.WorkerNotice;
 import me.teajay.workingvillagers.job.WorkerStatus;
 import me.teajay.workingvillagers.job.WorkerSupplies;
 import me.teajay.workingvillagers.job.ChopTrees;
@@ -99,6 +101,7 @@ public final class WorkerTests {
 			test.accept(helper);
 		});
 		MinerTests.register(registry);
+		LevelTests.register(registry);
 		registry.accept("contract_hires_unemployed", WorkerTests::contractHiresUnemployed);
 		registry.accept("contract_rejects_employed", WorkerTests::contractRejectsEmployed);
 		registry.accept("lumberjack_fells_tree", WorkerTests::lumberjackFellsTree);
@@ -122,6 +125,14 @@ public final class WorkerTests {
 		registry.accept("fletcher_makes_several_products", WorkerTests::fletcherMakesSeveralProducts);
 		registry.accept("weaponsmith_forges_several_products", WorkerTests::weaponsmithForgesSeveralProducts);
 		registry.accept("tanner_makes_several_products", WorkerTests::tannerMakesSeveralProducts);
+		registry.accept("carpenter_fills_order", WorkerTests::carpenterFillsOrder);
+		registry.accept("carpenter_takes_material_from_village_chest", WorkerTests::carpenterTakesMaterialFromVillageChest);
+		registry.accept("carpenter_shows_missing_material", WorkerTests::carpenterShowsMissingMaterial);
+		registry.accept("carpenter_without_material_costs_nothing", WorkerTests::carpenterWithoutMaterialCostsNothing);
+		registry.accept("carpenter_makes_missing_ingredient", WorkerTests::carpenterMakesMissingIngredient);
+		registry.accept("sawyer_fills_order", WorkerTests::sawyerFillsOrder);
+		registry.accept("kiln_operator_keeps_finished_order", WorkerTests::kilnOperatorKeepsFinishedOrder);
+		registry.accept("fletcher_makes_arrows_for_spectral_arrows", WorkerTests::fletcherMakesArrowsForSpectralArrows);
 		registry.accept("carrier_moves_items", WorkerTests::carrierMovesItems);
 		registry.accept("farmer_harvests_and_replants", WorkerTests::farmerHarvestsAndReplants);
 		registry.accept("workers_do_not_trample_farmland", WorkerTests::workersDoNotTrampleFarmland);
@@ -235,6 +246,8 @@ public final class WorkerTests {
 	}
 
 	private static void configure() {
+		// The work areas of the tests are laid out for the full radius; the level tests set the level they need
+		Config.NOVICE_AREA.set(100);
 		// The tests run side by side: the village chests of one test must not reach the workers of the next
 		Config.VILLAGE_CHEST_RADIUS.set(8);
 		// Quick bites, short trips
@@ -482,6 +495,8 @@ public final class WorkerTests {
 		TestWorld.station(helper, target).setGuardRadius(8);
 		TestWorld.station(helper, target).setHunting(true);
 		Villager guard = TestWorld.hireVillager(helper, WORKER);
+		// A journeyman hunts
+		TestWorld.setLevel(guard, WorkerLevels.JOURNEYMAN);
 		TestWorld.assign(helper, guard, target);
 		TestWorld.give(helper, guard, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.BOW), new ItemStack(Items.ARROW, 32));
 		GuardPost.setTimeForTests(guard, 14000);
@@ -621,6 +636,10 @@ public final class WorkerTests {
 			}
 		}
 		Villager worker = librarian(helper, new ItemStack(Items.IRON_PICKAXE), new ItemStack(Items.EXPERIENCE_BOTTLE, 12), new ItemStack(Items.LAPIS_LAZULI, 3));
+		// A master enchants up to level 30
+		TestWorld.setLevel(worker, WorkerLevels.MASTER);
+		// A master takes 3 emeralds a day
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 1));
 		helper.succeedWhen(() -> {
 			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.IRON_PICKAXE) && stack.isEnchanted(), 1, "an enchanted pickaxe in the output chest");
 			int left = TestWorld.count(helper, INPUT, stack -> stack.is(Items.EXPERIENCE_BOTTLE)) + worker.getInventory().countItem(Items.EXPERIENCE_BOTTLE)
@@ -671,6 +690,8 @@ public final class WorkerTests {
 		ItemStack sword = new ItemStack(Items.IRON_SWORD);
 		sword.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SHARPNESS), 3);
 		Villager worker = weaponsmith(helper, null, sword, new ItemStack(Items.GLASS_BOTTLE, 4));
+		// A journeyman disenchants
+		TestWorld.setLevel(worker, WorkerLevels.JOURNEYMAN);
 		helper.succeedWhen(() -> {
 			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.IRON_SWORD) && !stack.isEnchanted(), 1, "the sword without enchantments");
 			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.EXPERIENCE_BOTTLE), 1, "a bottle o' enchanting");
@@ -742,6 +763,8 @@ public final class WorkerTests {
 	/** A leather chestplate in the color of the station, with its dye. */
 	private static void tannerDyesArmor(GameTestHelper helper) {
 		Villager worker = tanner(helper, 0, Items.LEATHER_CHESTPLATE, DyeColor.RED, new ItemStack(Items.LEATHER, 8), new ItemStack(Items.DYE.red()));
+		// A apprentice makes leather armor
+		TestWorld.setLevel(worker, WorkerLevels.APPRENTICE);
 		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.LEATHER_CHESTPLATE) && TanLeather.hasColor(stack, DyeColor.RED), 1,
 			"a red leather chestplate in the output chest"));
 	}
@@ -864,6 +887,8 @@ public final class WorkerTests {
 		TestWorld.chest(helper, OUTPUT);
 		TestWorld.link(helper, STATION.below(), OUTPUT, ChestRole.OUTPUT);
 		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		// A journeyman rows out
+		TestWorld.setLevel(worker, WorkerLevels.JOURNEYMAN);
 		TestWorld.assign(helper, worker, STATION.below());
 		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.FISHING_ROD), new ItemStack(Items.OAK_BOAT));
 		boolean[] rowed = {false};
@@ -888,6 +913,8 @@ public final class WorkerTests {
 		TestWorld.chest(helper, OUTPUT);
 		TestWorld.link(helper, STATION.below(), OUTPUT, ChestRole.OUTPUT);
 		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		// A journeyman rows out
+		TestWorld.setLevel(worker, WorkerLevels.JOURNEYMAN);
 		TestWorld.assign(helper, worker, STATION.below());
 		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.FISHING_ROD), new ItemStack(Items.OAK_BOAT));
 		boolean[] rowed = {false};
@@ -970,6 +997,8 @@ public final class WorkerTests {
 	private static void butcherSmokesMeat(GameTestHelper helper) {
 		animalPen(helper, EntityTypes.CHICKEN, 3, 2);
 		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		// A journeyman smokes meat
+		TestWorld.setLevel(worker, WorkerLevels.JOURNEYMAN);
 		TestWorld.assign(helper, worker, STATION.below());
 		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_SWORD), new ItemStack(Items.COAL, 2));
 		helper.succeedWhen(() -> TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.COOKED_CHICKEN), 1, "cooked chicken in the output chest"));
@@ -1329,6 +1358,8 @@ public final class WorkerTests {
 		pickaxe.enchant(helper.getLevel().registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
 			.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.EFFICIENCY), 3);
 		Villager worker = processingStation(helper, pickaxe, new ItemStack(Items.DIAMOND, 3), new ItemStack(Items.STONE, 4), new ItemStack(Items.EXPERIENCE_BOTTLE, 3));
+		// A journeyman repairs enchanted diamond
+		TestWorld.setLevel(worker, WorkerLevels.JOURNEYMAN);
 		helper.succeedWhen(() -> {
 			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.DIAMOND_PICKAXE) && !stack.isDamaged() && stack.isEnchanted()) == 1,
 				"The pickaxe is not repaired in the input chest: " + TestWorld.describe(worker));
@@ -1350,7 +1381,8 @@ public final class WorkerTests {
 			worker.kill(helper.getLevel());
 			helper.runAfterDelay(5, () -> {
 				int wage = TestWorld.station(helper, STATION).wage();
-				helper.assertTrue(wage == 4, "The wage box lost its emeralds or the wage was not paid: " + wage);
+				// No tree, no work: the wage of the day is not taken either
+				helper.assertTrue(wage == 5, "The wage box lost its emeralds: " + wage);
 				helper.assertItemEntityNotPresent(Items.EMERALD);
 				helper.succeed();
 			});
@@ -1498,6 +1530,8 @@ public final class WorkerTests {
 	/** Books and bundles with a stock of 1: one of each. */
 	private static void tannerMakesSeveralProducts(GameTestHelper helper) {
 		Villager worker = tanner(helper, 0, Items.BOOK, null, new ItemStack(Items.PAPER, 6), new ItemStack(Items.LEATHER, 4), new ItemStack(Items.STRING, 2));
+		// A journeyman makes bundles
+		TestWorld.setLevel(worker, WorkerLevels.JOURNEYMAN);
 		Workstations.Station cauldron = TestWorld.station(helper, STATION.below());
 		cauldron.toggleOrder(Items.BUNDLE);
 		cauldron.setStock(1);
@@ -1546,6 +1580,153 @@ public final class WorkerTests {
 			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.CHEST), 2, "chests in the output chest");
 			// The stock limit: it stops at two
 			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.CHEST)) == 2, "The carpenter made more than the stock");
+		});
+	}
+
+	/**
+	 * Three chests ordered once: the carpenter makes three, hands them in and is done; the
+	 * order is gone and the rest of the planks stays in the input chest.
+	 */
+	private static void carpenterFillsOrder(GameTestHelper helper) {
+		helper.setBlock(STATION, WorkingVillagers.CARPENTER_BENCH.get());
+		Workstations.Station bench = TestWorld.station(helper, STATION);
+		bench.orderProduct(Items.CHEST);
+		bench.setBatch(Items.CHEST, 3);
+		Villager worker = processingStation(helper, new ItemStack(Items.OAK_PLANKS, 40));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.CHEST), 3, "chests in the output chest");
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.CHEST)) == 3, "The carpenter made more than ordered");
+			helper.assertTrue(!bench.hasOrder(), "The order is not done: " + TestWorld.describe(worker));
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.OAK_PLANKS)) == 16, "The carpenter took more planks than the order needs");
+		});
+	}
+
+	/** Without an input chest the carpenter takes the planks for its order from a village chest. */
+	private static void carpenterTakesMaterialFromVillageChest(GameTestHelper helper) {
+		helper.setBlock(STATION, WorkingVillagers.CARPENTER_BENCH.get());
+		Workstations.Station bench = TestWorld.station(helper, STATION);
+		bench.orderProduct(Items.CHEST);
+		bench.setBatch(Items.CHEST, 2);
+		TestWorld.villageChest(helper, VILLAGE_CHEST, new ItemStack(Items.OAK_PLANKS, 16));
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, STATION, OUTPUT, ChestRole.OUTPUT);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, STATION);
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.CHEST), 2, "chests in the output chest");
+			helper.assertTrue(TestWorld.count(helper, VILLAGE_CHEST, stack -> stack.is(Items.OAK_PLANKS)) == 0, "Planks left in the village chest");
+			TestWorld.removeVillageChest(helper, VILLAGE_CHEST);
+		});
+	}
+
+	/**
+	 * Four chests ordered, planks for two: the carpenter makes two, then says how many planks
+	 * are missing for the other two and shows a "!" above its head.
+	 */
+	private static void carpenterShowsMissingMaterial(GameTestHelper helper) {
+		helper.setBlock(STATION, WorkingVillagers.CARPENTER_BENCH.get());
+		Workstations.Station bench = TestWorld.station(helper, STATION);
+		bench.orderProduct(Items.CHEST);
+		bench.setBatch(Items.CHEST, 4);
+		Villager worker = processingStation(helper, new ItemStack(Items.OAK_PLANKS, 16));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.CHEST), 2, "chests in the output chest");
+			Component task = ((HiredVillager) worker).workingvillagers$getTask();
+			helper.assertTrue(task != null && task.getContents() instanceof TranslatableContents contents
+				&& contents.getKey().equals("status.workingvillagers.carpenter.missing") && contents.getArgs()[0].equals(16),
+				"The carpenter does not say that 16 planks are missing: " + TestWorld.describe(worker));
+			helper.assertTrue(((HiredVillager) worker).workingvillagers$getNotice() == WorkerNotice.MISSING, "No \"!\" above the carpenter's head");
+		});
+	}
+
+	/**
+	 * Chests ordered, but no planks: the carpenter waits and takes no wage. Once there are
+	 * planks it makes a chest and takes the wage with it.
+	 */
+	private static void carpenterWithoutMaterialCostsNothing(GameTestHelper helper) {
+		helper.setBlock(STATION, WorkingVillagers.CARPENTER_BENCH.get());
+		Workstations.Station bench = TestWorld.station(helper, STATION);
+		bench.orderProduct(Items.CHEST);
+		bench.setBatch(Items.CHEST, 1);
+		Villager worker = processingStation(helper);
+		helper.runAfterDelay(400, () -> {
+			helper.assertTrue(!WorkerSupplies.isPaid(helper.getLevel(), worker) && WorkerSupplies.emeralds(helper.getLevel(), worker) == 2,
+				"The carpenter took its wage without having made anything: " + WorkerSupplies.emeralds(helper.getLevel(), worker) + " of 2 emeralds left");
+			TestWorld.container(helper, INPUT).setItem(0, new ItemStack(Items.OAK_PLANKS, 8));
+			helper.succeedWhen(() -> {
+				TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.CHEST), 1, "a chest in the output chest");
+				helper.assertTrue(WorkerSupplies.isPaid(helper.getLevel(), worker) && WorkerSupplies.emeralds(helper.getLevel(), worker) == 1,
+					"The carpenter did not take its wage with its work: " + WorkerSupplies.emeralds(helper.getLevel(), worker) + " of 2 emeralds left");
+			});
+		});
+	}
+
+	/**
+	 * An oak boat with chest ordered, but only planks: the carpenter makes the chest and the
+	 * boat itself, then the boat with chest; neither is handed in on its own.
+	 */
+	private static void carpenterMakesMissingIngredient(GameTestHelper helper) {
+		helper.setBlock(STATION, WorkingVillagers.CARPENTER_BENCH.get());
+		Workstations.Station bench = TestWorld.station(helper, STATION);
+		bench.setWood("oak", true);
+		bench.orderProduct(Items.OAK_CHEST_BOAT);
+		bench.setBatch(bench.orders().getFirst(), 1);
+		Villager worker = processingStation(helper, new ItemStack(Items.OAK_PLANKS, 13));
+		// An apprentice makes boats with chest
+		TestWorld.setLevel(worker, WorkerLevels.APPRENTICE);
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_CHEST_BOAT), 1, "an oak boat with chest in the output chest");
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.CHEST) || stack.is(Items.OAK_BOAT)) == 0,
+				"The carpenter handed in the chest or the boat it made for the order");
+		});
+	}
+
+	/** Ten oak planks ordered: the sawyer cuts three logs (twelve planks) and leaves the rest. */
+	private static void sawyerFillsOrder(GameTestHelper helper) {
+		helper.setBlock(STATION, WorkingVillagers.WOODCUTTER_BLOCK.get());
+		Workstations.Station saw = TestWorld.station(helper, STATION);
+		saw.setWood("oak", true);
+		saw.setShape("planks");
+		saw.setBatch(saw.orders().getFirst(), 10);
+		Villager worker = processingStation(helper, new ItemStack(Items.OAK_LOG, 8));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.OAK_PLANKS), 10, "oak planks in the output chest");
+			helper.assertTrue(!saw.hasOrder(), "The order is not done: " + TestWorld.describe(worker));
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.OAK_LOG)) == 5, "The sawyer cut more logs than the order needs");
+		});
+	}
+
+	/**
+	 * Two glass ordered at the kiln: the kiln operator fires two and stops. The done order stays
+	 * (without one the kiln would fire everything).
+	 */
+	private static void kilnOperatorKeepsFinishedOrder(GameTestHelper helper) {
+		helper.setBlock(STATION, WorkingVillagers.KILN.get());
+		Workstations.Station kiln = TestWorld.station(helper, STATION);
+		kiln.toggleOrder(Items.GLASS);
+		kiln.setBatch(Items.GLASS, 2);
+		Villager worker = processingStation(helper, new ItemStack(Items.SAND, 8), new ItemStack(Items.COBBLESTONE, 8), new ItemStack(Items.COAL, 4));
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.GLASS), 2, "glass in the output chest");
+			Workstations.Station.Batch batch = kiln.batch(Items.GLASS);
+			helper.assertTrue(batch != null && batch.handedIn(), "The done order was not kept: " + TestWorld.describe(worker));
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.GLASS)) == 2, "The kiln operator fired more than ordered");
+			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> stack.is(Items.COBBLESTONE)) == 8, "The kiln operator fired what was not ordered");
+		});
+	}
+
+	/** Spectral arrows ordered, but no arrows: the fletcher makes arrows first. */
+	private static void fletcherMakesArrowsForSpectralArrows(GameTestHelper helper) {
+		Villager worker = fletcher(helper, Items.SPECTRAL_ARROW, 0, new ItemStack(Items.GLOWSTONE_DUST, 4), new ItemStack(Items.FLINT, 1),
+			new ItemStack(Items.STICK, 1), new ItemStack(Items.FEATHER, 1));
+		// A journeyman makes spectral arrows
+		TestWorld.setLevel(worker, WorkerLevels.JOURNEYMAN);
+		Workstations.Station table = TestWorld.station(helper, STATION.below());
+		table.setBatch(Items.SPECTRAL_ARROW, 2);
+		helper.succeedWhen(() -> {
+			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.SPECTRAL_ARROW), 2, "spectral arrows in the output chest");
+			helper.assertTrue(!table.hasOrder(), "The order is not done: " + TestWorld.describe(worker));
 		});
 	}
 
@@ -1652,6 +1833,8 @@ public final class WorkerTests {
 	private static void shepherdBreedsSheep(GameTestHelper helper) {
 		pen(helper, 2, true);
 		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		// A apprentice breeds
+		TestWorld.setLevel(worker, WorkerLevels.APPRENTICE);
 		TestWorld.assign(helper, worker, STATION.below());
 		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.SHEARS), new ItemStack(Items.WHEAT, 4));
 		helper.succeedWhen(() -> {
@@ -1839,7 +2022,8 @@ public final class WorkerTests {
 		Villager worker = TestWorld.hireVillager(helper, new BlockPos(5, ground + 1, 6));
 		TestWorld.assign(helper, worker, stake);
 		worker.setVillagerData(worker.getVillagerData().withLevel(5));
-		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.IRON_SHOVEL), new ItemStack(Items.IRON_PICKAXE), new ItemStack(Items.LADDER, 16),
+		// A master's wage is 3 emeralds a day
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 6), new ItemStack(Items.IRON_SHOVEL), new ItemStack(Items.IRON_PICKAXE), new ItemStack(Items.LADDER, 16),
 			new ItemStack(Items.OAK_PLANKS, 32), new ItemStack(Items.OAK_LOG, 8));
 		Pit.Storeys storeys = station.pit().storeys(helper.getLevel(), depth);
 		int floors = depth == 10 ? 1 : 2;

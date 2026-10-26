@@ -21,11 +21,26 @@ default and its allowed range, so you can edit it with any text editor.
 
 | Option | Default | Range | What it does |
 | --- | --- | --- | --- |
-| `dailyWage` | 1 | 0–64 | Emeralds a worker takes each work day from the wage box of its workstation. **0**: workers work for free; they still need their tools. |
+| `dailyWage` | 1 | 0–64 | Emeralds a novice takes each work day from the wage box of its workstation. **0**: workers work for free; they still need their tools. |
+| `masterDailyWage` | 3 | 0–64 | Emeralds a master takes per day. The levels between pay in between, rounded down (1, 1, 2, 2, 3). Never less than `dailyWage`. |
 | `maxChests` | 8 | 1–8 | Chests that can be linked to one workstation. |
 | `chestDistance` | 16 | 4–32 | How far a linked chest may be from its workstation. |
 | `randomNames` | false | | Give hired villagers a random name (like Anton or Berta). Otherwise only a name tag names them. |
 | `stuckSeconds` | 60 | 0–600 | After this many seconds of trying to get somewhere without getting anywhere, a worker is brought back to its workstation (carrier: its first route's source). **0**: never; the menu only shows that it is stuck. |
+
+## Levels (`levels`)
+
+Workers rise from novice to master by working, like vanilla villagers by trading. A higher level works faster, spares its tools, has a bigger work area, can do more and costs more wage.
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `secondsPerExperience` | 20 | 1–600 | One point of villager experience per this many seconds of work; waiting does not count. A worker that works all day is a master after about 15 days. |
+| `mentorFactor` | 1.5 | 1–4 | Workers below master learn this many times as fast while a master of their profession works nearby. |
+| `mentorRadius` | 16 | 1–64 | How close that master has to be. |
+| `masterTime` | 0.625 | 0.1–1 | How long a step of the work takes a master, as a share of a novice's time. |
+| `masterToolSaving` | 40 | 0–100 | The chance (percent) that a master's tool loses no durability on a use. Novices: 0. |
+| `noviceArea` | 50 | 10–100 | A novice's work area in percent of the master's. The radius options of the jobs below are the master's. |
+| `unlocks` | true | | Some work needs a higher level first (doors, hunting, rowing out, diamond tools, …). **false**: every worker can do everything. |
 
 ## Lumberjack (`lumberjack`)
 

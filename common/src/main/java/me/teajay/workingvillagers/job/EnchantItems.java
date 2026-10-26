@@ -171,9 +171,12 @@ public class EnchantItems extends Behavior<Villager> {
 		return Mth.clamp(bookshelves * 2, BARE_TABLE_LEVEL, Workstations.MAX_ENCHANT_LEVEL);
 	}
 
-	/** The level it enchants at: the one set at the lectern, at most the highest the table offers. */
-	private static int level(ServerLevel level, Workstations.Station workplace, BlockPos table) {
-		int highest = highestLevel(bookshelves(level, table));
+	/**
+	 * The level it enchants at: the one set at the lectern, at most the highest the table offers
+	 * and the librarian's level lets it (see {@link Unlocks#enchantingLevel}).
+	 */
+	private static int level(ServerLevel level, Villager villager, Workstations.Station workplace, BlockPos table) {
+		int highest = Math.min(highestLevel(bookshelves(level, table)), Unlocks.enchantingLevel(villager));
 		return workplace.enchantLevel() == 0 ? highest : Math.min(workplace.enchantLevel(), highest);
 	}
 
@@ -212,7 +215,7 @@ public class EnchantItems extends Behavior<Villager> {
 			this.idle(villager, workplace, "librarian.no_table");
 			return;
 		}
-		int enchantLevel = level(level, workplace, table);
+		int enchantLevel = level(level, villager, workplace, table);
 		int bottles = bottlesFor(enchantLevel);
 		int lapis = lapisFor(enchantLevel);
 		boolean carrying = inventory.hasAnyMatching(EnchantItems::isToEnchant);
@@ -260,7 +263,7 @@ public class EnchantItems extends Behavior<Villager> {
 			this.trip = ChestTrip.to(level, villager, this.fetchFrom);
 		}
 		BlockPos table = table(level, workplace.pos());
-		int enchantLevel = table == null ? BARE_TABLE_LEVEL : level(level, workplace, table);
+		int enchantLevel = table == null ? Math.min(BARE_TABLE_LEVEL, Unlocks.enchantingLevel(villager)) : level(level, villager, workplace, table);
 		boolean input = workplace.validInputs(level).contains(this.fetchFrom);
 		SimpleContainer inventory = villager.getInventory();
 		int[] taken = {0};
@@ -316,11 +319,11 @@ public class EnchantItems extends Behavior<Villager> {
 		if (this.stateTicks % 4 == 0) {
 			level.sendParticles(ParticleTypes.ENCHANT, table.getX() + 0.5, table.getY() + 1.6, table.getZ() + 0.5, 4, 0.4, 0.3, 0.4, 0.5);
 		}
-		if (this.stateTicks % WORK_TICKS != 0) {
+		if (this.stateTicks % WorkerLevels.ticks(villager, WORK_TICKS) != 0) {
 			return;
 		}
 		SimpleContainer inventory = villager.getInventory();
-		int enchantLevel = level(level, workplace, table);
+		int enchantLevel = level(level, villager, workplace, table);
 		int bottles = bottlesFor(enchantLevel);
 		int lapis = lapisFor(enchantLevel);
 		if (inventory.countItem(Items.EXPERIENCE_BOTTLE) < bottles || inventory.countItem(Items.LAPIS_LAZULI) < lapis) {

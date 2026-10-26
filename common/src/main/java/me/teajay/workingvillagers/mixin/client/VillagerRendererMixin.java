@@ -6,6 +6,7 @@ import me.teajay.workingvillagers.client.WickerBasketLayer;
 import me.teajay.workingvillagers.client.WorkMotion;
 import me.teajay.workingvillagers.client.WorkItemLayer;
 import me.teajay.workingvillagers.client.WorkPoseHolder;
+import me.teajay.workingvillagers.client.WorkerNoticeRenderer;
 import me.teajay.workingvillagers.job.HiredVillager;
 import net.minecraft.client.model.npc.VillagerModel;
 import net.minecraft.client.renderer.entity.AgeableMobRenderer;
@@ -20,8 +21,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Adds the basket on the back of carriers and the uniform of guards, and lets workers hold
- * their arms apart at work (see {@code WorkMotion}).
+ * Adds the basket on the back of carriers and the uniform of guards, lets workers hold
+ * their arms apart at work (see {@code WorkMotion}) and passes on the sign above their head.
  */
 @Mixin(VillagerRenderer.class)
 public abstract class VillagerRendererMixin extends AgeableMobRenderer<Villager, VillagerRenderState, VillagerModel> {
@@ -40,6 +41,7 @@ public abstract class VillagerRendererMixin extends AgeableMobRenderer<Villager,
 		at = @At("TAIL"))
 	private void workingvillagers$extractWorkerLooks(Villager villager, VillagerRenderState state, float partialTicks, CallbackInfo ci) {
 		((UniformHolder) state).workingvillagers$setUniform(UniformLayer.colorOf(villager));
+		WorkerNoticeRenderer.extract(villager, state, partialTicks);
 		HiredVillager hired = (HiredVillager) villager;
 		if (villager.isSwinging()) {
 			hired.workingvillagers$setLastSwing(villager.tickCount);

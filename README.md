@@ -106,8 +106,10 @@ worker that already has enough shakes its head and takes nothing. Workers never 
 chests. A hired worker that dies drops everything it carries (tools, material); its wage
 stays in the wage box.
 
-- **Wage:** before work each day the worker takes `dailyWage` (default 1) emerald from the
-  wage box, then from its pockets. A worker from 0.3.0 puts the emeralds it carried
+- **Wage:** each day the worker takes `dailyWage` (default 1) emerald from the wage box,
+  then from its pockets, with its first piece of work (a log, a crafted item, a repaired
+  tool, a carried load; a guard when it takes up its post). A day it gets nothing done, for
+  want of material say, costs nothing. The wage has to be there before it starts, though. A worker from 0.3.0 puts the emeralds it carried
   into the wage box once, as many as fit (saved per worker as
   `WorkingVillagersWageStored`). Without an
   emerald it does not work and waits next to its workstation ("Waiting for wages"),
@@ -241,23 +243,30 @@ the same way:
    cuts them at the station and brings the products to an output chest. It makes 4
    items per second (one log into four planks, slabs take twice as long), at least one
    second per cut, with wood or stone chips flying off the saw.
-   **Without an order, an input chest and an output chest the worker does not work.**
+   **Without an order, an input chest (or a village chest) and an output chest the worker does not work.**
 
 ### Several products
 
 The sawyers, the carpenter, the kiln operator, the fletcher, the tanner and the weaponsmith
-take up to 8 products in one order: a click in the order grid adds a product, another click
-takes it out. They make them **in equal parts**, one batch at a time, always the most
-needed one they have material for:
+take up to 8 products in one order: a click in the order grid adds a product, a click on a
+product of the order selects it, another click takes it out. For each product the row below
+the grid sets how many:
 
-- **With a stock** it applies to each product ("keep 8" means 8 chests *and* 8 barrels). The
-  worker makes the product of which the output chests hold the fewest, and leaves out the
-  ones whose stock is full.
-- **Without a stock** (the sawyers have none) the station counts what was made of each
-  product since it was ordered, and the worker makes the one it made the fewest of. A
-  product added later starts level with the others.
-- A product without material does not hold up the others; the worker waits only when
-  there is material for none of them.
+- **Order**: a fixed amount once ("64 chests"). When all are in the output chests, the order
+  is done: the worker shows a green ✔ above its head and the product leaves the order (the
+  kiln keeps its last one, as without an order it fires everything).
+- **Stock**: keep that many in the output chests ("keep 8" means 8 chests *and* 8 barrels),
+  or without a limit as long as there is material.
+
+Ordered products come first, then the stocks (emptiest first), then those without a limit
+(the one made the fewest of first), one batch at a time, always the most needed one there
+is material for. A product without material does not hold up the others.
+
+The workers take their material from the input chests **and the village chests** in reach.
+When material is missing they make what they can and then show a red **!** above their
+head; the carpenter's status says how many are missing ("Missing 18× Oak Planks"). An
+ingredient their own station makes they make first (the carpenter the chest and the boat
+of a boat with chest, the fletcher arrows for spectral arrows).
 
 A product made of one wood type (stairs at the woodcutter, boats at the bench) counts as
 one product in all its wood types. The order box below the result slot of the bench and

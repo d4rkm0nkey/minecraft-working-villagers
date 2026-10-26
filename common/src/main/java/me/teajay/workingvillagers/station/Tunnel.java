@@ -75,6 +75,12 @@ public record Tunnel(BlockPos start, Direction direction, int length, int branch
 		return new Tunnel(start.immutable(), direction, this.length, this.branches, this.stairs);
 	}
 
+	/** The same tunnel, at most this long and with side tunnels at most this long (for the miner's level). */
+	public Tunnel limitedTo(int length, int branches) {
+		return new Tunnel(this.start, this.direction, Math.min(this.clampedLength(), Math.max(1, length)),
+			Math.min(this.clampedBranches(), Math.max(0, branches)), this.stairs);
+	}
+
 	/** A new tunnel with the default settings. */
 	public static Tunnel of(BlockPos start, Direction direction) {
 		return new Tunnel(start.immutable(), direction, Math.min(DEFAULT_LENGTH, Config.TUNNEL_MAX_LENGTH.get()), 0, false);

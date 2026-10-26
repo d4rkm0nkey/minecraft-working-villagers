@@ -19,7 +19,7 @@ import net.minecraft.world.entity.schedule.Activity;
  * the others at the bell, free time, fleeing).
  */
 public final class WorkerStatus {
-	private static final String PREFIX = "status.workingvillagers.";
+	static final String PREFIX = "status.workingvillagers.";
 	/** How often a worker that cannot work shakes its head at a player nearby. */
 	private static final int COMPLAIN_TICKS = 200;
 	private static final double COMPLAIN_DISTANCE = 8.0;
@@ -27,11 +27,22 @@ public final class WorkerStatus {
 	private static final Set<String> PROBLEMS = Set.of(
 		"no_wage", "lumberjack.no_axe", "farmer.no_hoe", "farmer.no_seeds", "shepherd.no_shears", "shepherd.no_sheep", "shepherd.no_wheat", "guard.no_bow", "guard.no_arrows", "guard.post_unreachable", "fletcher.no_order", "fletcher.no_material", "fletcher.table_unreachable", "apothecary.no_order", "apothecary.no_recipe", "apothecary.no_material", "apothecary.no_fuel", "apothecary.no_water", "apothecary.stand_unreachable", "tanner.no_order", "tanner.no_material", "tanner.no_water", "tanner.cauldron_unreachable", "weaponsmith.no_order", "weaponsmith.no_recipe", "weaponsmith.no_material", "weaponsmith.grindstone_unreachable", "librarian.no_items", "librarian.no_bottles", "librarian.no_lapis", "librarian.no_table", "librarian.table_unreachable", "fisher.no_rod", "fisher.no_water", "fisher.water_unreachable", "butcher.no_weapon", "butcher.no_animals", "butcher.no_feed", "butcher.smoker_unreachable",
 		"chests_full", "chest_unreachable", "saw.station_unreachable", "carpenter.bench_unreachable", "smith.furnace_unreachable",
-		"saw.no_material", "carpenter.no_recipe", "carpenter.waiting_for", "carpenter.inventory_full", "smith.no_ore", "smith.no_fuel", "smith.no_material", "smith.table_unreachable",
+		"saw.no_material", "carpenter.no_recipe", "carpenter.waiting_for", "carpenter.missing", "carpenter.inventory_full", "smith.no_ore", "smith.no_fuel", "smith.no_material", "smith.table_unreachable",
 		"kiln.no_ore", "kiln.no_fuel", "kiln.furnace_unreachable", "shop.no_goods", "shop.no_buyer",
 		"pit_digger.no_shovel", "pit_digger.no_pickaxe", "pit_digger.no_ladders", "pit_digger.no_planks", "pit_digger.no_logs", "pit_digger.no_pit", "pit_digger.bad_ring", "pit_digger.ring_broken",
 		"pit_digger.blocked_liquid", "pit_digger.blocked_tool", "pit_digger.unreachable", "pit_digger.ladder_blocked", "pit_digger.not_loaded",
 		"miner.no_tunnel", "miner.not_loaded", "miner.blocked", "miner.blocked_tool", "miner.no_seal_blocks", "miner.unreachable"
+	);
+	/**
+	 * The statuses that are no problem but no work either: waiting for crops, wool or tanning,
+	 * a full stock, the day's work done. They teach nothing (see {@link WorkerLevels#tick}),
+	 * like the {@link #PROBLEMS}.
+	 */
+	private static final Set<String> IDLE = Set.of(
+		"lumberjack.no_tree", "lumberjack.break", "lumberjack.done_for_today", "farmer.growing", "carpenter.stock_full", "kiln.stock_full",
+		"pit_digger.done", "pit_digger.done_pillars", "pit_digger.done_for_today", "shop.sold_out", "miner.done", "miner.done_for_today",
+		"smith.no_repairs", "smith.no_experience", "saw.stock_full", "order_done", "shepherd.growing", "butcher.waiting", "carrier.nothing", "guard.morning", "fletcher.stock_full",
+		"apothecary.stock_full", "apothecary.stand_busy", "tanner.tanning", "tanner.stock_full", "weaponsmith.stock_full", "locked"
 	);
 
 	private WorkerStatus() {
@@ -44,6 +55,7 @@ public final class WorkerStatus {
 	public static void task(Villager villager, String key, Object... args) {
 		((HiredVillager) villager).workingvillagers$setTask(Component.translatable(PREFIX + key, args));
 		((HiredVillager) villager).workingvillagers$setProblem(PROBLEMS.contains(key));
+		((HiredVillager) villager).workingvillagers$setWorking(!PROBLEMS.contains(key) && !IDLE.contains(key));
 	}
 
 	/** A status text, e.g. why a worker waits. */
@@ -54,6 +66,7 @@ public final class WorkerStatus {
 	public static void clear(Villager villager) {
 		((HiredVillager) villager).workingvillagers$setTask(null);
 		((HiredVillager) villager).workingvillagers$setProblem(false);
+		((HiredVillager) villager).workingvillagers$setWorking(false);
 	}
 
 	/**

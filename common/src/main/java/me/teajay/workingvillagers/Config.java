@@ -34,8 +34,11 @@ public final class Config {
 	private static final List<Option> OPTIONS = new ArrayList<>();
 
 	public static final IntOption DAILY_WAGE = intOption("workers", "dailyWage", 1, 0, 64,
-		"Emeralds a worker takes from the wage box of its workstation before work each day (put them in there,",
+		"Emeralds a novice worker takes from the wage box of its workstation before work each day (put them in there,",
 		"or right-click the station or the worker with them). 0: they work for free.");
+	public static final IntOption MASTER_DAILY_WAGE = intOption("workers", "masterDailyWage", 3, 0, 64,
+		"Emeralds a master takes per day. The levels between pay in between, rounded down (1, 1, 2, 2, 3 by default).",
+		"Not less than dailyWage.");
 	public static final BoolOption RANDOM_NAMES = boolOption("workers", "randomNames", false,
 		"Give hired villagers a random name (like Anton or Berta). Otherwise only a name tag names them.");
 	public static final IntOption MAX_CHESTS = intOption("workers", "maxChests", 8, 1, 8,
@@ -47,6 +50,25 @@ public final class Config {
 		"After this many seconds of trying to get somewhere without getting anywhere (in a hole, boxed in),",
 		"a worker is brought back to its workstation (a carrier: to the source of its first route).",
 		"0: never, the menus only show that it is stuck.");
+
+	public static final IntOption SECONDS_PER_EXPERIENCE = intOption("levels", "secondsPerExperience", 20, 1, 600,
+		"Workers get one point of villager experience per this many seconds of work (waiting does not count).",
+		"With the vanilla thresholds a worker that works all day is a master after about 15 days.");
+	public static final DoubleOption MENTOR_FACTOR = doubleOption("levels", "mentorFactor", 1.5, 1.0, 4.0,
+		"Workers below master learn this many times as fast while a master of their profession works nearby.");
+	public static final IntOption MENTOR_RADIUS = intOption("levels", "mentorRadius", 16, 1, 64,
+		"How close (in blocks) the master has to be.");
+	public static final DoubleOption MASTER_TIME = doubleOption("levels", "masterTime", 0.625, 0.1, 1.0,
+		"How long a step of the work takes a master, as a share of a novice's time. The levels between are in between.");
+	public static final IntOption MASTER_TOOL_SAVING = intOption("levels", "masterToolSaving", 40, 0, 100,
+		"The chance (in percent) that a master's tool loses no durability on a use, like unbreaking. Novices: 0.");
+	public static final IntOption NOVICE_AREA = intOption("levels", "noviceArea", 50, 10, 100,
+		"How big the work area of a novice is, in percent of the master's (the radius set for each job below).",
+		"Lumberjack: search radius; farmer, shepherd, butcher: field and pasture; fisher: water and sea; guard: hunting;",
+		"apothecary: healing; miner: tunnel and side tunnels; carrier: route length; shop assistant: trading.");
+	public static final BoolOption UNLOCKS = boolOption("levels", "unlocks", true,
+		"Whether some work needs a higher level first (doors from the journeyman sawyer, hunting from the journeyman guard, ...).",
+		"Off: every worker can do everything, only speed, tool wear and area grow with the level.");
 
 	public static final BoolOption REQUIRE_MOB_GRIEFING = boolOption("lumberjack", "requireMobGriefing", true,
 		"Lumberjacks only work while the game rule mob_griefing is on.");

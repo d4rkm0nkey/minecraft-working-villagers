@@ -10,7 +10,9 @@ import me.teajay.workingvillagers.client.PitPreviewRenderer;
 import me.teajay.workingvillagers.client.StationScreen;
 import me.teajay.workingvillagers.client.VillageChestRenderer;
 import me.teajay.workingvillagers.client.VillageChestScreen;
+import me.teajay.workingvillagers.client.WorkerNoticeRenderer;
 import me.teajay.workingvillagers.network.PitPreviewPayload;
+import me.teajay.workingvillagers.network.WorkerNoticePayload;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
@@ -52,6 +54,7 @@ public class WorkingVillagersFabricClient implements ClientModInitializer {
 		BlockEntityRendererRegistry.register(WorkingVillagers.VILLAGE_CHEST_BLOCK_ENTITY.get(), VillageChestRenderer::new);
 		EntityRendererRegistry.register(WorkingVillagers.FISHER_BOBBER.get(), FisherBobberRenderer::new);
 		ClientPlayNetworking.registerGlobalReceiver(PitPreviewPayload.TYPE, (payload, context) -> PitPreviewRenderer.receive(payload));
+		ClientPlayNetworking.registerGlobalReceiver(WorkerNoticePayload.TYPE, (payload, context) -> WorkerNoticeRenderer.receive(payload));
 		ClientTickEvents.END_CLIENT_TICK.register(PitPreviewRenderer::tick);
 	}
 }

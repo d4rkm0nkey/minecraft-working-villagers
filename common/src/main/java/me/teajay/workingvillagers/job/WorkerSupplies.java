@@ -48,7 +48,8 @@ import org.jspecify.annotations.Nullable;
  * them from a {@link VillageChests village chest} nearby: before the first work of the day
  * whatever runs low, during the day only what it cannot work without. Without its wage for
  * the day, or without its tool, a worker does not work; it waits at its workstation and
- * shakes its head.
+ * shakes its head. It takes the wage only with its first piece of work of the day
+ * ({@link #earned}): a day it gets nothing done costs nothing.
  *
  * <p>The wage is kept in the {@link Workstations.Station#wage wage box} of the worker's
  * workstation: emeralds given to the worker, thrown to it or fetched from a village chest go
@@ -181,23 +182,13 @@ public final class WorkerSupplies {
 		if (this.giveBackDue(level, villager) && this.giveBack(level, villager)) {
 			return true;
 		}
-		int wage = Config.DAILY_WAGE.get();
 		SimpleContainer inventory = villager.getInventory();
-		Workstations.Station box = wageBox(level, villager);
-		if (wage > 0 && !isPaid(level, villager)) {
-			if (emeralds(level, villager) < wage) {
-				if (!this.fetch(level, villager, WorkerSupplies::isWage)) {
-					this.waitFor(level, villager, "no_wage");
-				}
-				return true;
+		// The wage has to be there before the work; it is taken with the first piece of work (see earned)
+		if (lacksWage(level, villager)) {
+			if (!this.fetch(level, villager, WorkerSupplies::isWage)) {
+				this.waitFor(level, villager, "no_wage");
 			}
-			int fromBox = box == null ? 0 : Math.min(box.wage(), wage);
-			if (box != null) {
-				box.setWage(box.wage() - fromBox);
-			}
-			inventory.removeItemType(WAGE, wage - fromBox);
-			((HiredVillager) villager).workingvillagers$setPaidDay(ChopTrees.today(level));
-			level.sendParticles(ParticleTypes.HAPPY_VILLAGER, villager.getX(), villager.getY() + 1.8, villager.getZ(), 5, 0.3, 0.2, 0.3, 0.0);
+			return true;
 		}
 		for (Need need : needs) {
 			if (!inventory.hasAnyMatching(stack -> !stack.isEmpty() && need.ready().test(stack))) {
@@ -404,6 +395,33 @@ public final class WorkerSupplies {
 		if (timeOfDay >= FREE_FROM && timeOfDay < WORK_END) {
 			hired.workingvillagers$setPaidDay(today);
 		}
+	}
+
+	/**
+	 * The worker did a piece of work (see {@link HiredVillager#workingvillagers$addWorkDone}):
+	 * with the first one of the day it takes its wage, from the wage box first, then from its
+	 * pockets. A worker that does nothing all day, for want of material say, costs nothing.
+	 * {@link #busy} made sure the wage is there.
+	 */
+	public static void earned(ServerLevel level, Villager villager) {
+		int wage = WorkerLevels.dailyWage(villager);
+		if (wage <= 0 || isPaid(level, villager) || !((HiredVillager) villager).workingvillagers$isHired()) {
+			return;
+		}
+		Workstations.Station box = wageBox(level, villager);
+		int fromBox = box == null ? 0 : Math.min(box.wage(), wage);
+		if (box != null) {
+			box.setWage(box.wage() - fromBox);
+		}
+		villager.getInventory().removeItemType(WAGE, wage - fromBox);
+		((HiredVillager) villager).workingvillagers$setPaidDay(ChopTrees.today(level));
+		level.sendParticles(ParticleTypes.HAPPY_VILLAGER, villager.getX(), villager.getY() + 1.8, villager.getZ(), 5, 0.3, 0.2, 0.3, 0.0);
+	}
+
+	/** Whether the worker has not taken its wage for today and has not got it either. */
+	public static boolean lacksWage(ServerLevel level, Villager villager) {
+		int wage = WorkerLevels.dailyWage(villager);
+		return wage > 0 && !isPaid(level, villager) && emeralds(level, villager) < wage;
 	}
 
 	/** Whether the worker has taken its wage for today. */

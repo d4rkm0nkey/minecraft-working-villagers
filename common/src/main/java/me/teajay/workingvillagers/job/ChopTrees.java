@@ -62,11 +62,6 @@ import org.jspecify.annotations.Nullable;
  */
 public class ChopTrees extends Behavior<Villager> {
 	private static final float SPEED = 0.5F;
-	/**
-	 * A master (level 5) needs this much of the time of a novice (level 1), whose slowdown
-	 * is {@link Config#CHOP_SLOWDOWN}.
-	 */
-	private static final float MASTER_SHARE = 5.0F / 8.0F;
 	/** Ticks between two logs while the tree comes down. */
 	private static final int FELL_INTERVAL = 2;
 	/** Ticks between two logs while the tree comes down and the logs are stripped. */
@@ -236,7 +231,8 @@ public class ChopTrees extends Behavior<Villager> {
 			this.setState(State.PLANT);
 			return;
 		}
-		Optional<Trees.Tree> found = tired ? Optional.empty() : Trees.findNearest(level, workplace.pos(), this.unreachable);
+		Optional<Trees.Tree> found = tired ? Optional.empty() : Trees.findNearest(level, workplace.pos(), WorkerLevels.area(villager, Config.TREE_SEARCH_RADIUS.get()),
+			Unlocks.can(villager, Unlocks.Ability.BIG_TREES), this.unreachable);
 		if (found.isPresent()) {
 			if (this.supplies.busy(level, villager, WorkerSupplies.AXE)) {
 				return;
@@ -317,12 +313,9 @@ public class ChopTrees extends Behavior<Villager> {
 		return Math.max(20, ticks);
 	}
 
-	/** By default from 8 times as long as a player for a novice down to 5 times for a master. */
+	/** By default from 8 times as long as a player for a novice down to 5 times for a master (see {@link WorkerLevels#timeShare}). */
 	private static float slowdown(Villager villager) {
-		float progress = (villager.getVillagerData().level() - 1) / 4.0F;
-		float novice = (float) Config.CHOP_SLOWDOWN.get();
-		float master = novice * MASTER_SHARE;
-		return novice + (master - novice) * Math.clamp(progress, 0.0F, 1.0F);
+		return (float) Config.CHOP_SLOWDOWN.get() * WorkerLevels.timeShare(villager);
 	}
 
 	private void chop(ServerLevel level, Villager villager) {
@@ -442,7 +435,7 @@ public class ChopTrees extends Behavior<Villager> {
 		if (axe.isEmpty() || uses <= 0) {
 			return;
 		}
-		axe.hurtAndBreak(uses, level, null, broken -> {
+		WorkerLevels.wear(level, villager, axe, uses, broken -> {
 			villager.onEquippedItemBroken(broken, EquipmentSlot.MAINHAND);
 			villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
 		});

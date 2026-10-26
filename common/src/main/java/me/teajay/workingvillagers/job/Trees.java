@@ -55,10 +55,13 @@ public final class Trees {
 		}
 	}
 
-	public static Optional<Tree> findNearest(ServerLevel level, BlockPos center, Map<BlockPos, Long> ignored) {
+	/**
+	 * The nearest natural tree within the radius around the center; trees with a 2x2 trunk
+	 * only with {@code bigTrees} (see {@link Unlocks.Ability#BIG_TREES}).
+	 */
+	public static Optional<Tree> findNearest(ServerLevel level, BlockPos center, int radius, boolean bigTrees, Map<BlockPos, Long> ignored) {
 		List<BlockPos> bases = new ArrayList<>();
 		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-		int radius = Config.TREE_SEARCH_RADIUS.get();
 		for (int dx = -radius; dx <= radius; dx++) {
 			for (int dz = -radius; dz <= radius; dz++) {
 				for (int dy = -SEARCH_BELOW; dy <= SEARCH_ABOVE; dy++) {
@@ -77,11 +80,14 @@ public final class Trees {
 				continue;
 			}
 			Tree tree = collect(level, base);
-			if (tree != null) {
+			if (tree != null && (bigTrees || tree.bottomLogs().size() == 1)) {
 				return Optional.of(tree);
 			}
-			// A rejected structure: skip its other bases (e.g. the rest of a 2x2 trunk)
+			// A rejected structure or big tree: skip its other bases (e.g. the rest of a 2x2 trunk)
 			checked.add(base);
+			if (tree != null) {
+				checked.addAll(tree.bottomLogs());
+			}
 		}
 		return Optional.empty();
 	}

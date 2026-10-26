@@ -1,6 +1,6 @@
 # Beruf: Minenarbeiter
 
-[← Berufe](README.md) · Station: **Grubenwerkbank** (neu) · Phase: **umgesetzt** (Stollen, Abzweige, Treppe; ohne Level, Etagenmine und Logistiker)
+[← Berufe](README.md) · Station: **Grubenwerkbank** (neu) · Phase: **umgesetzt** (Stollen, Abzweige, Treppe, [Level](../grundlagen/level.md); ohne Etagenmine und Logistiker)
 
 Der Minenarbeiter baut Stein und Erze in einem festgelegten Muster ab und bringt sie zur Zielkiste. Er gräbt nur, was ihm zugewiesen ist, und sichert seinen Stollen selbst.
 
@@ -20,7 +20,8 @@ Umgesetzt nach dem [Umsetzungsplan](#umsetzungsplan), Schritte 0 bis 3, am 15.10
 - **Abliefern** wie beim Grubenarbeiter; Bruchstein über 16 geht in die Kiste.
 - Beruf `workingvillagers:miner`, Kleidung: graublaue Arbeitsjacke, Lederhelm mit Grubenlampe.
 - **Tests:** 3×3-Stollen mit Stützen und Fackel, Abzweige, Treppe, Eisenerz in der Wand und dahinter, Lava wird abgedichtet, Bretter blockieren, Mühlenrezepte. Schritt 0 (gemeinsamer Helfer `Digging`) ohne Verhaltensänderung: die Grubenarbeiter-Tests sind unverändert grün.
-- **Nicht umgesetzt:** Level und Master-Fähigkeit, Etagenmine, Depots und Logistiker, „Wartet: Weg zu weit“ (die Länge ist begrenzt). Ungetestet im Spiel: Optik der Werkbank, Menüs, Wegfindung in langen Abzweigen.
+- **Level:** Treppe ab Lehrling, Seitenstollen ab Geselle, Erzadern folgen ab Experte; Stollen- und Abzweiglänge wachsen von der Hälfte bis zum Config-Wert.
+- **Nicht umgesetzt:** Master-Fähigkeit, Etagenmine, Depots und Logistiker, „Wartet: Weg zu weit“ (die Länge ist begrenzt). Ungetestet im Spiel: Optik der Werkbank, Menüs, Wegfindung in langen Abzweigen.
 
 ## Umsetzungsplan
 

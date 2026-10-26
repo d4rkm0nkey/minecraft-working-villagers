@@ -20,7 +20,7 @@ Der Tischler stellt aus Planks, Sticks und Slabs alle Holzgegenstände her, die 
 | 2 – Holz + Zusatz | Truhenboot, Bücherregal, Hängeschild, Bett, Item Frame, Armor Stand, Angel, Schild, Fackel, Tripwire Hook | Bücher, Ketten, Wolle, Leder, Stein-Slab, Schnur, Eisen, Kohle |
 | 3 – Workstations | Lectern, Loom, Fletching Table, Cartography Table, Smithing Table, Note Block, Jukebox | Bücherregal, Schnur, Feuerstein, Papier, Eisen, Redstone, Diamant |
 
-Mit Stufe 3 baut der Tischler die Arbeitsplätze für die anderen Berufe und wird so zum Ausbauberuf des Dorfs. Die Stufen hängen an den [Lohnstufen](../wirtschaft/anheuern-und-lohn.md#lohnstufen): Novice kann Stufe 1, ab Journeyman Stufe 2, Master Stufe 3 (Startwerte für Playtests).
+Mit Stufe 3 baut der Tischler die Arbeitsplätze für die anderen Berufe und wird so zum Ausbauberuf des Dorfs. Die Stufen hängen am [Level](../grundlagen/level.md#was-das-level-freischaltet): Neuling kann Stufe 1, ab Lehrling Stufe 2, ab Geselle Stufe 3 (Startwerte für Playtests).
 
 ### Rezepte
 
@@ -63,7 +63,7 @@ Neue Zeilen für das Menü: „baut Fässer (3/12)“, „wartet auf Sticks“, 
 
 ## Master-Fähigkeit
 
-Stellt Zwischenprodukte selbst her: Fehlen Sticks oder Slabs, macht er sie aus Planks, langsamer als der Holzsäger. Außerdem schaltet er Stufe 3 (Workstations) frei.
+Stellt Zwischenprodukte selbst her: Fehlen Sticks oder Slabs, macht er sie aus Planks, langsamer als der Holzsäger.
 
 ## Sonderfälle & offene Fragen
 
@@ -78,7 +78,7 @@ Hobelbank mit Spieler-Menü, Stufe 1 und 2 über den Tag `workingvillagers:joine
 
 Stand der Umsetzung:
 
-- Die Stufen hängen noch nicht an den Lohnstufen, weil alle Arbeiter vorerst Novizen sind. Der Tag enthält Stufe 1 und 2, Stufe 3 (Workstations) fehlt noch.
+- Stufe 2 kann er ab Lehrling (Tag `workingvillagers:unlocks/carpenter/apprentice`, siehe [Level und Aufstieg](../grundlagen/level.md)). Der Tag `joinery` enthält Stufe 1 und 2, Stufe 3 (Workstations) fehlt noch.
 - Betten fehlen bewusst (16 Farben, Wolle). Sie lassen sich per Datapack über den Tag ergänzen.
 - Pro Gang holt der Tischler höchstens 32 Zutaten (nicht 32 Werkstücke), mindestens aber die Zutaten für ein Werkstück. Die Holzart wählt er nicht nach der größten Menge, er nimmt einfach, was erlaubt ist (gemischte Planks sind in Vanilla erlaubt).
 - Der Vorrat lässt sich in Stufen einstellen: ohne Grenze, 1, 2, 4, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256.
@@ -119,10 +119,35 @@ Kisten + Fässer mit Vorrat 2; Kisten + Leitern ohne Sticks (die Kisten kommen t
 
 ### Offen
 
-- **Gewichte** („doppelt so viele Kisten wie Fässer“) oder ein Vorrat je Produkt.
+- **Gewichte** („doppelt so viele Kisten wie Fässer“).
 - Mehrere Tränke beim Apotheker.
 - Eine Auftragsliste nacheinander („erst 200 Leitern, dann 50 Kisten“).
 
 ## Siehe auch
 
 [Holzfäller](holzfaeller.md) · [Holzsäger](holzsaeger.md) · [Träger](traeger.md) · [Crafter-Bediener](crafter-bediener.md) · [Logistik](../grundlagen/logistik.md)
+
+## Bestellungen (umgesetzt)
+
+Der Spieler sagt „ich brauche 64 Kisten“, der Arbeiter holt sich das Material und meldet, was fehlt. Gilt für alle Stationen mit Auftrag: Holzsäge, Steinsäge, Hobelbank, Brennofen, Bognertisch, Kessel, Schleifstein, Braustand.
+
+### Bedienung
+
+- Ein Klick auf ein Produkt im Auftrag **wählt es aus** (weißer Rahmen), ein weiterer Klick nimmt es heraus. Ein neu dazugenommenes Produkt ist gleich ausgewählt.
+- Die Zeile unter dem Raster zeigt das ausgewählte Produkt, links von − / + schaltet ein Knopf je Produkt zwischen
+  - **Bestellung** (Papier): eine feste Menge einmal, Stufen 1 bis 1024. Im Raster steht in der Ecke, wie viele noch fehlen.
+  - **Vorrat** (Kiste): wie bisher, jetzt **je Produkt** einstellbar. Der alte gemeinsame Vorrat gilt für Produkte ohne eigenen weiter (alte Stationen laden unverändert).
+- Wechsel zur Bestellung startet mit dem bisherigen Vorrat oder einem Stapel (1 bei nicht stapelbaren). Mehr bestellen erhöht den Rest, weniger zieht ab; was schon gemacht ist, zählt.
+
+### Ablauf
+
+- **Reihenfolge:** Bestellungen vor Vorrat vor „ohne Grenze“ (`Station.ordersByNeed`).
+- **Material** kommt aus den Input-Kisten und den **Dorftruhen** in Reichweite (`Orders.sources`); eine Station braucht dann keine eigene Input-Kiste mehr. Der Brenner ohne Auftrag („alles brennen“) nimmt weiter nur aus seinen Input-Kisten.
+- Er holt nur so viel, wie die Bestellung noch braucht (Säger: 10 Bretter → 3 Stämme).
+- **Erledigt:** gezählt wird beim Herstellen (`addMade`), erledigt ist eine Bestellung, wenn er nichts mehr davon trägt, also alles abgeliefert ist (`Orders.finish`). Dann verschwindet das Produkt aus dem Auftrag, der Arbeiter zeigt ein grünes ✔ und Glückspartikel. Der Brenner behält seine letzte erledigte Bestellung (markiert als abgeliefert), sonst würde er alles brennen.
+- **Fehlt Material**, macht er, was geht, und zeigt dann ein rotes **!** über dem Kopf (`WorkerNotice`, synchronisiert über die Entity-Daten). Der Tischler nennt die Menge für die ganze Restbestellung („Es fehlen 18× Eisenbarren“).
+- **Zwischenprodukte:** Fehlt eine Zutat, die die eigene Station herstellt, macht er sie zuerst, bis zu zwei Stufen zurück (Tischler: Kiste und Boot für das Truhenboot; Pfeilmacher: Pfeile für Spektralpfeile). Brenner, Gerber und Apotheker konnten das schon (Stein → glatter Stein, Leder aus Fleisch, Brauwege). Das geht ab Novize, nicht erst als Master-Fähigkeit wie oben geplant.
+
+### Tests
+
+Drei Kisten bestellt (genau drei, Rest bleibt liegen); Kisten aus der Dorftruhe ohne Input-Kiste; vier bestellt, Material für zwei (Status und „!“); Truhenboot nur aus Planks; zehn Bretter an der Säge (drei Stämme); zwei Glas im Brennofen (Bestellung bleibt); Spektralpfeile ohne Pfeile.

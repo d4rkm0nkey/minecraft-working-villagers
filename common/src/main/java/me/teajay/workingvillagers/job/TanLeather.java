@@ -41,8 +41,9 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * The work of the tanner at the cauldron: it makes the ordered leather goods (books, leather
- * armor, bundles, saddles, ...) from its input chests and keeps a stock of each in its output
- * chests; with several, a batch of the most needed one there is material for
+ * armor, bundles, saddles, ...) from its input chests and the village chests
+ * ({@link Orders#sources}), as many as ordered or a stock of each in its output chests; with
+ * several, a batch of the most needed one there is material for
  * ({@link Workstations.Station#ordersByNeed}). Leather armor it dyes in the color set at the cauldron.
  *
  * <p>Leather it takes from the input chests, makes of rabbit hide (4 hides, 1 leather, like the
@@ -298,6 +299,11 @@ public class TanLeather extends Behavior<Villager> {
 		return count;
 	}
 
+	/** How many more of the product the order wants, counting what the tanner carries; see {@link Workstations.Station#wanted}. */
+	private static int wanted(ServerLevel level, Workstations.Station workplace, SimpleContainer inventory, Item product) {
+		return workplace.wanted(product, workplace.stocked(product) ? inOutputs(level, workplace, product) + count(inventory, product) : 0);
+	}
+
 	// --- Planning ---
 
 	private void plan(ServerLevel level, Villager villager, Workstations.Station workplace, long timestamp) {
@@ -311,6 +317,8 @@ public class TanLeather extends Behavior<Villager> {
 			this.setState(State.DELIVER);
 			return;
 		}
+		// Everything made is handed in: the orders that are done are done
+		Orders.finish(level, villager, workplace);
 		// Armor of another color: wash out and dye again
 		if (dye != null && inventory.hasAnyMatching(stack -> toRecolor(stack, dye))) {
 			if (!this.fetchFromInputs(level, villager, workplace, stack -> stack.is(Items.DYE.pick(dye)), timestamp)) {
@@ -325,16 +333,24 @@ public class TanLeather extends Behavior<Villager> {
 			this.idle(villager, workplace, "tanner.no_order");
 			return;
 		}
-		int stock = workplace.stock();
-		List<Item> byNeed = workplace.ordersByNeed(product -> inOutputs(level, workplace, product));
+		// Only what its level lets it make (leather armor from apprentice, saddles from journeyman)
+		int lockedUntil = workplace.orders().stream().mapToInt(product -> Unlocks.level(WorkingVillagers.TANNER_PROFESSION, product)).min().orElse(WorkerLevels.NOVICE);
+		if (villager.getVillagerData().level() < lockedUntil) {
+			this.idle(villager, workplace, "locked", WorkerLevels.name(lockedUntil));
+			return;
+		}
+		List<Item> byNeed = workplace.ordersByNeed(product -> inOutputs(level, workplace, product)).stream()
+			.filter(product -> Unlocks.can(villager, product))
+			.toList();
 		if (byNeed.isEmpty()) {
-			int have = workplace.orders().stream().mapToInt(product -> inOutputs(level, workplace, product)).min().orElse(0);
-			this.idle(villager, workplace, "tanner.stock_full", have, stock);
+			Orders.Idle idle = Orders.nothingToMake(level, workplace, "tanner");
+			this.idle(villager, workplace, idle.key(), idle.args());
 			return;
 		}
 		// The most needed product it carries enough for, or else finds material for
+		List<BlockPos> sources = Orders.sources(level, workplace);
 		this.current = byNeed.stream().filter(product -> carriesEnough(inventory, product, dye)).findFirst()
-			.or(() -> byNeed.stream().filter(product -> workplace.validInputs(level).stream()
+			.or(() -> byNeed.stream().filter(product -> sources.stream()
 				.anyMatch(pos -> Chests.contains(level, pos, lacking(inventory, workplace, product)))).findFirst())
 			.orElse(byNeed.getFirst());
 		// The cauldron needs water to tan
@@ -390,7 +406,7 @@ public class TanLeather extends Behavior<Villager> {
 		if (timestamp - this.fetchFailedAt <= FETCH_COOLDOWN) {
 			return false;
 		}
-		Optional<BlockPos> chest = Chests.closest(workplace.validInputs(level).stream().filter(pos -> Chests.contains(level, pos, lacking)).toList(), villager);
+		Optional<BlockPos> chest = Chests.closest(Orders.sources(level, workplace).stream().filter(pos -> Chests.contains(level, pos, lacking)).toList(), villager);
 		if (chest.isEmpty()) {
 			return false;
 		}
@@ -416,7 +432,7 @@ public class TanLeather extends Behavior<Villager> {
 					inventory.setItem(slot, HopperBlockEntity.addItem(null, container, stack, null));
 				}
 			}
-			taken[0] += this.take(container, inventory, workplace);
+			taken[0] += this.take(level, container, inventory, workplace);
 		});
 		if (result == ChestTrip.Result.RUNNING) {
 			return;
@@ -429,7 +445,7 @@ public class TanLeather extends Behavior<Villager> {
 	}
 
 	/** Takes what a batch of the order needs, and armor to dye again with its dye. */
-	private int take(Container container, SimpleContainer inventory, Workstations.Station workplace) {
+	private int take(ServerLevel level, Container container, SimpleContainer inventory, Workstations.Station workplace) {
 		int taken = 0;
 		DyeColor dye = workplace.dye();
 		if (dye != null) {
@@ -443,6 +459,10 @@ public class TanLeather extends Behavior<Villager> {
 			return taken;
 		}
 		int batch = recipe == null ? TAN_BATCH / Config.FLESH_PER_LEATHER.get() : recipe.batch();
+		if (workplace.limited(this.current)) {
+			// No more than the order still needs
+			batch = Math.max(1, Math.min(batch, wanted(level, workplace, inventory, this.current)));
+		}
 		if (recipe != null) {
 			for (Part part : recipe.parts()) {
 				taken += Chests.take(container, inventory, stack -> stack.is(part.item()), Math.max(0, part.amount() * batch - count(inventory, part.item())));
@@ -508,10 +528,8 @@ public class TanLeather extends Behavior<Villager> {
 			}
 		}
 		Recipe recipe = this.recipe();
-		int stock = workplace.stock();
 		Item order = this.current;
-		boolean stockFull = order != null && stock > 0 && inOutputs(level, workplace, order) + count(inventory, order) >= stock;
-		if (order == null || stockFull) {
+		if (order == null || workplace.limited(order) && wanted(level, workplace, inventory, order) <= 0) {
 			return null;
 		}
 		int leather = count(inventory, Items.LEATHER);
@@ -527,7 +545,7 @@ public class TanLeather extends Behavior<Villager> {
 	/** One piece of work per second at the cauldron, as long as there is some. */
 	private void work(ServerLevel level, Villager villager, Workstations.Station workplace) {
 		villager.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(workplace.pos()));
-		if (this.stateTicks % WORK_TICKS != 0) {
+		if (this.stateTicks % WorkerLevels.ticks(villager, WORK_TICKS) != 0) {
 			return;
 		}
 		Work work = this.nextWork(level, villager.getInventory(), workplace);

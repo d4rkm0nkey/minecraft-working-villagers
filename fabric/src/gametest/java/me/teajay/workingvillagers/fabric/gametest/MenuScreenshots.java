@@ -11,7 +11,9 @@ import me.teajay.workingvillagers.client.StationScreen;
 import me.teajay.workingvillagers.client.StationTabs;
 import me.teajay.workingvillagers.client.VillageChestScreen;
 import me.teajay.workingvillagers.item.WorkContractItem;
+import me.teajay.workingvillagers.job.HiredVillager;
 import me.teajay.workingvillagers.job.WorkerJobs;
+import me.teajay.workingvillagers.job.WorkerNotice;
 import me.teajay.workingvillagers.job.WorkerSupplies;
 import me.teajay.workingvillagers.menu.StationMenu;
 import me.teajay.workingvillagers.station.StationType;
@@ -58,6 +60,7 @@ public class MenuScreenshots implements FabricClientGameTest {
 			context.waitTicks(40);
 			fisherInBoat(context, world);
 			guardsInUniform(context, world);
+			carpenterMissesMaterial(context, world);
 			for (int[] size : new int[][] {{854, 480}, {1920, 1080}}) {
 				context.getInput().resizeWindow(size[0], size[1]);
 				context.waitTicks(5);
@@ -252,6 +255,34 @@ public class MenuScreenshots implements FabricClientGameTest {
 		context.takeScreenshot("guards_in_uniform");
 	}
 
+	/** The carpenter, whose order lacks planks, with the "!" above its head. */
+	private static void carpenterMissesMaterial(ClientGameTestContext context, TestSingleplayerContext world) {
+		BlockPos bench = stationPos(STATIONS.indexOf(StationType.CARPENTER_BENCH));
+		// It takes its wage first, then finds no planks
+		for (int waited = 0; waited < 600 && !world.getServer().computeOnServer(server -> carpenter(server, bench) instanceof HiredVillager worker
+			&& worker.workingvillagers$getNotice() == WorkerNotice.MISSING); waited += 10) {
+			context.waitTicks(10);
+		}
+		world.getServer().runOnServer(server -> {
+			Villager carpenter = (Villager) carpenter(server, bench);
+			server.getPlayerList().getPlayers().getFirst().teleportTo(carpenter.getX() + 0.5, carpenter.getY(), carpenter.getZ() - 3.5);
+		});
+		context.waitTicks(5);
+		context.getInput().lookAt(world.getServer().computeOnServer(server -> carpenter(server, bench).blockPosition().above()));
+		context.runOnClient(minecraft -> {
+			minecraft.gui.toastManager().clear();
+			minecraft.gui.hud.getChat().clearMessages(false);
+		});
+		context.waitTicks(10);
+		context.takeScreenshot("carpenter_misses_material");
+	}
+
+	private static net.minecraft.world.entity.@org.jspecify.annotations.Nullable Entity carpenter(MinecraftServer server, BlockPos bench) {
+		ServerLevel level = server.overworld();
+		java.util.UUID worker = Workstations.find(level, bench).map(Workstations.Station::worker).orElse(null);
+		return worker == null ? null : level.getEntity(worker);
+	}
+
 	private static BlockPos uniformPos() {
 		return origin().offset(24, 0, -10);
 	}
@@ -329,6 +360,17 @@ public class MenuScreenshots implements FabricClientGameTest {
 			if (type == StationType.WOODCUTTER) {
 				station.setShape("planks");
 				station.setWood("oak", true);
+			}
+			if (type == StationType.CARPENTER_BENCH) {
+				// Chests ordered once, barrels kept in stock; without planks the carpenter shows a "!"
+				station.orderProduct(Items.CHEST);
+				station.setBatch(Items.CHEST, 64);
+				station.orderProduct(Items.BARREL);
+				station.setStock(Items.BARREL, 16);
+			}
+			if (type == StationType.KILN) {
+				station.toggleOrder(Items.GLASS);
+				station.setBatch(Items.GLASS, 32);
 			}
 			if (type == StationType.PIT_STAKE) {
 				// A ring of string behind the stake, which the stake takes as its pit

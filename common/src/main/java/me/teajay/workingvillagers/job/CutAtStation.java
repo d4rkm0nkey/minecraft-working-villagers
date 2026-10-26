@@ -39,13 +39,14 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The work at a woodcutter or stonecutter: fetch material from an input chest, cut it at
- * the job site into what the station's order asks for and bring the products to an output
- * chest. Without an order, input chest or output chest the worker does not work, nor
- * before it took its wage (see {@link WorkerSupplies}). With several products it cuts one
- * load of material for one of them at a time, the one it made the fewest of
- * ({@link Workstations.Station#ordersByNeed}); a product without material does not hold up
- * the others.
+ * The work at a woodcutter or stonecutter: fetch material from an input chest or a village
+ * chest ({@link Orders#sources}), cut it at the job site into what the station's order asks
+ * for and bring the products to an output chest. Without an order, a chest to take from or
+ * an output chest the worker does not work, nor before it took its wage (see
+ * {@link WorkerSupplies}). With several products it cuts one load of material for one of them
+ * at a time, the most needed one ({@link Workstations.Station#ordersByNeed}); a product
+ * without material does not hold up the others. A product ordered once it cuts until there
+ * are as many as ordered, one kept in stock while the output chests hold fewer than that.
  *
  * <p>The worker stands in front of the station and makes {@link Config#CUT_ITEMS_PER_SECOND} items
  * per second, slower than a player. Material and products are kept in the villager's
@@ -76,8 +77,13 @@ public class CutAtStation extends Behavior<Villager> {
 	private long recipesTime;
 	/** Why the worker waits, and what it cuts right now, for the status in the menu. */
 	private String waitReason = "saw.no_material";
+	private Object[] waitArgs = new Object[0];
+	/** The level from which it can make anything of the order, 0 while it can. */
+	private int lockedUntil;
 	/** The product of the order the worker cuts for right now, null before it picked one. */
 	private @Nullable Item current;
+	/** How much material it takes for the current product: what its order still needs, or a batch. */
+	private int fetchLimit = Integer.MAX_VALUE;
 	private ItemStack cutting = ItemStack.EMPTY;
 	private final WorkerSupplies supplies = new WorkerSupplies();
 
@@ -104,7 +110,7 @@ public class CutAtStation extends Behavior<Villager> {
 		Workstations.Station station = this.getWorkplace(level, villager);
 		return station != null
 			&& station.hasOrder()
-			&& !station.validInputs(level).isEmpty()
+			&& Orders.hasSources(level, station)
 			&& !station.validOutputs(level).isEmpty();
 	}
 
@@ -144,7 +150,11 @@ public class CutAtStation extends Behavior<Villager> {
 		if (this.state == State.PLAN && this.supplies.busy(level, villager)) {
 			return; // wage first, the chest sets the status
 		}
-		List<SingleItemRecipe> recipes = this.recipesFor(level, station.products(), timestamp);
+		List<SingleItemRecipe> all = this.recipesFor(level, station.products(), timestamp);
+		// Only what its level lets it make; for the rest it says from when it can
+		List<SingleItemRecipe> recipes = all.stream().filter(recipe -> Unlocks.canMake(villager, CuttingRecipes.resultOf(recipe), List.of(recipe.input()))).toList();
+		this.lockedUntil = recipes.isEmpty() ? all.stream()
+			.mapToInt(recipe -> Unlocks.level(villager, CuttingRecipes.resultOf(recipe), List.of(recipe.input()))).min().orElse(0) : 0;
 		Predicate<ItemStack> isMaterial = materialOf(station, recipes);
 		if (this.current != null && !station.orders().contains(this.current)) {
 			this.current = null; // the order changed
@@ -174,7 +184,13 @@ public class CutAtStation extends Behavior<Villager> {
 			case WALK_TO_STATION -> WorkerStatus.task(villager, "saw.walk");
 			case CUT -> WorkerStatus.task(villager, "saw.cut", this.cutting.isEmpty() ? Component.literal("…") : this.cutting.getHoverName());
 			case DELIVER -> WorkerStatus.task(villager, "deliver");
-			case WAIT -> WorkerStatus.task(villager, this.waitReason);
+			case WAIT -> {
+				if (this.lockedUntil > 0) {
+					WorkerStatus.task(villager, "locked", WorkerLevels.name(this.lockedUntil));
+				} else {
+					WorkerStatus.task(villager, this.waitReason);
+				}
+			}
 		}
 	}
 
@@ -184,7 +200,17 @@ public class CutAtStation extends Behavior<Villager> {
 			this.setState(State.DELIVER);
 			return;
 		}
-		List<Item> byNeed = station.ordersByNeed(order -> 0);
+		// Everything made is handed in: the orders that are done are done
+		Orders.finish(level, villager, station);
+		if (!station.hasOrder()) {
+			return;
+		}
+		List<Item> byNeed = station.ordersByNeed(order -> station.inOutputs(level, order));
+		if (byNeed.isEmpty()) {
+			Orders.Idle idle = Orders.nothingToMake(level, station, "saw");
+			this.idle(villager, station, idle.key(), idle.args());
+			return;
+		}
 		// Material it still carries first, then the most needed product there is material for
 		for (Item order : byNeed) {
 			if (inventory.hasAnyMatching(materialOf(station, recipesOf(station, order, recipes)))) {
@@ -194,12 +220,16 @@ public class CutAtStation extends Behavior<Villager> {
 			}
 		}
 		for (Item order : byNeed) {
-			Predicate<ItemStack> orderMaterial = materialOf(station, recipesOf(station, order, recipes));
-			Optional<BlockPos> chest = station.validInputs(level).stream()
+			List<SingleItemRecipe> orderRecipes = recipesOf(station, order, recipes);
+			Predicate<ItemStack> orderMaterial = materialOf(station, orderRecipes);
+			Optional<BlockPos> chest = Orders.sources(level, station).stream()
 				.filter(pos -> Chests.contains(level, pos, orderMaterial))
 				.min(Comparator.comparingDouble(pos -> pos.distToCenterSqr(villager.position())));
 			if (chest.isPresent()) {
 				this.current = order;
+				int wanted = Orders.wanted(level, station, order);
+				int perCut = orderRecipes.isEmpty() ? 1 : Math.max(1, CuttingRecipes.preview(orderRecipes.getFirst()).getCount());
+				this.fetchLimit = wanted == Integer.MAX_VALUE ? Integer.MAX_VALUE : Math.max(1, (wanted + perCut - 1) / perCut);
 				this.trip = ChestTrip.to(level, villager, chest.get());
 				this.setState(State.FETCH);
 				return;
@@ -225,7 +255,7 @@ public class CutAtStation extends Behavior<Villager> {
 			return;
 		}
 		// With several products a share of the batch each, so the first does not use up all material
-		int batch = Math.max(1, Config.CUT_BATCH.get() / Math.max(1, station.orders().size()));
+		int batch = Math.min(this.fetchLimit, Math.max(1, Config.CUT_BATCH.get() / Math.max(1, station.orders().size())));
 		ChestTrip.Result result = this.trip.tick(level, villager, container -> Chests.take(container, villager.getInventory(), isMaterial, batch));
 		if (result != ChestTrip.Result.RUNNING) {
 			this.trip = null;
@@ -268,12 +298,16 @@ public class CutAtStation extends Behavior<Villager> {
 		ItemStack result = recipe.assemble(new SingleRecipeInput(material));
 		this.cutting = result;
 		if (this.cutTicks == 0) {
-			// Start the next cut
+			// Start the next cut, unless the order has enough
+			if (this.current != null && station.limited(this.current) && Orders.wanted(level, station, this.current) <= 0) {
+				this.finishCutting(villager);
+				return;
+			}
 			if (!inventory.canAddItem(result) && material.getCount() > 1) {
 				this.finishCutting(villager); // no room for the products, deliver first
 				return;
 			}
-			this.cutTicks = Math.max(MIN_CUT_TICKS, result.getCount() * 20 / Config.CUT_ITEMS_PER_SECOND.get());
+			this.cutTicks = WorkerLevels.ticks(villager, Math.max(MIN_CUT_TICKS, result.getCount() * 20 / Config.CUT_ITEMS_PER_SECOND.get()));
 			this.stateTicks = 0;
 			villager.setItemSlot(EquipmentSlot.MAINHAND, material.copyWithCount(1));
 			villager.setDropChance(EquipmentSlot.MAINHAND, 0.0F);
@@ -296,6 +330,7 @@ public class CutAtStation extends Behavior<Villager> {
 			villager.spawnAtLocation(level, rest);
 		}
 		station.addMade(result.getItem(), result.getCount());
+		((HiredVillager) villager).workingvillagers$addWorkDone(ChopTrees.today(level), result.getCount());
 		level.playSound(null, station.pos(), SoundEvents.UI_STONECUTTER_TAKE_RESULT, SoundSource.BLOCKS, 0.5F, 1.0F);
 		this.cutTicks = 0;
 	}
@@ -352,8 +387,9 @@ public class CutAtStation extends Behavior<Villager> {
 	}
 
 	/** Nothing to do: wait at the job site. */
-	private void idle(Villager villager, Workstations.Station station, String reason) {
+	private void idle(Villager villager, Workstations.Station station, String reason, Object... args) {
 		this.waitReason = reason;
+		this.waitArgs = args;
 		villager.getBrain().setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(station.pos(), SPEED, 2));
 		this.setState(State.WAIT);
 	}

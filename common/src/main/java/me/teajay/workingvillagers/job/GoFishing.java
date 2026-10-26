@@ -256,7 +256,7 @@ public class GoFishing extends Behavior<Villager> {
 
 	/** The places on the shore next to water around the barrel, one for each block of water, the closest first. */
 	private static List<Spot> findShore(ServerLevel level, BlockPos barrel, Villager villager) {
-		int radius = Config.WATER_RADIUS.get();
+		int radius = WorkerLevels.area(villager, Config.WATER_RADIUS.get());
 		List<Spot> spots = new ArrayList<>();
 		for (BlockPos pos : BlockPos.betweenClosed(barrel.offset(-radius, -WATER_DOWN, -radius), barrel.offset(radius, WATER_UP, radius))) {
 			if (!isSurface(level, pos) || !isPond(level, pos)) {
@@ -287,13 +287,13 @@ public class GoFishing extends Behavior<Villager> {
 	 * the barrel, and only water on the way. A pond closer to the barrel does not keep it from
 	 * the sea.
 	 */
-	private static Optional<Launch> findLaunch(ServerLevel level, BlockPos barrel, List<Spot> shore) {
+	private static Optional<Launch> findLaunch(ServerLevel level, BlockPos barrel, List<Spot> shore, int radius) {
 		Map<Integer, List<BlockPos>> openWater = new HashMap<>();
 		for (Spot spot : shore) {
 			BlockPos start = spot.water();
 			BlockPos best = null;
 			double bestScore = Double.MAX_VALUE;
-			for (BlockPos pos : openWater.computeIfAbsent(start.getY(), y -> findOpenWater(level, barrel, y))) {
+			for (BlockPos pos : openWater.computeIfAbsent(start.getY(), y -> findOpenWater(level, barrel, y, radius))) {
 				double distance = Math.sqrt(pos.distSqr(start));
 				double score = Math.abs(distance - ROW_BEST);
 				if (distance < ROW_MIN || score >= bestScore || !isWaterOnTheWay(level, start, pos)) {
@@ -310,8 +310,7 @@ public class GoFishing extends Behavior<Villager> {
 	}
 
 	/** The open water within {@link Config#SEA_RADIUS} of the barrel, at the height of the surface. */
-	private static List<BlockPos> findOpenWater(ServerLevel level, BlockPos barrel, int y) {
-		int radius = Config.SEA_RADIUS.get();
+	private static List<BlockPos> findOpenWater(ServerLevel level, BlockPos barrel, int y, int radius) {
 		List<BlockPos> found = new ArrayList<>();
 		for (int dx = -radius; dx <= radius; dx += 2) {
 			for (int dz = -radius; dz <= radius; dz += 2) {
@@ -343,7 +342,7 @@ public class GoFishing extends Behavior<Villager> {
 	private @Nullable Spot spot(ServerLevel level, Villager villager, BlockPos barrel, long timestamp, boolean byBoat) {
 		if (this.spot == null || timestamp - this.spotFoundAt > SCAN_TICKS || byBoat != this.spotByBoat) {
 			List<Spot> shore = findShore(level, barrel, villager);
-			Optional<Launch> launch = byBoat ? findLaunch(level, barrel, shore) : Optional.empty();
+			Optional<Launch> launch = byBoat ? findLaunch(level, barrel, shore, WorkerLevels.area(villager, Config.SEA_RADIUS.get())) : Optional.empty();
 			this.spot = launch.map(Launch::spot).orElse(shore.isEmpty() ? null : shore.getFirst());
 			this.sea = launch.map(Launch::sea).orElse(null);
 			this.spotByBoat = byBoat;
@@ -357,7 +356,8 @@ public class GoFishing extends Behavior<Villager> {
 	private void search(ServerLevel level, Villager villager, Workstations.Station workplace, long timestamp) {
 		SimpleContainer inventory = villager.getInventory();
 		AbstractBoat boat = this.riding(level, villager);
-		boolean boatAtHand = workplace.boat() && !boatItem(inventory).isEmpty();
+		// Rowing out from journeyman on
+		boolean boatAtHand = workplace.boat() && Unlocks.can(villager, Unlocks.Ability.BOAT) && !boatItem(inventory).isEmpty();
 		Spot spot = this.spot(level, villager, workplace.pos(), timestamp, boat != null || boatAtHand);
 		if (boat != null) {
 			// Back on the water after a reload: home first
@@ -534,7 +534,7 @@ public class GoFishing extends Behavior<Villager> {
 		}
 		this.catches++;
 		((HiredVillager) villager).workingvillagers$addWorkDone(ChopTrees.today(level), 1);
-		rod.hurtAndBreak(1, level, null, broken -> villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY));
+		WorkerLevels.wear(level, villager, rod, 1, broken -> villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY));
 		villager.getInventory().setChanged();
 	}
 

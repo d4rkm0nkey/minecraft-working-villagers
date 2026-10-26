@@ -209,8 +209,12 @@ public class GuardPost extends Behavior<Villager> {
 		if (this.cooldown > 0) {
 			this.cooldown--;
 		}
-		if (this.state == State.POST && this.supplies.busy(level, villager, WorkerSupplies.BOW)) {
-			return; // the chest sets the status
+		if (this.state == State.POST) {
+			if (this.supplies.busy(level, villager, WorkerSupplies.BOW)) {
+				return; // the chest sets the status
+			}
+			// Standing guard is the work, also on a night without monsters
+			WorkerSupplies.earned(level, villager);
 		}
 		switch (this.state) {
 			case POST -> this.goToPost(level, villager, workplace);
@@ -255,7 +259,7 @@ public class GuardPost extends Behavior<Villager> {
 			this.setState(State.WAIT);
 			return;
 		}
-		if (workplace.hunting() && !raid && this.retreatedNight != night(level) && arrows > HUNT_MIN_ARROWS) {
+		if (workplace.hunting() && Unlocks.can(villager, Unlocks.Ability.HUNTING) && !raid && this.retreatedNight != night(level) && arrows > HUNT_MIN_ARROWS) {
 			this.roamTo = null;
 			this.setState(State.HUNT);
 			return;
@@ -346,7 +350,7 @@ public class GuardPost extends Behavior<Villager> {
 		villager.getLookControl().setLookAt(current, 30.0F, 30.0F);
 		if (this.cooldown == 0) {
 			this.shoot(level, villager, current, bow);
-			this.cooldown = Math.max(5, (int) Math.round(Config.SECONDS_PER_SHOT.get() * 20));
+			this.cooldown = Math.max(5, WorkerLevels.ticks(villager, (int) Math.round(Config.SECONDS_PER_SHOT.get() * 20)));
 		}
 		return true;
 	}
@@ -357,7 +361,7 @@ public class GuardPost extends Behavior<Villager> {
 	private void hunt(ServerLevel level, Villager villager, Workstations.Station workplace) {
 		SimpleContainer inventory = villager.getInventory();
 		ItemStack bow = findBow(inventory);
-		if (isMorning(level, villager) || isRaid(level, villager) || bow.isEmpty() || !workplace.hunting()) {
+		if (isMorning(level, villager) || isRaid(level, villager) || bow.isEmpty() || !workplace.hunting() || !Unlocks.can(villager, Unlocks.Ability.HUNTING)) {
 			villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
 			this.setState(State.POST);
 			return;
@@ -368,7 +372,7 @@ public class GuardPost extends Behavior<Villager> {
 			this.setState(State.POST);
 			return;
 		}
-		int huntRadius = Config.HUNT_RADIUS.get();
+		int huntRadius = WorkerLevels.area(villager, Config.HUNT_RADIUS.get());
 		if (this.fight(level, villager, villager.blockPosition(), Config.GUARD_RANGE.get(), bow)
 			&& this.target != null && this.target.position().closerThan(Vec3.atCenterOf(workplace.pos()), huntRadius)) {
 			return;
@@ -412,7 +416,7 @@ public class GuardPost extends Behavior<Villager> {
 		level.playSound(null, villager, SoundEvents.SKELETON_SHOOT, SoundSource.NEUTRAL, 1.0F, 1.0F / (villager.getRandom().nextFloat() * 0.4F + 0.8F));
 		ItemStack own = findBow(inventory);
 		if (!own.isEmpty()) {
-			own.hurtAndBreak(1, level, null, broken -> villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY));
+			WorkerLevels.wear(level, villager, own, 1, broken -> villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY));
 		}
 		inventory.setChanged();
 	}
@@ -430,7 +434,7 @@ public class GuardPost extends Behavior<Villager> {
 
 	/** Its own arrows lying around, and what the monsters it killed dropped. */
 	private @Nullable Vec3 nextPickup(ServerLevel level, Villager villager, Workstations.Station workplace) {
-		int reach = workplace.hunting() ? Config.HUNT_RADIUS.get() : workplace.guardRadius();
+		int reach = workplace.hunting() && Unlocks.can(villager, Unlocks.Ability.HUNTING) ? WorkerLevels.area(villager, Config.HUNT_RADIUS.get()) : workplace.guardRadius();
 		AABB area = new AABB(workplace.pos()).inflate(reach + 8);
 		Optional<Vec3> arrow = level.getEntitiesOfClass(AbstractArrow.class, area,
 				found -> found.getOwner() == villager && found.pickup == AbstractArrow.Pickup.ALLOWED && found.getDeltaMovement().lengthSqr() < 1.0E-4)

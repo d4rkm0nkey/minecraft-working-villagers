@@ -31,6 +31,7 @@ import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.schedule.Activity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionContents;
@@ -45,7 +46,9 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * The work of the apothecary at the brewing stand: it makes the ordered product (glass
- * bottles, water bottles or a potion) and keeps a stock of it in the output chests.
+ * bottles, water bottles or a potion), as many as ordered or a stock of it in the output
+ * chests. It takes what it needs from the input chests and the village chests
+ * ({@link Orders#sources}).
  *
  * <ul>
  * <li>Glass bottles: 3 glass make 3 bottles, like the vanilla recipe.</li>
@@ -282,6 +285,18 @@ public class BrewPotions extends Behavior<Villager> {
 		return count;
 	}
 
+	/**
+	 * How many more of the ordered product the order wants, counting what the apothecary
+	 * carries; see {@link Workstations.Station#wanted}.
+	 */
+	private static int wanted(ServerLevel level, Workstations.Station workplace, SimpleContainer inventory, ItemStack target) {
+		Item order = workplace.order();
+		if (order == null) {
+			return 0;
+		}
+		return workplace.wanted(order, workplace.stocked(order) ? inOutputs(level, workplace, target) + countSame(inventory, target) : 0);
+	}
+
 	private static int countSame(Container container, ItemStack product) {
 		int count = 0;
 		for (int slot = 0; slot < container.getContainerSize(); slot++) {
@@ -352,14 +367,29 @@ public class BrewPotions extends Behavior<Villager> {
 			}
 			return;
 		}
+		// Redstone, glowstone and fermented spider eyes from journeyman, gunpowder from expert
+		int lockedUntil = plan == null ? WorkerLevels.NOVICE : plan.steps().stream()
+			.mapToInt(step -> Unlocks.level(WorkingVillagers.APOTHECARY_PROFESSION, step.shownReagent().getItem()))
+			.max().orElse(WorkerLevels.NOVICE);
+		if (villager.getVillagerData().level() < lockedUntil) {
+			if (hasProducts(inventory, target, null)) {
+				this.setState(State.DELIVER);
+			} else {
+				this.idle(villager, workplace, "locked", WorkerLevels.name(lockedUntil));
+			}
+			return;
+		}
 		if (hasProducts(inventory, target, plan)) {
 			this.setState(State.DELIVER);
 			return;
 		}
-		int stock = workplace.stock();
-		int have = inOutputs(level, workplace, target);
-		if (stock > 0 && have >= stock) {
-			this.idle(villager, workplace, "apothecary.stock_full", have, stock);
+		// Everything made is handed in: the order is done if it is
+		if (!Orders.finish(level, villager, workplace, order -> false).isEmpty()) {
+			return;
+		}
+		if (wanted(level, workplace, inventory, target) <= 0) {
+			Orders.Idle idle = Orders.nothingToMake(level, workplace, "apothecary");
+			this.idle(villager, workplace, idle.key(), idle.args());
 			return;
 		}
 		if (plan == null) {
@@ -417,12 +447,12 @@ public class BrewPotions extends Behavior<Villager> {
 		}
 	}
 
-	/** Goes to fetch from the closest input chest with something it lacks; false if there is none (or it just tried). */
+	/** Goes to fetch from the closest input chest (or village chest) with something it lacks; false if there is none (or it just tried). */
 	private boolean fetchFromInputs(ServerLevel level, Villager villager, Workstations.Station workplace, Predicate<ItemStack> lacking, long timestamp) {
 		if (timestamp - this.fetchFailedAt <= FETCH_COOLDOWN) {
 			return false;
 		}
-		Optional<BlockPos> chest = Chests.closest(workplace.validInputs(level).stream().filter(pos -> Chests.contains(level, pos, lacking)).toList(), villager);
+		Optional<BlockPos> chest = Chests.closest(Orders.sources(level, workplace).stream().filter(pos -> Chests.contains(level, pos, lacking)).toList(), villager);
 		if (chest.isEmpty()) {
 			return false;
 		}
@@ -557,15 +587,14 @@ public class BrewPotions extends Behavior<Villager> {
 	/** Three glass bottles a second from three glass; for a potion only as many as it needs. */
 	private void craft(ServerLevel level, Villager villager, Workstations.Station workplace) {
 		villager.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(workplace.pos()));
-		if (this.stateTicks % CRAFT_TICKS != 0) {
+		if (this.stateTicks % WorkerLevels.ticks(villager, CRAFT_TICKS) != 0) {
 			return;
 		}
 		SimpleContainer inventory = villager.getInventory();
 		ItemStack target = order(workplace);
 		boolean bottleOrder = target.is(Items.GLASS_BOTTLE);
-		int stock = workplace.stock();
 		if (count(inventory, stack -> stack.is(Items.GLASS)) < BATCH || !inventory.canAddItem(new ItemStack(Items.GLASS_BOTTLE, BATCH))
-			|| bottleOrder && stock > 0 && inOutputs(level, workplace, target) + count(inventory, stack -> stack.is(Items.GLASS_BOTTLE)) >= stock
+			|| bottleOrder && wanted(level, workplace, inventory, target) <= 0
 			|| !bottleOrder && count(inventory, stack -> stack.is(Items.GLASS_BOTTLE)) >= BATCH) {
 			this.setState(State.PLAN);
 			return;
@@ -574,6 +603,7 @@ public class BrewPotions extends Behavior<Villager> {
 		inventory.addItem(new ItemStack(Items.GLASS_BOTTLE, BATCH));
 		if (bottleOrder) {
 			((HiredVillager) villager).workingvillagers$addWorkDone(ChopTrees.today(level), BATCH);
+			workplace.addMade(Items.GLASS_BOTTLE, BATCH);
 		}
 		villager.swingForAttack(InteractionHand.MAIN_HAND);
 		level.playSound(null, workplace.pos(), SoundEvents.VILLAGER_WORK_CLERIC, SoundSource.BLOCKS, 0.6F, 1.0F);
@@ -647,8 +677,9 @@ public class BrewPotions extends Behavior<Villager> {
 				}
 			}
 			this.collect(level, villager, workplace);
-			if (made > 0) {
+			if (made > 0 && workplace.order() != null) {
 				((HiredVillager) villager).workingvillagers$addWorkDone(ChopTrees.today(level), made);
+				workplace.addMade(workplace.order(), made);
 			}
 			this.brewing = null;
 			this.setState(State.PLAN);
@@ -786,7 +817,7 @@ public class BrewPotions extends Behavior<Villager> {
 
 	private @Nullable Villager findInjured(ServerLevel level, Villager villager, Workstations.Station workplace, long timestamp) {
 		this.healFailed.values().removeIf(at -> timestamp - at > HEAL_RETRY);
-		int radius = Config.HEAL_RADIUS.get();
+		int radius = WorkerLevels.area(villager, Config.HEAL_RADIUS.get());
 		return level.getEntitiesOfClass(Villager.class, new AABB(workplace.pos()).inflate(radius), other ->
 				other != villager && other.isAlive() && ((HiredVillager) other).workingvillagers$isHired() && isInjured(other)
 					&& !this.healFailed.containsKey(other.getUUID()))

@@ -99,6 +99,8 @@ public class TendAnimals extends Behavior<Villager> {
 	private List<Animal> hungry = List.of();
 	private final Map<UUID, Long> unreachable = new HashMap<>();
 	private final Map<Item, Boolean> smokable = new HashMap<>();
+	/** Whether the butcher smokes already (see {@link Unlocks.Ability#SMOKING}), set every tick. */
+	private boolean canSmoke;
 	private final WorkerSupplies supplies = new WorkerSupplies();
 
 	public TendAnimals() {
@@ -156,6 +158,7 @@ public class TendAnimals extends Behavior<Villager> {
 			return;
 		}
 		this.stateTicks++;
+		this.canSmoke = Unlocks.can(villager, Unlocks.Ability.SMOKING);
 		this.unreachable.values().removeIf(until -> until < timestamp);
 		// Wage and weapon before work; with meat in its pockets only when the weapon is worn or gone
 		if (this.state == State.SEARCH && (!this.hasDeliverables(level, villager.getInventory(), workplace) || findWeapon(villager.getInventory()).isEmpty())
@@ -181,7 +184,7 @@ public class TendAnimals extends Behavior<Villager> {
 
 	/** The animals the butcher keeps around the smoker, young ones included. */
 	public static List<Animal> herd(ServerLevel level, BlockPos smoker) {
-		int radius = Config.BUTCHER_RADIUS.get();
+		int radius = WorkerLevels.area(WorkerLevels.levelAt(level, smoker), Config.BUTCHER_RADIUS.get());
 		AABB area = new AABB(smoker).inflate(radius, 0, radius).expandTowards(0, PASTURE_UP, 0).expandTowards(0, -PASTURE_DOWN, 0);
 		return level.getEntitiesOfClass(Animal.class, area, animal -> animal.isAlive() && KINDS.contains(animal.getType()));
 	}
@@ -339,7 +342,7 @@ public class TendAnimals extends Behavior<Villager> {
 		if (this.stateTicks % 10 == 0) {
 			villager.swingForAttack(InteractionHand.MAIN_HAND);
 		}
-		if (this.stateTicks < Math.max(1, Math.round(Config.SECONDS_PER_ANIMAL.get() * 20))) {
+		if (this.stateTicks < WorkerLevels.ticks(villager, (int) Math.round(Config.SECONDS_PER_ANIMAL.get() * 20))) {
 			return;
 		}
 		this.target = null;
@@ -373,7 +376,7 @@ public class TendAnimals extends Behavior<Villager> {
 			}
 		}
 		((HiredVillager) villager).workingvillagers$addWorkDone(ChopTrees.today(level), 1);
-		weapon.hurtAndBreak(1, level, null, broken -> villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY));
+		WorkerLevels.wear(level, villager, weapon, 1, broken -> villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY));
 		villager.getInventory().setChanged();
 	}
 
@@ -402,8 +405,9 @@ public class TendAnimals extends Behavior<Villager> {
 
 	// --- The smoker ---
 
+	/** Meat it smokes: none before journeyman, it delivers the raw meat. */
 	private boolean isSmokable(ServerLevel level, ItemStack stack) {
-		return !stack.isEmpty() && this.smokable.computeIfAbsent(stack.getItem(),
+		return this.canSmoke && !stack.isEmpty() && this.smokable.computeIfAbsent(stack.getItem(),
 			item -> level.recipeAccess().getRecipeFor(RecipeType.SMOKING, new SingleRecipeInput(stack), level).isPresent());
 	}
 
@@ -469,7 +473,7 @@ public class TendAnimals extends Behavior<Villager> {
 			return;
 		}
 		villager.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
-		if (this.stateTicks % TEND_TICKS != 0) {
+		if (this.stateTicks % WorkerLevels.ticks(villager, TEND_TICKS) != 0) {
 			return;
 		}
 		SimpleContainer inventory = villager.getInventory();

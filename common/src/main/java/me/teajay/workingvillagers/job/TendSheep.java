@@ -154,7 +154,7 @@ public class TendSheep extends Behavior<Villager> {
 
 	/** The sheep (lambs included) within reach of the loom. */
 	public static List<Sheep> herd(ServerLevel level, BlockPos loom) {
-		int radius = Config.PASTURE_RADIUS.get();
+		int radius = WorkerLevels.area(WorkerLevels.levelAt(level, loom), Config.PASTURE_RADIUS.get());
 		AABB area = new AABB(loom).inflate(radius, 0, radius).expandTowards(0, PASTURE_UP, 0).expandTowards(0, -PASTURE_DOWN, 0);
 		return level.getEntities(EntityTypes.SHEEP, area, Sheep::isAlive);
 	}
@@ -178,7 +178,8 @@ public class TendSheep extends Behavior<Villager> {
 		// while the lambs to come still fit into the herd
 		long inLove = herd.stream().filter(Sheep::isInLove).count();
 		long ready = herd.stream().filter(TendSheep::canBreed).count();
-		boolean breed = inLove % 2 == 1 || herd.size() + (inLove + 1) / 2 < workplace.herd() && ready >= 2;
+		boolean breed = Unlocks.can(villager, Unlocks.Ability.BREEDING)
+			&& (inLove % 2 == 1 || herd.size() + (inLove + 1) / 2 < workplace.herd() && ready >= 2);
 		boolean noWheat = breed && wheat(inventory).isEmpty();
 		if (breed && !noWheat) {
 			Optional<Sheep> feed = herd.stream()
@@ -265,7 +266,7 @@ public class TendSheep extends Behavior<Villager> {
 		if (this.stateTicks % 10 == 0) {
 			villager.swingForAttack(InteractionHand.MAIN_HAND);
 		}
-		if (this.stateTicks < Math.max(1, Math.round(Config.SECONDS_PER_SHEEP.get() * 20))) {
+		if (this.stateTicks < WorkerLevels.ticks(villager, (int) Math.round(Config.SECONDS_PER_SHEEP.get() * 20))) {
 			return;
 		}
 		this.target = null;
@@ -302,7 +303,7 @@ public class TendSheep extends Behavior<Villager> {
 			}
 		}
 		((HiredVillager) villager).workingvillagers$addWorkDone(ChopTrees.today(level), wool);
-		shears.hurtAndBreak(1, level, null, broken -> villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY));
+		WorkerLevels.wear(level, villager, shears, 1, broken -> villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY));
 		villager.getInventory().setChanged();
 	}
 

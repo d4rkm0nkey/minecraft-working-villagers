@@ -57,7 +57,7 @@ and working at their stations.
 [[workers]]
 
 Every worker needs emeralds :mc-emerald: as its wage. Right-click it with them; it takes
-one emerald each day. No wage, no work. Hired late in the afternoon (in the last third of
+one emerald each day, but only on a day it gets something done. No wage, no work. Hired late in the afternoon (in the last third of
 the work hours), a worker works the rest of that first day for free.
 
 ## How it works in short
