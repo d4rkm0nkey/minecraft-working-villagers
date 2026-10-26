@@ -276,41 +276,53 @@ the tab means some worker lacks something. More workers than fit are shown page 
 
 Workers get **hungry** at work. A worker eats **10 food points** a work day (as on the
 hunger bar: :mc-bread: bread is 5, :mc-cooked_beef: cooked beef 8) from its **lunch bag**,
-4 stacks next to its pockets. A worker without food gets hungry within a work day and then
-works **half as fast**; the station menu says *(hungry: works slower)* behind what it does.
-It never stops working because of hunger.
+4 stacks next to its pockets. Hunger never slows a worker down or stops it; what it eats
+decides **where its wage ends up**.
 
-**Where the food comes from:**
+Of every wage, half is the worker's **upkeep** and gone. The other half is **food money**
+and goes into its **purse**. Then:
 
-- **Bought at a village chest.** Of every wage, half is the worker's **upkeep** and gone;
-  the other half goes into its **purse**. Once it carries less than a day's food, it walks
-  to a village chest with food and buys some: the emerald goes into the chest, so it pays
-  wages again. A day's food money buys a day's food, so with a wage of 1 an emerald buys
-  20 food points, food for two days. Put the food of your farmers, butchers and fishers
-  into the village chests (or let [carriers](carrier.md) bring it), and the workers pay
-  the village for it.
-- **Given by you:** right-click a worker with food or throw it to it. It goes into the
+- **It buys food at a village chest:** the emeralds go into the chest and pay wages again.
+  Food there is cheap: a day's food money buys one and a half days' food (with a wage of 1,
+  an emerald buys 30 food points). Put the food of your farmers, butchers and fishers into
+  the village chests (or let [carriers](carrier.md) bring it), and the workers pay the
+  village for it.
+- **It finds no food there and eats out:** once it misses a whole day's food and has none
+  left, it pays an emerald from its purse for a meal out. Those emeralds are **gone**, and a
+  day's food money buys only a day's food.
+- **You give it food:** right-click a worker with food or throw it to it. It goes into the
   lunch bag and costs nothing.
 
-A purse holds at most the food money of three days. If a worker finds no food to buy, it
-leaves the rest of its wage in the wage box once its purse is full, so the emeralds are
-not lost. Food it buys is never handed in to an output chest.
+A purse holds at most the food money of three days; a worker whose purse is full leaves the
+rest of its wage in the wage box. Food it buys is never handed in to an output chest.
 
 **Variety:** workers know four kinds of food: **field crops** (bread, carrots, potatoes,
 baked potatoes, beetroot, pumpkin pie, cookies), **meat**, **fish** (and dried kelp) and
 **fruit** (apples, berries, melon slices). Food of a kind it had in one of its last two
 meals counts a quarter less per such meal. Workers that only get bread get half of its
-food points; with three kinds in turns every meal counts in full. A worker buys a mix of
-what the chest has and eats what counts most. Data packs can change which food counts as
+food points; with three kinds in turns every meal counts in full. A meal out is a kind of
+its own. A worker buys a mix of what the chest has and eats what counts most, but it does
+not buy food that counts less for its emeralds than eating out: after two meals of field
+crops it rather eats out than buy more bread. So a village that offers only one kind of food
+gets back only part of the food money. Data packs can change which food counts as
 which kind, see [Data packs](../data-packs.md#meals).
 
-!!! tip "How it adds up"
-    A worker costs the village only its upkeep, half an emerald a day. The rest comes back
-    through the food it buys, as long as the village chests hold food. A village whose
-    shops earn the upkeep of its workers keeps going.
+!!! tip "How it adds up: food saves money"
+    A worker that eats out costs the village its whole wage, one emerald a day. A worker
+    that buys varied food at the village chests costs only its upkeep, half an emerald: the
+    rest comes back. Food in the village chests halves your wages.
 
-Upkeep, food per day and how much slower hungry workers are can be changed in the
-[configuration](../configuration.md#meals-meals); meals can also be turned off.
+**Where you see it:**
+
+- The **station menu** shows a lunch bag slot next to the emeralds, red while the worker
+  eats out. Its tooltip shows the purse, the food in the bag and whether the food money
+  comes back to the village or is gone. The line next to the slots says *Eats out* when it
+  does, and the worker's status says *(eats out: no food at the village chests)*.
+- The **village chest** lists workers that eat out as lacking food, and its forecast of
+  how long the wages last counts what comes back: *Wages last ~4 days, ~8 if all ate here*.
+
+Upkeep, food per day and how much the food money buys at village chests can be changed in
+the [configuration](../configuration.md#meals-meals); meals can also be turned off.
 
 ## Worn tools
 

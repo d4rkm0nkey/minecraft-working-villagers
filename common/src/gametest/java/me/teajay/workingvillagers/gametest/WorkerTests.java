@@ -143,7 +143,8 @@ public final class WorkerTests {
 		registry.accept("worker_buys_varied_food", WorkerTests::workerBuysVariedFood);
 		registry.accept("worker_eats_what_it_had_least", WorkerTests::workerEatsWhatItHadLeast);
 		registry.accept("full_purse_leaves_wage_in_box", WorkerTests::fullPurseLeavesWageInBox);
-		registry.accept("hungry_worker_says_so", WorkerTests::hungryWorkerSaysSo);
+		registry.accept("worker_eats_out_without_food", WorkerTests::workerEatsOutWithoutFood);
+		registry.accept("worker_skips_monotone_food", WorkerTests::workerSkipsMonotoneFood);
 		registry.accept("farmer_harvests_and_replants", WorkerTests::farmerHarvestsAndReplants);
 		registry.accept("workers_do_not_trample_farmland", WorkerTests::workersDoNotTrampleFarmland);
 		registry.accept("worker_finds_workplace", WorkerTests::workerFindsWorkplace);
@@ -2442,12 +2443,34 @@ public final class WorkerTests {
 		});
 	}
 
-	/** A hungry worker without food says so in its status. */
-	private static void hungryWorkerSaysSo(GameTestHelper helper) {
+	/** A hungry worker that finds no food eats out: it pays from its purse and says so in its status. */
+	private static void workerEatsOutWithoutFood(GameTestHelper helper) {
 		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 5), new ItemStack(Items.IRON_AXE));
-		Meals.of(worker).setHunger(Meals.dailyFood());
-		helper.succeedWhen(() -> helper.assertTrue(
-			WorkerStatus.describe(worker).getContents() instanceof TranslatableContents contents && contents.getKey().equals("status.workingvillagers.hungry"),
-			"The status does not say the worker is hungry: " + TestWorld.describe(worker)));
+		MealData meals = Meals.of(worker);
+		meals.setHunger(Meals.dailyFood());
+		meals.setPurse(3);
+		helper.succeedWhen(() -> {
+			helper.assertTrue(meals.ateOut() && meals.hunger() < Meals.dailyFood(), "The worker did not eat out: " + meals.hunger());
+			helper.assertTrue(meals.purse() < 4, "The worker did not pay from its purse: " + meals.purse());
+			helper.assertTrue(
+				WorkerStatus.describe(worker).getContents() instanceof TranslatableContents contents && contents.getKey().equals("status.workingvillagers.eats_out"),
+				"The status does not say the worker eats out: " + TestWorld.describe(worker));
+		});
+	}
+
+	/** Food of the kind a worker just had twice counts less for its emeralds than eating out: it does not buy it. */
+	private static void workerSkipsMonotoneFood(GameTestHelper helper) {
+		BlockPos chest = TestWorld.villageChest(helper, new BlockPos(10, 1, 4), new ItemStack(Items.BREAD, 16));
+		Villager worker = lumberjack(helper, new ItemStack(Items.EMERALD, 5), new ItemStack(Items.IRON_AXE));
+		MealData meals = Meals.of(worker);
+		meals.setPurse(3);
+		meals.recent().addAll(List.of("meals/field", "meals/field"));
+		helper.runAfterDelay(600, () -> {
+			helper.assertTrue(meals.bag().isEmpty(), "The worker bought bread although it had field food twice: " + meals.bag());
+			Container container = (Container) helper.getBlockEntity(chest, BlockEntity.class);
+			helper.assertTrue(container.countItem(Items.BREAD) == 16, "Bread left the village chest: " + container.countItem(Items.BREAD));
+			TestWorld.removeVillageChest(helper, chest);
+			helper.succeed();
+		});
 	}
 }

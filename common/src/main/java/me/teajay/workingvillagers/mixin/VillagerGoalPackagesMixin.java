@@ -23,7 +23,6 @@ import me.teajay.workingvillagers.job.GuardPost;
 import me.teajay.workingvillagers.job.TendAnimals;
 import me.teajay.workingvillagers.job.TendSheep;
 import me.teajay.workingvillagers.job.FindWorkplace;
-import me.teajay.workingvillagers.job.Meals;
 import me.teajay.workingvillagers.job.RepairTools;
 import me.teajay.workingvillagers.job.SellGoods;
 import me.teajay.workingvillagers.job.SmeltAtFurnace;
@@ -64,8 +63,8 @@ public abstract class VillagerGoalPackagesMixin {
 		if (profession.is(WorkingVillagers.SMITH_PROFESSION)) {
 			// Smelting at a blast furnace or repairing at a smithing table, by the job site
 			cir.setReturnValue(ImmutableList.of(
-				Pair.of(5, Meals.slowedWhenHungry(new SmeltAtFurnace(SmeltAtFurnace.Kind.SMITH))),
-				Pair.of(5, Meals.slowedWhenHungry(new RepairTools())),
+				Pair.of(5, new SmeltAtFurnace(SmeltAtFurnace.Kind.SMITH)),
+				Pair.of(5, new RepairTools()),
 				Pair.of(3, new GiveGiftToHero(100)),
 				Pair.of(99, UpdateActivityFromSchedule.create())
 			));
@@ -112,7 +111,7 @@ public abstract class VillagerGoalPackagesMixin {
 		}
 		if (work != null) {
 			cir.setReturnValue(ImmutableList.of(
-				Pair.of(5, Meals.slowedWhenHungry(work)),
+				Pair.of(5, work),
 				Pair.of(3, new GiveGiftToHero(100)),
 				Pair.of(99, UpdateActivityFromSchedule.create())
 			));

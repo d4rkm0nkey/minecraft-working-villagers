@@ -15,7 +15,7 @@ import net.minecraft.world.item.Items;
 
 /**
  * The row about what a worker carries for its work in the station and carrier screens:
- * slots with its emeralds, its tools (with the durability bar) and what it uses up, like an
+ * slots with its emeralds, its lunch bag, its tools (with the durability bar) and what it uses up, like an
  * inventory, and a short line next to them. Details in the tooltip.
  */
 final class SuppliesRow {
@@ -28,7 +28,7 @@ final class SuppliesRow {
 
 	/** How wide the slots are. */
 	static int slotsWidth(SuppliesInfo info) {
-		return (1 + info.tools().size() + info.stocks().size()) * SLOT;
+		return (1 + (info.lunch().isPresent() ? 1 : 0) + info.tools().size() + info.stocks().size()) * SLOT;
 	}
 
 	/** Draws the slots with their top left corner at x, y. */
@@ -36,6 +36,10 @@ final class SuppliesRow {
 		boolean unpaid = !info.paid() && info.emeralds() < info.wage();
 		x = slot(graphics, font, x, y, info.emeralds() > 0 ? new ItemStack(Items.EMERALD, info.emeralds()) : ItemStack.EMPTY,
 			new ItemStack(Items.EMERALD), unpaid);
+		if (info.lunch().isPresent()) {
+			SuppliesInfo.Lunch lunch = info.lunch().get();
+			x = slot(graphics, font, x, y, lunch.meal(), new ItemStack(Items.BREAD), lunch.eatsOut() || lunch.hungry());
+		}
 		for (SuppliesInfo.Slot slot : info.tools()) {
 			x = slot(graphics, font, x, y, slot.stack(), placeholder(slot.kind()), slot.missing());
 		}
@@ -97,6 +101,9 @@ final class SuppliesRow {
 		if (missing.isPresent()) {
 			return Component.translatable("gui.workingvillagers.supplies.no_" + missing.get().kind());
 		}
+		if (info.lunch().map(SuppliesInfo.Lunch::eatsOut).orElse(false)) {
+			return Component.translatable("gui.workingvillagers.supplies.no_food");
+		}
 		if (info.wage() == 0) {
 			return Component.translatable("gui.workingvillagers.supplies.free");
 		}
@@ -104,7 +111,23 @@ final class SuppliesRow {
 	}
 
 	static int color(SuppliesInfo info) {
-		return info.hasProblem() ? GuiPanels.WARNING_COLOR : GuiPanels.MUTED_COLOR;
+		return info.hasProblem() || info.lunch().map(SuppliesInfo.Lunch::eatsOut).orElse(false) ? GuiPanels.WARNING_COLOR : GuiPanels.MUTED_COLOR;
+	}
+
+	/** What the worker has for its meals, and where its food money goes. */
+	private static void lunch(List<Component> lines, SuppliesInfo info, SuppliesInfo.Lunch lunch) {
+		if (info.wage() > 0 && lunch.upkeep() < 100) {
+			lines.add(Component.translatable("gui.workingvillagers.supplies.meals.upkeep", lunch.upkeep()).withStyle(ChatFormatting.GRAY));
+			lines.add(Component.translatable("gui.workingvillagers.supplies.meals.purse", lunch.purse()).withStyle(ChatFormatting.GRAY));
+		}
+		lines.add(Component.translatable("gui.workingvillagers.supplies.meals.food", lunch.food(), lunch.dailyFood()).withStyle(ChatFormatting.GRAY));
+		if (lunch.hungry()) {
+			lines.add(Component.translatable("gui.workingvillagers.supplies.meals.hungry").withStyle(ChatFormatting.GOLD));
+		} else if (lunch.eatsOut()) {
+			lines.add(Component.translatable("gui.workingvillagers.supplies.meals.eats_out").withStyle(ChatFormatting.GOLD));
+		} else if (info.wage() > 0 && lunch.upkeep() < 100) {
+			lines.add(Component.translatable("gui.workingvillagers.supplies.meals.eats_in").withStyle(ChatFormatting.DARK_GREEN));
+		}
 	}
 
 	static List<Component> tooltip(SuppliesInfo info) {
@@ -118,6 +141,7 @@ final class SuppliesRow {
 				? Component.translatable("gui.workingvillagers.supplies.paid").withStyle(ChatFormatting.DARK_GREEN)
 				: Component.translatable("gui.workingvillagers.supplies.unpaid").withStyle(ChatFormatting.GOLD));
 		}
+		info.lunch().ifPresent(lunch -> lunch(lines, info, lunch));
 		for (SuppliesInfo.Slot tool : info.tools()) {
 			lines.add(tool.stack().isEmpty()
 				? Component.translatable("gui.workingvillagers.supplies.no_" + tool.kind()).withStyle(ChatFormatting.RED)

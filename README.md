@@ -120,13 +120,17 @@ and purse); its wage stays in the wage box.
   hungry by `meals.dailyFood` (default 10) food points per work day (2000 to 9000) and eats
   from its lunch bag (4 stacks, apart from its pockets) once it misses half of that. With
   less than a day's food in the bag it buys food at a village chest for two days, as far
-  as its purse pays (a day's food money buys a day's food), and puts the emeralds into the
-  chest. Food the player gives or throws goes into the bag for free. A hungry worker
-  (missing a whole day's food) skips `meals.hungrySlowdown` (default 50) percent of the
-  ticks of its work behavior and its status says so. Variety: food of a kind (item tags
-  `workingvillagers:meals/field`, `meals/meat`, `meals/fish`, `meals/fruit`) it had in one
-  of its last 2 meals counts 25 % less per such meal; it buys the kinds it has least of
-  and eats what counts most. Saved per worker as `WorkingVillagersMeals`.
+  as its purse pays (a day's food money buys `meals.foodBudget`, default 150, percent of a
+  day's food), and puts the emeralds into the chest. Missing a whole day's food with an
+  empty bag, it eats out: an emerald of its purse buys a day's food money's worth of food
+  points (100 %) and is gone; the station menu, its status and the village chest say so,
+  and the village chest's wage forecast counts the food money of workers fed there as
+  coming back. Hunger never slows work. Food the player gives or throws goes into the bag
+  for free. Variety: food of a kind (item tags `workingvillagers:meals/field`,
+  `meals/meat`, `meals/fish`, `meals/fruit`; a meal out is a kind of its own) it had in one
+  of its last 2 meals counts 25 % less per such meal; it buys the kinds it has least of,
+  never food that counts less for its emeralds than eating out, and eats what counts most.
+  Saved per worker as `WorkingVillagersMeals`.
 - **Lumberjack:** needs an axe (carries up to 2), optionally saplings (up to 16 of each
   kind, `lumberjack.keepSaplings`). The axe wears out like a player's (one use per log,
   Unbreaking counts); shortly before it breaks it is given back (see *Worn tools* below);

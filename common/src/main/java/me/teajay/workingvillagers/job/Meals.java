@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import me.teajay.workingvillagers.Config;
 import me.teajay.workingvillagers.WorkingVillagers;
 import net.minecraft.core.component.DataComponents;
@@ -18,9 +17,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.entity.ai.behavior.Behavior;
-import net.minecraft.world.entity.ai.behavior.BehaviorControl;
-import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.food.FoodProperties;
@@ -29,19 +25,23 @@ import net.minecraft.world.item.ItemStack;
 
 /**
  * Workers eat. Over a work day a worker gets hungry by {@link Config#DAILY_FOOD} food points
- * and eats from its lunch bag ({@link MealData}) once it misses half of that; a hungry worker
- * (missing all of it) works {@link Config#HUNGRY_SLOWDOWN} percent slower.
+ * and eats from its lunch bag ({@link MealData}) once it misses half of that.
  *
  * <p>Of each wage it takes, the worker spends {@link Config#UPKEEP} percent on its upkeep:
  * those emeralds are gone. The rest goes into its purse, and with it the worker buys food at
  * a village chest once it carries less than a day's food: the emeralds go into the chest, so
- * they pay wages again. A day's food money buys a day's food. A worker whose purse holds the
- * food money of {@link #PURSE_DAYS} days (it found no food to buy) leaves the rest of its
- * wage where it was. The player can also give a worker food, or throw it to it.
+ * they pay wages again. There, a day's food money buys {@link Config#FOOD_BUDGET} percent of
+ * a day's food. A worker that misses all of a day's food and has none eats out: a day's food
+ * money buys a day's food there, and those emeralds are gone. So food in the village chests
+ * saves the village the food money of its workers. A worker whose purse holds the food money
+ * of {@link #PURSE_DAYS} days leaves the rest of its wage where it was. The player can also
+ * give a worker food, or throw it to it.
  *
  * <p>Variety: food of a kind (field crops, meat, fish, fruit; see the {@code meals/...} item
  * tags) the worker had in one of its last {@link #REMEMBERED} meals counts a quarter less
- * per such meal. It buys a mix of what the chest has, and eats what counts most.
+ * per such meal; a meal eaten out is a kind of its own. It buys a mix of what the chest has,
+ * but only food that counts at least as much for its emeralds as eating out, and eats what
+ * counts most.
  */
 public final class Meals {
 	/** What workers eat. */
@@ -61,6 +61,8 @@ public final class Meals {
 	private static final float WORK_TICKS = 7000.0F;
 	/** At most the food money of this many days stays in the purse. */
 	static final int PURSE_DAYS = 3;
+	/** The kind of a meal eaten out, for the variety. */
+	private static final String EATEN_OUT = "out";
 	/** A worker buys food for this many days at once. */
 	private static final int STOCK_DAYS = 2;
 
@@ -101,7 +103,7 @@ public final class Meals {
 	}
 
 	/** The food points of one of the food, as on the hunger bar. */
-	static int nutrition(ItemStack stack) {
+	public static int nutrition(ItemStack stack) {
 		FoodProperties food = stack.get(DataComponents.FOOD);
 		return food == null ? 0 : food.nutrition();
 	}
@@ -113,19 +115,14 @@ public final class Meals {
 		return nutrition(stack) * Math.max(0.0F, 1.0F - REPEAT_PENALTY * repeats);
 	}
 
-	/** Whether the worker misses all of a day's food. */
+	/** Whether the worker misses all of a day's food (and has no money left to eat out). */
 	public static boolean isHungry(Villager villager) {
 		return enabled() && ((HiredVillager) villager).workingvillagers$isHired() && of(villager).hunger() >= dailyFood();
 	}
 
-	/** How much slower (percent) the worker works now: only while it is hungry. */
-	static int slowdown(Villager villager) {
-		return isHungry(villager) ? Config.HUNGRY_SLOWDOWN.get() : 0;
-	}
-
-	/** The work behavior, ticked less often while the worker is hungry. */
-	public static BehaviorControl<Villager> slowedWhenHungry(BehaviorControl<? super Villager> work) {
-		return new HungryWork(work);
+	/** Whether the worker ate out last: it found no food it buys at its village chests, so its food money leaves the village. */
+	public static boolean eatsOut(Villager villager) {
+		return enabled() && ((HiredVillager) villager).workingvillagers$isHired() && of(villager).ateOut();
 	}
 
 	// --- Wage and purse ---
@@ -153,10 +150,34 @@ public final class Meals {
 		return Math.max(1, (int) Math.ceil(PURSE_DAYS * wage * (100 - Config.UPKEEP.get()) / 100.0));
 	}
 
-	/** Food points an emerald of the purse buys: a day's food money buys a day's food. 0 when there is no food money (food is free). */
-	static double perEmerald() {
-		double money = Config.DAILY_WAGE.get() * (100 - Config.UPKEEP.get()) / 100.0;
+	/** The emeralds of a novice's daily wage that are food money: food costs the same for every worker. */
+	public static double dailyFoodMoney() {
+		return enabled() ? Config.DAILY_WAGE.get() * (100 - Config.UPKEEP.get()) / 100.0 : 0.0;
+	}
+
+	/**
+	 * The emeralds the worker costs the village a day: its upkeep, and if it eats out, the food
+	 * money of a novice that it spends there (the rest of its wage stays in the wage box once
+	 * its purse is full). The food money of a worker fed at village chests comes back.
+	 */
+	public static double dailyCost(Villager villager, boolean fed) {
+		int wage = WorkerLevels.dailyWage(villager);
+		if (!enabled()) {
+			return wage;
+		}
+		double upkeep = wage * Config.UPKEEP.get() / 100.0;
+		return fed ? upkeep : Math.min(wage, upkeep + dailyFoodMoney());
+	}
+
+	/** Food points an emerald of the purse buys eating out: a day's food money buys a day's food. 0 when there is no food money (food is free). */
+	static double perEmeraldOut() {
+		double money = dailyFoodMoney();
 		return money <= 0.0 ? 0.0 : dailyFood() / money;
+	}
+
+	/** Food points an emerald of the purse buys at a village chest: {@link Config#FOOD_BUDGET} percent of eating out. */
+	static double perEmerald() {
+		return perEmeraldOut() * Config.FOOD_BUDGET.get() / 100.0;
 	}
 
 	/** The emeralds food with these food points costs. */
@@ -167,7 +188,7 @@ public final class Meals {
 
 	// --- Eating ---
 
-	/** Called every {@code interval} ticks for a worker: it gets hungry at work and eats from its lunch bag. */
+	/** Called every {@code interval} ticks for a worker: it gets hungry at work and eats from its lunch bag, or out. */
 	static void tick(ServerLevel level, Villager villager, int interval) {
 		if (!enabled()) {
 			return;
@@ -179,6 +200,30 @@ public final class Meals {
 		}
 		if (data.hunger() >= daily / 2.0F && !villager.isSleeping()) {
 			eat(level, villager, data);
+		}
+		if (data.hunger() >= daily && data.purse() > 0 && carried(data) == 0 && !villager.isSleeping()) {
+			eatOut(level, villager, data);
+		}
+	}
+
+	/** Spends an emerald of the purse on a meal out: the emerald is gone. */
+	private static void eatOut(ServerLevel level, Villager villager, MealData data) {
+		double per = perEmeraldOut();
+		if (per <= 0.0) {
+			return;
+		}
+		data.setPurse(data.purse() - 1);
+		data.setHunger(data.hunger() - (float) per);
+		remember(data, EATEN_OUT);
+		data.setAteOut(true);
+		level.playSound(null, villager.getX(), villager.getY(), villager.getZ(), SoundEvents.GENERIC_EAT.value(), SoundSource.NEUTRAL, 0.6F, 1.0F);
+		level.sendParticles(new ItemParticleOption(ParticleTypes.ITEM, WorkerSupplies.WAGE), villager.getX(), villager.getEyeY() - 0.2, villager.getZ(), 6, 0.15, 0.1, 0.15, 0.05);
+	}
+
+	private static void remember(MealData data, String kind) {
+		data.recent().add(kind);
+		while (data.recent().size() > REMEMBERED) {
+			data.recent().removeFirst();
 		}
 	}
 
@@ -199,11 +244,9 @@ public final class Meals {
 			return;
 		}
 		ItemStack meal = bag.removeItem(best, 1);
-		data.setHunger(data.hunger() - bestValue);
-		data.recent().add(kind(meal));
-		while (data.recent().size() > REMEMBERED) {
-			data.recent().removeFirst();
-		}
+		data.setHunger(Math.max(0.0F, data.hunger() - bestValue));
+		remember(data, kind(meal));
+		data.setAteOut(false);
 		level.playSound(null, villager.getX(), villager.getY(), villager.getZ(), SoundEvents.GENERIC_EAT.value(), SoundSource.NEUTRAL, 0.6F, 1.0F);
 		level.sendParticles(new ItemParticleOption(ParticleTypes.ITEM, meal.getItem()), villager.getX(), villager.getEyeY() - 0.2, villager.getZ(), 6, 0.15, 0.1, 0.15, 0.05);
 	}
@@ -217,6 +260,15 @@ public final class Meals {
 			points += isMeal(stack) ? nutrition(stack) * stack.getCount() : 0;
 		}
 		return points;
+	}
+
+	/** How many pieces of food are in the lunch bag. */
+	public static int count(MealData data) {
+		int count = 0;
+		for (ItemStack stack : data.bag()) {
+			count += isMeal(stack) ? stack.getCount() : 0;
+		}
+		return count;
 	}
 
 	/** Whether the worker buys food: less than a day's food in its lunch bag, room there and money in its purse (or food is free). */
@@ -240,7 +292,8 @@ public final class Meals {
 	/**
 	 * The food the worker would buy of the container now, slot by slot: food for
 	 * {@link #STOCK_DAYS} days as far as its purse pays, one at a time of the kind it has had
-	 * and carries least of.
+	 * and carries least of. Not food it had so often lately that it counts less for its
+	 * emeralds than a meal out: it rather eats out once more.
 	 */
 	static List<VillageChests.Take> plan(Villager villager, Container container) {
 		if (!wantsFood(villager)) {
@@ -265,7 +318,7 @@ public final class Meals {
 			for (int slot = 0; slot < container.getContainerSize(); slot++) {
 				ItemStack stack = container.getItem(slot);
 				if (!isBagged(villager, stack) || taken[slot] >= stack.getCount() || nutrition(stack) > budget
-					|| !bag.canAddItem(stack.copyWithCount(1))) {
+					|| !worthBuying(data, stack) || !bag.canAddItem(stack.copyWithCount(1))) {
 					continue;
 				}
 				if (pick < 0 || kinds.getOrDefault(kind(stack), 0) < kinds.getOrDefault(kind(container.getItem(pick)), 0)) {
@@ -288,6 +341,12 @@ public final class Meals {
 			}
 		}
 		return takes;
+	}
+
+	/** Whether the food, eaten next, counts at least as much for its price as a meal out. */
+	private static boolean worthBuying(MealData data, ItemStack stack) {
+		double per = perEmerald();
+		return per <= 0.0 || value(data, stack) * per >= nutrition(stack) * perEmeraldOut() - 1.0E-6;
 	}
 
 	/**
@@ -338,55 +397,6 @@ public final class Meals {
 		if (data.purse() > 0) {
 			villager.spawnAtLocation(level, new ItemStack(WorkerSupplies.WAGE, data.purse()));
 			data.setPurse(0);
-		}
-	}
-
-	/** A work behavior that a hungry worker does slower: it skips some of its ticks. */
-	private static final class HungryWork implements BehaviorControl<Villager> {
-		private final BehaviorControl<? super Villager> work;
-		/** Percent of a tick earned towards the next one, while hungry. */
-		private int credit;
-
-		HungryWork(BehaviorControl<? super Villager> work) {
-			this.work = work;
-		}
-
-		@Override
-		public Behavior.Status getStatus() {
-			return this.work.getStatus();
-		}
-
-		@Override
-		public Set<MemoryModuleType<?>> getRequiredMemories() {
-			return this.work.getRequiredMemories();
-		}
-
-		@Override
-		public boolean tryStart(ServerLevel level, Villager villager, long timestamp) {
-			return this.work.tryStart(level, villager, timestamp);
-		}
-
-		@Override
-		public void tickOrStop(ServerLevel level, Villager villager, long timestamp) {
-			int slowdown = slowdown(villager);
-			if (slowdown > 0) {
-				this.credit += 100 - slowdown;
-				if (this.credit < 100) {
-					return;
-				}
-				this.credit -= 100;
-			}
-			this.work.tickOrStop(level, villager, timestamp);
-		}
-
-		@Override
-		public void doStop(ServerLevel level, Villager villager, long timestamp) {
-			this.work.doStop(level, villager, timestamp);
-		}
-
-		@Override
-		public String debugString() {
-			return this.work.debugString();
 		}
 	}
 }

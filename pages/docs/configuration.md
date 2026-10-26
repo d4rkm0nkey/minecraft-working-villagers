@@ -241,10 +241,10 @@ The herd size is no config option: set it at each loom (tab **Settings**).
 
 | Option | Default | Range | What it does |
 | --- | --- | --- | --- |
-| `enabled` | true | | Workers get hungry at work and buy their food at village chests, see [Meals](workers/basics.md#meals). `false`: the whole wage is spent and workers never get hungry. |
+| `enabled` | true | | Workers get hungry at work and buy their food at village chests, or eat out (the emeralds are gone), see [Meals](workers/basics.md#meals). `false`: the whole wage is spent and workers never get hungry. |
 | `upkeep` | 50 | 0–100 | Percent of each wage spent on the worker's upkeep: these emeralds are gone. The rest goes into its purse and buys its food, so it comes back into the village chests. `100`: food from village chests is free. |
-| `dailyFood` | 10 | 1–40 | Food points a worker eats per work day. A day's food money buys that much food. |
-| `hungrySlowdown` | 50 | 0–90 | How much slower (in percent) a hungry worker works. |
+| `dailyFood` | 10 | 1–40 | Food points a worker eats per work day. |
+| `foodBudget` | 150 | 50–400 | Percent of a day's food that a day's food money buys at village chests. Eating out it buys 100 %, so above 100 food from the village is cheaper. A worker buys food there only while it counts (with the variety) at least as much as eating out: at 100 only food of a kind it did not just have, at 200 also a third meal of the same kind. |
 
 ## Tools (`tools`)
 

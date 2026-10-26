@@ -1,7 +1,7 @@
 {
   "type": "minecraft:function",
   "environment": "workingvillagers:work_hours",
-  "function": "workingvillagers:hungry_worker_says_so",
+  "function": "workingvillagers:worker_skips_monotone_food",
   "max_ticks": 1200,
   "setup_ticks": 1,
   "structure": "workingvillagers:platform"

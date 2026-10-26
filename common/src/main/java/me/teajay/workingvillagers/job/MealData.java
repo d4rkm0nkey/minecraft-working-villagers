@@ -21,28 +21,32 @@ public class MealData {
 		Codec.INT.optionalFieldOf("upkeep_owed", 0).forGetter(data -> data.upkeepOwed),
 		Codec.FLOAT.optionalFieldOf("hunger", 0.0F).forGetter(data -> data.hunger),
 		Codec.STRING.listOf().optionalFieldOf("recent", List.of()).forGetter(data -> data.recent),
-		ItemStack.CODEC.listOf().optionalFieldOf("bag", List.of()).forGetter(MealData::contents)
+		ItemStack.CODEC.listOf().optionalFieldOf("bag", List.of()).forGetter(MealData::contents),
+		Codec.BOOL.optionalFieldOf("ate_out", false).forGetter(data -> data.ateOut)
 	).apply(i, MealData::new));
 
 	private int purse;
 	/** Hundredths of an emerald of upkeep not spent yet: a wage of 1 at 50 % spends an emerald every other day. */
 	private int upkeepOwed;
-	/** Food points the worker misses: 0 is full, {@link Meals#dailyFood} is hungry. */
+	/** Food points the worker misses: 0 is full, {@link Meals#dailyFood} is hungry; below 0 after eating out. */
 	private float hunger;
 	/** The kinds of food ({@link Meals#kind}) of its last meals, the latest last. */
 	private final List<String> recent;
 	private final SimpleContainer bag = new SimpleContainer(BAG_SLOTS);
+	/** Whether its last meal was eaten out (see {@link Meals}): it found no food at its village chests. */
+	private boolean ateOut;
 
 	public MealData() {
-		this(0, 0, 0.0F, List.of(), List.of());
+		this(0, 0, 0.0F, List.of(), List.of(), false);
 	}
 
-	private MealData(int purse, int upkeepOwed, float hunger, List<String> recent, List<ItemStack> contents) {
+	private MealData(int purse, int upkeepOwed, float hunger, List<String> recent, List<ItemStack> contents, boolean ateOut) {
 		this.purse = purse;
 		this.upkeepOwed = upkeepOwed;
 		this.hunger = hunger;
 		this.recent = new ArrayList<>(recent);
 		contents.forEach(this.bag::addItem);
+		this.ateOut = ateOut;
 	}
 
 	public int purse() {
@@ -66,11 +70,19 @@ public class MealData {
 	}
 
 	public void setHunger(float hunger) {
-		this.hunger = Math.max(0.0F, hunger);
+		this.hunger = hunger;
 	}
 
 	public List<String> recent() {
 		return this.recent;
+	}
+
+	public boolean ateOut() {
+		return this.ateOut;
+	}
+
+	public void setAteOut(boolean ateOut) {
+		this.ateOut = ateOut;
 	}
 
 	public SimpleContainer bag() {
@@ -79,7 +91,7 @@ public class MealData {
 
 	/** Whether there is nothing worth saving: a worker that was never paid and never ate. */
 	public boolean isEmpty() {
-		return this.purse == 0 && this.upkeepOwed == 0 && this.hunger == 0.0F && this.recent.isEmpty() && this.bag.isEmpty();
+		return this.purse == 0 && this.upkeepOwed == 0 && this.hunger == 0.0F && this.recent.isEmpty() && this.bag.isEmpty() && !this.ateOut;
 	}
 
 	private List<ItemStack> contents() {

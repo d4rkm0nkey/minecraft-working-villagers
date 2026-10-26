@@ -92,7 +92,7 @@ public final class SimMonitor {
 			header("ticks.csv", "hour,day,time_of_day,ticks,mean_ms,p50_ms,p95_ms,p99_ms,max_ms,over_50ms,entities,villagers,workers_alive,monsters,animals,items,golems,chunks");
 			header("workers.csv", "day,job,status,samples");
 			header("economy.csv", "day,workers_alive,paid_today,unpaid_today,wage_boxes,village_chests,tills,storage,depots_relays,carried,purses,total_emeralds,shop_earned,deaths_total");
-			header("meals.csv", "day,purses,hungry_at_end,mean_hunger,bag_food_points,hungry_work_share,pantry_food,pantry_emeralds");
+			header("meals.csv", "day,purses,hungry_at_end,mean_hunger,bag_food_points,hungry_work_share,pantry_food,pantry_emeralds,eating_out_at_end");
 			header("storage.csv", "day,item,count");
 			header("production.csv", "day,job,worker,done");
 			header("deliveries.csv", "day,job,chest,item,count");
@@ -316,7 +316,7 @@ public final class SimMonitor {
 		this.dayProblemSamples.clear();
 
 		// Production: what each worker did today (logs, crops, emeralds earned, ...)
-		int paid = 0, unpaid = 0, shopEarned = 0, alive = 0, carried = 0, purses = 0, hungryAtEnd = 0, bagPoints = 0;
+		int paid = 0, unpaid = 0, shopEarned = 0, alive = 0, carried = 0, purses = 0, hungryAtEnd = 0, eatingOut = 0, bagPoints = 0;
 		float hunger = 0.0F;
 		Map<String, Integer> production = new TreeMap<>();
 		for (SimRegistry.Worker worker : this.registry.workers) {
@@ -341,6 +341,7 @@ public final class SimMonitor {
 			purses += meals.purse();
 			hunger += meals.hunger();
 			hungryAtEnd += Meals.isHungry(villager) ? 1 : 0;
+			eatingOut += Meals.eatsOut(villager) ? 1 : 0;
 			for (ItemStack stack : meals.bag()) {
 				if (!stack.isEmpty() && stack.get(net.minecraft.core.component.DataComponents.FOOD) instanceof net.minecraft.world.food.FoodProperties food) {
 					bagPoints += food.nutrition() * stack.getCount();
@@ -368,7 +369,7 @@ public final class SimMonitor {
 		int pantryFood = pantry.entrySet().stream().filter(entry -> !entry.getKey().equals("emerald")).mapToInt(Map.Entry::getValue).sum();
 		float meanHunger = alive == 0 ? 0.0F : hunger / alive;
 		double hungryShare = workSamples == 0 ? 0.0 : (double) hungrySamples / workSamples;
-		this.append("meals.csv", String.format(Locale.ROOT, "%d,%d,%d,%.2f,%d,%.3f,%d,%d", simDay, purses, hungryAtEnd, meanHunger, bagPoints, hungryShare, pantryFood, pantryEmeralds));
+		this.append("meals.csv", String.format(Locale.ROOT, "%d,%d,%d,%.2f,%d,%.3f,%d,%d,%d", simDay, purses, hungryAtEnd, meanHunger, bagPoints, hungryShare, pantryFood, pantryEmeralds, eatingOut));
 
 		// Storage contents
 		Map<String, Integer> contents = contents(level, this.registry.storage);
@@ -418,6 +419,7 @@ public final class SimMonitor {
 		row.put("total", total);
 		Map<String, Object> mealsRow = new LinkedHashMap<>();
 		mealsRow.put("hungryAtEnd", hungryAtEnd);
+		mealsRow.put("eatingOutAtEnd", eatingOut);
 		mealsRow.put("meanHunger", meanHunger);
 		mealsRow.put("bagFoodPoints", bagPoints);
 		mealsRow.put("hungryWorkShare", hungryShare);
@@ -492,8 +494,8 @@ public final class SimMonitor {
 		row.put("workers", snapshot);
 		this.storageLast = contents;
 		this.dayRows.add(row);
-		LOG.info("Day {} done: {} of {} workers paid, emeralds {} (shop earned {}, in purses {}), storage {} / {} slots; hungry {} at the end, {} % of work hungry, pantry {} food {} emeralds",
-			simDay, paid, alive, total, shopEarned, purses, slotsUsed, slots, hungryAtEnd, String.format(Locale.ROOT, "%.1f", 100 * hungryShare), pantryFood, pantryEmeralds);
+		LOG.info("Day {} done: {} of {} workers paid, emeralds {} (shop earned {}, in purses {}), storage {} / {} slots; hungry {} and eating out {} at the end, {} % of work hungry, pantry {} food {} emeralds",
+			simDay, paid, alive, total, shopEarned, purses, slotsUsed, slots, hungryAtEnd, eatingOut, String.format(Locale.ROOT, "%.1f", 100 * hungryShare), pantryFood, pantryEmeralds);
 	}
 
 	static int emeralds(ServerLevel level, List<BlockPos> chests) {

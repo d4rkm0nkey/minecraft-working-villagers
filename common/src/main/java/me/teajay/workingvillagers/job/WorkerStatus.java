@@ -110,7 +110,7 @@ public final class WorkerStatus {
 			}
 			Component task = ((HiredVillager) villager).workingvillagers$getTask();
 			task = task != null ? task : translatable("no_work");
-			return Meals.isHungry(villager) ? translatable("hungry", task) : task;
+			return Meals.isHungry(villager) ? translatable("hungry", task) : Meals.eatsOut(villager) ? translatable("eats_out", task) : task;
 		}
 		if (brain.isActive(Activity.REST)) {
 			return translatable("going_to_bed");

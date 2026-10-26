@@ -91,8 +91,8 @@ public final class VillageChests {
 
 	/**
 	 * What the worker cannot work without and finds in none of its village chests, as the
-	 * kind of the supply ({@code "wage"}, {@code "axe"}, {@code "ladders"}, ...); empty if it
-	 * lacks nothing (or knows where to get it).
+	 * kind of the supply ({@code "wage"}, {@code "axe"}, {@code "ladders"}, ...), or
+	 * {@code "food"} if it eats out; empty if it lacks nothing (or knows where to get it).
 	 */
 	public static Optional<String> missing(ServerLevel level, Villager worker) {
 		SimpleContainer inventory = worker.getInventory();
@@ -109,6 +109,10 @@ public final class VillageChests {
 			if (stock.required() && WorkerSupplies.count(inventory, stock.item()) == 0) {
 				lacking.add(Map.entry(stock.kind(), stock.item()));
 			}
+		}
+		if (Meals.eatsOut(worker)) {
+			// It can work without, but its food money leaves the village
+			lacking.add(Map.entry("food", Meals::isMeal));
 		}
 		if (lacking.isEmpty()) {
 			return Optional.empty();
