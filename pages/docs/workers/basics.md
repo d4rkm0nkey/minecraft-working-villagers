@@ -213,15 +213,16 @@ vanilla mobs picking up items); right-clicking always works.
   piece of work: the first log, the first crafted item, the first load carried; a guard
   when it takes up its post. A worker that gets nothing done all day, because material is
   missing for example, costs nothing that day. The emerald has to be there before it starts.
-  64 emeralds pay for 64 work days. Without an emerald it does not work. It waits next
+  64 emeralds pay for 64 work days. Half of the wages is its upkeep and gone, the other
+  half goes into its purse for its [meals](#meals). Without an emerald it does not work. It waits next
   to its workstation ("Waiting for wages") and checks again every few seconds, so you
   can pay it late.
 - **Tools:** the lumberjack needs an axe, the farmer a hoe, the shepherd shears, the butcher a sword or an axe, the fisher a fishing rod, the guard a bow and arrows, the pit digger a shovel, a
   pickaxe and ladders. The sawyer, stone sawyer, carpenter, smith, kiln operator, shop
   assistant and carrier only need emeralds.
 - Workers never hand in their emeralds or their tool to the output chests.
-- **A hired worker that dies drops everything it carries:** tools and material. Its
-  wage stays in the wage box.
+- **A hired worker that dies drops everything it carries:** tools and material, its food
+  and the emeralds in its purse. Its wage stays in the wage box.
 
 !!! note
     With `dailyWage` set to 0 in the [configuration](../configuration.md) workers work
@@ -256,7 +257,10 @@ what it wants ("Fetching supplies from a village chest").
 - **Saplings, seeds, ladders, torches:** once it has less than a quarter of what it
   keeps, it fills up to that amount, kinds it already carries first.
 - It never takes **enchanted or renamed tools**: give those directly.
-- Workers put nothing into a village chest except their [worn tools](#worn-tools). Hoppers
+- **Food:** once it carries less than a day's food, it buys some with its purse, see
+  [Meals](#meals).
+- Workers put nothing into a village chest except their [worn tools](#worn-tools) and the
+  emeralds they pay for food. Hoppers
   and [carriers](carrier.md) can fill it like any chest, e.g. with the saplings from the
   lumberjack's chest.
 - If no village chest has what it needs, it waits as before.
@@ -267,6 +271,46 @@ marks the ones that lack something no village chest has (*Needs an axe!*) and sa
 **how many days** the emeralds (in their village chests and wage boxes) pay all their
 wages. If workers gave back worn tools, it says how many lie in the chest. A red dot on
 the tab means some worker lacks something. More workers than fit are shown page by page.
+
+## Meals
+
+Workers get **hungry** at work. A worker eats **10 food points** a work day (as on the
+hunger bar: :mc-bread: bread is 5, :mc-cooked_beef: cooked beef 8) from its **lunch bag**,
+4 stacks next to its pockets. A worker without food gets hungry within a work day and then
+works **half as fast**; the station menu says *(hungry: works slower)* behind what it does.
+It never stops working because of hunger.
+
+**Where the food comes from:**
+
+- **Bought at a village chest.** Of every wage, half is the worker's **upkeep** and gone;
+  the other half goes into its **purse**. Once it carries less than a day's food, it walks
+  to a village chest with food and buys some: the emerald goes into the chest, so it pays
+  wages again. A day's food money buys a day's food, so with a wage of 1 an emerald buys
+  20 food points, food for two days. Put the food of your farmers, butchers and fishers
+  into the village chests (or let [carriers](carrier.md) bring it), and the workers pay
+  the village for it.
+- **Given by you:** right-click a worker with food or throw it to it. It goes into the
+  lunch bag and costs nothing.
+
+A purse holds at most the food money of three days. If a worker finds no food to buy, it
+leaves the rest of its wage in the wage box once its purse is full, so the emeralds are
+not lost. Food it buys is never handed in to an output chest.
+
+**Variety:** workers know four kinds of food: **field crops** (bread, carrots, potatoes,
+baked potatoes, beetroot, pumpkin pie, cookies), **meat**, **fish** (and dried kelp) and
+**fruit** (apples, berries, melon slices). Food of a kind it had in one of its last two
+meals counts a quarter less per such meal. Workers that only get bread get half of its
+food points; with three kinds in turns every meal counts in full. A worker buys a mix of
+what the chest has and eats what counts most. Data packs can change which food counts as
+which kind, see [Data packs](../data-packs.md#meals).
+
+!!! tip "How it adds up"
+    A worker costs the village only its upkeep, half an emerald a day. The rest comes back
+    through the food it buys, as long as the village chests hold food. A village whose
+    shops earn the upkeep of its workers keeps going.
+
+Upkeep, food per day and how much slower hungry workers are can be changed in the
+[configuration](../configuration.md#meals-meals); meals can also be turned off.
 
 ## Worn tools
 

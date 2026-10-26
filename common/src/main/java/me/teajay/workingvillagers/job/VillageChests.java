@@ -126,9 +126,10 @@ public final class VillageChests {
 			.findFirst();
 	}
 
-	/** Whether the worker would take something from the container now; with {@code only}, something of that. */
+	/** Whether the worker would take something from the container now (or buy food there); with {@code only}, something of that. */
 	static boolean offers(Villager villager, Container container, Predicate<ItemStack> only) {
-		return plan(villager, container).stream().anyMatch(take -> only.test(container.getItem(take.slot())));
+		return plan(villager, container).stream().anyMatch(take -> only.test(container.getItem(take.slot())))
+			|| Meals.plan(villager, container).stream().anyMatch(take -> only.test(container.getItem(take.slot())));
 	}
 
 	/** Whether the worker runs low on anything it could take from a village chest. */
@@ -147,7 +148,8 @@ public final class VillageChests {
 				return true;
 			}
 		}
-		return Uniforms.wearsArmor(villager) && Uniforms.SLOTS.stream().anyMatch(slot -> Uniforms.lacks(villager, slot));
+		return Uniforms.wearsArmor(villager) && Uniforms.SLOTS.stream().anyMatch(slot -> Uniforms.lacks(villager, slot))
+			|| Meals.wantsFood(villager);
 	}
 
 	/** Moves what the worker wants out of the container into its inventory. Returns how many items it took. */
@@ -164,7 +166,7 @@ public final class VillageChests {
 		if (taken > 0) {
 			container.setChanged();
 		}
-		return taken;
+		return taken + Meals.buy(villager, container);
 	}
 
 	/** What the worker would take out of the container now, slot by slot. */

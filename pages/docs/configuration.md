@@ -237,6 +237,15 @@ The herd size is no config option: set it at each loom (tab **Settings**).
 | `wageDays` | 3 | 1–16 | For how many days a worker takes its wage at once. When emeralds run short, only its share of them, at least today's wage. |
 | `takeEnchanted` | false | | Workers also take enchanted and renamed tools. |
 
+## Meals (`meals`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `enabled` | true | | Workers get hungry at work and buy their food at village chests, see [Meals](workers/basics.md#meals). `false`: the whole wage is spent and workers never get hungry. |
+| `upkeep` | 50 | 0–100 | Percent of each wage spent on the worker's upkeep: these emeralds are gone. The rest goes into its purse and buys its food, so it comes back into the village chests. `100`: food from village chests is free. |
+| `dailyFood` | 10 | 1–40 | Food points a worker eats per work day. A day's food money buys that much food. |
+| `hungrySlowdown` | 50 | 0–90 | How much slower (in percent) a hungry worker works. |
+
 ## Tools (`tools`)
 
 | Option | Default | Range | What it does |

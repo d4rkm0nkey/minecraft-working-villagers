@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "workingvillagers:work_hours",
+  "function": "workingvillagers:full_purse_leaves_wage_in_box",
+  "max_ticks": 1200,
+  "setup_ticks": 1,
+  "structure": "workingvillagers:platform"
+}

@@ -69,6 +69,8 @@ loom {
 			property("wvsim.sprint", project.findProperty("sprint") ?: "true")
 			property("wvsim.walled", project.findProperty("walled") ?: "false")
 			property("wvsim.view", simView.toString())
+			// -Pfeed=bread: a player's auto farm keeps 64 of that food in every pantry
+			property("wvsim.feed", project.findProperty("feed") ?: "")
 			vmArg("-Xmx6G")
 			// -Pjfr: a Java Flight Recorder profile of the run, run/simulation/simulation.jfr
 			if (project.hasProperty("jfr")) {

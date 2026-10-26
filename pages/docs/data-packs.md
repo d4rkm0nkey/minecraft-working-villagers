@@ -94,3 +94,19 @@ item out of the kiln although a furnace smelts it, add it to the item tag
 A tree counts as natural when its logs stand on the ground trees grow on (anything in
 `#minecraft:substrate_overworld`: dirt, grass, podzol, mycelium, mud, moss) and it has leaves that are not marked as player placed. Modded trees
 that follow these rules are felled too.
+
+## Meals
+
+Workers eat the items in the item tag `workingvillagers:meals` that are food. For the
+[variety](workers/basics.md#meals) each belongs to one of four kinds, one tag each:
+`workingvillagers:meals/field`, `meals/meat`, `meals/fish` and `meals/fruit`; `meals` holds
+these four. Add modded food to one of them:
+
+```json title="data/workingvillagers/tags/item/meals/field.json"
+{
+  "replace": false,
+  "values": ["mymod:rice_bowl"]
+}
+```
+
+Food you add to `meals` directly, without a kind, counts as a kind of its own.

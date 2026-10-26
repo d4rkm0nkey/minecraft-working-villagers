@@ -250,6 +250,19 @@ public final class Config {
 	public static final BoolOption VILLAGE_CHEST_ENCHANTED = boolOption("villageChests", "takeEnchanted", false,
 		"Workers also take enchanted and renamed tools from village chests.");
 
+	public static final BoolOption MEALS = boolOption("meals", "enabled", true,
+		"Workers get hungry at work and eat. Part of their wage goes into a purse, from which they buy food at",
+		"village chests (the emeralds go into the chest); hungry workers work slower.",
+		"Off: the whole wage is spent and workers never get hungry.");
+	public static final IntOption UPKEEP = intOption("meals", "upkeep", 50, 0, 100,
+		"Percent of each wage spent on the worker's upkeep: these emeralds are gone. The rest goes into its purse",
+		"and buys its food, so it comes back into the village chests. 100: food from village chests is free.");
+	public static final IntOption DAILY_FOOD = intOption("meals", "dailyFood", 10, 1, 40,
+		"Food points (as on the hunger bar: bread 5, cooked beef 8) a worker eats per work day.",
+		"A worker's food money of a day buys that much food.");
+	public static final IntOption HUNGRY_SLOWDOWN = intOption("meals", "hungrySlowdown", 50, 0, 90,
+		"How much slower (in percent) a hungry worker works.");
+
 	public static final IntOption TOOL_RETURN_BELOW = intOption("tools", "returnBelow", 10, 0, 50,
 		"Workers stop using a tool once this many percent of its durability are left (but at least 2 uses)",
 		"and give it back instead of breaking it: into a village chest a smith repairs from, or an output chest of their workstation.",

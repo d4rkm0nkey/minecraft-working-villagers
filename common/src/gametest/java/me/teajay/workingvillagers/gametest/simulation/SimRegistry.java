@@ -33,10 +33,12 @@ public final class SimRegistry {
 	final List<BlockPos> tills = new ArrayList<>();
 	final List<BlockPos> villageChests = new ArrayList<>();
 	final List<BlockPos> relays = new ArrayList<>();
+	/** The village chests the workers buy their food at. */
+	final List<BlockPos> pantries = new ArrayList<>();
 
 	/** Plain data for Gson: positions as arrays. */
 	private record Data(int wings, int ground, long[] center, List<String[]> workers, List<String[]> traders, List<long[]> storage, List<long[]> depots,
-		List<long[]> tills, List<long[]> villageChests, List<long[]> relays) {
+		List<long[]> tills, List<long[]> villageChests, List<long[]> relays, List<long[]> pantries) {
 	}
 
 	void save(Path file) throws IOException {
@@ -45,7 +47,7 @@ public final class SimRegistry {
 			this.traders.stream().map(t -> new String[] {t.uuid().toString(), t.profession(), Integer.toString(t.wing()), Long.toString(t.block().asLong())}).toList(),
 			this.storage.stream().map(SimRegistry::pos).toList(), this.depots.stream().map(SimRegistry::pos).toList(),
 			this.tills.stream().map(SimRegistry::pos).toList(), this.villageChests.stream().map(SimRegistry::pos).toList(),
-			this.relays.stream().map(SimRegistry::pos).toList());
+			this.relays.stream().map(SimRegistry::pos).toList(), this.pantries.stream().map(SimRegistry::pos).toList());
 		Files.createDirectories(file.getParent());
 		Files.writeString(file, GSON.toJson(data));
 	}
@@ -67,6 +69,9 @@ public final class SimRegistry {
 		data.tills().forEach(p -> registry.tills.add(pos(p)));
 		data.villageChests().forEach(p -> registry.villageChests.add(pos(p)));
 		data.relays().forEach(p -> registry.relays.add(pos(p)));
+		if (data.pantries() != null) {
+			data.pantries().forEach(p -> registry.pantries.add(pos(p)));
+		}
 		return registry;
 	}
 
