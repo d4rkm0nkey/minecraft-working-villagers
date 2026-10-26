@@ -8,6 +8,7 @@ import java.util.Set;
 import me.teajay.workingvillagers.Config;
 import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.job.VillageChests;
+import me.teajay.workingvillagers.job.WorkerLevels;
 import me.teajay.workingvillagers.job.WorkerSupplies;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -149,7 +150,9 @@ public class VillageChestMenu extends ChestMenu {
 		ListTag list = new ListTag();
 		Set<BlockPos> chests = new HashSet<>();
 		int carried = 0;
+		int wage = 0;
 		for (Villager worker : workers) {
+			wage += WorkerLevels.dailyWage(worker);
 			CompoundTag entry = new CompoundTag();
 			if (worker.hasCustomName()) {
 				entry.store(TAG_NAME, ComponentSerialization.CODEC, worker.getName());
@@ -163,8 +166,7 @@ public class VillageChestMenu extends ChestMenu {
 		}
 		tag.put(TAG_WORKERS, list);
 		tag.putInt(TAG_WORN_TOOLS, WorkerSupplies.count(this.getContainer(), WorkerSupplies::isWorn));
-		int wage = Config.DAILY_WAGE.get();
-		if (wage > 0 && !workers.isEmpty()) {
+		if (wage > 0) {
 			int emeralds = carried;
 			for (BlockPos chest : chests) {
 				Container container = level.isLoaded(chest) && level.getBlockEntity(chest) instanceof Container found ? found : null;
@@ -172,7 +174,7 @@ public class VillageChestMenu extends ChestMenu {
 					emeralds += container.countItem(WorkerSupplies.WAGE);
 				}
 			}
-			tag.putInt(TAG_WAGE_DAYS, emeralds / (wage * workers.size()));
+			tag.putInt(TAG_WAGE_DAYS, emeralds / wage);
 		}
 		this.info.setInfo(tag);
 	}

@@ -1,15 +1,19 @@
 package me.teajay.workingvillagers.mixin;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.carrier.CarrierData;
 import me.teajay.workingvillagers.carrier.Carriers;
 import me.teajay.workingvillagers.item.WickerBasketItem;
 import me.teajay.workingvillagers.item.WorkContractItem;
+import me.teajay.workingvillagers.job.ChopTrees;
 import me.teajay.workingvillagers.job.HiredVillager;
 import me.teajay.workingvillagers.job.StuckWorkers;
 import me.teajay.workingvillagers.job.TradeFamilies;
 import me.teajay.workingvillagers.job.WorkerJobs;
+import me.teajay.workingvillagers.job.WorkerNotice;
 import me.teajay.workingvillagers.job.WorkerSupplies;
 import me.teajay.workingvillagers.station.StationPicks;
 import net.minecraft.core.BlockPos;
@@ -68,6 +72,10 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 	@Unique
 	private int workingvillagers$workDone;
 	@Unique
+	private static final String TAG_PLANTINGS = "WorkingVillagersPlantings";
+	@Unique
+	private final List<ChopTrees.Planting> workingvillagers$plantings = new ArrayList<>();
+	@Unique
 	private static final String TAG_CARRIER = "WorkingVillagersCarrier";
 	@Unique
 	private static final String TAG_PAID_DAY = "WorkingVillagersPaidDay";
@@ -98,6 +106,16 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 	@Unique
 	private int workingvillagers$experience;
 	@Unique
+	private boolean workingvillagers$working;
+	@Unique
+	private static final String TAG_LEARNED = "WorkingVillagersLearned";
+	@Unique
+	private float workingvillagers$learned;
+	@Unique
+	private static final String TAG_CAREER = "WorkingVillagersCareer";
+	@Unique
+	private @Nullable String workingvillagers$career;
+	@Unique
 	private static final String TAG_KEPT_OFFERS = "WorkingVillagersKeptOffers";
 	@Unique
 	private static final String TAG_KEPT_FAMILY = "WorkingVillagersKeptFamily";
@@ -115,6 +133,31 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 	 */
 	@Unique
 	private static final int WORK_SWING_TICKS = 10;
+	/** The sign above the worker's head, see {@link WorkerNotice}. */
+	@Unique
+	private byte workingvillagers$notice = WorkerNotice.NONE;
+	@Unique
+	private int workingvillagers$doneUntil = Integer.MIN_VALUE;
+
+	@Override
+	public byte workingvillagers$getNotice() {
+		return this.workingvillagers$notice;
+	}
+
+	@Override
+	public void workingvillagers$setNotice(byte notice) {
+		this.workingvillagers$notice = notice;
+	}
+
+	@Override
+	public int workingvillagers$getDoneUntil() {
+		return this.workingvillagers$doneUntil;
+	}
+
+	@Override
+	public void workingvillagers$setDoneUntil(int tick) {
+		this.workingvillagers$doneUntil = tick;
+	}
 
 	/** Only workers swing: at work. Overrides {@code Mob.swingForAttack}. */
 	public void swingForAttack(InteractionHand hand) {
@@ -135,6 +178,36 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 	@Override
 	public void workingvillagers$setProblem(boolean problem) {
 		this.workingvillagers$problem = problem;
+	}
+
+	@Override
+	public boolean workingvillagers$isWorking() {
+		return this.workingvillagers$working;
+	}
+
+	@Override
+	public void workingvillagers$setWorking(boolean working) {
+		this.workingvillagers$working = working;
+	}
+
+	@Override
+	public float workingvillagers$getLearned() {
+		return this.workingvillagers$learned;
+	}
+
+	@Override
+	public void workingvillagers$setLearned(float seconds) {
+		this.workingvillagers$learned = Math.max(0.0F, seconds);
+	}
+
+	@Override
+	public @Nullable String workingvillagers$getCareer() {
+		return this.workingvillagers$career;
+	}
+
+	@Override
+	public void workingvillagers$setCareer(@Nullable String career) {
+		this.workingvillagers$career = career;
 	}
 
 	@Override
@@ -196,6 +269,14 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 	public void workingvillagers$addWorkDone(long day, int amount) {
 		this.workingvillagers$workDone = this.workingvillagers$getWorkDone(day) + amount;
 		this.workingvillagers$workDay = day;
+		if (amount > 0 && ((Villager) (Object) this).level() instanceof ServerLevel level) {
+			WorkerSupplies.earned(level, (Villager) (Object) this);
+		}
+	}
+
+	@Override
+	public List<ChopTrees.Planting> workingvillagers$getPlantings() {
+		return this.workingvillagers$plantings;
 	}
 
 	@Override
@@ -262,8 +343,17 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 			output.putLong(TAG_WORK_DAY, this.workingvillagers$workDay);
 			output.putInt(TAG_WORK_DONE, this.workingvillagers$workDone);
 		}
+		if (!this.workingvillagers$plantings.isEmpty()) {
+			output.store(TAG_PLANTINGS, ChopTrees.Planting.CODEC.listOf(), this.workingvillagers$plantings);
+		}
 		if (this.workingvillagers$experience > 0) {
 			output.putInt(TAG_EXPERIENCE, this.workingvillagers$experience);
+		}
+		if (this.workingvillagers$learned > 0.0F) {
+			output.putFloat(TAG_LEARNED, this.workingvillagers$learned);
+		}
+		if (this.workingvillagers$career != null) {
+			output.putString(TAG_CAREER, this.workingvillagers$career);
 		}
 		if (this.workingvillagers$employer != null) {
 			output.putBoolean(TAG_WAGE_STORED, this.workingvillagers$wageStored);
@@ -283,6 +373,10 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 		this.workingvillagers$workDay = input.getLongOr(TAG_WORK_DAY, -1L);
 		this.workingvillagers$workDone = input.getIntOr(TAG_WORK_DONE, 0);
 		this.workingvillagers$experience = input.getIntOr(TAG_EXPERIENCE, 0);
+		this.workingvillagers$learned = input.getFloatOr(TAG_LEARNED, 0.0F);
+		this.workingvillagers$career = input.getString(TAG_CAREER).orElse(null);
+		this.workingvillagers$plantings.clear();
+		input.read(TAG_PLANTINGS, ChopTrees.Planting.CODEC.listOf()).ifPresent(this.workingvillagers$plantings::addAll);
 		// Workers saved by 0.3.0 have no such entry: they still carry their wage themselves
 		this.workingvillagers$wageStored = this.workingvillagers$employer == null || input.getBooleanOr(TAG_WAGE_STORED, false);
 		this.workingvillagers$keptOffers = input.read(TAG_KEPT_OFFERS, MerchantOffers.CODEC).orElse(null);

@@ -29,15 +29,18 @@ lake or the sea and fishes there.
 
 The fisher walks to the closest bank of water within **16 blocks** of the barrel (4 blocks
 up or down; a pond of a few blocks is enough), casts and waits for a bite, **5 to 30
-seconds** like a player. Then it reels in a catch from the vanilla fishing loot: mostly
-fish, sometimes junk. After **12 catches** it brings them to the chest and goes again.
+seconds** like a player. You see its bobber on the water with the line to the rod; when a
+fish bites, the bobber dips, the fisher reels in and the catch flies out of the water to
+it: mostly fish, sometimes junk, from the vanilla fishing loot. After **12 catches** it
+brings them to the chest and goes again.
 
 ## In the boat
 
 If it carries a boat and there is **open water** within **32 blocks** of the barrel (at least
 7 × 7 blocks of water, two deep, with only water on the way there):
 
-1. it puts the boat on the water at the bank and gets in,
+1. it puts the boat on the water at a bank of that water (also if a pond is closer to the
+   barrel) and gets in,
 2. rows out to the open water,
 3. fishes there; on open water it also catches **treasure** (enchanted books, bows, name
    tags, saddles, ...), like a player,

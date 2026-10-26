@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.core.BlockPos;
@@ -42,6 +43,10 @@ import org.jspecify.annotations.Nullable;
  * from gravel (1 gravel, 1 flint, like the mill) and cuts ingots into nuggets (1 ingot, 9
  * nuggets). It uses flint first, then copper, then iron, and only knaps or cuts when it has
  * no heads left.
+ *
+ * <p>A product ordered once it makes until there are as many as ordered. It takes its
+ * material from the input chests and the village chests ({@link Orders#sources}). Arrows for
+ * spectral arrows it makes itself if there are none.
  *
  * <p>What the order does not need it puts back into the input chest it fetches from,
  * products of an earlier order it brings to the output chests.
@@ -92,6 +97,10 @@ public class FletchArrows extends Behavior<Villager> {
 	private final Map<Item, Long> fetchFailedAt = new HashMap<>();
 	/** The product the worker makes right now, null before it picked one. */
 	private @Nullable Item current;
+	/** The product of the order the current product is made for (arrows for spectral arrows), null if it is one of the order itself. */
+	private @Nullable Item helpingFor;
+	/** How many pieces of the current product it fetches material for and makes. */
+	private int pieces;
 	private final WorkerSupplies supplies = new WorkerSupplies();
 
 	public FletchArrows() {
@@ -231,10 +240,16 @@ public class FletchArrows extends Behavior<Villager> {
 
 	/** The recipe of the product it makes right now, null if none. */
 	private @Nullable Recipe recipe(Workstations.Station workplace) {
-		if (this.current != null && !workplace.orders().contains(this.current)) {
+		if (this.current != null && !workplace.orders().contains(this.helpingFor != null ? this.helpingFor : this.current)) {
 			this.current = null; // the order changed
+			this.helpingFor = null;
 		}
 		return this.current == null ? null : RECIPES.get(this.current);
+	}
+
+	/** How many more of the product the order wants, counting what the fletcher carries; see {@link Workstations.Station#wanted}. */
+	private static int wanted(ServerLevel level, Workstations.Station workplace, SimpleContainer inventory, Item product) {
+		return workplace.wanted(product, workplace.stocked(product) ? inOutputs(level, workplace, product) + inventory.countItem(product) : 0);
 	}
 
 	private static boolean hasProducts(SimpleContainer inventory, @Nullable Recipe recipe) {
@@ -250,7 +265,22 @@ public class FletchArrows extends Behavior<Villager> {
 
 	private void plan(ServerLevel level, Villager villager, Workstations.Station workplace, long timestamp) {
 		SimpleContainer inventory = villager.getInventory();
-		List<Item> orders = workplace.orders().stream().filter(RECIPES::containsKey).toList();
+		// What it made is handed in: the orders that are done are done
+		Orders.finish(level, villager, workplace);
+		if (this.helpingFor != null) {
+			// Back to the product of the order after making what it needs
+			this.current = this.helpingFor;
+			this.helpingFor = null;
+		}
+		List<Item> ordered = workplace.orders().stream().filter(RECIPES::containsKey).toList();
+		// Only what its level lets it make (crossbows from apprentice, spectral arrows from journeyman)
+		List<Item> orders = ordered.stream().filter(product -> Unlocks.can(villager, product)).toList();
+		if (orders.isEmpty() && !ordered.isEmpty() && !hasProducts(inventory, null)) {
+			this.current = null;
+			this.idle(villager, workplace, "locked", WorkerLevels.name(ordered.stream()
+				.mapToInt(product -> Unlocks.level(WorkingVillagers.FLETCHER_PROFESSION, product)).min().orElse(WorkerLevels.NOVICE)));
+			return;
+		}
 		if (orders.isEmpty()) {
 			this.current = null;
 			if (hasProducts(inventory, null)) {
@@ -260,16 +290,15 @@ public class FletchArrows extends Behavior<Villager> {
 			}
 			return;
 		}
-		int stock = workplace.stock();
 		List<Item> byNeed = workplace.ordersByNeed(product -> inOutputs(level, workplace, product) + inventory.countItem(product)).stream()
-			.filter(RECIPES::containsKey)
+			.filter(orders::contains)
 			.toList();
 		if (byNeed.isEmpty()) {
 			if (hasProducts(inventory, this.recipe(workplace))) {
 				this.setState(State.DELIVER);
 			} else {
-				int have = orders.stream().mapToInt(product -> inOutputs(level, workplace, product) + inventory.countItem(product)).min().orElse(0);
-				this.idle(villager, workplace, "fletcher.stock_full", have, stock);
+				Orders.Idle idle = Orders.nothingToMake(level, workplace, "fletcher");
+				this.idle(villager, workplace, idle.key(), idle.args());
 			}
 			return;
 		}
@@ -284,18 +313,18 @@ public class FletchArrows extends Behavior<Villager> {
 		}
 		this.current = pick;
 		Recipe recipe = RECIPES.get(pick);
-		int have = inOutputs(level, workplace, recipe.product()) + inventory.countItem(recipe.product());
 		if (!inventory.canAddItem(new ItemStack(recipe.product(), recipe.count()))) {
 			this.setState(State.DELIVER);
 			return;
 		}
-		int wanted = recipe.batch();
-		if (stock > 0) {
-			wanted = Math.min(wanted, Math.max(1, Mth.positiveCeilDiv(stock - have, recipe.count())));
+		int pieces = recipe.batch();
+		if (workplace.limited(pick)) {
+			pieces = Math.min(pieces, Math.max(1, Mth.positiveCeilDiv(wanted(level, workplace, inventory, pick), recipe.count())));
 		}
+		this.pieces = pieces;
 		int possible = possible(inventory, recipe);
-		if (possible < wanted && this.mayFetch(pick, timestamp)) {
-			Optional<BlockPos> chest = this.inputWith(level, villager, workplace, recipe, inventory, wanted);
+		if (possible < pieces && this.mayFetch(pick, timestamp)) {
+			Optional<BlockPos> chest = this.inputWith(level, villager, workplace, recipe, inventory, pieces);
 			if (chest.isPresent()) {
 				this.fetchFrom = chest.get();
 				this.setState(State.FETCH);
@@ -306,20 +335,53 @@ public class FletchArrows extends Behavior<Villager> {
 			this.setState(State.WALK);
 		} else if (hasProducts(inventory, recipe)) {
 			this.setState(State.DELIVER);
-		} else {
+		} else if (!this.planHelper(level, villager, workplace, recipe, pieces, timestamp)) {
 			Part missing = recipe.parts().stream().filter(part -> available(inventory, part) < part.amount()).findFirst().orElse(recipe.parts().getFirst());
 			this.idle(villager, workplace, "fletcher.no_material", new ItemStack(missing.shown()).getHoverName());
 		}
+	}
+
+	/**
+	 * When a part of the recipe is missing that the fletcher makes itself (arrows for spectral
+	 * arrows) and there is material for it: makes that first, as many as the pieces need.
+	 */
+	private boolean planHelper(ServerLevel level, Villager villager, Workstations.Station workplace, Recipe recipe, int pieces, long timestamp) {
+		SimpleContainer inventory = villager.getInventory();
+		for (Part part : recipe.parts()) {
+			Recipe helper = RECIPES.get(part.shown());
+			int lacking = part.amount() * pieces - available(inventory, part);
+			if (helper == null || helper == recipe || lacking <= 0 || !Unlocks.can(villager, helper.product())) {
+				continue;
+			}
+			int helperPieces = Math.min(helper.batch(), Mth.positiveCeilDiv(lacking, helper.count()));
+			Optional<BlockPos> chest = possible(inventory, helper) >= helperPieces || !this.mayFetch(helper.product(), timestamp)
+				? Optional.empty()
+				: this.inputWith(level, villager, workplace, helper, inventory, helperPieces);
+			if (possible(inventory, helper) == 0 && chest.isEmpty()) {
+				continue;
+			}
+			this.helpingFor = recipe.product();
+			this.current = helper.product();
+			this.pieces = helperPieces;
+			if (chest.isPresent()) {
+				this.fetchFrom = chest.get();
+				this.setState(State.FETCH);
+			} else {
+				this.setState(State.WALK);
+			}
+			return true;
+		}
+		return false;
 	}
 
 	private boolean mayFetch(Item product, long timestamp) {
 		return timestamp - this.fetchFailedAt.getOrDefault(product, Long.MIN_VALUE / 2) > FETCH_COOLDOWN;
 	}
 
-	/** The closest input chest with a part the fletcher lacks for {@code wanted} pieces. */
+	/** The closest input chest (or village chest) with a part the fletcher lacks for {@code wanted} pieces. */
 	private Optional<BlockPos> inputWith(ServerLevel level, Villager villager, Workstations.Station workplace, Recipe recipe, SimpleContainer inventory,
 		int wanted) {
-		List<BlockPos> chests = workplace.validInputs(level).stream()
+		List<BlockPos> chests = Orders.sources(level, workplace).stream()
 			.filter(pos -> recipe.parts().stream().anyMatch(part -> available(inventory, part) < part.amount() * wanted && Chests.contains(level, pos, part.item())))
 			.toList();
 		return Chests.closest(chests, villager);
@@ -327,7 +389,8 @@ public class FletchArrows extends Behavior<Villager> {
 
 	private void fetch(ServerLevel level, Villager villager, Workstations.Station workplace, long timestamp) {
 		Recipe recipe = this.recipe(workplace);
-		List<Recipe> recipes = recipes(workplace);
+		// The order's recipes and what it makes for them
+		List<Recipe> recipes = recipe == null ? recipes(workplace) : Stream.concat(recipes(workplace).stream(), Stream.of(recipe)).toList();
 		if (this.trip == null) {
 			if (this.fetchFrom == null || recipe == null) {
 				this.setState(State.PLAN);
@@ -346,7 +409,7 @@ public class FletchArrows extends Behavior<Villager> {
 				}
 			}
 			for (Part part : recipe.parts()) {
-				int missing = part.amount() * recipe.batch() - available(inventory, part);
+				int missing = part.amount() * Math.max(1, this.pieces) - available(inventory, part);
 				if (missing <= 0) {
 					continue;
 				}
@@ -397,15 +460,17 @@ public class FletchArrows extends Behavior<Villager> {
 	/** One piece per second, as long as there is material and room. */
 	private void craft(ServerLevel level, Villager villager, Workstations.Station workplace) {
 		villager.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(workplace.pos()));
-		if (this.stateTicks % CRAFT_TICKS != 0) {
+		if (this.stateTicks % WorkerLevels.ticks(villager, CRAFT_TICKS) != 0) {
 			return;
 		}
 		SimpleContainer inventory = villager.getInventory();
 		Recipe recipe = this.recipe(workplace);
-		int stock = workplace.stock();
-		if (recipe == null || possible(inventory, recipe) == 0 || !inventory.canAddItem(new ItemStack(recipe.product(), recipe.count()))
-			|| stock > 0 && inOutputs(level, workplace, recipe.product()) + inventory.countItem(recipe.product()) >= stock) {
-			this.setState(hasProducts(inventory, recipe) ? State.DELIVER : State.PLAN);
+		// Enough: what it makes for the order once there are as many as needed, the order's product once the order has them
+		boolean enough = recipe != null && (this.helpingFor != null
+			? this.pieces <= 0
+			: workplace.limited(recipe.product()) && wanted(level, workplace, inventory, recipe.product()) <= 0);
+		if (recipe == null || possible(inventory, recipe) == 0 || !inventory.canAddItem(new ItemStack(recipe.product(), recipe.count())) || enough) {
+			this.setState(this.helpingFor == null && hasProducts(inventory, recipe) ? State.DELIVER : State.PLAN);
 			return;
 		}
 		for (Part part : recipe.parts()) {
@@ -416,7 +481,11 @@ public class FletchArrows extends Behavior<Villager> {
 			villager.spawnAtLocation(level, rest);
 		}
 		((HiredVillager) villager).workingvillagers$addWorkDone(ChopTrees.today(level), recipe.count());
-		workplace.addMade(recipe.product(), recipe.count());
+		if (this.helpingFor != null) {
+			this.pieces--;
+		} else {
+			workplace.addMade(recipe.product(), recipe.count());
+		}
 		villager.swingForAttack(InteractionHand.MAIN_HAND);
 		level.playSound(null, workplace.pos(), SoundEvents.VILLAGER_WORK_FLETCHER, SoundSource.BLOCKS, 0.6F, 1.0F);
 	}

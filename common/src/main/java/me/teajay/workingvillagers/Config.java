@@ -34,8 +34,11 @@ public final class Config {
 	private static final List<Option> OPTIONS = new ArrayList<>();
 
 	public static final IntOption DAILY_WAGE = intOption("workers", "dailyWage", 1, 0, 64,
-		"Emeralds a worker takes from the wage box of its workstation before work each day (put them in there,",
+		"Emeralds a novice worker takes from the wage box of its workstation before work each day (put them in there,",
 		"or right-click the station or the worker with them). 0: they work for free.");
+	public static final IntOption MASTER_DAILY_WAGE = intOption("workers", "masterDailyWage", 3, 0, 64,
+		"Emeralds a master takes per day. The levels between pay in between, rounded down (1, 1, 2, 2, 3 by default).",
+		"Not less than dailyWage.");
 	public static final BoolOption RANDOM_NAMES = boolOption("workers", "randomNames", false,
 		"Give hired villagers a random name (like Anton or Berta). Otherwise only a name tag names them.");
 	public static final IntOption MAX_CHESTS = intOption("workers", "maxChests", 8, 1, 8,
@@ -48,15 +51,34 @@ public final class Config {
 		"a worker is brought back to its workstation (a carrier: to the source of its first route).",
 		"0: never, the menus only show that it is stuck.");
 
+	public static final IntOption SECONDS_PER_EXPERIENCE = intOption("levels", "secondsPerExperience", 20, 1, 600,
+		"Workers get one point of villager experience per this many seconds of work (waiting does not count).",
+		"With the vanilla thresholds a worker that works all day is a master after about 15 days.");
+	public static final DoubleOption MENTOR_FACTOR = doubleOption("levels", "mentorFactor", 1.5, 1.0, 4.0,
+		"Workers below master learn this many times as fast while a master of their profession works nearby.");
+	public static final IntOption MENTOR_RADIUS = intOption("levels", "mentorRadius", 16, 1, 64,
+		"How close (in blocks) the master has to be.");
+	public static final DoubleOption MASTER_TIME = doubleOption("levels", "masterTime", 0.625, 0.1, 1.0,
+		"How long a step of the work takes a master, as a share of a novice's time. The levels between are in between.");
+	public static final IntOption MASTER_TOOL_SAVING = intOption("levels", "masterToolSaving", 40, 0, 100,
+		"The chance (in percent) that a master's tool loses no durability on a use, like unbreaking. Novices: 0.");
+	public static final IntOption NOVICE_AREA = intOption("levels", "noviceArea", 50, 10, 100,
+		"How big the work area of a novice is, in percent of the master's (the radius set for each job below).",
+		"Lumberjack: search radius; farmer, shepherd, butcher: field and pasture; fisher: water and sea; guard: hunting;",
+		"apothecary: healing; miner: tunnel and side tunnels; carrier: route length; shop assistant: trading.");
+	public static final BoolOption UNLOCKS = boolOption("levels", "unlocks", true,
+		"Whether some work needs a higher level first (doors from the journeyman sawyer, hunting from the journeyman guard, ...).",
+		"Off: every worker can do everything, only speed, tool wear and area grow with the level.");
+
 	public static final BoolOption REQUIRE_MOB_GRIEFING = boolOption("lumberjack", "requireMobGriefing", true,
 		"Lumberjacks only work while the game rule mob_griefing is on.");
-	public static final IntOption TREE_SEARCH_RADIUS = intOption("lumberjack", "searchRadius", 16, 4, 32,
+	public static final IntOption TREE_SEARCH_RADIUS = intOption("lumberjack", "searchRadius", 24, 4, 32,
 		"How far from the chopping block (in blocks) the lumberjack looks for trees.");
 	public static final IntOption DAILY_LOGS = intOption("lumberjack", "dailyLogs", 64, 1, 4096,
 		"After this many logs a day the lumberjack stops for the day.");
 	public static final DoubleOption CHOP_SLOWDOWN = doubleOption("lumberjack", "chopSlowdown", 8.0, 1.0, 32.0,
 		"How many times as long as a player with the same axe a (novice) lumberjack needs for a tree.");
-	public static final IntOption REST_SECONDS = intOption("lumberjack", "restSeconds", 30, 0, 600,
+	public static final IntOption REST_SECONDS = intOption("lumberjack", "restSeconds", 15, 0, 600,
 		"How long the lumberjack rests after bringing the wood to a chest.");
 	public static final IntOption KEEP_SAPLINGS = intOption("lumberjack", "keepSaplings", 16, 1, 64,
 		"How many saplings of each kind the lumberjack carries for replanting.");
@@ -173,12 +195,12 @@ public final class Config {
 		"How deep a master pit digger digs at most.");
 	public static final IntOption PIT_MAX_UNEVENNESS = intOption("pitDigger", "maxUnevenness", 4, 0, 8,
 		"How far apart (in height) the strings of a ring may lie at most.");
-	public static final IntOption PIT_DAILY_BLOCKS = intOption("pitDigger", "dailyBlocks", 256, 1, 4096,
+	public static final IntOption PIT_DAILY_BLOCKS = intOption("pitDigger", "dailyBlocks", 160, 1, 4096,
 		"After this many blocks a day the pit digger stops for the day.");
-	public static final DoubleOption DIG_SLOWDOWN = doubleOption("pitDigger", "digSlowdown", 8.0, 1.0, 32.0,
+	public static final DoubleOption DIG_SLOWDOWN = doubleOption("pitDigger", "digSlowdown", 6.0, 1.0, 32.0,
 		"How many times as long as a player with the same tool a (novice) pit digger needs for a block,",
 		"but at least minSecondsPerBlock.");
-	public static final DoubleOption MIN_DIG_SECONDS = doubleOption("pitDigger", "minSecondsPerBlock", 2.0, 0.25, 20.0,
+	public static final DoubleOption MIN_DIG_SECONDS = doubleOption("pitDigger", "minSecondsPerBlock", 1.5, 0.25, 20.0,
 		"How long the pit digger needs at least for a block, however good its tool (plants take a quarter of it).");
 	public static final IntOption KEEP_LADDERS = intOption("pitDigger", "keepLadders", 64, 1, 64,
 		"How many ladders the pit digger carries at most.");
@@ -193,9 +215,9 @@ public final class Config {
 		"How long (in blocks) a tunnel may be at most. The miner carries every load out to its chests itself.");
 	public static final IntOption TUNNEL_MAX_BRANCH = intOption("miner", "maxBranchLength", 16, 0, 32,
 		"How long the side tunnels (every 4 blocks, left and right) may be at most. 0: no side tunnels.");
-	public static final IntOption MINER_DAILY_BLOCKS = intOption("miner", "dailyBlocks", 256, 1, 4096,
+	public static final IntOption MINER_DAILY_BLOCKS = intOption("miner", "dailyBlocks", 96, 1, 4096,
 		"After this many blocks a day the miner stops for the day.");
-	public static final DoubleOption MINER_DIG_SLOWDOWN = doubleOption("miner", "digSlowdown", 8.0, 1.0, 32.0,
+	public static final DoubleOption MINER_DIG_SLOWDOWN = doubleOption("miner", "digSlowdown", 6.0, 1.0, 32.0,
 		"How many times as long as a player with the same pickaxe a (novice) miner needs for a block,",
 		"but at least minSecondsPerBlock.");
 	public static final DoubleOption MINER_MIN_DIG_SECONDS = doubleOption("miner", "minSecondsPerBlock", 1.5, 0.25, 20.0,

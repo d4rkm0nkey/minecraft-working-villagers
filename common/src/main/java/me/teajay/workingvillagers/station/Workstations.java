@@ -15,10 +15,12 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
 import me.teajay.workingvillagers.Config;
 import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.crafting.WoodTypes;
+import me.teajay.workingvillagers.job.WorkerLevels;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.UUIDUtil;
@@ -60,6 +62,8 @@ public class Workstations extends SavedData {
 	public static final int MAX_CHESTS = 8;
 	/** The most products one order can have. */
 	public static final int MAX_ORDERS = 8;
+	/** The most of one product a player can order or keep in stock. */
+	public static final int MAX_BATCH = 1024;
 
 	private static final Codec<Workstations> CODEC = Station.CODEC.listOf()
 		.fieldOf("stations")
@@ -180,7 +184,8 @@ public class Workstations extends SavedData {
 			stack.shrink(added);
 		}
 		level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.4F, 1.4F);
-		int daily = Config.DAILY_WAGE.get();
+		int daily = station.worker() != null && level.getEntity(station.worker()) instanceof Villager worker
+			? WorkerLevels.dailyWage(worker) : WorkerLevels.dailyWage(WorkerLevels.NOVICE);
 		player.sendOverlayMessage(daily > 0
 			? Component.translatable("message.workingvillagers.wage.deposited", station.wage(), station.wage() / daily)
 			: Component.translatable("message.workingvillagers.wage.deposited_free", station.wage()));
@@ -256,8 +261,11 @@ public class Workstations extends SavedData {
 		 * The settings of a few kinds of station, in the same map as the other fields (the
 		 * codec of a record takes at most 16 fields).
 		 */
-		private record Settings(int herd, boolean boat, Optional<DyeColor> dye, int tanning, long tannedAt, int grind, int enchantLevel, Map<Item, Integer> made) {
-			static final Settings DEFAULT = new Settings(DEFAULT_HERD, true, Optional.empty(), 0, 0L, GRIND_BOTH, 0, Map.of());
+		private record Settings(
+			int herd, boolean boat, Optional<DyeColor> dye, int tanning, long tannedAt, int grind, int enchantLevel, Map<Item, Integer> made,
+			Map<Item, Integer> stocks, Map<Item, Batch> batches
+		) {
+			static final Settings DEFAULT = new Settings(DEFAULT_HERD, true, Optional.empty(), 0, 0L, GRIND_BOTH, 0, Map.of(), Map.of(), Map.of());
 			static final MapCodec<Settings> MAP_CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
 				Codec.intRange(0, MAX_HERD).optionalFieldOf("herd", DEFAULT_HERD).forGetter(Settings::herd),
 				Codec.BOOL.optionalFieldOf("boat", true).forGetter(Settings::boat),
@@ -266,8 +274,33 @@ public class Workstations extends SavedData {
 				Codec.LONG.optionalFieldOf("tanned_at", 0L).forGetter(Settings::tannedAt),
 				Codec.intRange(0, GRIND_MODES - 1).optionalFieldOf("grind", GRIND_BOTH).forGetter(Settings::grind),
 				Codec.intRange(0, MAX_ENCHANT_LEVEL).optionalFieldOf("enchant_level", 0).forGetter(Settings::enchantLevel),
-				Codec.unboundedMap(BuiltInRegistries.ITEM.byNameCodec(), Codec.INT).optionalFieldOf("made", Map.of()).forGetter(Settings::made)
+				Codec.unboundedMap(BuiltInRegistries.ITEM.byNameCodec(), Codec.INT).optionalFieldOf("made", Map.of()).forGetter(Settings::made),
+				Codec.unboundedMap(BuiltInRegistries.ITEM.byNameCodec(), Codec.INT).optionalFieldOf("stocks", Map.of()).forGetter(Settings::stocks),
+				Codec.unboundedMap(BuiltInRegistries.ITEM.byNameCodec(), Batch.CODEC).optionalFieldOf("batches", Map.of()).forGetter(Settings::batches)
 			).apply(i, Settings::new));
+		}
+
+		/**
+		 * A product ordered once: how many the player ordered and how many the worker still has
+		 * to make. At 0 the order is done; it is taken out once the worker handed everything in
+		 * (see {@link #removeFinished}), or only marked as handed in where that would leave the
+		 * station without an order.
+		 */
+		public record Batch(int amount, int left, boolean handedIn) {
+			static final Codec<Batch> CODEC = RecordCodecBuilder.create(i -> i.group(
+				Codec.intRange(1, MAX_BATCH).fieldOf("amount").forGetter(Batch::amount),
+				Codec.intRange(0, MAX_BATCH).fieldOf("left").forGetter(Batch::left),
+				Codec.BOOL.optionalFieldOf("handed_in", false).forGetter(Batch::handedIn)
+			).apply(i, Batch::new));
+
+			public boolean done() {
+				return this.left <= 0;
+			}
+
+			/** How many the worker made of it so far. */
+			public int made() {
+				return this.amount - this.left;
+			}
 		}
 
 		private final BlockPos pos;
@@ -290,8 +323,16 @@ public class Workstations extends SavedData {
 		 * bench they also limit the material of products made of any wood (chests, ...).
 		 */
 		private final Set<String> woods;
-		/** Carpenter's bench: how many products to keep in the output chests, 0 to make them as long as there is material. */
+		/**
+		 * How many of a product of the order to keep in the output chests unless set for the
+		 * product itself ({@link #stocks}), 0 to make it as long as there is material. Stations
+		 * saved before there were stocks per product only have this one.
+		 */
 		private int stock;
+		/** The stock of single products of the order, see {@link #stock(Item)}. */
+		private final Map<Item, Integer> stocks;
+		/** The products of the order that are ordered once instead of kept in stock, see {@link Batch}. */
+		private final Map<Item, Batch> batches;
 		/** Chopping block: whether the lumberjack strips the logs before handing them in. */
 		private boolean strip;
 		/** Pit stake: the pit to dig, null until one is picked. */
@@ -332,6 +373,8 @@ public class Workstations extends SavedData {
 			this.grind = settings.grind();
 			this.enchantLevel = settings.enchantLevel();
 			this.made = new HashMap<>(settings.made());
+			this.stocks = new HashMap<>(settings.stocks());
+			this.batches = new HashMap<>(settings.batches());
 			this.pit = pit.orElse(null);
 			this.tunnel = tunnel.orElse(null);
 			this.depth = depth;
@@ -384,6 +427,8 @@ public class Workstations extends SavedData {
 		public void setOrder(@Nullable Item order) {
 			this.orders.clear();
 			this.made.clear();
+			this.stocks.clear();
+			this.batches.clear();
 			if (order != null) {
 				this.orders.add(order);
 			}
@@ -397,6 +442,8 @@ public class Workstations extends SavedData {
 		public boolean toggleOrder(Item product) {
 			if (this.orders.remove(product)) {
 				this.made.remove(product);
+				this.stocks.remove(product);
+				this.batches.remove(product);
 				this.setDirty();
 				return true;
 			}
@@ -415,11 +462,15 @@ public class Workstations extends SavedData {
 			return this.made.getOrDefault(order, 0);
 		}
 
-		/** Counts made products for the product of the order they belong to. */
+		/** Counts made products for the product of the order they belong to, also for its {@link Batch}. */
 		public void addMade(Item product, int count) {
 			Item order = this.orderOf(product);
 			if (order == null || count <= 0) {
 				return;
+			}
+			Batch batch = this.batches.get(order);
+			if (batch != null) {
+				this.batches.put(order, new Batch(batch.amount(), Math.max(0, batch.left() - count), batch.handedIn()));
 			}
 			this.made.merge(order, count, Integer::sum);
 			this.made.keySet().retainAll(this.orders);
@@ -442,23 +493,121 @@ public class Workstations extends SavedData {
 		}
 
 		/**
-		 * The products of the order the worker should make, the most needed first: with a stock
-		 * the ones of which the output chests hold the fewest ({@code stocked}), without the ones
-		 * whose stock is full; without a stock the ones it made the fewest of. Equal ones keep
-		 * the order they were picked in.
+		 * The products of the order the worker should make, the most needed first: products
+		 * ordered once ({@link Batch}) before those kept in stock, and those before the ones
+		 * without a limit. Ordered ones and those without a limit in equal parts (the ones it made
+		 * the fewest of first), those in stock the ones of which the output chests hold the fewest
+		 * ({@code stocked}) first. Done orders and full stocks are left out. Equal ones keep the
+		 * order they were picked in.
 		 */
 		public List<Item> ordersByNeed(ToIntFunction<Item> stocked) {
-			if (this.stock <= 0) {
-				return this.orders.stream().sorted(Comparator.comparingInt(this::made)).toList();
-			}
 			Map<Item, Integer> counts = new HashMap<>();
 			for (Item order : this.orders) {
-				counts.put(order, stocked.applyAsInt(order));
+				if (!this.batches.containsKey(order) && this.stock(order) > 0) {
+					counts.put(order, stocked.applyAsInt(order));
+				}
 			}
 			return this.orders.stream()
-				.filter(order -> counts.get(order) < this.stock)
-				.sorted(Comparator.comparingInt(counts::get))
+				.filter(order -> this.wanted(order, counts.getOrDefault(order, 0)) > 0)
+				.sorted(Comparator.<Item>comparingInt(order -> this.batches.containsKey(order) ? 0 : counts.containsKey(order) ? 1 : 2)
+					.thenComparingInt(order -> counts.containsKey(order) ? counts.get(order) : this.made(order)))
 				.toList();
+		}
+
+		/**
+		 * How many more of the product of the order the worker should make: what is left of a
+		 * {@link Batch}, what is missing to the stock ({@code stocked}: how many there are), as
+		 * many as there is material for without a stock.
+		 */
+		public int wanted(Item order, int stocked) {
+			Batch batch = this.batches.get(order);
+			if (batch != null) {
+				return batch.left();
+			}
+			int stock = this.stock(order);
+			return stock > 0 ? Math.max(0, stock - stocked) : Integer.MAX_VALUE;
+		}
+
+		/** Whether the worker makes the product of the order only up to a limit: a stock or a {@link Batch}. */
+		public boolean limited(Item order) {
+			return this.batches.containsKey(order) || this.stock(order) > 0;
+		}
+
+		/**
+		 * The products of the order of which the worker has to count how many lie in the output
+		 * chests: those kept in stock.
+		 */
+		public boolean stocked(Item order) {
+			return !this.batches.containsKey(order) && this.stock(order) > 0;
+		}
+
+		/** How many of the product of the order to keep in the output chests, 0 for no limit. */
+		public int stock(Item order) {
+			return this.stocks.getOrDefault(order, this.stock);
+		}
+
+		/** Keeps that many of the product of the order in stock (0: no limit) instead of ordering it once. */
+		public void setStock(Item order, int stock) {
+			if (!this.orders.contains(order)) {
+				return;
+			}
+			this.batches.remove(order);
+			this.stocks.put(order, Math.clamp(stock, 0, MAX_BATCH));
+			this.setDirty();
+		}
+
+		/** The product of the order ordered once, null if it is kept in stock. */
+		public @Nullable Batch batch(Item order) {
+			return this.batches.get(order);
+		}
+
+		/**
+		 * Orders that many of the product of the order once. If it was ordered once already,
+		 * what was made of it counts: ordering more adds to what is left, ordering fewer takes
+		 * from it.
+		 */
+		public void setBatch(Item order, int amount) {
+			if (!this.orders.contains(order)) {
+				return;
+			}
+			int clamped = Math.clamp(amount, 1, MAX_BATCH);
+			Batch batch = this.batches.get(order);
+			int made = batch == null ? 0 : batch.made();
+			this.batches.put(order, new Batch(clamped, Math.max(0, clamped - made), false));
+			this.setDirty();
+		}
+
+		/** The products of the order whose {@link Batch} is done but not yet handed in. */
+		public List<Item> finished() {
+			return this.orders.stream().filter(order -> {
+				Batch batch = this.batches.get(order);
+				return batch != null && batch.done() && !batch.handedIn();
+			}).toList();
+		}
+
+		/**
+		 * Takes the products whose {@link Batch} is done out of the order, once the worker handed
+		 * them in ({@code carried}: whether it still carries some of a product of the order).
+		 * With {@code keepOrder} (the kiln, which fires everything without an order) they are
+		 * only marked as handed in if that would leave no order. Returns them.
+		 */
+		public List<Item> removeFinished(boolean keepOrder, Predicate<Item> carried) {
+			List<Item> finished = this.finished().stream().filter(order -> !carried.test(order)).toList();
+			if (finished.isEmpty()) {
+				return finished;
+			}
+			if (keepOrder && finished.size() == this.orders.size()) {
+				finished.forEach(order -> this.batches.computeIfPresent(order, (item, batch) -> new Batch(batch.amount(), 0, true)));
+			} else {
+				for (Item order : finished) {
+					this.orders.remove(order);
+					this.made.remove(order);
+					this.stocks.remove(order);
+					this.batches.remove(order);
+				}
+			}
+			this.setDirty();
+			return finished;
 		}
 
 		/** How many of the product of the order (all its wood types) lie in the output chests. */
@@ -588,7 +737,8 @@ public class Workstations extends SavedData {
 		}
 
 		private Settings settings() {
-			return new Settings(this.herd, this.boat, Optional.ofNullable(this.dye), this.tanning, this.tannedAt, this.grind, this.enchantLevel, Map.copyOf(this.made));
+			return new Settings(this.herd, this.boat, Optional.ofNullable(this.dye), this.tanning, this.tannedAt, this.grind, this.enchantLevel, Map.copyOf(this.made),
+				Map.copyOf(this.stocks), Map.copyOf(this.batches));
 		}
 
 		/** Lectern: the level the librarian enchants at, 0 for the highest the bookshelves allow. */
@@ -706,16 +856,15 @@ public class Workstations extends SavedData {
 			}
 		}
 
-		/** Carpenter's bench: how many products to keep in the output chests, 0 for no limit. */
-		public int stock() {
-			return this.stock;
-		}
-
+		/**
+		 * Keeps that many of every product of the order in stock (0: no limit), also of those
+		 * added later; the stocks set per product and the orders of single products are dropped.
+		 */
 		public void setStock(int stock) {
-			if (this.stock != Math.max(0, stock)) {
-				this.stock = Math.max(0, stock);
-				this.setDirty();
-			}
+			this.stock = Math.clamp(stock, 0, MAX_BATCH);
+			this.stocks.clear();
+			this.batches.clear();
+			this.setDirty();
 		}
 
 		/**
@@ -944,6 +1093,7 @@ public class Workstations extends SavedData {
 
 		private boolean isEmpty() {
 			return this.inputs.isEmpty() && this.outputs.isEmpty() && this.orders.isEmpty() && this.worker == null && this.woods.isEmpty() && this.stock == 0
+				&& this.stocks.isEmpty() && this.batches.isEmpty()
 				&& !this.strip && this.pit == null && this.depth == Pit.DEFAULT_DEPTH && this.tunnel == null && this.wage == 0
 				&& this.herd == DEFAULT_HERD && this.boat && this.dye == null && this.tanning == 0
 				&& this.grind == GRIND_BOTH && this.enchantLevel == 0;

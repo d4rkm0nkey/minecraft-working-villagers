@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "workingvillagers:work_hours",
+  "function": "workingvillagers:farmer_swaps_worn_hoe",
+  "max_ticks": 3000,
+  "setup_ticks": 1,
+  "structure": "workingvillagers:platform"
+}

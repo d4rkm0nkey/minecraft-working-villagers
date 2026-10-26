@@ -29,7 +29,7 @@ lectern.
 ## 2. Place a chopping block
 
 Craft a **chopping block** (an axe above a log) and place it close to the trees. The
-lumberjack looks for trees within 16 blocks of it.
+lumberjack looks for trees within 24 blocks of it.
 
 [[craft: _ any_axe _ / _ any_log _ -> chopping_block]]
 
@@ -57,8 +57,8 @@ Every worker carries its own wage and tools. **Right-click the lumberjack** with
 
 - **emeralds**: one per working day, up to 64
 - **an axe**: the lumberjack wears it out like a player would
-- optionally **saplings**: the lumberjack also keeps the saplings that fall from the
-  trees it fells
+- optionally **saplings**: the lumberjack also keeps the saplings from the leaves of
+  the trees it fells
 
 The chopping block menu shows what it carries and for how many days it is paid.
 

@@ -3,6 +3,9 @@ package me.teajay.workingvillagers.menu;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.npc.villager.VillagerProfession;
+import net.minecraft.world.item.crafting.RecipeType;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -23,7 +26,9 @@ import me.teajay.workingvillagers.job.GuardPost;
 import me.teajay.workingvillagers.job.HiredVillager;
 import me.teajay.workingvillagers.job.TendAnimals;
 import me.teajay.workingvillagers.job.TendSheep;
+import me.teajay.workingvillagers.job.Unlocks;
 import me.teajay.workingvillagers.job.WorkerJobs;
+import me.teajay.workingvillagers.job.WorkerLevels;
 import me.teajay.workingvillagers.job.WorkerStatus;
 import me.teajay.workingvillagers.station.ContainerNames;
 import me.teajay.workingvillagers.station.Pit;
@@ -68,7 +73,8 @@ import org.jspecify.annotations.Nullable;
  * to switch its role and to unlink it. At the chopping block it also shows the logs felled
  * today; at the woodcutter it sets the order, the product's shape and the wood types to
  * use; at the carpenter's bench the product, the wood types and how many to keep in stock;
- * at the stonecutter the product, picked from its stone family. At the composter it shows
+ * at the stonecutter the product, picked from its stone family. With an order, how many of
+ * each product to make once or to keep in stock. At the composter it shows
  * the crops harvested today; the blast furnace has no order. At the pit stake it shows the
  * blocks dug today and picks the pit, its ladder and depth; at the kiln it sets the product
  * (none: everything) and how many to keep in stock.
@@ -99,9 +105,6 @@ public class StationMenu extends AbstractContainerMenu {
 	/** Closes the menu, the player then right-clicks chests to link them as inputs / outputs. */
 	public static final int ADD_INPUTS_BUTTON = 305;
 	public static final int ADD_OUTPUTS_BUTTON = 306;
-	/** Carpenter's bench: fewer / more products to keep in stock. */
-	public static final int STOCK_LESS_BUTTON = 308;
-	public static final int STOCK_MORE_BUTTON = 309;
 	/** Chopping block: turns stripping the logs on or off. */
 	public static final int STRIP_BUTTON = 310;
 	/** Pit stake: closes the menu, the player then right-clicks the string where the ladder goes. */
@@ -148,10 +151,19 @@ public class StationMenu extends AbstractContainerMenu {
 	 * The brewing stand orders only one.
 	 */
 	public static final int KILN_PRODUCT_BUTTON = 2000;
+	/**
+	 * Plus the index of the product in the order: fewer / more of it, ordered once or kept in
+	 * stock; switches between ordering it once and keeping it in stock.
+	 */
+	public static final int AMOUNT_LESS_BUTTON = 5000;
+	public static final int AMOUNT_MORE_BUTTON = 5100;
+	public static final int AMOUNT_MODE_BUTTON = 5200;
 	/** Carpenter's bench: at most this many products are shown (three rows). */
 	public static final int MAX_PRODUCTS = 27;
 	/** The stock levels the buttons step through, 0 means no limit. */
 	private static final int[] STOCK_STEPS = {0, 1, 2, 4, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256};
+	/** How many of a product ordered once the buttons step through. */
+	private static final int[] BATCH_STEPS = {1, 2, 4, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384, 512, 768, 1024};
 
 	private static final String TAG_STATION = "Station";
 	private static final String TAG_WORKER = "Worker";
@@ -164,6 +176,12 @@ public class StationMenu extends AbstractContainerMenu {
 	private static final String TAG_HIRED_WORKER = "HiredWorker";
 	private static final String TAG_CHESTS = "Chests";
 	private static final String TAG_DAILY_WAGE = "DailyWage";
+	/** The worker's level and villager experience, and what its next level unlocks. */
+	private static final String TAG_LEVEL = "Level";
+	private static final String TAG_XP = "Xp";
+	private static final String TAG_NEXT_UNLOCKS = "NextUnlocks";
+	/** The products of the order grid a worker makes only from a level on: key (item id or potion key) to level. */
+	private static final String TAG_LOCKS = "Locks";
 	private static final String TAG_NAME = "Name";
 	private static final String TAG_NAMED = "Named";
 	private static final String TAG_POS = "Pos";
@@ -174,7 +192,8 @@ public class StationMenu extends AbstractContainerMenu {
 	private static final String TAG_WOODS = "Woods";
 	private static final String TAG_AVAILABLE = "Available";
 	private static final String TAG_PRODUCTS = "Products";
-	private static final String TAG_STOCK = "Stock";
+	/** Per product of the order: whether it is ordered once, how many (or the stock), how many are left. */
+	private static final String TAG_AMOUNTS = "Amounts";
 	private static final String TAG_STRIP = "Strip";
 	private static final String TAG_FAMILIES = "Families";
 	private static final String TAG_PIT = "Pit";
@@ -237,6 +256,8 @@ public class StationMenu extends AbstractContainerMenu {
 	/** Client, stonecutter: the info the families were read from, to read them only once per update. */
 	private @Nullable ItemStack familiesFrom;
 	private List<StoneFamilies.Family> clientFamilies = List.of();
+	/** Server side: what the products of the order grid need, computed once (see {@link #locks}). */
+	private @Nullable CompoundTag locks;
 	/** Server side, pit stake: why the ring at the stake is no pit, and when it was last looked at. */
 	private Optional<Component> pitProblem = Optional.empty();
 	private long ringCheckedAt = Long.MIN_VALUE / 2;
@@ -296,6 +317,21 @@ public class StationMenu extends AbstractContainerMenu {
 	/** Client: the emeralds a worker takes per work day (0: workers work for free). */
 	public int getDailyWage() {
 		return this.info.info().getIntOr(TAG_DAILY_WAGE, 1);
+	}
+
+	/** Client: the worker's level, 0 without a hired worker. */
+	public int getLevel() {
+		return this.info.info().getIntOr(TAG_LEVEL, 0);
+	}
+
+	/** Client: the worker's villager experience. */
+	public int getXp() {
+		return this.info.info().getIntOr(TAG_XP, 0);
+	}
+
+	/** Client: what the worker's next level unlocks, if anything. */
+	public Optional<Component> getNextUnlocks() {
+		return this.info.info().read(TAG_NEXT_UNLOCKS, ComponentSerialization.CODEC);
 	}
 
 	/** Client: the emeralds in the wage box. */
@@ -368,11 +404,15 @@ public class StationMenu extends AbstractContainerMenu {
 				default -> Config.DAILY_LOGS.get();
 			});
 			tag.putInt(TAG_MAX_CHESTS, Config.MAX_CHESTS.get());
-			tag.putInt(TAG_DAILY_WAGE, Config.DAILY_WAGE.get());
+			tag.putInt(TAG_DAILY_WAGE, WorkerLevels.dailyWage(WorkerLevels.NOVICE));
 			station.occupant(serverLevel).ifPresent(name -> {
 				tag.store(TAG_WORKER, ComponentSerialization.CODEC, name);
 				if (station.worker() != null && serverLevel.getEntity(station.worker()) instanceof Villager villager) {
 					tag.putBoolean(TAG_HIRED_WORKER, true);
+					tag.putInt(TAG_DAILY_WAGE, WorkerLevels.dailyWage(villager));
+					tag.putInt(TAG_LEVEL, villager.getVillagerData().level());
+					tag.putInt(TAG_XP, villager.getVillagerXp());
+					Unlocks.next(villager).ifPresent(next -> tag.store(TAG_NEXT_UNLOCKS, ComponentSerialization.CODEC, next));
 					tag.store(TAG_STATUS, ComponentSerialization.CODEC, WorkerStatus.describe(villager));
 					SuppliesInfo.write(serverLevel, villager, tag);
 					if (this.type == StationType.CHOPPING_BLOCK || this.type == StationType.COMPOSTER || this.type == StationType.PIT_STAKE
@@ -467,6 +507,12 @@ public class StationMenu extends AbstractContainerMenu {
 				station.orders().forEach(order -> orders.add(StringTag.valueOf(BuiltInRegistries.ITEM.getKey(order).toString())));
 			}
 			tag.put(TAG_ORDERS, orders);
+			ListTag amounts = new ListTag();
+			for (Item order : station.orders()) {
+				Workstations.Station.Batch batch = station.batch(order);
+				amounts.add(new IntArrayTag(batch != null ? new int[] {1, batch.amount(), batch.left()} : new int[] {0, station.stock(order), 0}));
+			}
+			tag.put(TAG_AMOUNTS, amounts);
 			if (this.type.hasWoods()) {
 				ListTag woods = new ListTag();
 				station.woods().forEach(wood -> woods.add(StringTag.valueOf(wood)));
@@ -500,7 +546,6 @@ public class StationMenu extends AbstractContainerMenu {
 				ListTag products = new ListTag();
 				this.shownProducts.forEach(product -> products.add(StringTag.valueOf(BuiltInRegistries.ITEM.getKey(product).toString())));
 				tag.put(TAG_PRODUCTS, products);
-				tag.putInt(TAG_STOCK, station.stock());
 			}
 			if (this.type == StationType.CAULDRON) {
 				if (station.dye() != null) {
@@ -517,6 +562,9 @@ public class StationMenu extends AbstractContainerMenu {
 				BlockPos table = EnchantItems.table(serverLevel, pos);
 				int shelves = table == null ? -1 : EnchantItems.bookshelves(serverLevel, table);
 				int highest = EnchantItems.highestLevel(Math.max(0, shelves));
+				if (station.worker() != null && serverLevel.getEntity(station.worker()) instanceof Villager librarian) {
+					highest = Math.min(highest, Unlocks.enchantingLevel(librarian));
+				}
 				int now = station.enchantLevel() == 0 ? highest : Math.min(station.enchantLevel(), highest);
 				tag.putInt(TAG_BOOKSHELVES, shelves);
 				tag.putInt(TAG_LEVEL_NOW, now);
@@ -534,17 +582,68 @@ public class StationMenu extends AbstractContainerMenu {
 				ListTag products = new ListTag();
 				this.shownProducts.forEach(product -> products.add(StringTag.valueOf(BuiltInRegistries.ITEM.getKey(product).toString())));
 				tag.put(TAG_PRODUCTS, products);
-				tag.putInt(TAG_STOCK, station.stock());
 			}
 			if (this.type == StationType.BREWING_STAND) {
 				this.shownStacks = BrewingPaths.products(serverLevel);
 				ListTag products = new ListTag();
 				this.shownStacks.forEach(product -> products.add(StringTag.valueOf(BrewingPaths.key(product))));
 				tag.put(TAG_PRODUCTS, products);
-				tag.putInt(TAG_STOCK, station.stock());
 			}
+			if (this.locks == null) {
+				// Recipes and tags do not change while the menu is open
+				this.locks = this.locks(serverLevel);
+			}
+			tag.put(TAG_LOCKS, this.locks.copy());
 			this.info.setInfo(tag);
 		});
+	}
+
+	/** The products shown in the order grid that a worker makes only from a level on (see {@link Unlocks}). */
+	private CompoundTag locks(ServerLevel level) {
+		CompoundTag locks = new CompoundTag();
+		if (!Config.UNLOCKS.get()) {
+			return locks;
+		}
+		ResourceKey<VillagerProfession> profession = this.type.profession();
+		List<Item> items = new ArrayList<>(switch (this.type) {
+			case WOODCUTTER -> WoodTypes.SHAPES.stream().map(shape -> WoodTypes.product(WoodTypes.ALL.getFirst(), shape)).filter(Objects::nonNull).toList();
+			case STONECUTTER -> this.families == null ? List.<Item>of() : this.families.stream().flatMap(family -> family.products().stream()).toList();
+			case CARPENTER_BENCH, KILN, FLETCHING_TABLE, CAULDRON, GRINDSTONE -> this.shownProducts;
+			default -> List.<Item>of();
+		});
+		for (Item item : items) {
+			int needed = switch (this.type) {
+				case WOODCUTTER -> Unlocks.level(profession, item);
+				case STONECUTTER -> CuttingRecipes.forResult(level, RecipeType.STONECUTTING, item).stream()
+					.mapToInt(recipe -> Unlocks.level(profession, item, List.of(recipe.input()))).min().orElse(WorkerLevels.NOVICE);
+				case CARPENTER_BENCH -> CarpenterRecipes.forResult(level, item).stream()
+					.mapToInt(recipe -> Unlocks.level(profession, item, recipe.placementInfo().ingredients())).min().orElse(WorkerLevels.NOVICE);
+				case GRINDSTONE -> ForgeRecipes.forResult(level, item).stream()
+					.mapToInt(recipe -> Unlocks.level(profession, item, recipe.placementInfo().ingredients())).min().orElse(WorkerLevels.NOVICE);
+				default -> Unlocks.level(profession, item);
+			};
+			if (needed > WorkerLevels.NOVICE) {
+				locks.putInt(BuiltInRegistries.ITEM.getKey(item).toString(), needed);
+			}
+		}
+		if (this.type == StationType.BREWING_STAND) {
+			for (ItemStack product : this.shownStacks) {
+				List<BrewingPaths.Step> steps = BrewingPaths.path(level, product);
+				int needed = steps == null ? WorkerLevels.NOVICE : steps.stream()
+					.mapToInt(step -> Unlocks.level(profession, step.shownReagent().getItem())).max().orElse(WorkerLevels.NOVICE);
+				if (needed > WorkerLevels.NOVICE) {
+					locks.putInt(BrewingPaths.key(product), needed);
+				}
+			}
+		}
+		return locks;
+	}
+
+	/** Client: from which level a worker makes the product of the order grid (a novice's if it is free). */
+	public int getLockLevel(ItemStack product) {
+		CompoundTag locks = this.info.info().getCompoundOrEmpty(TAG_LOCKS);
+		String key = this.type == StationType.BREWING_STAND ? BrewingPaths.key(product) : BuiltInRegistries.ITEM.getKey(product.getItem()).toString();
+		return locks.getIntOr(key, WorkerLevels.NOVICE);
 	}
 
 	/** Whether the station has a recipe for one of the shapes in that wood type (any wood type will do without shapes). */
@@ -765,9 +864,21 @@ public class StationMenu extends AbstractContainerMenu {
 		return this.info.info().getIntOr(TAG_MAX_AREA, 64);
 	}
 
-	/** Carpenter's bench and kiln: how many products to keep in stock, 0 for no limit. */
-	public int getStock() {
-		return this.info.info().getIntOr(TAG_STOCK, 0);
+	/**
+	 * How many the worker makes of the product of the order at the index: ordered once (with
+	 * how many are left) or kept in stock (0: no limit).
+	 */
+	public Amount getAmount(int index) {
+		ListTag amounts = this.info.info().getListOrEmpty(TAG_AMOUNTS);
+		if (index < 0 || index >= amounts.size() || !(amounts.get(index) instanceof IntArrayTag tag) || tag.size() < 3) {
+			return new Amount(false, 0, 0);
+		}
+		int[] values = tag.getAsIntArray();
+		return new Amount(values[0] == 1, values[1], values[2]);
+	}
+
+	/** See {@link #getAmount}: {@code amount} is the stock if the product is not ordered once. */
+	public record Amount(boolean batch, int amount, int left) {
 	}
 
 	/** What the tabs show, see {@link StationTabFlags}. */
@@ -945,6 +1056,9 @@ public class StationMenu extends AbstractContainerMenu {
 			station.setRole(level, chest, station.role(chest) == ChestRole.INPUT ? ChestRole.OUTPUT : ChestRole.INPUT);
 			return true;
 		}
+		if (this.type.hasOrder() && buttonId >= AMOUNT_LESS_BUTTON && buttonId < AMOUNT_MODE_BUTTON + Workstations.MAX_ORDERS) {
+			return changeAmount(station, buttonId);
+		}
 		if (this.type == StationType.CHOPPING_BLOCK && buttonId == STRIP_BUTTON) {
 			station.setStrip(!station.strip());
 			return true;
@@ -997,10 +1111,6 @@ public class StationMenu extends AbstractContainerMenu {
 				}
 				return true;
 			}
-			if (buttonId == STOCK_LESS_BUTTON || buttonId == STOCK_MORE_BUTTON) {
-				station.setStock(nextStock(station.stock(), buttonId == STOCK_MORE_BUTTON));
-				return true;
-			}
 			return false;
 		}
 		if (this.type == StationType.CAULDRON && (buttonId == DYE_LESS_BUTTON || buttonId == DYE_MORE_BUTTON)) {
@@ -1027,10 +1137,6 @@ public class StationMenu extends AbstractContainerMenu {
 				Item product = this.shownProducts.get(buttonId - KILN_PRODUCT_BUTTON);
 				return toggled(player, station.toggleOrder(product));
 			}
-			if (buttonId == STOCK_LESS_BUTTON || buttonId == STOCK_MORE_BUTTON) {
-				station.setStock(nextStock(station.stock(), buttonId == STOCK_MORE_BUTTON));
-				return true;
-			}
 			return false;
 		}
 		if (this.type == StationType.STONECUTTER && this.families != null && buttonId >= STONE_PRODUCT_BUTTON) {
@@ -1050,10 +1156,6 @@ public class StationMenu extends AbstractContainerMenu {
 		if (this.type == StationType.CARPENTER_BENCH) {
 			if (buttonId >= SHAPE_BUTTON && buttonId < SHAPE_BUTTON + this.shownProducts.size()) {
 				return toggled(player, station.orderProduct(this.shownProducts.get(buttonId - SHAPE_BUTTON)));
-			}
-			if (buttonId == STOCK_LESS_BUTTON || buttonId == STOCK_MORE_BUTTON) {
-				station.setStock(nextStock(station.stock(), buttonId == STOCK_MORE_BUTTON));
-				return true;
 			}
 		} else if (buttonId >= SHAPE_BUTTON && buttonId < SHAPE_BUTTON + WoodTypes.SHAPES.size()) {
 			return toggled(player, station.toggleShape(WoodTypes.SHAPES.get(buttonId - SHAPE_BUTTON)));
@@ -1078,19 +1180,56 @@ public class StationMenu extends AbstractContainerMenu {
 		return done;
 	}
 
-	/** The next stock level up or down. */
-	private static int nextStock(int stock, boolean more) {
+	/**
+	 * The buttons of the product of the order at the index: fewer or more of it, or ordering it
+	 * once instead of keeping it in stock and back. Ordered once it starts with a stack (one of
+	 * what does not stack), or with its stock if it had one.
+	 */
+	private static boolean changeAmount(Workstations.Station station, int buttonId) {
+		int index = (buttonId - AMOUNT_LESS_BUTTON) % 100;
+		int kind = (buttonId - AMOUNT_LESS_BUTTON) / 100;
+		if (index >= station.orders().size()) {
+			return false;
+		}
+		Item order = station.orders().get(index);
+		Workstations.Station.Batch batch = station.batch(order);
+		switch (kind) {
+			case 0, 1 -> {
+				boolean more = kind == 1;
+				if (batch != null) {
+					station.setBatch(order, next(BATCH_STEPS, batch.amount(), more, 1));
+				} else {
+					station.setStock(order, next(STOCK_STEPS, station.stock(order), more, 0));
+				}
+			}
+			case 2 -> {
+				if (batch != null) {
+					station.setStock(order, 0);
+				} else {
+					int stock = station.stock(order);
+					station.setBatch(order, stock > 0 ? stock : order.getDefaultMaxStackSize());
+				}
+			}
+			default -> {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/** The next step up or down from the value, at least the lowest step. */
+	private static int next(int[] steps, int value, boolean more, int lowest) {
 		if (more) {
-			for (int step : STOCK_STEPS) {
-				if (step > stock) {
+			for (int step : steps) {
+				if (step > value) {
 					return step;
 				}
 			}
-			return STOCK_STEPS[STOCK_STEPS.length - 1];
+			return steps[steps.length - 1];
 		}
-		int lower = 0;
-		for (int step : STOCK_STEPS) {
-			if (step < stock) {
+		int lower = lowest;
+		for (int step : steps) {
+			if (step < value) {
 				lower = step;
 			}
 		}

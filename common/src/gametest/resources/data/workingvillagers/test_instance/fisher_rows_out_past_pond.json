@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "workingvillagers:work_hours",
+  "function": "workingvillagers:fisher_rows_out_past_pond",
+  "max_ticks": 3000,
+  "setup_ticks": 1,
+  "structure": "workingvillagers:platform"
+}

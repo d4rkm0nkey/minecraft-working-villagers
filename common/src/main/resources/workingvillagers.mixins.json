@@ -6,6 +6,7 @@
   "mixins": [
     "AbstractArrowMixin",
     "AbstractVillagerAccessor",
+    "VillagerInvoker",
     "AbstractFurnaceMenuAccessor",
     "BaseContainerBlockEntityAccessor",
     "BlastFurnaceMenuMixin",
@@ -37,12 +38,14 @@
     "client.BlastFurnaceScreenMixin",
     "client.BrewingStandScreenMixin",
     "client.ContainerScreenMixin",
+    "client.EntityRendererMixin",
     "client.GrindstoneScreenMixin",
     "client.LoomScreenMixin",
     "client.ScreenAccessor",
     "client.SmithingScreenMixin",
     "client.SmokerScreenMixin",
     "client.VillagerModelMixin",
+    "client.VillagerProfessionLayerMixin",
     "client.VillagerRendererMixin",
     "client.VillagerRenderStateMixin"
   ],

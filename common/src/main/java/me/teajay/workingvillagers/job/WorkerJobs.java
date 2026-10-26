@@ -11,6 +11,8 @@ import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -108,6 +110,7 @@ public final class WorkerJobs {
 		if (worker) {
 			StuckWorkers.noteWalking(villager);
 		}
+		WorkerNotice.tick(level, villager);
 		if (villager.tickCount % CHECK_INTERVAL != 0) {
 			return;
 		}
@@ -118,6 +121,10 @@ public final class WorkerJobs {
 			restock(level, villager);
 			Uniforms.equip(level, villager);
 			WorkerSupplies.storeCarriedWage(level, villager);
+			WorkerLevels.tick(level, villager, CHECK_INTERVAL);
+			if (loseJobWithoutSite(level, villager)) {
+				return;
+			}
 		}
 		if (!unemployed) {
 			// Keep the station's note up to date (renamed worker, worker from before names existed)
@@ -143,6 +150,20 @@ public final class WorkerJobs {
 		villager.getBrain().getMemory(MemoryModuleType.JOB_SITE)
 			.filter(site -> site.dimension() == level.dimension() && site.pos().closerToCenterThan(villager.position(), RESTOCK_DISTANCE))
 			.ifPresent(site -> villager.restock());
+	}
+
+	/**
+	 * A worker whose workstation is gone becomes unemployed again (and looks for a new one,
+	 * see {@link FindWorkplace}), keeping its level. Vanilla only does that for novices
+	 * without experience, workers gather it by working.
+	 */
+	private static boolean loseJobWithoutSite(ServerLevel level, Villager villager) {
+		if (Carriers.isCarrier(villager) || villager.getBrain().getMemory(MemoryModuleType.JOB_SITE).isPresent()) {
+			return false;
+		}
+		villager.setVillagerData(villager.getVillagerData().withProfession(level.registryAccess(), VillagerProfession.NONE));
+		villager.refreshBrain(level);
+		return true;
 	}
 
 	/** Whether the villager has one of the jobs of this mod (carriers included). */
@@ -234,6 +255,7 @@ public final class WorkerJobs {
 			return;
 		}
 		LEFT.remove(villager.getUUID());
+		keepOrResetLevel(villager, profession.get());
 		String name = WorkerNames.ensureName(villager);
 		villager.getBrain().setMemory(MemoryModuleType.JOB_SITE, GlobalPos.of(level.dimension(), station));
 		Workstations.find(level, station).ifPresent(found -> found.setWorker(villager.getUUID(), name));
@@ -241,6 +263,29 @@ public final class WorkerJobs {
 		villager.refreshBrain(level);
 		villager.makeSound(SoundEvents.VILLAGER_YES);
 		level.broadcastEntityEvent(villager, (byte) 14);
+	}
+
+	/**
+	 * The level belongs to the profession: a worker that takes a job of another profession
+	 * (not one of the same trade family, see {@link TradeFamilies}) starts again as a novice.
+	 */
+	private static void keepOrResetLevel(Villager villager, ResourceKey<VillagerProfession> profession) {
+		HiredVillager hired = (HiredVillager) villager;
+		String career = hired.workingvillagers$getCareer();
+		String next = profession.identifier().toString();
+		if (career != null && !career.equals(next) && !sameFamily(career, profession)) {
+			villager.setVillagerData(villager.getVillagerData().withLevel(WorkerLevels.NOVICE));
+			villager.setVillagerXp(0);
+			hired.workingvillagers$setLearned(0.0F);
+		}
+		hired.workingvillagers$setCareer(next);
+	}
+
+	private static boolean sameFamily(String career, ResourceKey<VillagerProfession> profession) {
+		Identifier id = Identifier.tryParse(career);
+		return id != null && BuiltInRegistries.VILLAGER_PROFESSION.get(id)
+			.map(before -> TradeFamilies.keepsTrades(before, BuiltInRegistries.VILLAGER_PROFESSION.getOrThrow(profession)))
+			.orElse(false);
 	}
 
 	/**

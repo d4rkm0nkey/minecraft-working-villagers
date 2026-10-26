@@ -133,7 +133,9 @@ public class FarmFields extends Behavior<Villager> {
 		}
 		this.stateTicks++;
 		this.unreachable.values().removeIf(until -> until < timestamp);
-		if (this.state == State.SEARCH && !hasDeliverables(villager.getInventory())
+		// Wage and hoe before work; with harvest in its pockets only when the hoe is worn or gone,
+		// or it would never give a worn hoe back and fetch a new one
+		if (this.state == State.SEARCH && (!hasDeliverables(villager.getInventory()) || findHoe(villager.getInventory()).isEmpty())
 			&& this.supplies.busy(level, villager, WorkerSupplies.HOE)) {
 			return; // the chest sets the status
 		}
@@ -175,7 +177,7 @@ public class FarmFields extends Behavior<Villager> {
 	 * for. Sets {@code seedsMissing} if there is empty farmland but no seeds.
 	 */
 	private Optional<BlockPos> findWork(ServerLevel level, Villager villager, BlockPos center, boolean[] seedsMissing) {
-		int radius = Config.FIELD_RADIUS.get();
+		int radius = WorkerLevels.area(villager, Config.FIELD_RADIUS.get());
 		BlockPos best = null;
 		double bestDistance = Double.MAX_VALUE;
 		for (BlockPos pos : BlockPos.betweenClosed(center.offset(-radius, -FIELD_DOWN, -radius), center.offset(radius, FIELD_UP, radius))) {
@@ -294,7 +296,7 @@ public class FarmFields extends Behavior<Villager> {
 		if (this.stateTicks % 10 == 0) {
 			villager.swingForAttack(InteractionHand.MAIN_HAND);
 		}
-		if (this.stateTicks < Math.max(1, Math.round(Config.SECONDS_PER_CROP.get() * 20))) {
+		if (this.stateTicks < WorkerLevels.ticks(villager, (int) Math.round(Config.SECONDS_PER_CROP.get() * 20))) {
 			return;
 		}
 		this.target = null;
@@ -331,7 +333,7 @@ public class FarmFields extends Behavior<Villager> {
 		if (hoe.isEmpty()) {
 			return;
 		}
-		hoe.hurtAndBreak(1, level, null, broken -> {
+		WorkerLevels.wear(level, villager, hoe, 1, broken -> {
 			villager.onEquippedItemBroken(broken, EquipmentSlot.MAINHAND);
 			villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
 		});

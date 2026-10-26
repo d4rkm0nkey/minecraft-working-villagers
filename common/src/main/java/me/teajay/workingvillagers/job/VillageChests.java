@@ -96,8 +96,7 @@ public final class VillageChests {
 	public static Optional<String> missing(ServerLevel level, Villager worker) {
 		SimpleContainer inventory = worker.getInventory();
 		List<Map.Entry<String, Predicate<ItemStack>>> lacking = new ArrayList<>();
-		int wage = Config.DAILY_WAGE.get();
-		if (wage > 0 && !WorkerSupplies.isPaid(level, worker) && WorkerSupplies.emeralds(level, worker) < wage) {
+		if (WorkerSupplies.lacksWage(level, worker)) {
 			lacking.add(Map.entry("wage", WorkerSupplies::isWage));
 		}
 		for (WorkerSupplies.Tool tool : WorkerSupplies.toolsOf(worker)) {
@@ -249,7 +248,7 @@ public final class VillageChests {
 	 * the wage box of its workstation and its pockets. They go into the wage box.
 	 */
 	private static int wageWanted(Villager villager) {
-		int wage = Config.DAILY_WAGE.get();
+		int wage = WorkerLevels.dailyWage(villager);
 		if (wage <= 0 || !(villager.level() instanceof ServerLevel level)) {
 			return 0;
 		}

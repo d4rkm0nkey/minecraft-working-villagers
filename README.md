@@ -46,9 +46,9 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
    block or the lumberjack with them), and right-click the lumberjack with an axe and
    optionally saplings (see below).
 5. During work hours (like other professions) the lumberjack looks for natural trees
-   within 16 blocks of the chopping block, walks up to the trunk and hacks at it, fells it, replants a sapling and brings the wood to the
+   within 24 blocks of the chopping block, walks up to the trunk and hacks at it, fells it, clears the leaves left without a log (keeping their saplings, sticks and apples), replants a sapling and brings the wood to the
    nearest chest. A tree takes eight times as long as for a player with the same axe (for now
-   all workers are novices; a master would need five times as long). After each delivery it rests for 30 seconds, and it stops for the day
+   all workers are novices; a master would need five times as long). After each delivery it rests for 15 seconds, and it stops for the day
    after 64 logs. Trees count as natural when they grow on dirt, grass, podzol, mycelium, mud or moss (`#minecraft:substrate_overworld`) and have non-persistent
    leaves, so builds made of logs are left alone. Needs the `mob_griefing` game rule.
 6. **Strip logs** (switch in the chopping block menu, off by default): the lumberjack
@@ -80,6 +80,12 @@ every worker, guides and all [configuration options](https://d4rkm0nkey.github.i
   up (chests, order or worker): vanilla job acquisition skips it. *Assign* there makes an
   ordinary villager that works there and has never traded (villager XP 0) unemployed;
   one that has traded keeps its job.
+- These workers wear the clothes of the vanilla job (the fisher those of the fisherman,
+  the stone sawyer the mason's, the tanner the leatherworker's, the apothecary the
+  cleric's, the smith the armorer's), so a hired villager keeps its looks; the profession
+  layer maps the texture (`WorkerSkins`). Only the jobs that are new in this mod
+  (lumberjack, sawyer, carpenter, guard, pit digger, miner, kiln operator, shop assistant,
+  carrier) have clothes of their own.
 
 ## Wage and tools
 
@@ -100,8 +106,10 @@ worker that already has enough shakes its head and takes nothing. Workers never 
 chests. A hired worker that dies drops everything it carries (tools, material); its wage
 stays in the wage box.
 
-- **Wage:** before work each day the worker takes `dailyWage` (default 1) emerald from the
-  wage box, then from its pockets. A worker from 0.3.0 puts the emeralds it carried
+- **Wage:** each day the worker takes `dailyWage` (default 1) emerald from the wage box,
+  then from its pockets, with its first piece of work (a log, a crafted item, a repaired
+  tool, a carried load; a guard when it takes up its post). A day it gets nothing done, for
+  want of material say, costs nothing. The wage has to be there before it starts, though. A worker from 0.3.0 puts the emeralds it carried
   into the wage box once, as many as fit (saved per worker as
   `WorkingVillagersWageStored`). Without an
   emerald it does not work and waits next to its workstation ("Waiting for wages"),
@@ -111,8 +119,10 @@ stays in the wage box.
   Unbreaking counts); shortly before it breaks it is given back (see *Worn tools* below);
   without one it waits ("needs an axe").
   Chopping speed depends on the axe. It only replants with saplings it carries (given,
-  or picked up under the trees) and hands in the rest; it never fetches saplings from
-  a chest. Without saplings it still fells, but does not replant.
+  or from the leaves of the felled trees) and hands in the rest; it never fetches saplings from
+  a chest. Without saplings it still fells, but remembers the place (saved per worker as
+  `WorkingVillagersPlantings`, at most 64) and plants there once it has the saplings,
+  before the next tree; after planting, or when the place is taken, it forgets it.
 - **Farmer:** needs a hoe (carries up to 2), which wears out one use per harvested crop;
   without one it waits ("needs a hoe"). It needs seeds to start with (up to 16 of each
   kind, `farmer.keepSeeds`); afterwards it replants from its harvest.
@@ -233,23 +243,30 @@ the same way:
    cuts them at the station and brings the products to an output chest. It makes 4
    items per second (one log into four planks, slabs take twice as long), at least one
    second per cut, with wood or stone chips flying off the saw.
-   **Without an order, an input chest and an output chest the worker does not work.**
+   **Without an order, an input chest (or a village chest) and an output chest the worker does not work.**
 
 ### Several products
 
 The sawyers, the carpenter, the kiln operator, the fletcher, the tanner and the weaponsmith
-take up to 8 products in one order: a click in the order grid adds a product, another click
-takes it out. They make them **in equal parts**, one batch at a time, always the most
-needed one they have material for:
+take up to 8 products in one order: a click in the order grid adds a product, a click on a
+product of the order selects it, another click takes it out. For each product the row below
+the grid sets how many:
 
-- **With a stock** it applies to each product ("keep 8" means 8 chests *and* 8 barrels). The
-  worker makes the product of which the output chests hold the fewest, and leaves out the
-  ones whose stock is full.
-- **Without a stock** (the sawyers have none) the station counts what was made of each
-  product since it was ordered, and the worker makes the one it made the fewest of. A
-  product added later starts level with the others.
-- A product without material does not hold up the others; the worker waits only when
-  there is material for none of them.
+- **Order**: a fixed amount once ("64 chests"). When all are in the output chests, the order
+  is done: the worker shows a green ✔ above its head and the product leaves the order (the
+  kiln keeps its last one, as without an order it fires everything).
+- **Stock**: keep that many in the output chests ("keep 8" means 8 chests *and* 8 barrels),
+  or without a limit as long as there is material.
+
+Ordered products come first, then the stocks (emptiest first), then those without a limit
+(the one made the fewest of first), one batch at a time, always the most needed one there
+is material for. A product without material does not hold up the others.
+
+The workers take their material from the input chests **and the village chests** in reach.
+When material is missing they make what they can and then show a red **!** above their
+head; the carpenter's status says how many are missing ("Missing 18× Oak Planks"). An
+ingredient their own station makes they make first (the carpenter the chest and the boat
+of a boat with chest, the fletcher arrows for spectral arrows).
 
 A product made of one wood type (stairs at the woodcutter, boats at the bench) counts as
 one product in all its wood types. The order box below the result slot of the bench and
@@ -445,11 +462,14 @@ From the shore it fishes at the closest bank of water within 16 blocks of the ba
 vanilla fishing loot (fish 85, junk 10, treasure 5 only on open water; Luck of the Sea
 helps). After 12 catches (`fisher.catchesPerTrip`) it brings them to the chest. With a
 **boat** it rows out to open water (7 × 7 blocks, two deep, only water on the way) within 32
-blocks (`fisher.seaRadius`): it puts the boat on the water at the bank, rows out, fishes
+blocks (`fisher.seaRadius`): it puts the boat on the water at a bank of that water (a pond
+closer to the barrel does not keep it there), rows out, fishes
 there, also treasure, rows back, gets out and takes the boat with it. Once in the boat it
 keeps going until it is back on land, also after work. Boat trips can be switched off at
 each barrel (tab *Settings*). The fisher trades like a vanilla fisherman. The menu shows the
-catches of today.
+catches of today. Its bobber (`fisher_bobber`, an entity only for the looks, not saved)
+floats on the water with the line to the rod and dips at a bite; the catch flies to the
+fisher like to a player and goes into its inventory when it arrives.
 
 ## Butcher
 
@@ -507,8 +527,8 @@ on pillars of logs in a grid every 4 blocks, which grow down with the pit from t
 to the first floor (`Pit.Storeys`).
 
 It digs top down, layer by layer from the ladder outwards, with the shovel or the pickaxe,
-whichever is faster (`pitDigger.digSlowdown`: 8 times a player's time, at least
-`pitDigger.minSecondsPerBlock` 2 seconds per block). As soon as the
+whichever is faster (`pitDigger.digSlowdown`: 6 times a player's time, at least
+`pitDigger.minSecondsPerBlock` 1.5 seconds per block). As soon as the
 ladder column (inside the ring next to the string closest to the stake, or where *Ladder*
 puts it) gets deeper it puts a ladder against the wall, and it only gets in and out of the
 pit by that ladder: vanilla villagers do not path over ladders, so climbing is moved by
@@ -516,7 +536,7 @@ hand. It only digs the block tag `workingvillagers:pit_diggable` (natural ground
 ores, leaves, plants); builds stay, and so does a column under one, blocks its pickaxe is
 too weak for and blocks next to water or lava. With torches it lights the floor about every
 six blocks. Everything it digs goes to its chest: when the drops of the next block would not
-fit into its inventory any more, after `pitDigger.dailyBlocks` 256 blocks a day and when
+fit into its inventory any more, after `pitDigger.dailyBlocks` 160 blocks a day and when
 the pit is done it climbs out and delivers; at the end of the work day it climbs out. The menu shows the size of the pit, the depth and the
 blocks dug today.
 
@@ -540,9 +560,9 @@ floor. It stands only in finished sections or in front of the tunnel. Behind the
 digs the ores (`workingvillagers:miner_ores`) next to the finished cells and the ores that
 hang on them (not next to liquids), puts up the supports (every 4th slice: fences at the
 sides, planks under the ceiling; `miner.supports`) and torches (every 8th block) when it has
-the material, and closes new holes in the floor. Digging takes `miner.digSlowdown` 8 times a
+the material, and closes new holes in the floor. Digging takes `miner.digSlowdown` 6 times a
 player's time with the same pickaxe, at least `miner.minSecondsPerBlock` 1.5 seconds. It
-delivers like the pit digger (when the next drops do not fit, after `miner.dailyBlocks` 256
+delivers like the pit digger (when the next drops do not fit, after `miner.dailyBlocks` 96
 blocks a day, when the tunnel is done) and keeps 16 cobblestone.
 
 For players the bench is a **mill** (`CutterMenu` with recipe type
@@ -666,7 +686,8 @@ red, a guard puts on a chestplate it is given and boots from a village chest, th
 librarian enchants a book at a bare table and an iron pickaxe at level 30 for 10 bottles,
 the weaponsmith forges two iron axes, grinds two worn iron pickaxes from a village chest into
 one and disenchants a sword into bottles o' enchanting, the
-fisher fishes at a pond and rows out on a lake with its boat and takes it back, uses up a
+fisher fishes at a pond and rows out on a lake with its boat and takes it back, also past
+a pond closer to the barrel, uses up a
 plain rod but gives back an enchanted one, the
 butcher slaughters cows down to the herd size, breeds a piglet and smokes chicken, a
 vanilla farmer is hired and stays at its composter and gets farmer trades, one that has

@@ -17,7 +17,8 @@ Der Brenner bedient den Brennofen: Er brennt Baustoffe wie Glas, Stein, Terrakot
 - Der Ablauf ist der des Schmieds (`SmeltAtFurnace`, Art `KILN`): bis zu 16 Zutaten (Config `kilnOperator.batchSize`) und 8 Brennstoff (`kilnOperator.fuelPerTrip`) pro Gang.
 - **Status:** „Holt Material und Brennstoff“, „Befüllt den Brennofen“, „Brennt“, „Wartet auf etwas zum Brennen“, „Wartet auf Brennstoff“, „Wartet: kommt nicht an den Brennofen“, „Vorrat voll (x/y)“.
 - Profession `workingvillagers:kiln_operator` mit eigener Kleidung (terrakottafarbene Schürze, ziegelrote Mütze).
-- **Nicht umgesetzt:** Master-Fähigkeit (es gibt noch keine Stufen).
+- **Level:** Terrakotta ab Lehrling, glasierte Terrakotta und Farbstoffe ab Geselle (siehe [Level und Aufstieg](../grundlagen/level.md)).
+- **Nicht umgesetzt:** Master-Fähigkeit.
 - **Offene Fragen entschieden:** Der Brennofen brennt im normalen Ofentempo. Im Auftrag „Alles“ ist alles dabei, was er brennen kann, auch Kaktus und Schwamm.
 
 ## Workstation: Brennofen

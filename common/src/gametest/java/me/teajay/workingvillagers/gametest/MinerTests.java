@@ -7,6 +7,8 @@ import me.teajay.workingvillagers.Config;
 import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.crafting.CuttingRecipes;
 import me.teajay.workingvillagers.job.HiredVillager;
+import me.teajay.workingvillagers.job.WorkerLevels;
+import me.teajay.workingvillagers.job.WorkerSupplies;
 import me.teajay.workingvillagers.station.Tunnel;
 import me.teajay.workingvillagers.station.Workstations.ChestRole;
 import net.minecraft.core.BlockPos;
@@ -45,6 +47,7 @@ final class MinerTests {
 
 	static void register(BiConsumer<String, Consumer<GameTestHelper>> registry) {
 		registry.accept("miner_digs_tunnel", MinerTests::minerDigsTunnel);
+		registry.accept("miner_swaps_worn_pickaxe", MinerTests::minerSwapsWornPickaxe);
 		registry.accept("miner_digs_ore_and_seals_lava", MinerTests::minerDigsOreAndSealsLava);
 		registry.accept("miner_stops_at_planks", MinerTests::minerStopsAtPlanks);
 		registry.accept("miner_digs_stairs", MinerTests::minerDigsStairs);
@@ -89,11 +92,40 @@ final class MinerTests {
 		});
 	}
 
+	/**
+	 * A miner whose only pickaxe is worn gives it back (into its chest, no smith repairs from
+	 * the village chest), takes the new one from the village chest and digs the tunnel.
+	 */
+	private static void minerSwapsWornPickaxe(GameTestHelper helper) {
+		hill(helper, 5);
+		BlockPos villageChest = new BlockPos(2, 1, 8);
+		TestWorld.villageChest(helper, villageChest, new ItemStack(Items.IRON_PICKAXE));
+		helper.setBlock(STATION, WorkingVillagers.MINING_BENCH.get());
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.link(helper, STATION, OUTPUT, ChestRole.OUTPUT);
+		Tunnel tunnel = tunnel(helper, START, 2);
+		TestWorld.station(helper, STATION).setTunnel(tunnel);
+		Villager worker = TestWorld.hireVillager(helper, WORKER);
+		TestWorld.assign(helper, worker, STATION);
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2));
+		ItemStack worn = new ItemStack(Items.IRON_PICKAXE);
+		worn.setDamageValue(worn.getMaxDamage() - 20);
+		worker.getInventory().addItem(worn);
+		helper.succeedWhen(() -> {
+			helper.assertTrue(TestWorld.count(helper, OUTPUT, stack -> stack.is(Items.IRON_PICKAXE) && WorkerSupplies.isWorn(stack)) == 1,
+				"The worn pickaxe is not in the chest: " + TestWorld.describe(worker));
+			assertDug(helper, worker, tunnel);
+			TestWorld.removeVillageChest(helper, villageChest);
+		});
+	}
+
 	/** Side tunnels of 4 blocks at the 2nd and 6th block, left and right. */
 	private static void minerDigsSideTunnels(GameTestHelper helper) {
 		hill(helper, 6);
 		Tunnel tunnel = tunnel(helper, START, 6).withBranches(4);
 		Villager worker = miner(helper, tunnel, new ItemStack(Items.OAK_FENCE, 8), new ItemStack(Items.OAK_PLANKS, 8));
+		// A journeyman digs side tunnels
+		TestWorld.setLevel(worker, WorkerLevels.JOURNEYMAN);
 		helper.succeedWhen(() -> {
 			assertDug(helper, worker, tunnel);
 			helper.assertBlockPresent(Blocks.AIR, new BlockPos(3, 1, 13));
@@ -129,6 +161,8 @@ final class MinerTests {
 		helper.setBlock(behind, Blocks.IRON_ORE);
 		helper.setBlock(lava, Blocks.LAVA);
 		Villager worker = miner(helper, tunnel(helper, START, 3), new ItemStack(Items.COBBLESTONE, 4));
+		// An expert follows the ore vein
+		TestWorld.setLevel(worker, WorkerLevels.EXPERT);
 		helper.succeedWhen(() -> {
 			helper.assertBlockPresent(Blocks.AIR, ore);
 			helper.assertBlockPresent(Blocks.AIR, behind);
@@ -169,6 +203,8 @@ final class MinerTests {
 		TestWorld.link(helper, bench, output, ChestRole.OUTPUT);
 		TestWorld.station(helper, bench).setTunnel(stairs);
 		Villager worker = TestWorld.hireVillager(helper, new BlockPos(8, 5, 9));
+		// An apprentice digs stairs
+		TestWorld.setLevel(worker, WorkerLevels.APPRENTICE);
 		TestWorld.assign(helper, worker, bench);
 		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.DIAMOND_PICKAXE));
 		helper.succeedWhen(() -> {

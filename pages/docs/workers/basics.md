@@ -140,16 +140,29 @@ the [fletcher](fletcher.md), the [tanner](tanner.md) and the [weaponsmith](weapo
 take up to **8 products** in one order. In the **Order** tab a click on a product adds it, another
 click takes it out; the label above the grid shows how many are picked.
 
-They make them **in equal parts**, one batch at a time, always the most needed one they have
-material for:
+A click on a product of the order selects it (white frame); the row below the grid shows
+how many of it the worker makes. Click the selected product again to take it out. For each
+product you choose, with the button left of **−** / **+**:
 
-- **With a stock** it counts for each product: "keep 8" means 8 chests *and* 8 barrels. The
-  worker makes the product of which the output chests hold the fewest and leaves out the
-  ones whose stock is full.
-- **Without a stock** the station counts what the worker made of each product, and it makes
-  the one it made the fewest of. A product you add later starts level with the others.
-- A product without material does not hold up the others. The worker only waits when there
-  is material for none of them.
+- :mc-paper: **Order**: a fixed amount, once, e.g. "64 chests". The cell shows how many are
+  left. When all of them are in the output chests, the order is done: the worker shows a
+  green **✔** above its head and the product leaves the order. (The kiln keeps its last done
+  order, as without one it fires everything.)
+- :mc-chest: **Stock**: keep that many in the output chests, "keep 8" means 8 chests *and* 8
+  barrels. The worker goes on when some are taken out. Without a limit it works as long as
+  there is material.
+
+Ordered products come first, then the stocks (the emptiest first), then the ones without a
+limit (the one it made the fewest of first). One batch at a time, always the most needed
+product it has material for; a product without material does not hold up the others.
+
+The worker takes its material from the input chests and from the
+[village chests](#village-chests) in reach, so a village chest full of planks is enough for
+the carpenter. If material is missing, it makes what it still can and then shows a red
+**!** above its head; its status says what is missing, at the carpenter with how many
+("Missing 18× Oak Planks"). An ingredient its own station makes, it makes itself first: the
+carpenter the chest and the boat for a boat with chest, the fletcher arrows for spectral
+arrows.
 
 The order box below the result slot of the carpenter's bench and the cutters shows the
 products one after another, with their number in the corner.
@@ -157,7 +170,7 @@ products one after another, with their number in the corner.
 ## The wage box
 
 Every workstation has a **wage box** for up to **64 emeralds**. The worker takes its wage
-from there before work each day. Fill it in three ways:
+from there each day with its first piece of work. Fill it in three ways:
 
 - open the workstation, tab :mc-emerald: **Wage**, and put emeralds into its slot (or
   shift-click them in), like into a chest,
@@ -195,8 +208,11 @@ vanilla mobs picking up items); right-clicking always works.
 | butcher | :mc-iron_sword: a sword or an axe, optionally :mc-carrot: feed and :mc-charcoal: coal | 2 weapons, 16 feed of each kind, 16 coal |
 | pit digger | :mc-iron_shovel: a shovel, :mc-iron_pickaxe: a pickaxe, :mc-ladder: ladders, optionally :mc-torch: torches | 2 of each tool, 64 ladders, 16 torches |
 
-- **Wage:** before work each day the worker takes **1 emerald** from the wage box (then
-  from its pockets, if it still carries emeralds from an older version of the mod).
+- **Wage:** each day the worker takes **1 emerald** from the wage box (then from its
+  pockets, if it still carries emeralds from an older version of the mod) with its first
+  piece of work: the first log, the first crafted item, the first load carried; a guard
+  when it takes up its post. A worker that gets nothing done all day, because material is
+  missing for example, costs nothing that day. The emerald has to be there before it starts.
   64 emeralds pay for 64 work days. Without an emerald it does not work. It waits next
   to its workstation ("Waiting for wages") and checks again every few seconds, so you
   can pay it late.

@@ -1,0 +1,22 @@
+{
+  "values": [
+    "minecraft:cobbled_deepslate",
+    "minecraft:deepslate",
+    "minecraft:polished_deepslate",
+    "minecraft:deepslate_bricks",
+    "minecraft:deepslate_tiles",
+    "minecraft:tuff",
+    "minecraft:polished_tuff",
+    "minecraft:tuff_bricks",
+    "minecraft:cut_copper",
+    "minecraft:waxed_cut_copper",
+    "minecraft:copper_block",
+    "minecraft:waxed_copper_block",
+    "minecraft:exposed_copper",
+    "minecraft:waxed_exposed_copper",
+    "minecraft:weathered_copper",
+    "minecraft:waxed_weathered_copper",
+    "minecraft:oxidized_copper",
+    "minecraft:waxed_oxidized_copper"
+  ]
+}

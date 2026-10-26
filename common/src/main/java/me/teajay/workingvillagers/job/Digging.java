@@ -17,12 +17,6 @@ import net.minecraft.world.level.block.state.BlockState;
  * takes, which tool they take, how it wears out, what a block drops and where they can stand.
  */
 final class Digging {
-	/**
-	 * A master (level 5) needs this much of the time of a novice (level 1), whose slowdown is
-	 * set in the config.
-	 */
-	private static final float MASTER_SHARE = 5.0F / 8.0F;
-
 	private Digging() {
 	}
 
@@ -42,10 +36,9 @@ final class Digging {
 		return Math.max((int) Math.round(minSeconds * 20.0), Math.round(ticks * slowdown(villager, (float) noviceSlowdown)));
 	}
 
-	/** From {@code novice} times as long as a player for a novice down to 5/8 of that for a master. */
+	/** From {@code novice} times as long as a player for a novice down to the master's share of that (see {@link WorkerLevels#timeShare}). */
 	private static float slowdown(Villager villager, float novice) {
-		float progress = Math.clamp((villager.getVillagerData().level() - 1) / 4.0F, 0.0F, 1.0F);
-		return novice + (novice * MASTER_SHARE - novice) * progress;
+		return novice * WorkerLevels.timeShare(villager);
 	}
 
 	/**
@@ -78,7 +71,7 @@ final class Digging {
 		if (tool.isEmpty()) {
 			return;
 		}
-		tool.hurtAndBreak(1, level, null, broken -> {
+		WorkerLevels.wear(level, villager, tool, 1, broken -> {
 			villager.onEquippedItemBroken(broken, EquipmentSlot.MAINHAND);
 			villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
 		});

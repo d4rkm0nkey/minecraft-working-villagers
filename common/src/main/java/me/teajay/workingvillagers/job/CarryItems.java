@@ -100,7 +100,8 @@ public class CarryItems extends Behavior<Villager> {
 			case FETCH -> this.visit(level, villager, container -> {
 				Route route = loadRoute(data);
 				int stacks = route == null ? 0 : Math.max(1, Chests.emptySlots(level, route.target()));
-				takeStacks(container, data.basket(), Math.min(stacks, Config.STACKS_PER_TRIP.get()));
+				int taken = takeStacks(container, data.basket(), Math.min(stacks, Config.STACKS_PER_TRIP.get()));
+				((HiredVillager) villager).workingvillagers$addWorkDone(ChopTrees.today(level), taken);
 			});
 			case DELIVER -> this.visit(level, villager, container -> Chests.deposit(data.basket(), container, stack -> true));
 			case RETURN -> this.visit(level, villager, container -> Chests.deposit(data.basket(), container, stack -> true));
@@ -142,6 +143,9 @@ public class CarryItems extends Behavior<Villager> {
 		for (int i = 0; i < routes.size(); i++) {
 			int index = (this.nextRoute + i) % routes.size();
 			Route route = routes.get(index);
+			if (!canCarry(villager, index, route)) {
+				continue;
+			}
 			if (Chests.contains(level, route.source(), stack -> true) && Chests.hasRoom(level, route.target())) {
 				data.setLoadRoute(index);
 				this.nextRoute = index + 1;
@@ -153,6 +157,18 @@ public class CarryItems extends Behavior<Villager> {
 		this.waitReason = "carrier.nothing";
 		this.stroll(villager, routes.getFirst().source());
 		this.setState(State.WAIT);
+	}
+
+	/**
+	 * Whether the carrier works the route already: the second from apprentice, the third from
+	 * journeyman (see {@link Unlocks}), and only as long as its level lets it walk (see
+	 * {@link WorkerLevels#area}).
+	 */
+	public static boolean canCarry(Villager villager, int index, Route route) {
+		if (index == 1 && !Unlocks.can(villager, Unlocks.Ability.SECOND_ROUTE) || index >= 2 && !Unlocks.can(villager, Unlocks.Ability.THIRD_ROUTE)) {
+			return false;
+		}
+		return route.source().closerThan(route.target(), WorkerLevels.area(villager, Config.ROUTE_LENGTH.get()) + 0.5);
 	}
 
 	/** Walks back to the source if it is too far away, otherwise to a random spot near it. */
@@ -203,9 +219,10 @@ public class CarryItems extends Behavior<Villager> {
 	}
 
 	/**
-	 * Moves up to {@code maxStacks} stacks from the container into the basket.
+	 * Moves up to {@code maxStacks} stacks from the container into the basket and returns how
+	 * many it moved.
 	 */
-	private static void takeStacks(Container container, SimpleContainer basket, int maxStacks) {
+	private static int takeStacks(Container container, SimpleContainer basket, int maxStacks) {
 		int stacks = 0;
 		for (int slot = 0; slot < container.getContainerSize() && stacks < maxStacks; slot++) {
 			ItemStack stack = container.getItem(slot);
@@ -219,6 +236,7 @@ public class CarryItems extends Behavior<Villager> {
 			container.setItem(slot, rest);
 			stacks++;
 		}
+		return stacks;
 	}
 
 	private void setState(State state) {

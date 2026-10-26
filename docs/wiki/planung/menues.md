@@ -43,7 +43,7 @@ Jede Station hat bis zu drei Reiter über dem Fenster:
 | --- | --- | --- | --- |
 | **Block** | der Block selbst | das bisherige Arbeitsmenü des Blocks, unverändert (Steinsäge, Ofen, Schmiedetisch …) | Holzsäge, Steinsäge, Hobelbank, Schmelzofen, Brennofen, Grubenwerkbank (Mühle), Schmiedetisch |
 | **Arbeit** | Kopf des Berufs (ohne Arbeiter: Arbeitsvertrag) | Arbeiter, Zustand, Versorgung, Kisten | allen Stationen |
-| **Auftrag** | was bestellt ist, sonst ein Papier | Erzeugnis, Holzsorten, Vorrat; Stationseinstellungen | Holzsäge, Steinsäge, Hobelbank, Brennofen, Hackklotz (Entrinden), Grubenpflock (Grube, Tiefe), Grubenwerkbank (Stollen) |
+| **Auftrag** | was bestellt ist, sonst ein Papier | Erzeugnis, Holzsorten, Menge je Produkt (Bestellung oder Vorrat); Stationseinstellungen | Holzsäge, Steinsäge, Hobelbank, Brennofen, Hackklotz (Entrinden), Grubenpflock (Grube, Tiefe), Grubenwerkbank (Stollen) |
 
 - **Öffnen:** Rechtsklick öffnet wie bisher das Block-Menü, bei Stationen ohne eigenes Menü (Hackklotz, Komposter, Grubenpflock, Handelstresen) den Reiter **Arbeit**. Der Komposter öffnet weiter nur mit leerer Hand.
 - **Wechseln:** Klick auf einen Reiter. Gegenstände in den Slots des Block-Menüs fallen dabei wie beim Schließen zurück ins Inventar (wie heute beim „i“).
@@ -85,8 +85,8 @@ Die bisherige linke Spalte der breiten Übersicht, nun allein im Fenster und dam
 | --- | --- |
 | Holzsäge | Erzeugnis (2 Reihen), Holzsorten (2 Reihen) mit „Alle“ / „Keine“ |
 | Steinsäge | erst die Steinfamilien, dann ihre Erzeugnisse, seitenweise wie heute |
-| Hobelbank | Erzeugnis (3 Reihen), Holzsorten, Vorrat − / + |
-| Brennofen | Erzeugnis (5 Reihen, seitenweise), Vorrat − / + |
+| Hobelbank | Erzeugnis (3 Reihen), Holzsorten, Menge des gewählten Produkts (Bestellung oder Vorrat) − / + |
+| Brennofen | Erzeugnis (5 Reihen, seitenweise), Menge des gewählten Produkts (Bestellung oder Vorrat) − / + |
 | Hackklotz | Schalter „Stämme entrinden“ |
 | Grubenpflock | Größe (oder Problem mit dem Ring), Tiefe − / +, Leiter |
 | Grubenwerkbank | „Stollen wählen“, Richtung, Länge − / +, Art, Abzweige − / + |

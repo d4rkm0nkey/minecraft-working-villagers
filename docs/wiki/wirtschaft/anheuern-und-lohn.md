@@ -15,15 +15,17 @@ Konzept (Stand der Umsetzung siehe [unten](#stand-der-umsetzung)):
 
 ## Lohnstufen
 
-Planwerte; im Spiel gibt es noch keine Lohnstufen. Derzeit zahlt man jedem Arbeiter **1 Emerald pro Arbeitstag** (Config `workers.dailyWage`, 0–64), siehe [Stand der Umsetzung](#stand-der-umsetzung).
+Planwerte für einen späteren Wochenlohn. Im Spiel zahlt man einen Tageslohn, der mit dem [Level](../grundlagen/level.md#lohn) wächst: 1 Emerald für Neuling und Lehrling, 2 für Geselle und Experte, 3 für den Meister (Config `workers.dailyWage`, `workers.masterDailyWage`), siehe [Stand der Umsetzung](#stand-der-umsetzung).
 
-| Level | Lohn (Emerald/Woche) | Effekt |
-| --- | --- | --- |
-| Novice | 16 | Grundtempo, kleiner Bereich (z. B. 9×9) |
-| Apprentice | 24 | +15 % Tempo |
-| Journeyman | 32 | Größerer Bereich (z. B. 15×15) |
-| Expert | 48 | Werkzeug hält länger |
-| Master | 64 | Zusatzfähigkeit je Beruf (siehe [Berufe](../berufe/README.md)) |
+| Level | Lohn (Emerald/Woche) |
+| --- | --- |
+| Novice | 16 |
+| Apprentice | 24 |
+| Journeyman | 32 |
+| Expert | 48 |
+| Master | 64 |
+
+Was ein höheres Level bringt (Tempo, Werkzeugabnutzung, Arbeitsbereich, Freischaltungen) und wie Arbeiter aufsteigen, steht unter [Level und Aufstieg](../grundlagen/level.md).
 
 Die ursprünglich genannten 100 Emeralds pro Woche sind für Early Game sehr viel. Vorschlag: mit 16–64 Emeralds starten und nach Playtests justieren. Erfüllte [Bedürfnisse](beduerfnisse.md) senken den Lohn um bis zu 50 %.
 
@@ -40,14 +42,14 @@ Die ursprünglich genannten 100 Emeralds pro Woche sind für Early Game sehr vie
 
 **Arbeitszeit:** die normale Vanilla-Arbeitszeit der Dorfbewohner; nachts schlafen sie.
 
-**Lohn:** Eine Dorfkasse gibt es noch nicht. Jede Station hat eine **Lohnkasse** für bis zu 64 Emeralds (Wunsch vom 18.10.2026): Reiter **Lohn** der Stationsübersicht mit einem Slot und dem Spielerinventar wie ein Container; außerdem legt ein Rechtsklick mit Emeralds auf die Station sie hinein, und Emeralds, die man dem Arbeiter gibt oder zuwirft, legt er ebenfalls hinein. Aus Dorftruhen geholter Lohn (für 3 Tage) landet auch dort. Vor der Arbeit nimmt sich der Arbeiter den Tageslohn (Standard 1 Emerald) aus der Kasse, danach aus der Tasche (Emeralds aus älteren Versionen). Ohne Emerald wartet er an seiner Station.
+**Lohn:** Eine Dorfkasse gibt es noch nicht. Jede Station hat eine **Lohnkasse** für bis zu 64 Emeralds (Wunsch vom 18.10.2026): Reiter **Lohn** der Stationsübersicht mit einem Slot und dem Spielerinventar wie ein Container; außerdem legt ein Rechtsklick mit Emeralds auf die Station sie hinein, und Emeralds, die man dem Arbeiter gibt oder zuwirft, legt er ebenfalls hinein. Aus Dorftruhen geholter Lohn (für 3 Tage) landet auch dort. Mit dem ersten Arbeitsstück des Tages (erster Stamm, erstes hergestelltes Teil, erste Ladung des Trägers; der Wächter, sobald er seinen Posten bezieht) nimmt sich der Arbeiter den Tageslohn (Standard 1 Emerald) aus der Kasse, danach aus der Tasche (Emeralds aus älteren Versionen). Schafft er den ganzen Tag nichts, etwa weil Material fehlt, kostet der Tag nichts (Wunsch vom 26.10.2026). Der Lohn muss aber vor der Arbeit da sein: Ohne Emerald wartet er an seiner Station.
 
 - Die Emeralds gehören der Station, nicht dem Arbeiter: Stirbt er, wird er zum Zombie oder wechselt er die Station, geht nichts verloren; der nächste Arbeiter dort wird aus derselben Kasse bezahlt. Wird die Station abgebaut, gesprengt oder ersetzt, fallen die Emeralds heraus wie aus einer Truhe (über die POI-Aktualisierung von Vanilla, `ServerLevelMixin`). Gespeichert in den Stationsdaten (`wage`), nicht im Block.
 - Der Träger hat keine Station und trägt seine Emeralds weiter selbst (bis zu 64).
 - Werkzeug und Saatgut trägt der Arbeiter weiter selbst, der Spieler gibt sie direkt, wie Futter: Rechtsklick auf den Arbeiter oder die Items vor ihm fallen lassen.
 - Holzfäller: bis zu 2 Äxte und 16 Setzlinge je Sorte. Farmer: bis zu 2 Hacken und 16 Saatgut je Sorte zum Start, danach pflanzt er aus der Ernte nach.
 - Hat er genug, schüttelt er den Kopf. Zugeworfene Items nimmt er nur bis zu denselben Höchstmengen auf. Stirbt er, lässt er alles fallen.
-- Der Lohn ist für alle gleich (Config `workers.dailyWage`, 0 = umsonst). Lohnstufen, Level, Moral und Kündigung gibt es noch nicht; alle Arbeiter sind Novizen.
+- Der Lohn wächst mit dem [Level](../grundlagen/level.md): `workers.dailyWage` für den Neuling (0 = umsonst), `workers.masterDailyWage` für den Meister, dazwischen abgerundet (1, 1, 2, 2, 3). Wochenlöhne, Moral und Kündigung gibt es noch nicht.
 - Kann er nicht arbeiten, schüttelt er ab und zu den Kopf mit dem „Nein“-Sound, wenn ein Spieler in der Nähe ist.
 
 Ergänzend gibt es [Dorftruhen](../dorf/dorftruhen.md): Jeder Arbeiter in der Nähe holt sich daraus selbst, was ihm ausgeht (Lohn für 3 Tage, Ersatzwerkzeug, Setzlinge, Saatgut, Leitern, Fackeln).

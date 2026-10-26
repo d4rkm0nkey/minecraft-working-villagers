@@ -1,6 +1,7 @@
 package me.teajay.workingvillagers.job;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -94,8 +95,12 @@ public class TendAnimals extends Behavior<Villager> {
 	private String waitReason = "butcher.waiting";
 	private @Nullable ChestTrip trip;
 	private long fetchFailedAt = Long.MIN_VALUE / 2;
+	/** One animal of each kind that should breed but has no feed in the inventory, from the last search. */
+	private List<Animal> hungry = List.of();
 	private final Map<UUID, Long> unreachable = new HashMap<>();
 	private final Map<Item, Boolean> smokable = new HashMap<>();
+	/** Whether the butcher smokes already (see {@link Unlocks.Ability#SMOKING}), set every tick. */
+	private boolean canSmoke;
 	private final WorkerSupplies supplies = new WorkerSupplies();
 
 	public TendAnimals() {
@@ -153,8 +158,10 @@ public class TendAnimals extends Behavior<Villager> {
 			return;
 		}
 		this.stateTicks++;
+		this.canSmoke = Unlocks.can(villager, Unlocks.Ability.SMOKING);
 		this.unreachable.values().removeIf(until -> until < timestamp);
-		if (this.state == State.SEARCH && !this.hasDeliverables(level, villager.getInventory(), workplace)
+		// Wage and weapon before work; with meat in its pockets only when the weapon is worn or gone
+		if (this.state == State.SEARCH && (!this.hasDeliverables(level, villager.getInventory(), workplace) || findWeapon(villager.getInventory()).isEmpty())
 			&& this.supplies.busy(level, villager, WorkerSupplies.WEAPON)) {
 			return; // the chest sets the status
 		}
@@ -177,7 +184,7 @@ public class TendAnimals extends Behavior<Villager> {
 
 	/** The animals the butcher keeps around the smoker, young ones included. */
 	public static List<Animal> herd(ServerLevel level, BlockPos smoker) {
-		int radius = Config.BUTCHER_RADIUS.get();
+		int radius = WorkerLevels.area(WorkerLevels.levelAt(level, smoker), Config.BUTCHER_RADIUS.get());
 		AABB area = new AABB(smoker).inflate(radius, 0, radius).expandTowards(0, PASTURE_UP, 0).expandTowards(0, -PASTURE_DOWN, 0);
 		return level.getEntitiesOfClass(Animal.class, area, animal -> animal.isAlive() && KINDS.contains(animal.getType()));
 	}
@@ -203,7 +210,7 @@ public class TendAnimals extends Behavior<Villager> {
 		Comparator<Animal> closest = Comparator.comparingDouble(animal -> animal.distanceToSqr(villager));
 		Optional<Animal> slaughter = Optional.empty();
 		Optional<Animal> feed = Optional.empty();
-		boolean noFeed = false;
+		List<Animal> hungry = new ArrayList<>();
 		for (List<Animal> kind : kinds.values()) {
 			int size = kind.size();
 			long adults = kind.stream().filter(animal -> !animal.isBaby()).count();
@@ -223,7 +230,7 @@ public class TendAnimals extends Behavior<Villager> {
 			}
 			Animal any = kind.getFirst();
 			if (feedFor(inventory, any).isEmpty()) {
-				noFeed = true;
+				hungry.add(any);
 				continue;
 			}
 			Optional<Animal> candidate = kind.stream()
@@ -241,7 +248,8 @@ public class TendAnimals extends Behavior<Villager> {
 			this.goTo(feed.get(), Task.FEED);
 			return;
 		}
-		if (timestamp - this.fetchFailedAt > FETCH_COOLDOWN && this.fetchChest(level, villager, workplace, noFeed).isPresent()) {
+		this.hungry = hungry;
+		if (timestamp - this.fetchFailedAt > FETCH_COOLDOWN && this.fetchChest(level, villager, workplace).isPresent()) {
 			this.setState(State.FETCH);
 			return;
 		}
@@ -249,7 +257,7 @@ public class TendAnimals extends Behavior<Villager> {
 			this.setState(State.DELIVER);
 		} else {
 			this.rest(level, villager, workplace, SEARCH_COOLDOWN,
-				herd.isEmpty() ? "butcher.no_animals" : noFeed ? "butcher.no_feed" : "butcher.waiting");
+				herd.isEmpty() ? "butcher.no_animals" : !hungry.isEmpty() ? "butcher.no_feed" : "butcher.waiting");
 		}
 	}
 
@@ -334,7 +342,7 @@ public class TendAnimals extends Behavior<Villager> {
 		if (this.stateTicks % 10 == 0) {
 			villager.swingForAttack(InteractionHand.MAIN_HAND);
 		}
-		if (this.stateTicks < Math.max(1, Math.round(Config.SECONDS_PER_ANIMAL.get() * 20))) {
+		if (this.stateTicks < WorkerLevels.ticks(villager, (int) Math.round(Config.SECONDS_PER_ANIMAL.get() * 20))) {
 			return;
 		}
 		this.target = null;
@@ -368,7 +376,7 @@ public class TendAnimals extends Behavior<Villager> {
 			}
 		}
 		((HiredVillager) villager).workingvillagers$addWorkDone(ChopTrees.today(level), 1);
-		weapon.hurtAndBreak(1, level, null, broken -> villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY));
+		WorkerLevels.wear(level, villager, weapon, 1, broken -> villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY));
 		villager.getInventory().setChanged();
 	}
 
@@ -397,8 +405,9 @@ public class TendAnimals extends Behavior<Villager> {
 
 	// --- The smoker ---
 
+	/** Meat it smokes: none before journeyman, it delivers the raw meat. */
 	private boolean isSmokable(ServerLevel level, ItemStack stack) {
-		return !stack.isEmpty() && this.smokable.computeIfAbsent(stack.getItem(),
+		return this.canSmoke && !stack.isEmpty() && this.smokable.computeIfAbsent(stack.getItem(),
 			item -> level.recipeAccess().getRecipeFor(RecipeType.SMOKING, new SingleRecipeInput(stack), level).isPresent());
 	}
 
@@ -464,7 +473,7 @@ public class TendAnimals extends Behavior<Villager> {
 			return;
 		}
 		villager.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
-		if (this.stateTicks % TEND_TICKS != 0) {
+		if (this.stateTicks % WorkerLevels.ticks(villager, TEND_TICKS) != 0) {
 			return;
 		}
 		SimpleContainer inventory = villager.getInventory();
@@ -497,24 +506,51 @@ public class TendAnimals extends Behavior<Villager> {
 
 	// --- Input chests: feed and coal ---
 
-	/** The closest input chest with feed (if some kind lacks it) or coal (if there is meat to smoke but no fire). */
-	private Optional<BlockPos> fetchChest(ServerLevel level, Villager villager, Workstations.Station workplace, boolean noFeed) {
+	/**
+	 * The closest input chest with feed for a kind of animal that lacks it, or coal (if there
+	 * is meat to smoke but no fire).
+	 */
+	private Optional<BlockPos> fetchChest(ServerLevel level, Villager villager, Workstations.Station workplace) {
 		SimpleContainer inventory = villager.getInventory();
-		boolean wantFeed = noFeed && WorkerSupplies.count(inventory, TendAnimals::isFeed) < Config.KEEP_FEED.get();
+		boolean wantFeed = !this.hungry.isEmpty();
 		boolean wantFuel = !hasFuel(level, inventory, workplace.pos(), Workstations.getContainer(level, workplace.pos()))
 			&& WorkerSupplies.count(inventory, stack -> this.isSmokable(level, stack)) > 0;
 		if (!wantFeed && !wantFuel) {
 			return Optional.empty();
 		}
 		List<BlockPos> chests = workplace.validInputs(level).stream()
-			.filter(pos -> wantFeed && Chests.contains(level, pos, TendAnimals::isFeed) || wantFuel && Chests.contains(level, pos, TendAnimals::isFuel))
+			.filter(pos -> wantFeed && Chests.contains(level, pos, stack -> this.isWantedFeed(inventory, stack))
+				|| wantFuel && Chests.contains(level, pos, TendAnimals::isFuel))
 			.toList();
 		return Chests.closest(chests, villager);
 	}
 
+	/**
+	 * Feed that one of the hungry kinds eats and of which the butcher carries less than it
+	 * keeps: it keeps {@link Config#KEEP_FEED} of each kind of feed, like what it is given.
+	 */
+	private boolean isWantedFeed(SimpleContainer inventory, ItemStack stack) {
+		return isFeed(stack) && this.hungry.stream().anyMatch(animal -> animal.isFood(stack))
+			&& WorkerSupplies.count(inventory, other -> other.is(stack.getItem())) < Config.KEEP_FEED.get();
+	}
+
+	/** Takes the feed of the hungry kinds out of the container, up to what it keeps of each. Returns how many. */
+	private int takeFeed(Container container, SimpleContainer inventory) {
+		int taken = 0;
+		for (int slot = 0; slot < container.getContainerSize(); slot++) {
+			ItemStack stack = container.getItem(slot);
+			if (stack.isEmpty() || !this.isWantedFeed(inventory, stack)) {
+				continue;
+			}
+			int max = Config.KEEP_FEED.get() - WorkerSupplies.count(inventory, other -> other.is(stack.getItem()));
+			taken += Chests.take(container, inventory, other -> other.is(stack.getItem()), max);
+		}
+		return taken;
+	}
+
 	private void fetch(ServerLevel level, Villager villager, Workstations.Station workplace, long timestamp) {
 		if (this.trip == null) {
-			Optional<BlockPos> chest = this.fetchChest(level, villager, workplace, true);
+			Optional<BlockPos> chest = this.fetchChest(level, villager, workplace);
 			if (chest.isEmpty()) {
 				this.fetchFailedAt = timestamp;
 				this.setState(State.SEARCH);
@@ -525,7 +561,7 @@ public class TendAnimals extends Behavior<Villager> {
 		SimpleContainer inventory = villager.getInventory();
 		int[] taken = {0};
 		ChestTrip.Result result = this.trip.tick(level, villager, container -> {
-			taken[0] += Chests.take(container, inventory, TendAnimals::isFeed, Config.KEEP_FEED.get() - WorkerSupplies.count(inventory, TendAnimals::isFeed));
+			taken[0] += this.takeFeed(container, inventory);
 			taken[0] += Chests.take(container, inventory, TendAnimals::isFuel, Config.KEEP_FUEL.get() - WorkerSupplies.count(inventory, TendAnimals::isFuel));
 		});
 		if (result == ChestTrip.Result.RUNNING) {

@@ -36,6 +36,8 @@ public final class Trees {
 	private static final int MAX_TREE_HEIGHT = 40;
 	private static final int MAX_LOGS = 256;
 	private static final int MIN_LEAVES = 3;
+	/** How many loose leaves of a felled tree are looked at. */
+	private static final int MAX_LEAVES = 2048;
 	/** How many connected logs (of several trees) are looked at to find a tree's own logs. */
 	private static final int MAX_CLUSTER_LOGS = 4096;
 	private static final int CLUSTER_BELOW = 4;
@@ -53,10 +55,13 @@ public final class Trees {
 		}
 	}
 
-	public static Optional<Tree> findNearest(ServerLevel level, BlockPos center, Map<BlockPos, Long> ignored) {
+	/**
+	 * The nearest natural tree within the radius around the center; trees with a 2x2 trunk
+	 * only with {@code bigTrees} (see {@link Unlocks.Ability#BIG_TREES}).
+	 */
+	public static Optional<Tree> findNearest(ServerLevel level, BlockPos center, int radius, boolean bigTrees, Map<BlockPos, Long> ignored) {
 		List<BlockPos> bases = new ArrayList<>();
 		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-		int radius = Config.TREE_SEARCH_RADIUS.get();
 		for (int dx = -radius; dx <= radius; dx++) {
 			for (int dz = -radius; dz <= radius; dz++) {
 				for (int dy = -SEARCH_BELOW; dy <= SEARCH_ABOVE; dy++) {
@@ -75,11 +80,14 @@ public final class Trees {
 				continue;
 			}
 			Tree tree = collect(level, base);
-			if (tree != null) {
+			if (tree != null && (bigTrees || tree.bottomLogs().size() == 1)) {
 				return Optional.of(tree);
 			}
-			// A rejected structure: skip its other bases (e.g. the rest of a 2x2 trunk)
+			// A rejected structure or big tree: skip its other bases (e.g. the rest of a 2x2 trunk)
 			checked.add(base);
+			if (tree != null) {
+				checked.addAll(tree.bottomLogs());
+			}
 		}
 		return Optional.empty();
 	}
@@ -239,6 +247,35 @@ public final class Trees {
 		return dy >= -CLUSTER_BELOW && dy <= MAX_TREE_HEIGHT
 			&& Math.abs(pos.getX() - base.getX()) <= 2 * MAX_TREE_RADIUS
 			&& Math.abs(pos.getZ() - base.getZ()) <= 2 * MAX_TREE_RADIUS;
+	}
+
+	/**
+	 * The natural leaves left without a log once the given logs are gone: the ones vanilla
+	 * lets decay, connected to where the logs stood. Leaves still held by a neighboring tree
+	 * stay. The highest first.
+	 */
+	public static List<BlockPos> looseLeaves(ServerLevel level, List<BlockPos> logs) {
+		Set<BlockPos> leaves = new HashSet<>();
+		ArrayDeque<BlockPos> queue = new ArrayDeque<>();
+		Consumer<BlockPos> visit = next -> {
+			if (leaves.size() < MAX_LEAVES && isLooseLeaves(level.getBlockState(next)) && leaves.add(next)) {
+				queue.add(next);
+			}
+		};
+		logs.forEach(log -> forEachNeighbor(log, visit));
+		while (!queue.isEmpty()) {
+			BlockPos current = queue.poll();
+			for (Direction direction : Direction.values()) {
+				visit.accept(current.relative(direction));
+			}
+		}
+		List<BlockPos> sorted = new ArrayList<>(leaves);
+		sorted.sort(Comparator.<BlockPos>comparingInt(BlockPos::getY).reversed());
+		return sorted;
+	}
+
+	static boolean isLooseLeaves(BlockState state) {
+		return isNaturalLeaves(state) && state.getValue(LeavesBlock.DISTANCE) == LeavesBlock.DECAY_DISTANCE;
 	}
 
 	private static boolean isNaturalLeaves(BlockState state) {

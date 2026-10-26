@@ -13,6 +13,9 @@
       "me.teajay.workingvillagers.fabric.gametest.PitPreviewScreenshots"
     ]
   },
+  "mixins": [
+    "workingvillagers_test.mixins.json"
+  ],
   "depends": {
     "workingvillagers": "*"
   }

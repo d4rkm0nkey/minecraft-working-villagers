@@ -1,11 +1,16 @@
 package me.teajay.workingvillagers.job;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import me.teajay.workingvillagers.Config;
 import me.teajay.workingvillagers.WorkingVillagers;
+import me.teajay.workingvillagers.entity.FisherBobber;
 import me.teajay.workingvillagers.mixin.BoatItemAccessor;
 import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.core.BlockPos;
@@ -28,6 +33,7 @@ import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.entity.vehicle.boat.AbstractBoat;
@@ -51,14 +57,16 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>From the shore it fishes at a pond or a river within {@link Config#WATER_RADIUS}. If it
  * has a boat and there is open water nearby (a sea, a big lake: 7 × 7 blocks of water at
- * least two deep), it puts the boat on the water at the shore, rows out, fishes there and
- * rows back with its catch, then takes the boat with it again. This can be switched off at
- * the barrel.
+ * least two deep), it puts the boat on the water at the shore of that water (a pond closer
+ * by does not keep it there), rows out, fishes there and rows back with its catch, then
+ * takes the boat with it again. This can be switched off at the barrel.
  *
- * <p>Catching works like vanilla fishing without the bobber: a bite after 5 to 30 seconds
- * (a lure makes it quicker), then a catch from the vanilla fishing loot: fish, junk, and on
- * open water treasure (luck of the sea helps). The rod wears like a player's, one use per
- * catch. While it is in its boat it goes on until it is back on land, also after work.
+ * <p>Catching works like vanilla fishing: a bite after 5 to 30 seconds (a lure makes it
+ * quicker), then a catch from the vanilla fishing loot: fish, junk, and on open water
+ * treasure (luck of the sea helps). The bobber ({@link FisherBobber}) is only for the looks;
+ * the catch flies out of the water to the fisher like to a player. The rod wears like a
+ * player's, one use per catch. While it is in its boat it goes on until it is back on land,
+ * also after work.
  */
 public class GoFishing extends Behavior<Villager> {
 	private static final float SPEED = 0.5F;
@@ -80,11 +88,21 @@ public class GoFishing extends Behavior<Villager> {
 	private static final int JUNK_WEIGHT = 10;
 	private static final int FISH_WEIGHT = 85;
 	private static final int TREASURE_WEIGHT = 5;
+	/** How long the bobber stays under after a bite before the fisher strikes. */
+	private static final int STRIKE_TICKS = 10;
+	/** How long the fisher waits after a catch before it casts again. */
+	private static final int RECAST_TICKS = 30;
+	/** How long the catch flies to the fisher at most. */
+	private static final int CATCH_FLIGHT_TICKS = 30;
 
 	private enum State { SEARCH, WALK, FISH, LAUNCH, ROW, DELIVER, WAIT }
 
 	/** Where the fisher stands on the shore, and the water next to it. */
 	private record Spot(BlockPos stand, BlockPos water) {
+	}
+
+	/** Where the fisher puts its boat on the water, and the open water it rows out to from there. */
+	private record Launch(Spot spot, BlockPos sea) {
 	}
 
 	private State state = State.SEARCH;
@@ -95,6 +113,10 @@ public class GoFishing extends Behavior<Villager> {
 	private final WorkerSupplies supplies = new WorkerSupplies();
 	private @Nullable Spot spot;
 	private long spotFoundAt = Long.MIN_VALUE / 2;
+	/** Whether the spot was looked for with a boat. */
+	private boolean spotByBoat;
+	/** The open water to row out to from the spot, if it was looked for with a boat. */
+	private @Nullable BlockPos sea;
 	/** Out on the water: where it fishes. */
 	private @Nullable BlockPos target;
 	private @Nullable UUID boat;
@@ -103,6 +125,13 @@ public class GoFishing extends Behavior<Villager> {
 	private @Nullable Vec3 lastPosition;
 	private int stuckChecks;
 	private int biteAt = -1;
+	/** When the fisher casts again after a catch. */
+	private int castAt;
+	private @Nullable UUID bobber;
+	/** Where the bobber is, from the cast until the bobber is taken in. */
+	private @Nullable BlockPos bobberWater;
+	/** The catch on its way out of the water to the fisher. */
+	private final List<UUID> flying = new ArrayList<>();
 	private int catches;
 
 	public GoFishing() {
@@ -151,6 +180,8 @@ public class GoFishing extends Behavior<Villager> {
 			// Only if something else takes over: never leave it out on the water
 			this.land(level, villager, boat);
 		}
+		this.takeInBobber(level);
+		this.catchFlying(level, villager, true);
 		WorkerStatus.clear(villager);
 		villager.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
 		villager.getBrain().eraseMemory(MemoryModuleType.LOOK_TARGET);
@@ -169,6 +200,10 @@ public class GoFishing extends Behavior<Villager> {
 			return;
 		}
 		this.stateTicks++;
+		this.catchFlying(level, villager, false);
+		if (this.state != State.FISH && this.bobberWater != null) {
+			this.takeInBobber(level);
+		}
 		if (this.state == State.SEARCH && this.riding(level, villager) == null && !hasCatch(villager.getInventory())
 			&& this.supplies.busy(level, villager, WorkerSupplies.ROD)) {
 			return; // the chest sets the status
@@ -219,15 +254,16 @@ public class GoFishing extends Behavior<Villager> {
 		return water >= 4;
 	}
 
-	/** The closest place on the shore next to water around the barrel. */
-	private static Optional<Spot> findShore(ServerLevel level, BlockPos barrel, Villager villager) {
-		int radius = Config.WATER_RADIUS.get();
-		Spot best = null;
-		double bestDistance = Double.MAX_VALUE;
+	/** The places on the shore next to water around the barrel, one for each block of water, the closest first. */
+	private static List<Spot> findShore(ServerLevel level, BlockPos barrel, Villager villager) {
+		int radius = WorkerLevels.area(villager, Config.WATER_RADIUS.get());
+		List<Spot> spots = new ArrayList<>();
 		for (BlockPos pos : BlockPos.betweenClosed(barrel.offset(-radius, -WATER_DOWN, -radius), barrel.offset(radius, WATER_UP, radius))) {
 			if (!isSurface(level, pos) || !isPond(level, pos)) {
 				continue;
 			}
+			Spot best = null;
+			double bestDistance = Double.MAX_VALUE;
 			for (Direction side : Direction.Plane.HORIZONTAL) {
 				for (BlockPos stand : List.of(pos.relative(side).above(), pos.relative(side))) {
 					double distance = stand.distToCenterSqr(villager.position());
@@ -237,32 +273,54 @@ public class GoFishing extends Behavior<Villager> {
 					}
 				}
 			}
+			if (best != null) {
+				spots.add(best);
+			}
 		}
-		return Optional.ofNullable(best);
+		spots.sort(Comparator.comparingDouble(spot -> spot.stand().distToCenterSqr(villager.position())));
+		return spots;
 	}
 
 	/**
-	 * Open water to row out to from the spot on the shore: 7 × 7 blocks of water, some way out
-	 * but within {@link Config#SEA_RADIUS} of the barrel, and only water on the way.
+	 * The closest place on the shore from which the fisher can row out to open water, and the
+	 * open water: 7 × 7 blocks of water, some way out but within {@link Config#SEA_RADIUS} of
+	 * the barrel, and only water on the way. A pond closer to the barrel does not keep it from
+	 * the sea.
 	 */
-	private static Optional<BlockPos> findOpenWater(ServerLevel level, BlockPos barrel, Spot spot) {
-		int radius = Config.SEA_RADIUS.get();
-		BlockPos start = spot.water();
-		BlockPos best = null;
-		double bestScore = Double.MAX_VALUE;
-		for (int dx = -radius; dx <= radius; dx += 2) {
-			for (int dz = -radius; dz <= radius; dz += 2) {
-				BlockPos pos = new BlockPos(barrel.getX() + dx, start.getY(), barrel.getZ() + dz);
+	private static Optional<Launch> findLaunch(ServerLevel level, BlockPos barrel, List<Spot> shore, int radius) {
+		Map<Integer, List<BlockPos>> openWater = new HashMap<>();
+		for (Spot spot : shore) {
+			BlockPos start = spot.water();
+			BlockPos best = null;
+			double bestScore = Double.MAX_VALUE;
+			for (BlockPos pos : openWater.computeIfAbsent(start.getY(), y -> findOpenWater(level, barrel, y, radius))) {
 				double distance = Math.sqrt(pos.distSqr(start));
 				double score = Math.abs(distance - ROW_BEST);
-				if (distance < ROW_MIN || score >= bestScore || !isOpenWater(level, pos, 3) || !isWaterOnTheWay(level, start, pos)) {
+				if (distance < ROW_MIN || score >= bestScore || !isWaterOnTheWay(level, start, pos)) {
 					continue;
 				}
 				best = pos;
 				bestScore = score;
 			}
+			if (best != null) {
+				return Optional.of(new Launch(spot, best));
+			}
 		}
-		return Optional.ofNullable(best);
+		return Optional.empty();
+	}
+
+	/** The open water within {@link Config#SEA_RADIUS} of the barrel, at the height of the surface. */
+	private static List<BlockPos> findOpenWater(ServerLevel level, BlockPos barrel, int y, int radius) {
+		List<BlockPos> found = new ArrayList<>();
+		for (int dx = -radius; dx <= radius; dx += 2) {
+			for (int dz = -radius; dz <= radius; dz += 2) {
+				BlockPos pos = new BlockPos(barrel.getX() + dx, y, barrel.getZ() + dz);
+				if (isOpenWater(level, pos, 3)) {
+					found.add(pos);
+				}
+			}
+		}
+		return found;
 	}
 
 	private static boolean isWaterOnTheWay(ServerLevel level, BlockPos from, BlockPos to) {
@@ -277,9 +335,17 @@ public class GoFishing extends Behavior<Villager> {
 		return true;
 	}
 
-	private @Nullable Spot spot(ServerLevel level, Villager villager, BlockPos barrel, long timestamp) {
-		if (this.spot == null || timestamp - this.spotFoundAt > SCAN_TICKS) {
-			this.spot = findShore(level, barrel, villager).orElse(null);
+	/**
+	 * Where the fisher fishes from the shore, or with a boat where it puts the boat on the
+	 * water to row out to {@link #sea} (null if there is no open water to row to).
+	 */
+	private @Nullable Spot spot(ServerLevel level, Villager villager, BlockPos barrel, long timestamp, boolean byBoat) {
+		if (this.spot == null || timestamp - this.spotFoundAt > SCAN_TICKS || byBoat != this.spotByBoat) {
+			List<Spot> shore = findShore(level, barrel, villager);
+			Optional<Launch> launch = byBoat ? findLaunch(level, barrel, shore, WorkerLevels.area(villager, Config.SEA_RADIUS.get())) : Optional.empty();
+			this.spot = launch.map(Launch::spot).orElse(shore.isEmpty() ? null : shore.getFirst());
+			this.sea = launch.map(Launch::sea).orElse(null);
+			this.spotByBoat = byBoat;
 			this.spotFoundAt = timestamp;
 		}
 		return this.spot;
@@ -290,7 +356,9 @@ public class GoFishing extends Behavior<Villager> {
 	private void search(ServerLevel level, Villager villager, Workstations.Station workplace, long timestamp) {
 		SimpleContainer inventory = villager.getInventory();
 		AbstractBoat boat = this.riding(level, villager);
-		Spot spot = this.spot(level, villager, workplace.pos(), timestamp);
+		// Rowing out from journeyman on
+		boolean boatAtHand = workplace.boat() && Unlocks.can(villager, Unlocks.Ability.BOAT) && !boatItem(inventory).isEmpty();
+		Spot spot = this.spot(level, villager, workplace.pos(), timestamp, boat != null || boatAtHand);
 		if (boat != null) {
 			// Back on the water after a reload: home first
 			if (spot == null) {
@@ -315,12 +383,8 @@ public class GoFishing extends Behavior<Villager> {
 			}
 			return;
 		}
-		this.byBoat = false;
-		this.target = null;
-		if (workplace.boat() && !boatItem(inventory).isEmpty()) {
-			this.target = findOpenWater(level, workplace.pos(), spot).orElse(null);
-			this.byBoat = this.target != null;
-		}
+		this.target = boatAtHand ? this.sea : null;
+		this.byBoat = this.target != null;
 		this.setState(State.WALK);
 	}
 
@@ -369,32 +433,75 @@ public class GoFishing extends Behavior<Villager> {
 		if (boat != null) {
 			boat.setDeltaMovement(0.0, boat.getDeltaMovement().y, 0.0);
 		}
-		BlockPos bobber = boat != null ? this.ahead(boat, 3.0) : spot.water();
-		villager.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(bobber));
+		BlockPos water = this.bobberWater != null ? this.bobberWater : boat != null ? this.ahead(boat, 3.0) : spot.water();
+		villager.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(water));
 		villager.setItemSlot(EquipmentSlot.MAINHAND, rod.copyWithCount(1));
 		villager.setDropChance(EquipmentSlot.MAINHAND, 0.0F);
 		if (this.biteAt < 0) {
+			if (this.stateTicks < this.castAt) {
+				return; // the last catch is still on its way
+			}
 			int min = Config.MIN_BITE_SECONDS.get() * 20;
 			int max = Math.max(min, Config.MAX_BITE_SECONDS.get() * 20);
 			int lure = Math.round(EnchantmentHelper.getFishingTimeReduction(level, rod, villager) * 20);
 			this.biteAt = this.stateTicks + Math.max(20, Mth.nextInt(villager.getRandom(), min, max) - lure);
 			villager.swingForAttack(InteractionHand.MAIN_HAND);
 			level.playSound(null, villager, SoundEvents.FISHING_BOBBER_THROW, SoundSource.NEUTRAL, 0.5F, 0.4F);
+			this.bobberWater = water;
+			FisherBobber bobber = FisherBobber.cast(level, villager, floatAt(water));
+			this.bobber = bobber != null ? bobber.getUUID() : null;
 		}
+		Vec3 floating = floatAt(water);
 		if (this.stateTicks < this.biteAt) {
 			if (this.stateTicks % 40 == 0) {
-				level.sendParticles(ParticleTypes.FISHING, bobber.getX() + 0.5, bobber.getY() + 1.0, bobber.getZ() + 0.5, 1, 0.05, 0.0, 0.05, 0.0);
+				level.sendParticles(ParticleTypes.FISHING, floating.x, floating.y + 0.2, floating.z, 1, 0.05, 0.0, 0.05, 0.0);
 			}
 			return;
 		}
+		if (this.stateTicks == this.biteAt) {
+			// A bite: the bobber dips, then the fisher strikes
+			FisherBobber bobber = this.bobber(level);
+			if (bobber != null) {
+				bobber.setBiting(true);
+			}
+			level.sendParticles(ParticleTypes.SPLASH, floating.x, floating.y + 0.2, floating.z, 12, 0.2, 0.0, 0.2, 0.0);
+			level.sendParticles(ParticleTypes.BUBBLE, floating.x, floating.y, floating.z, 6, 0.1, 0.1, 0.1, 0.0);
+			level.playSound(null, floating.x, floating.y, floating.z, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.NEUTRAL, 0.25F, 1.0F);
+		}
+		if (this.stateTicks < this.biteAt + STRIKE_TICKS) {
+			return;
+		}
 		this.biteAt = -1;
-		level.sendParticles(ParticleTypes.SPLASH, bobber.getX() + 0.5, bobber.getY() + 1.0, bobber.getZ() + 0.5, 12, 0.2, 0.0, 0.2, 0.0);
+		this.castAt = this.stateTicks + RECAST_TICKS;
 		level.playSound(null, villager, SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.NEUTRAL, 1.0F, 1.0F);
 		villager.swingForAttack(InteractionHand.MAIN_HAND);
-		this.reelIn(level, villager, rod, bobber, isOpenWater(level, bobber, 2));
+		this.takeInBobber(level);
+		this.reelIn(level, villager, rod, water, isOpenWater(level, water, 2));
 	}
 
-	/** A catch from the vanilla fishing loot; one use of the rod. */
+	/** Where the bobber floats on the water. */
+	private static Vec3 floatAt(BlockPos water) {
+		return new Vec3(water.getX() + 0.5, water.getY() + 0.8, water.getZ() + 0.5);
+	}
+
+	private @Nullable FisherBobber bobber(ServerLevel level) {
+		return this.bobber != null && level.getEntity(this.bobber) instanceof FisherBobber bobber ? bobber : null;
+	}
+
+	private void takeInBobber(ServerLevel level) {
+		FisherBobber bobber = this.bobber(level);
+		if (bobber != null) {
+			bobber.discard();
+		}
+		this.bobber = null;
+		this.bobberWater = null;
+	}
+
+	/**
+	 * A catch from the vanilla fishing loot; one use of the rod. The catch flies out of the
+	 * water to the fisher, like to a player, and goes into its inventory when it arrives
+	 * (see {@link #catchFlying}).
+	 */
 	private void reelIn(ServerLevel level, Villager villager, ItemStack rod, BlockPos bobber, boolean openWater) {
 		int luck = EnchantmentHelper.getFishingLuckBonus(level, rod, villager);
 		int junk = Math.max(0, JUNK_WEIGHT - 2 * luck);
@@ -410,15 +517,53 @@ public class GoFishing extends Behavior<Villager> {
 			.withParameter(LootContextParams.THIS_ENTITY, villager)
 			.withLuck(luck)
 			.create(LootContextParamSets.FISHING);
+		Vec3 from = floatAt(bobber);
 		for (ItemStack stack : level.getServer().reloadableRegistries().getLootTable(table).getRandomItems(params)) {
-			ItemStack rest = villager.getInventory().addItem(stack);
-			if (!rest.isEmpty()) {
-				villager.spawnAtLocation(level, rest);
+			ItemEntity item = new ItemEntity(level, from.x, from.y, from.z, stack);
+			double dx = villager.getX() - from.x;
+			double dy = villager.getY() - from.y;
+			double dz = villager.getZ() - from.z;
+			item.setDeltaMovement(dx * 0.1, dy * 0.1 + Math.sqrt(Math.sqrt(dx * dx + dy * dy + dz * dz)) * 0.08, dz * 0.1);
+			// Nobody else picks it up on the way
+			item.setPickUpDelay(CATCH_FLIGHT_TICKS * 2);
+			if (level.addFreshEntity(item)) {
+				this.flying.add(item.getUUID());
+			} else {
+				addCatch(level, villager, stack);
 			}
 		}
 		this.catches++;
 		((HiredVillager) villager).workingvillagers$addWorkDone(ChopTrees.today(level), 1);
-		rod.hurtAndBreak(1, level, null, broken -> villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY));
+		WorkerLevels.wear(level, villager, rod, 1, broken -> villager.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY));
+		villager.getInventory().setChanged();
+	}
+
+	/**
+	 * The catch that flew to the fisher goes into its inventory once it is there (or has
+	 * flown long enough); with {@code all} at once, when the fisher stops.
+	 */
+	private void catchFlying(ServerLevel level, Villager villager, boolean all) {
+		if (this.flying.isEmpty()) {
+			return;
+		}
+		this.flying.removeIf(id -> {
+			if (!(level.getEntity(id) instanceof ItemEntity item) || item.isRemoved()) {
+				return true; // merged with another catch, or taken by a hopper
+			}
+			if (!all && item.getAge() < CATCH_FLIGHT_TICKS && item.distanceToSqr(villager) > 1.5 * 1.5) {
+				return false;
+			}
+			addCatch(level, villager, item.getItem());
+			item.discard();
+			return true;
+		});
+	}
+
+	private static void addCatch(ServerLevel level, Villager villager, ItemStack stack) {
+		ItemStack rest = villager.getInventory().addItem(stack);
+		if (!rest.isEmpty()) {
+			villager.spawnAtLocation(level, rest);
+		}
 		villager.getInventory().setChanged();
 	}
 
@@ -658,5 +803,6 @@ public class GoFishing extends Behavior<Villager> {
 	private void setState(State state) {
 		this.state = state;
 		this.stateTicks = 0;
+		this.castAt = 0;
 	}
 }

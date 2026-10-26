@@ -22,6 +22,9 @@ import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.world.entity.npc.villager.VillagerData;
+import me.teajay.workingvillagers.job.Unlocks;
+import me.teajay.workingvillagers.job.WorkerLevels;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.DyeColor;
@@ -73,10 +76,12 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	/** Order tab: where the grid of products starts, below its label. */
 	private static final int SHAPES_Y = 30;
 	/** Stonecutter: the grid of families or products. */
-	private static final int STONE_CELLS = GRID_COLUMNS * 6;
+	private static final int STONE_CELLS = GRID_COLUMNS * 5;
 	/** Kiln: rows of products on one page. */
 	private static final int KILN_ROWS = 5;
 	private static final int KILN_CELLS = GRID_COLUMNS * KILN_ROWS;
+	/** Order tab: the button that switches between ordering a product once and keeping it in stock. */
+	private static final int MODE_WIDTH = 20;
 	/** Settings tab: the rows (one below the other, a big button high each). */
 	private static final int SETTING_STEP = 26;
 	private static final int LINE = 10;
@@ -86,8 +91,12 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	/** Where the wood types start, below the products. */
 	private final int woodsLabelY;
 	private final int woodsY;
-	/** Carpenter's bench and kiln: the row with the stock. */
+	/** Stations with an order: the row with how many of the selected product to make. */
 	private final int stockY;
+	/** Order tab: the product of the order whose amount the row below the grid shows (index in the order). */
+	private int selectedOrder;
+	/** How many products the order had when last shown, -1 before; a product added to it is selected. */
+	private int shownOrders = -1;
 	private final List<Hotspot> hotspots = new ArrayList<>();
 	/** Chests tab: the first chest shown. */
 	private int chestScroll;
@@ -114,7 +123,8 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		this.woodsLabelY = SHAPES_Y + productRows * 18 + 5;
 		this.woodsY = this.woodsLabelY + 11;
 		this.stockY = type == StationType.KILN || type == StationType.FLETCHING_TABLE || type == StationType.BREWING_STAND
-			|| type == StationType.CAULDRON || type == StationType.GRINDSTONE ? SHAPES_Y + KILN_ROWS * 18 + 8 : this.woodsY + 2 * 18 + 6;
+			|| type == StationType.CAULDRON || type == StationType.GRINDSTONE || type == StationType.STONECUTTER
+			? SHAPES_Y + KILN_ROWS * 18 + 8 : this.woodsY + 2 * 18 + 6;
 	}
 
 	/** The open tab, e.g. "wage" (for the tests of the menus). */
@@ -246,11 +256,54 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 				free ? StationMenu.ASSIGN_BUTTON : StationMenu.UNASSIGN_BUTTON,
 				List.of(Component.translatable(free ? "gui.workingvillagers.station.assign.tooltip" : "gui.workingvillagers.station.unassign.tooltip")));
 		}
+		int level = this.menu.getLevel();
+		if (level > 0) {
+			// The worker's experience towards the next level, under its name
+			int barWidth = COLUMN_WIDTH - this.workerButtonWidth() - 4;
+			int barX = this.leftPos + COLUMN_X;
+			int barY = this.topPos + CONTENT_Y + 16;
+			graphics.fill(barX, barY, barX + barWidth, barY + 2, 0xFF3F3F3F);
+			if (VillagerData.canLevelUp(level)) {
+				int min = VillagerData.getMinXpPerLevel(level);
+				int max = VillagerData.getMaxXpPerLevel(level);
+				int filled = Math.clamp((long) barWidth * (this.menu.getXp() - min) / Math.max(1, max - min), 0, barWidth);
+				graphics.fill(barX, barY, barX + filled, barY + 2, 0xFF7EFC20);
+			} else {
+				graphics.fill(barX, barY, barX + barWidth, barY + 2, 0xFF7EFC20);
+			}
+			this.hotspots.add(new Hotspot(barX, this.topPos + CONTENT_Y, barWidth, BIG, -1, this.levelTooltip(level), null));
+		}
 		this.menu.getSupplies().ifPresent(info -> {
 			int y = this.topPos + this.suppliesY();
 			SuppliesRow.extractSlots(graphics, this.font, info, this.leftPos + COLUMN_X, y);
 			this.hotspots.add(new Hotspot(this.leftPos + COLUMN_X, y, COLUMN_WIDTH, SuppliesRow.SLOT, -1, SuppliesRow.tooltip(info)));
 		});
+	}
+
+	/** The worker's level and experience, what its next level brings, and how workers rise. */
+	private List<Component> levelTooltip(int level) {
+		List<Component> lines = new ArrayList<>();
+		Component name = Component.translatable("merchant.level." + level);
+		lines.add(VillagerData.canLevelUp(level)
+			? Component.translatable("gui.workingvillagers.worker.level", name, this.menu.getXp(), VillagerData.getMaxXpPerLevel(level))
+			: Component.translatable("gui.workingvillagers.worker.level_master", name));
+		this.menu.getNextUnlocks().ifPresent(next -> lines.addAll(this.wrapped(next, ChatFormatting.GREEN)));
+		lines.addAll(this.wrapped(Component.translatable("gui.workingvillagers.worker.level_hint"), ChatFormatting.GRAY));
+		return lines;
+	}
+
+	/** The text in lines of a tooltip's width, in the color. */
+	private List<Component> wrapped(Component text, ChatFormatting color) {
+		List<Component> lines = new ArrayList<>();
+		for (FormattedCharSequence line : this.font.split(text, 200)) {
+			StringBuilder plain = new StringBuilder();
+			line.accept((index, style, codePoint) -> {
+				plain.appendCodePoint(codePoint);
+				return true;
+			});
+			lines.add(Component.literal(plain.toString()).withStyle(color));
+		}
+		return lines;
 	}
 
 	private int workerButtonWidth() {
@@ -284,6 +337,9 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 
 	private void extractWorkLabels(GuiGraphicsExtractor graphics) {
 		Component worker = this.menu.getWorker().orElse(Component.translatable("gui.workingvillagers.worker.none"));
+		if (this.menu.getLevel() > 0) {
+			worker = worker.copy().append(" · ").append(Component.translatable("merchant.level." + this.menu.getLevel()));
+		}
 		GuiPanels.scrollingText(graphics, this.font, worker.getString(), 8, CONTENT_Y + 6, COLUMN_WIDTH - this.workerButtonWidth() - 4,
 			this.menu.getWorker().isPresent() ? GuiPanels.TEXT_COLOR : GuiPanels.MUTED_COLOR);
 		int y = CONTENT_Y + BIG + 6;
@@ -475,29 +531,36 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 	// --- Order and settings tab ---
 
 	private void extractOrderTab(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+		if (this.type().hasOrder()) {
+			this.keepSelection();
+		}
 		switch (this.type()) {
-			case STONECUTTER -> this.extractStoneOrder(graphics, mouseX, mouseY);
+			case STONECUTTER -> {
+				this.extractStoneOrder(graphics, mouseX, mouseY);
+				this.extractAmount(graphics, mouseX, mouseY);
+			}
 			case KILN, FLETCHING_TABLE, BREWING_STAND -> {
 				this.extractKilnOrder(graphics, mouseX, mouseY);
-				this.extractStock(graphics, mouseX, mouseY);
+				this.extractAmount(graphics, mouseX, mouseY);
 			}
 			case CAULDRON -> {
 				this.extractKilnOrder(graphics, mouseX, mouseY);
-				this.extractStock(graphics, mouseX, mouseY);
+				this.extractAmount(graphics, mouseX, mouseY);
 				this.extractDye(graphics, mouseX, mouseY);
 			}
 			case GRINDSTONE -> {
 				this.extractKilnOrder(graphics, mouseX, mouseY);
-				this.extractStock(graphics, mouseX, mouseY);
+				this.extractAmount(graphics, mouseX, mouseY);
 				this.extractGrind(graphics, mouseX, mouseY);
 			}
 			case CARPENTER_BENCH -> {
 				this.extractProducts(graphics, this.leftPos + 8, this.menu.getShapes());
-				this.extractStock(graphics, mouseX, mouseY);
+				this.extractAmount(graphics, mouseX, mouseY);
 				this.extractWoods(graphics, mouseX, mouseY);
 			}
 			case WOODCUTTER -> {
 				this.extractShapes(graphics);
+				this.extractAmount(graphics, mouseX, mouseY);
 				this.extractWoods(graphics, mouseX, mouseY);
 			}
 			case CHOPPING_BLOCK -> this.extractStrip(graphics, mouseX, mouseY);
@@ -540,8 +603,8 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			int y = this.topPos + SHAPES_Y + i / GRID_COLUMNS * 18;
 			Item icon = WoodTypes.product(WoodTypes.ALL.getFirst(), option);
 			boolean selected = shapes.contains(option);
-			this.cell(graphics, x, y, icon == null ? ItemStack.EMPTY : new ItemStack(icon), selected, false);
-			this.hotspots.add(new Hotspot(x, y, 18, 18, StationMenu.SHAPE_BUTTON + i, this.productTooltip(shapeName(option), selected)));
+			ItemStack stack = icon == null ? ItemStack.EMPTY : new ItemStack(icon);
+			this.productCell(graphics, x, y, stack, selected, StationMenu.SHAPE_BUTTON + i, shapeName(option));
 		}
 	}
 
@@ -615,8 +678,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 				boolean selected = this.menu.isOrdered(product);
 				int x = left + i % GRID_COLUMNS * 18;
 				int y = top + i / GRID_COLUMNS * 18;
-				this.cell(graphics, x, y, product, selected, false);
-				this.hotspots.add(new Hotspot(x, y, 18, 18, StationMenu.STONE_PRODUCT_BUTTON + first + i, this.productTooltip(product.getHoverName(), selected)));
+				this.productCell(graphics, x, y, product, selected, StationMenu.STONE_PRODUCT_BUTTON + first + i, product.getHoverName());
 			}
 			return;
 		}
@@ -635,12 +697,16 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			ItemStack icon = new ItemStack(family.icon());
 			int x = left + (i - start) % GRID_COLUMNS * 18;
 			int y = top + (i - start) / GRID_COLUMNS * 18;
-			this.cell(graphics, x, y, icon, orders.stream().anyMatch(ordered -> family.contains(ordered.getItem())), false);
+			// A family the worker can make nothing of yet is faded, with the level from which it can
+			int needed = family.products().stream().mapToInt(product -> this.menu.getLockLevel(new ItemStack(product))).min().orElse(WorkerLevels.NOVICE);
+			this.cell(graphics, x, y, icon, orders.stream().anyMatch(ordered -> family.contains(ordered.getItem())), needed > this.workerLevel());
 			int index = i;
-			this.hotspots.add(new Hotspot(x, y, 18, 18, -1, List.of(
+			List<Component> tooltip = new ArrayList<>(List.of(
 				icon.getHoverName(),
 				Component.translatable("gui.workingvillagers.station.stone.family", family.products().size()).withStyle(ChatFormatting.GRAY)
-			), () -> this.openFamily = index));
+			));
+			this.addLockLine(tooltip, needed);
+			this.hotspots.add(new Hotspot(x, y, 18, 18, -1, tooltip, () -> this.openFamily = index));
 		}
 	}
 
@@ -666,24 +732,82 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			boolean selected = productShape != null ? shapes.contains(productShape) : this.menu.isOrdered(product);
 			int x = left + i % GRID_COLUMNS * 18;
 			int y = this.topPos + SHAPES_Y + i / GRID_COLUMNS * 18;
-			this.cell(graphics, x, y, product, selected, false);
-			this.hotspots.add(new Hotspot(x, y, 18, 18, StationMenu.SHAPE_BUTTON + i,
-				this.productTooltip(productShape != null ? shapeName(productShape) : product.getHoverName(), selected)));
+			this.productCell(graphics, x, y, product, selected, StationMenu.SHAPE_BUTTON + i, productShape != null ? shapeName(productShape) : product.getHoverName());
 		}
 	}
 
 	/**
-	 * The tooltip of a product in the order grid: its name, whether it is made, what a click
-	 * does; a note if the order is full.
+	 * A product of the order grid: a click adds it to the order; on a product of the order
+	 * it selects it for the amount row below the grid, on the selected one it takes it out.
+	 * Products of the order ordered once show how many are left.
 	 */
-	private List<Component> productTooltip(Component name, boolean selected) {
+	private void productCell(GuiGraphicsExtractor graphics, int x, int y, ItemStack product, boolean selected, int button, Component name) {
+		this.cell(graphics, x, y, product, selected, this.locked(product));
+		int index = selected ? this.orderIndex(product) : -1;
+		if (index >= 0) {
+			StationMenu.Amount amount = this.menu.getAmount(index);
+			if (amount.batch()) {
+				graphics.itemDecorations(this.font, product, x + 1, y + 1, amount.left() > 0 ? String.valueOf(amount.left()) : "✔");
+			}
+			if (index == this.selectedOrder) {
+				graphics.outline(x, y, 18, 18, 0xFFFFFFFF);
+			}
+		}
+		this.hotspots.add(new Hotspot(x, y, 18, 18, -1, this.productTooltip(name, selected, product, index), () -> {
+			if (index >= 0 && index != this.selectedOrder) {
+				this.selectedOrder = index;
+			} else {
+				this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, button);
+			}
+		}));
+	}
+
+	/**
+	 * The index of the product of the grid in the order, -1 if it is not in it. A product made
+	 * of one wood type stands for its shape.
+	 */
+	private int orderIndex(ItemStack product) {
+		List<ItemStack> orders = this.menu.getOrders();
+		String shape = this.type().hasWoods() ? WoodTypes.shapeOf(product.getItem(), this.type().shapes()) : null;
+		for (int i = 0; i < orders.size(); i++) {
+			ItemStack order = orders.get(i);
+			if (ItemStack.isSameItemSameComponents(order, product) || shape != null && shape.equals(WoodTypes.shapeOf(order.getItem(), this.type().shapes()))) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	/** Keeps the selected product of the order in it; a product just added to the order is selected. */
+	private void keepSelection() {
+		int count = this.menu.getOrders().size();
+		if (this.shownOrders >= 0 && count > this.shownOrders) {
+			this.selectedOrder = count - 1;
+		}
+		this.shownOrders = count;
+		this.selectedOrder = Mth.clamp(this.selectedOrder, 0, Math.max(0, count - 1));
+	}
+
+	/**
+	 * The tooltip of a product in the order grid: its name, whether it is made and how many,
+	 * what a click does; a note if the order is full.
+	 */
+	private List<Component> productTooltip(Component name, boolean selected, ItemStack product, int index) {
 		List<Component> tooltip = new ArrayList<>();
 		tooltip.add(name);
+		this.addLockLine(tooltip, this.menu.getLockLevel(product));
 		boolean brewing = this.type() == StationType.BREWING_STAND;
 		if (selected) {
 			tooltip.add(Component.translatable("gui.workingvillagers.station.shape.selected").withStyle(ChatFormatting.GRAY));
-			tooltip.add(Component.translatable(brewing ? "gui.workingvillagers.apothecary.clear"
-				: this.isKiln() ? "gui.workingvillagers.kiln.clear" : "gui.workingvillagers.station.order.remove").withStyle(ChatFormatting.DARK_GRAY));
+			if (index >= 0) {
+				tooltip.add(this.amountText(this.menu.getAmount(index)).copy().withStyle(ChatFormatting.GRAY));
+			}
+			if (index >= 0 && index != this.selectedOrder) {
+				tooltip.add(Component.translatable("gui.workingvillagers.station.order.select").withStyle(ChatFormatting.DARK_GRAY));
+			} else {
+				tooltip.add(Component.translatable(brewing ? "gui.workingvillagers.apothecary.clear"
+					: this.isKiln() ? "gui.workingvillagers.kiln.clear" : "gui.workingvillagers.station.order.remove").withStyle(ChatFormatting.DARK_GRAY));
+			}
 		} else if (!brewing && this.menu.getOrders().size() >= Workstations.MAX_ORDERS) {
 			tooltip.add(Component.translatable("gui.workingvillagers.station.order.full", Workstations.MAX_ORDERS).withStyle(ChatFormatting.RED));
 		} else {
@@ -725,20 +849,50 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			boolean selected = this.menu.isOrdered(product);
 			int x = left + (i - start) % GRID_COLUMNS * 18;
 			int y = top + (i - start) / GRID_COLUMNS * 18;
-			this.cell(graphics, x, y, product, selected, false);
-			this.hotspots.add(new Hotspot(x, y, 18, 18, StationMenu.KILN_PRODUCT_BUTTON + i, this.productTooltip(product.getHoverName(), selected)));
+			this.productCell(graphics, x, y, product, selected, StationMenu.KILN_PRODUCT_BUTTON + i, product.getHoverName());
 		}
 	}
 
-	/** Carpenter's bench and kiln: how many products to keep in the output chests, with buttons to change it. */
-	private void extractStock(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+	/**
+	 * Below the grid: the selected product of the order, how many of it to make once or to keep
+	 * in the output chests, with a button to switch between the two and buttons to change it.
+	 */
+	private void extractAmount(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+		List<ItemStack> orders = this.menu.getOrders();
+		if (orders.isEmpty()) {
+			return;
+		}
 		int y = this.topPos + this.stockY - 4;
+		int left = this.leftPos + COLUMN_X;
+		StationMenu.Amount amount = this.menu.getAmount(this.selectedOrder);
+		graphics.item(orders.get(this.selectedOrder), left + 1, y);
+		int modeX = this.leftPos + COLUMN_X + COLUMN_WIDTH - 2 * SMALL - 2 - 2 - MODE_WIDTH;
+		this.button(graphics, mouseX, mouseY, modeX, y, MODE_WIDTH, SMALL, "", StationMenu.AMOUNT_MODE_BUTTON + this.selectedOrder, List.of(
+			Component.translatable(amount.batch() ? "gui.workingvillagers.station.amount.mode.batch" : "gui.workingvillagers.station.amount.mode.stock"),
+			Component.translatable("gui.workingvillagers.station.amount.mode.tooltip").withStyle(ChatFormatting.GRAY),
+			Component.translatable("gui.workingvillagers.station.click_toggle").withStyle(ChatFormatting.DARK_GRAY)
+		));
+		graphics.item(new ItemStack(amount.batch() ? Items.PAPER : Items.CHEST), modeX + (MODE_WIDTH - 16) / 2, y);
 		List<Component> tooltip = List.of(
-			Component.translatable(this.hasProductGrid() ? this.gridKeys() + ".stock.tooltip" : "gui.workingvillagers.station.stock.tooltip"),
-			Component.translatable("gui.workingvillagers.station.stock.tooltip2").withStyle(ChatFormatting.GRAY)
+			Component.translatable(amount.batch() ? "gui.workingvillagers.station.amount.batch.tooltip"
+				: this.hasProductGrid() ? this.gridKeys() + ".stock.tooltip" : "gui.workingvillagers.station.stock.tooltip"),
+			Component.translatable(amount.batch() ? "gui.workingvillagers.station.amount.batch.tooltip2" : "gui.workingvillagers.station.stock.tooltip2")
+				.withStyle(ChatFormatting.GRAY)
 		);
-		this.plusMinus(graphics, mouseX, mouseY, y, SMALL, StationMenu.STOCK_LESS_BUTTON, StationMenu.STOCK_MORE_BUTTON, tooltip);
-		this.hotspots.add(new Hotspot(this.leftPos + COLUMN_X, y, COLUMN_WIDTH - 2 * SMALL - 4, SMALL, -1, tooltip));
+		this.plusMinus(graphics, mouseX, mouseY, y, SMALL, StationMenu.AMOUNT_LESS_BUTTON + this.selectedOrder, StationMenu.AMOUNT_MORE_BUTTON + this.selectedOrder, tooltip);
+		this.hotspots.add(new Hotspot(left, y, modeX - left - 2, SMALL, -1, tooltip));
+	}
+
+	/** The amount of a product of the order in words: how many are left of how many ordered, or the stock. */
+	private Component amountText(StationMenu.Amount amount) {
+		if (amount.batch()) {
+			return amount.left() > 0
+				? Component.translatable("gui.workingvillagers.station.amount.batch", amount.left(), amount.amount())
+				: Component.translatable("gui.workingvillagers.station.amount.done", amount.amount());
+		}
+		return amount.amount() > 0
+			? Component.translatable("gui.workingvillagers.station.stock", amount.amount())
+			: Component.translatable("gui.workingvillagers.station.stock.none");
 	}
 
 	/** Cauldron: the color of the leather armor, with buttons to the previous and next one. */
@@ -996,14 +1150,14 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			}
 			default -> { }
 		}
-		if (this.isBench() || this.hasProductGrid()) {
-			int stock = this.menu.getStock();
-			Component text = this.isKiln() && this.menu.getOrder().isEmpty()
-				? Component.translatable("gui.workingvillagers.kiln.stock.no_order")
-				: stock == 0
-				? Component.translatable("gui.workingvillagers.station.stock.none")
-				: Component.translatable("gui.workingvillagers.station.stock", stock);
-			GuiPanels.scrollingText(graphics, this.font, text.getString(), 8, this.stockY, COLUMN_WIDTH - 2 * SMALL - 6, GuiPanels.TEXT_COLOR);
+		if (this.type().hasOrder()) {
+			if (this.menu.getOrders().isEmpty()) {
+				Component text = Component.translatable(this.isKiln() ? "gui.workingvillagers.kiln.stock.no_order" : "gui.workingvillagers.station.amount.no_order");
+				GuiPanels.scrollingText(graphics, this.font, text.getString(), 8, this.stockY, COLUMN_WIDTH, GuiPanels.MUTED_COLOR);
+			} else {
+				GuiPanels.scrollingText(graphics, this.font, this.amountText(this.menu.getAmount(this.selectedOrder)).getString(), 8 + 18, this.stockY,
+					COLUMN_WIDTH - 18 - 2 * SMALL - 2 - 2 - MODE_WIDTH - 4, GuiPanels.TEXT_COLOR);
+			}
 		}
 		if (this.type() == StationType.GRINDSTONE) {
 			Component text = Component.translatable("gui.workingvillagers.weaponsmith.grind." + this.menu.getGrindMode());
@@ -1050,6 +1204,23 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		for (FormattedCharSequence line : this.limit(this.font.split(text, COLUMN_WIDTH), (HEIGHT - 7 - y) / LINE)) {
 			graphics.text(this.font, line, 8, y, GuiPanels.MUTED_COLOR, false);
 			y += LINE;
+		}
+	}
+
+	/** The worker's level, a novice's at a free station. */
+	private int workerLevel() {
+		return Math.max(WorkerLevels.NOVICE, this.menu.getLevel());
+	}
+
+	/** Whether the worker makes the product of the order grid only from a higher level on. */
+	private boolean locked(ItemStack product) {
+		return !product.isEmpty() && this.menu.getLockLevel(product) > this.workerLevel();
+	}
+
+	/** "From journeyman" for a product made only from a level on: red while the worker is below it. */
+	private void addLockLine(List<Component> tooltip, int needed) {
+		if (needed > WorkerLevels.NOVICE) {
+			tooltip.add(Unlocks.from(needed).copy().withStyle(needed > this.workerLevel() ? ChatFormatting.RED : ChatFormatting.DARK_GREEN));
 		}
 	}
 

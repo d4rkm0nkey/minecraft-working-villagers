@@ -177,6 +177,19 @@ public class RepairTools extends Behavior<Villager> {
 		return !stack.isEmpty() && stack.isDamageableItem() && stack.isDamaged();
 	}
 
+	/**
+	 * Whether the smith repairs the item already: enchanted ones from journeyman, and only with a
+	 * repair material it uses already (gold and diamond from journeyman, netherite from expert,
+	 * see {@link Unlocks}).
+	 */
+	static boolean canRepair(Villager smith, ItemStack tool) {
+		if (tool.isEnchanted() && !Unlocks.can(smith, Unlocks.Ability.ENCHANTED_REPAIR)) {
+			return false;
+		}
+		Repairable repairable = tool.get(DataComponents.REPAIRABLE);
+		return repairable == null || repairable.items().stream().anyMatch(material -> Unlocks.can(smith, material.value()));
+	}
+
 	/** Items without a repair material (bow, fishing rod, shears) are repaired with bottles o' enchanting alone. */
 	static boolean usesExperience(ItemStack tool) {
 		return !tool.has(DataComponents.REPAIRABLE);
@@ -265,7 +278,7 @@ public class RepairTools extends Behavior<Villager> {
 				continue;
 			}
 			for (ItemStack stack : container) {
-				if (!source.wants(stack)) {
+				if (!source.wants(stack) || !canRepair(villager, stack)) {
 					continue;
 				}
 				if (hasMaterial(level, station, inventory, stack)) {
@@ -429,7 +442,7 @@ public class RepairTools extends Behavior<Villager> {
 	/** One material per {@link #REPAIR_TICKS}, a quarter of the durability each. */
 	private void repair(ServerLevel level, Villager villager, Workstations.Station station) {
 		villager.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(station.pos()));
-		if (this.stateTicks % REPAIR_TICKS != 0) {
+		if (this.stateTicks % WorkerLevels.ticks(villager, REPAIR_TICKS) != 0) {
 			return;
 		}
 		SimpleContainer inventory = villager.getInventory();
@@ -445,6 +458,7 @@ public class RepairTools extends Behavior<Villager> {
 			}
 			tool.setDamageValue(Math.max(0, tool.getDamageValue() - stepSize(tool)));
 			inventory.setChanged();
+			((HiredVillager) villager).workingvillagers$addWorkDone(ChopTrees.today(level), 1);
 			villager.swingForAttack(InteractionHand.MAIN_HAND);
 			level.playSound(null, station.pos(), needsBottle(tool) ? SoundEvents.ENCHANTMENT_TABLE_USE : SoundEvents.SMITHING_TABLE_USE, SoundSource.BLOCKS, 0.8F, 1.0F);
 			return;

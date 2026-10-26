@@ -4,12 +4,15 @@ import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.client.CarpenterScreen;
 import me.teajay.workingvillagers.client.CarrierScreen;
 import me.teajay.workingvillagers.client.CutterScreen;
+import me.teajay.workingvillagers.client.FisherBobberRenderer;
 import me.teajay.workingvillagers.client.KilnScreen;
 import me.teajay.workingvillagers.client.PitPreviewRenderer;
 import me.teajay.workingvillagers.client.StationScreen;
 import me.teajay.workingvillagers.client.VillageChestRenderer;
 import me.teajay.workingvillagers.client.VillageChestScreen;
+import me.teajay.workingvillagers.client.WorkerNoticeRenderer;
 import me.teajay.workingvillagers.network.PitPreviewPayload;
+import me.teajay.workingvillagers.network.WorkerNoticePayload;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -53,10 +56,14 @@ public class WorkingVillagersNeoForgeClient {
 			event.register(WorkingVillagers.VILLAGE_CHEST_MENU.get(), VillageChestScreen::new);
 			event.register(WorkingVillagers.VILLAGE_CHEST_DOUBLE_MENU.get(), VillageChestScreen::new);
 		});
-		modBus.addListener(EntityRenderersEvent.RegisterRenderers.class,
-			event -> event.registerBlockEntityRenderer(WorkingVillagers.VILLAGE_CHEST_BLOCK_ENTITY.get(), VillageChestRenderer::new));
-		modBus.addListener(RegisterClientPayloadHandlersEvent.class,
-			event -> event.register(PitPreviewPayload.TYPE, (payload, context) -> PitPreviewRenderer.receive(payload)));
+		modBus.addListener(EntityRenderersEvent.RegisterRenderers.class, event -> {
+			event.registerBlockEntityRenderer(WorkingVillagers.VILLAGE_CHEST_BLOCK_ENTITY.get(), VillageChestRenderer::new);
+			event.registerEntityRenderer(WorkingVillagers.FISHER_BOBBER.get(), FisherBobberRenderer::new);
+		});
+		modBus.addListener(RegisterClientPayloadHandlersEvent.class, event -> {
+			event.register(PitPreviewPayload.TYPE, (payload, context) -> PitPreviewRenderer.receive(payload));
+			event.register(WorkerNoticePayload.TYPE, (payload, context) -> WorkerNoticeRenderer.receive(payload));
+		});
 		NeoForge.EVENT_BUS.addListener(ClientTickEvent.Post.class, event -> PitPreviewRenderer.tick(Minecraft.getInstance()));
 	}
 }

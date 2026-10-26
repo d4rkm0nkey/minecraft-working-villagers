@@ -20,12 +20,14 @@ the status does not help, go through this list.
 | *Cannot get to the post* / *the fletching table* / *the brewing stand* / *the cauldron* / *the grindstone* / *the enchanting table* / *the smoker* | The worker finds no way to its workstation. Clear a path and a free spot next to it. |
 | *Waiting: chests are full* | Empty the output chests or link another one. |
 | *Waiting: needs an axe (give them one)* | Right-click the lumberjack with an axe. |
-| *Waiting: no tree found* | No natural tree within 16 blocks of the chopping block, or none it can reach. |
+| *Waiting: no tree found* | No natural tree within 24 blocks of the chopping block, or none it can reach. |
 | *Done for today* | The lumberjack has felled 64 logs today. It goes on tomorrow. |
 | *Waiting for material* | The input chests have no material for the order, or not of the selected wood types. |
 | *Waiting for material: Oak Planks* | The carpenter's input chests lack this ingredient (or not enough of it) for one piece. |
 | *Waiting: no recipe for the order* | The carpenter's bench has no recipe for the ordered product (e.g. a data pack removed it). Pick another order. |
+| *Missing 18× Oak Planks* | The carpenter has made what it could of an ordered product (or a stock); for the rest this much is missing in its input chests and the village chests in reach. It shows a red **!** above its head until there is more. |
 | *Stock is full (16/16)* | The carpenter has as many products in its output chests as set. Take some out or raise the stock. |
+| *Order done* | Everything ordered is in the output chests. Order more in the **Order** tab. |
 | *Waiting: cannot carry more* | The carpenter's inventory is full. Make room in the input chests so it can put back what it cannot use. |
 | *Waiting for the crops to grow* | No ripe crops and no empty farmland within 8 blocks of the composter. |
 | *Waiting: no seeds for the empty farmland (give them some)* | Right-click the farmer with seeds (or carrots, potatoes). |
@@ -110,7 +112,7 @@ the status does not help, go through this list.
 
 - [ ] At least one chest linked.
 - [ ] It carries an axe (right-click it with one).
-- [ ] Natural trees within 16 blocks of the chopping block. Trees with player-placed
+- [ ] Natural trees within 24 blocks of the chopping block. Trees with player-placed
   leaves or on stone are ignored.
 - [ ] Game rule `mob_griefing` is on.
 - [ ] Not already at 64 logs today.
@@ -165,7 +167,7 @@ the status does not help, go through this list.
 - [ ] At least one chest linked.
 - [ ] It carries a shovel, a pickaxe and ladders; for a pit deeper than 8 blocks also planks
   and logs.
-- [ ] Not already at 256 blocks today.
+- [ ] Not already at 160 blocks today.
 
 ### Kiln operator
 

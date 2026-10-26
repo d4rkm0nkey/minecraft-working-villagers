@@ -18,6 +18,7 @@ import me.teajay.workingvillagers.block.VillageChestBlockEntity;
 import me.teajay.workingvillagers.block.WoodcutterBlock;
 import me.teajay.workingvillagers.crafting.MillingRecipe;
 import me.teajay.workingvillagers.crafting.WoodcuttingRecipe;
+import me.teajay.workingvillagers.entity.FisherBobber;
 import me.teajay.workingvillagers.item.WickerBasketItem;
 import me.teajay.workingvillagers.item.WorkContractItem;
 import me.teajay.workingvillagers.menu.CarpenterMenu;
@@ -27,6 +28,7 @@ import me.teajay.workingvillagers.menu.KilnMenu;
 import me.teajay.workingvillagers.menu.StationMenu;
 import me.teajay.workingvillagers.menu.VillageChestMenu;
 import me.teajay.workingvillagers.network.PitPreviewPayload;
+import me.teajay.workingvillagers.network.WorkerNoticePayload;
 import me.teajay.workingvillagers.network.RenameContainerPayload;
 import me.teajay.workingvillagers.network.RenameRoutePayload;
 import me.teajay.workingvillagers.station.StationType;
@@ -40,6 +42,8 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.entity.ai.village.poi.PoiTypes;
 import net.minecraft.world.entity.npc.villager.VillagerProfession;
@@ -134,6 +138,7 @@ public final class WorkingVillagers {
 	public static Supplier<MenuType<StationMenu>> LOOM_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> SMOKER_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> BARREL_STATION_MENU;
+	public static Supplier<EntityType<FisherBobber>> FISHER_BOBBER;
 	public static Supplier<MenuType<StationMenu>> FLETCHING_TABLE_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> BREWING_STAND_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> CAULDRON_STATION_MENU;
@@ -237,6 +242,7 @@ public final class WorkingVillagers {
 		platform.registerServerbound(RenameRoutePayload.TYPE, RenameRoutePayload.CODEC, RenameRoutePayload::handle);
 		platform.registerServerbound(RenameContainerPayload.TYPE, RenameContainerPayload.CODEC, RenameContainerPayload::handle);
 		platform.registerClientbound(PitPreviewPayload.TYPE, PitPreviewPayload.CODEC);
+		platform.registerClientbound(WorkerNoticePayload.TYPE, WorkerNoticePayload.CODEC);
 	}
 
 	private static void registerCarrier(Platform platform) {
@@ -459,8 +465,19 @@ public final class WorkingVillagers {
 	 * The fisher works at the vanilla barrel: it fishes from the shore nearby or rows out in a
 	 * boat. Ordinary villagers still become (vanilla) fishermen there.
 	 */
+	@SuppressWarnings("unchecked")
 	private static void registerFisher(Platform platform) {
 		BARREL_STATION_MENU = platform.registerMenu("barrel_station", (containerId, inventory) -> new StationMenu(StationType.BARREL, containerId, inventory));
+		ResourceKey<EntityType<?>> bobber = ResourceKey.create(Registries.ENTITY_TYPE, id("fisher_bobber"));
+		Supplier<EntityType<?>> registered = platform.register(Registries.ENTITY_TYPE, "fisher_bobber", () -> EntityType.Builder.<FisherBobber>of(FisherBobber::new, MobCategory.MISC)
+			.noLootTable()
+			.noSave()
+			.noSummon()
+			.sized(0.25F, 0.25F)
+			.clientTrackingRange(4)
+			.updateInterval(2)
+			.build(bobber));
+		FISHER_BOBBER = () -> (EntityType<FisherBobber>) registered.get();
 		registerProfession(platform, "fisher", PoiTypes.FISHERMAN, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_FISHERMAN, VillagerProfession.FISHERMAN);
 	}
 

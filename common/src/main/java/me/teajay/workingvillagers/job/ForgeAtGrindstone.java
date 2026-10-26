@@ -59,10 +59,10 @@ import org.jspecify.annotations.Nullable;
  * enchantments off, those are the smith's.</li>
  * <li><b>Disenchanting</b> what lies in its input chests: all enchantments but curses come off,
  * like at a grindstone, and the experience goes into bottles o' enchanting for the smith.</li>
- * <li><b>Forging</b> the ordered tools and weapons from its input chests (see
- * {@link ForgeRecipes}), until as many of each lie in the output chests as the stock; with
- * several, a batch of the most needed one there is material for
- * ({@link Workstations.Station#ordersByNeed}).</li>
+ * <li><b>Forging</b> the ordered tools and weapons from its input chests and the village
+ * chests (see {@link ForgeRecipes}, {@link Orders#sources}), as many as ordered or until as
+ * many of each lie in the output chests as the stock; with several, a batch of the most
+ * needed one there is material for ({@link Workstations.Station#ordersByNeed}).</li>
  * </ol>
  *
  * The station decides whether it grinds together and disenchants ({@link Workstations.Station#grindMode}).
@@ -237,7 +237,8 @@ public class ForgeAtGrindstone extends Behavior<Villager> {
 			this.goToGrindstone(Task.MERGE);
 			return;
 		}
-		if (workplace.disenchants() && inventory.hasAnyMatching(ForgeAtGrindstone::isDisenchantable)) {
+		boolean disenchants = workplace.disenchants() && Unlocks.can(villager, Unlocks.Ability.DISENCHANTING);
+		if (disenchants && inventory.hasAnyMatching(ForgeAtGrindstone::isDisenchantable)) {
 			this.goToGrindstone(Task.DISENCHANT);
 			return;
 		}
@@ -246,13 +247,22 @@ public class ForgeAtGrindstone extends Behavior<Villager> {
 			this.setState(State.DELIVER);
 			return;
 		}
+		// Everything made is handed in: the orders that are done are done
+		Orders.finish(level, villager, workplace);
 		if (workplace.merges() && this.mayTry(Task.MERGE, timestamp) && this.planMerge(level, villager, workplace)) {
 			return;
 		}
-		if (workplace.disenchants() && this.mayTry(Task.DISENCHANT, timestamp) && this.planDisenchant(level, villager, workplace)) {
+		if (disenchants && this.mayTry(Task.DISENCHANT, timestamp) && this.planDisenchant(level, villager, workplace)) {
 			return;
 		}
 		this.planForge(level, villager, workplace, isMaterial, timestamp);
+	}
+
+	/** From which level the weaponsmith forges the product (its earliest recipe, see {@link Unlocks}). */
+	private static int forgeLevel(ServerLevel level, Villager villager, Item product) {
+		return ForgeRecipes.forResult(level, product).stream()
+			.mapToInt(recipe -> Unlocks.level(villager, product, recipe.placementInfo().ingredients()))
+			.min().orElse(WorkerLevels.NOVICE);
 	}
 
 	/** The recipes of the products. */
@@ -306,11 +316,18 @@ public class ForgeAtGrindstone extends Behavior<Villager> {
 			this.idle(villager, workplace, "weaponsmith.no_recipe");
 			return;
 		}
-		int stock = workplace.stock();
-		List<Item> byNeed = workplace.ordersByNeed(product -> this.inOutputs(level, workplace, product));
+		// Only what its level lets it make (gold from apprentice, diamond from expert)
+		int lockedUntil = workplace.orders().stream().mapToInt(product -> forgeLevel(level, villager, product)).min().orElse(WorkerLevels.NOVICE);
+		if (villager.getVillagerData().level() < lockedUntil) {
+			this.idle(villager, workplace, "locked", WorkerLevels.name(lockedUntil));
+			return;
+		}
+		List<Item> byNeed = workplace.ordersByNeed(product -> this.inOutputs(level, workplace, product)).stream()
+			.filter(product -> villager.getVillagerData().level() >= forgeLevel(level, villager, product))
+			.toList();
 		if (byNeed.isEmpty()) {
-			int stocked = workplace.orders().stream().mapToInt(product -> this.inOutputs(level, workplace, product)).min().orElse(0);
-			this.idle(villager, workplace, "weaponsmith.stock_full", stocked, stock);
+			Orders.Idle idle = Orders.nothingToMake(level, workplace, "weaponsmith");
+			this.idle(villager, workplace, idle.key(), idle.args());
 			return;
 		}
 		SimpleContainer inventory = villager.getInventory();
@@ -325,7 +342,7 @@ public class ForgeAtGrindstone extends Behavior<Villager> {
 		}
 		StackedItemContents available = new StackedItemContents();
 		CarpenterRecipes.account(available, inventory, inventory.getContainerSize(), isMaterial);
-		for (BlockPos pos : workplace.validInputs(level)) {
+		for (BlockPos pos : Orders.sources(level, workplace)) {
 			Container container = Workstations.getContainer(level, pos);
 			if (container != null) {
 				CarpenterRecipes.account(available, container, container.getContainerSize(), isMaterial);
@@ -347,8 +364,7 @@ public class ForgeAtGrindstone extends Behavior<Villager> {
 			return;
 		}
 		this.current = order;
-		int stocked = this.inOutputs(level, workplace, order);
-		int limit = stock > 0 ? Math.min(BATCH, stock - stocked) : BATCH;
+		int limit = workplace.limited(order) ? Math.min(BATCH, Orders.wanted(level, workplace, order)) : BATCH;
 		int crafts = CarpenterRecipes.maxCrafts(available, recipe, Math.max(1, limit));
 		Map<Item, Integer> needed = CarpenterRecipes.pick(available, recipe, crafts).orElse(Map.of());
 		Map<Item, Integer> stillMissing = new LinkedHashMap<>();
@@ -358,7 +374,7 @@ public class ForgeAtGrindstone extends Behavior<Villager> {
 				stillMissing.put(item, amount - have);
 			}
 		});
-		Optional<BlockPos> chest = Chests.closest(workplace.validInputs(level).stream()
+		Optional<BlockPos> chest = Chests.closest(Orders.sources(level, workplace).stream()
 			.filter(pos -> Chests.contains(level, pos, stack -> stillMissing.containsKey(stack.getItem()) && isMaterial.test(stack))).toList(), villager);
 		if (chest.isEmpty()) {
 			this.idle(villager, workplace, "weaponsmith.no_material", missing(level, villager, workplace, recipes, isMaterial));
@@ -377,13 +393,13 @@ public class ForgeAtGrindstone extends Behavior<Villager> {
 		});
 	}
 
-	/** The first ingredient of the order that neither the inventory nor the input chests have enough of. */
+	/** The first ingredient of the order that neither the inventory nor the chests have enough of. */
 	private static Component missing(ServerLevel level, Villager villager, Workstations.Station workplace, List<CraftingRecipe> recipes,
 		Predicate<ItemStack> isMaterial) {
 		Map<Item, Integer> counts = new HashMap<>();
 		List<Container> containers = new ArrayList<>();
 		containers.add(villager.getInventory());
-		for (BlockPos pos : workplace.validInputs(level)) {
+		for (BlockPos pos : Orders.sources(level, workplace)) {
 			Container container = Workstations.getContainer(level, pos);
 			if (container != null) {
 				containers.add(container);
@@ -475,7 +491,7 @@ public class ForgeAtGrindstone extends Behavior<Villager> {
 		if (this.stateTicks % 5 == 0) {
 			level.sendParticles(ParticleTypes.CRIT, pos.getX() + 0.5, pos.getY() + 0.9, pos.getZ() + 0.5, 2, 0.2, 0.1, 0.2, 0.05);
 		}
-		if (this.stateTicks % WORK_TICKS != 0) {
+		if (this.stateTicks % WorkerLevels.ticks(villager, WORK_TICKS) != 0) {
 			return;
 		}
 		boolean done = switch (this.task) {
@@ -585,8 +601,8 @@ public class ForgeAtGrindstone extends Behavior<Villager> {
 	}
 
 	/**
-	 * Makes one piece of the product it picked. Returns false if the material is not enough
-	 * or the stock is full.
+	 * Makes one piece of the product it picked. Returns false if the material is not enough,
+	 * the stock is full or the order has as many as ordered.
 	 */
 	private boolean forge(ServerLevel level, Villager villager, Workstations.Station workplace) {
 		Item order = this.current;
@@ -599,9 +615,9 @@ public class ForgeAtGrindstone extends Behavior<Villager> {
 		StackedItemContents carried = new StackedItemContents();
 		CarpenterRecipes.account(carried, inventory, inventory.getContainerSize(), isMaterial);
 		CraftingRecipe recipe = CarpenterRecipes.firstCraftable(carried, recipes);
-		int stock = workplace.stock();
-		if (recipe == null || stock > 0 && this.inOutputs(level, workplace, order) + inventory.countItem(order) >= stock
-			|| !inventory.canAddItem(CarpenterRecipes.preview(recipe))) {
+		boolean enough = workplace.limited(order)
+			&& workplace.wanted(order, workplace.stocked(order) ? this.inOutputs(level, workplace, order) + inventory.countItem(order) : 0) <= 0;
+		if (recipe == null || enough || !inventory.canAddItem(CarpenterRecipes.preview(recipe))) {
 			return false;
 		}
 		for (ItemStack made : CarpenterRecipes.craft(inventory, inventory.getContainerSize(), isMaterial, recipe)) {

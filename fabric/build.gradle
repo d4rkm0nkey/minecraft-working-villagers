@@ -41,3 +41,90 @@ publishMods {
 		requires("fabric-api")
 	}
 }
+
+// The village simulation (common/src/gametest/.../simulation): a dedicated server with the test
+// mod that builds a big village on a flat world, sprints through some in-game days and writes
+// its measurements into run/simulation/world/simulation.
+//   ./gradlew :fabric:runSimulation -Pwings=2 -Pdays=5
+// -Pview=N: view distance of the stand-in player and the server (default 6; 12 for numbers
+// comparable to a player who looks around). -Pinstance=N: its own folder and port
+// (run/simulation-N, port 25565+N), to run several at once.
+// A client (runClient) can join it on localhost to look around; /wvsim works in any world with
+// the test mod (runClientGameTest's mods, or this server).
+def simInstance = project.findProperty("instance")
+def simDir = simInstance ? "run/simulation-${simInstance}" : "run/simulation"
+def simPort = 25565 + (simInstance ? (simInstance as int) : 0)
+def simView = (project.findProperty("view") ?: "6") as int
+
+loom {
+	runs {
+		simulation {
+			server()
+			name = "Village simulation"
+			source sourceSets.gametest
+			runDir = simDir
+			property("wvsim.auto", "true")
+			property("wvsim.wings", project.findProperty("wings") ?: "2")
+			property("wvsim.days", project.findProperty("days") ?: "5")
+			property("wvsim.sprint", project.findProperty("sprint") ?: "true")
+			property("wvsim.walled", project.findProperty("walled") ?: "false")
+			property("wvsim.view", simView.toString())
+			vmArg("-Xmx6G")
+			// -Pjfr: a Java Flight Recorder profile of the run, run/simulation/simulation.jfr
+			if (project.hasProperty("jfr")) {
+				vmArg("-XX:StartFlightRecording=filename=simulation.jfr,settings=profile,dumponexit=true")
+			}
+		}
+	}
+}
+
+tasks.matching { it.name == "runSimulation" }.configureEach {
+	doFirst {
+		def dir = file(simDir)
+		// A simulation server still running here holds the world's session lock: do not delete
+		// the world under it
+		def lock = new File(dir, "world/session.lock")
+		if (lock.exists()) {
+			def channel = new RandomAccessFile(lock, "rw").getChannel()
+			try {
+				def held = channel.tryLock()
+				if (held == null) {
+					throw new GradleException("A simulation server is still running in ${dir}; stop it first")
+				}
+				held.release()
+			} finally {
+				channel.close()
+			}
+		}
+		// The lock alone is not enough: a server whose world was deleted holds the lock of the
+		// deleted file. A server on the port is just as good a sign.
+		try {
+			new ServerSocket(simPort).close()
+		} catch (IOException ignored) {
+			throw new GradleException("Port ${simPort} is in use, probably by a running simulation server; stop it first")
+		}
+		if (!project.hasProperty("keepWorld")) {
+			delete(new File(dir, "world"))
+		}
+		// The mod's defaults, not what an earlier run wrote into the config file
+		if (!project.hasProperty("keepConfig")) {
+			delete(new File(dir, "config/workingvillagers.json"))
+		}
+		dir.mkdirs()
+		new File(dir, "eula.txt").text = "eula=true\n"
+		// A flat world on 60 blocks of stone, deep enough for the pits; no structures
+		new File(dir, "server.properties").text = """\
+			level-type=minecraft\\:flat
+			generator-settings={"layers"\\:[{"block"\\:"minecraft\\:bedrock","height"\\:1},{"block"\\:"minecraft\\:stone","height"\\:60},{"block"\\:"minecraft\\:dirt","height"\\:3},{"block"\\:"minecraft\\:grass_block","height"\\:1}],"biome"\\:"minecraft\\:plains"}
+			generate-structures=false
+			online-mode=false
+			difficulty=normal
+			view-distance=${simView}
+			simulation-distance=${Math.min(simView, 10)}
+			server-port=${simPort}
+			spawn-protection=0
+			max-tick-time=-1
+			sync-chunk-writes=false
+			""".stripIndent()
+	}
+}

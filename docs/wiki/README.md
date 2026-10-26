@@ -13,6 +13,7 @@ Umgesetzt sind bisher: [Holzfäller](berufe/holzfaeller.md), [Holzsäger](berufe
 - [Steuerung](grundlagen/steuerung.md) – Stationsübersicht, Auswahl in der Welt, Arbeitsbereiche
 - [Logistik & Weiterverarbeitung](grundlagen/logistik.md) – Kisten als Schnittstelle, Crafter
 - [Die Mine](grundlagen/mine.md) – Etagen, Vanilla-Optik, Schienen und Aufzug
+- [Level und Aufstieg](grundlagen/level.md) – Aufstieg durch Arbeit, was mit dem Level wächst und was es freischaltet
 - [Berufsbücher](grundlagen/berufsbuecher.md) – jeder Beruf erklärt in einem Buch, das Dorfbewohner manchmal verkaufen
 
 ## Wirtschaft
@@ -36,7 +37,7 @@ Umgesetzt sind bisher: [Holzfäller](berufe/holzfaeller.md), [Holzsäger](berufe
 - [Übersicht aller Berufe](berufe/README.md)
 - Kern: [Holzfäller](berufe/holzfaeller.md) · [Holzsäger](berufe/holzsaeger.md) · [Steinsäger](berufe/steinsaeger.md) · [Tischler](berufe/tischler.md) · [Minenarbeiter](berufe/minenarbeiter.md) · [Grubenlogistiker](berufe/grubenlogistiker.md)
 - Logistik & Handel: [Träger](berufe/traeger.md) · [Crafter-Bediener](berufe/crafter-bediener.md) · [Handelsangestellter](berufe/handelsangestellter.md) · [Händler](berufe/haendler.md)
-- Ausbau: [Farmer (Bauer)](berufe/farmer.md) · [Fischer](berufe/fischer.md) · [Hirte](berufe/hirte.md) · [Metzger](berufe/metzger.md) · [Gerber](berufe/gerber.md) · [Schmied](berufe/schmied.md) · [Waffenschmied](berufe/waffenschmied.md) · [Brenner](berufe/brenner.md) · [Grubenarbeiter](berufe/grubenarbeiter.md) · [Maurer](berufe/maurer.md) · [Pfeilmacher](berufe/pfeilmacher.md) · [Kartograf](berufe/kartograf.md) · [Apotheker](berufe/apotheker.md) · [Bibliothekar](berufe/bibliothekar.md) · [Wache](berufe/wache.md) · [Imker](berufe/imker.md)
+- Ausbau: [Farmer (Bauer)](berufe/farmer.md) · [Fischer](berufe/fischer.md) · [Hirte](berufe/hirte.md) · [Metzger](berufe/metzger.md) · [Gerber](berufe/gerber.md) · [Schmied](berufe/schmied.md) · [Waffenschmied](berufe/waffenschmied.md) · [Brenner](berufe/brenner.md) · [Grubenarbeiter](berufe/grubenarbeiter.md) · [Maurer](berufe/maurer.md) · [Pfeilmacher](berufe/pfeilmacher.md) · [Kartograf](berufe/kartograf.md) · [Apotheker](berufe/apotheker.md) · [Bibliothekar](berufe/bibliothekar.md) · [Wache](berufe/wache.md) · [Imker](berufe/imker.md) · [Höhlenforscher](berufe/hoehlenforscher.md)
 
 ## Technik
 

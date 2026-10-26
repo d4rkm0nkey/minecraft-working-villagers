@@ -236,6 +236,13 @@ public class DigTunnel extends Behavior<Villager> {
 			this.rest(villager, station, "miner.no_tunnel");
 			return;
 		}
+		if (tunnel.stairs() && !Unlocks.can(villager, Unlocks.Ability.STAIRS)) {
+			this.rest(villager, station, "locked", WorkerLevels.name(Unlocks.Ability.STAIRS.level()));
+			return;
+		}
+		// As long and with side tunnels as long as its level lets it
+		tunnel = tunnel.limitedTo(WorkerLevels.area(villager, Config.TUNNEL_MAX_LENGTH.get()),
+			Unlocks.can(villager, Unlocks.Ability.BRANCHES) ? WorkerLevels.area(villager, Config.TUNNEL_MAX_BRANCH.get()) : 0);
 		this.update(tunnel);
 		Tunnel.Section last = this.sections.getLast();
 		if (!level.isLoaded(tunnel.start()) || !level.isLoaded(last.cells().getLast())) {
@@ -256,6 +263,11 @@ public class DigTunnel extends Behavior<Villager> {
 		if (next == null) {
 			if (this.hasDeliverables(villager)) {
 				this.setState(State.DELIVER);
+				return;
+			}
+			// Its pickaxe is worn or gone: give it back and fetch another before saying it is too weak
+			if (plan.blocked() == Blocked.TOOL && WorkerSupplies.count(villager.getInventory(), WorkerSupplies.PICKAXE.ready()) == 0) {
+				this.waitingForSupplies = this.supplies.busy(level, villager, WorkerSupplies.PICKAXE);
 				return;
 			}
 			BlockPos at = plan.at();
@@ -298,7 +310,7 @@ public class DigTunnel extends Behavior<Villager> {
 	}
 
 	private boolean missingSupplies(ServerLevel level, Villager villager) {
-		if (Config.DAILY_WAGE.get() > 0 && !WorkerSupplies.isPaid(level, villager) || this.supplies.refillDue(level, villager)) {
+		if (WorkerSupplies.lacksWage(level, villager) || this.supplies.refillDue(level, villager)) {
 			return true;
 		}
 		return WorkerSupplies.count(villager.getInventory(), WorkerSupplies.PICKAXE.ready()) == 0;
@@ -653,8 +665,10 @@ public class DigTunnel extends Behavior<Villager> {
 		}
 		if (ore) {
 			this.ores.remove(pos);
-			// The rest of the vein
-			this.addOresAround(level, pos);
+			// The rest of the vein, from expert on
+			if (Unlocks.can(villager, Unlocks.Ability.FOLLOW_ORES)) {
+				this.addOresAround(level, pos);
+			}
 		}
 	}
 
@@ -775,10 +789,10 @@ public class DigTunnel extends Behavior<Villager> {
 		inventory.setChanged();
 	}
 
-	private void rest(Villager villager, Workstations.Station station, String reason) {
+	private void rest(Villager villager, Workstations.Station station, String reason, Object... args) {
 		villager.getBrain().setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(station.pos(), SPEED, 2));
 		this.waitReason = reason;
-		this.waitArgs = new Object[0];
+		this.waitArgs = args;
 		this.setState(State.WAIT);
 	}
 
