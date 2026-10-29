@@ -73,7 +73,12 @@ public enum StationType {
 	 * The librarian enchants what lies in the input chests at an enchanting table near the
 	 * lectern, with bottles o' enchanting and lapis lazuli.
 	 */
-	LECTERN(true);
+	LECTERN(true),
+	/**
+	 * The hauler rows a chest boat to another jetty: it takes what lies in the input chests,
+	 * and unloads what it brings into the output chests.
+	 */
+	JETTY(true);
 
 	private final boolean processing;
 
@@ -150,6 +155,7 @@ public enum StationType {
 			case CAULDRON -> WorkingVillagers.TANNER_PROFESSION;
 			case GRINDSTONE -> WorkingVillagers.WEAPONSMITH_PROFESSION;
 			case LECTERN -> WorkingVillagers.LIBRARIAN_PROFESSION;
+			case JETTY -> WorkingVillagers.HAULER_PROFESSION;
 		};
 	}
 
@@ -175,6 +181,7 @@ public enum StationType {
 			case CAULDRON -> Blocks.CAULDRON.getName();
 			case GRINDSTONE -> Blocks.GRINDSTONE.getName();
 			case LECTERN -> Blocks.LECTERN.getName();
+			case JETTY -> WorkingVillagers.JETTY.get().getName();
 		};
 	}
 
@@ -200,6 +207,7 @@ public enum StationType {
 			case CAULDRON -> Blocks.CAULDRON;
 			case GRINDSTONE -> Blocks.GRINDSTONE;
 			case LECTERN -> Blocks.LECTERN;
+			case JETTY -> WorkingVillagers.JETTY.get();
 		};
 	}
 
@@ -242,6 +250,8 @@ public enum StationType {
 			return GRINDSTONE;
 		} else if (state.is(Blocks.LECTERN)) {
 			return LECTERN;
+		} else if (state.is(WorkingVillagers.JETTY.get())) {
+			return JETTY;
 		} else if (state.getBlock() instanceof AbstractCauldronBlock) {
 			// Filling or emptying it makes another block of it
 			return CAULDRON;

@@ -98,8 +98,9 @@ public final class WorkerLevels {
 		return (int) Math.floor(novice + (master - novice) * progress(level) + 1.0E-4);
 	}
 
+	/** The worker's wage per work day, with the fee for working without a player nearby (see {@link WorkerChunks#fee}). */
 	public static int dailyWage(Villager villager) {
-		return dailyWage(villager.getVillagerData().level());
+		return dailyWage(villager.getVillagerData().level()) + WorkerChunks.fee(villager);
 	}
 
 	/** The name of the level, e.g. "Journeyman". */

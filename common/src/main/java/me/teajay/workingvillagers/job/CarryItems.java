@@ -43,8 +43,9 @@ public class CarryItems extends Behavior<Villager> {
 	private State state = State.PLAN;
 	private int stateTicks;
 	private @Nullable ChestTrip trip;
-	/** Why the carrier waits, for the status in the menu. */
+	/** Why the carrier waits, for the status in the menu, and what goes into the text. */
 	private String waitReason = "carrier.nothing";
+	private Object[] waitArgs = {};
 	/** The route to look at first next time, so all routes get their turn. */
 	private int nextRoute;
 	private final WorkerSupplies supplies = new WorkerSupplies();
@@ -121,7 +122,13 @@ public class CarryItems extends Behavior<Villager> {
 		Route route = loadRoute(data);
 		Component title = route == null ? Component.literal("?") : route.title(data.loadRoute());
 		switch (this.state) {
-			case PLAN, WAIT -> WorkerStatus.task(villager, this.state == State.WAIT ? this.waitReason : "carrier.nothing");
+			case PLAN, WAIT -> {
+				if (this.state == State.WAIT) {
+					WorkerStatus.task(villager, this.waitReason, this.waitArgs);
+				} else {
+					WorkerStatus.task(villager, "carrier.nothing");
+				}
+			}
 			case FETCH -> WorkerStatus.task(villager, "carrier.fetch", title);
 			case DELIVER -> WorkerStatus.task(villager, "carrier.deliver", title);
 			case RETURN -> WorkerStatus.task(villager, "carrier.return", title);
@@ -140,10 +147,14 @@ public class CarryItems extends Behavior<Villager> {
 			this.go(level, villager, route.target(), State.DELIVER);
 			return;
 		}
+		int locked = -1;
 		for (int i = 0; i < routes.size(); i++) {
 			int index = (this.nextRoute + i) % routes.size();
 			Route route = routes.get(index);
 			if (!canCarry(villager, index, route)) {
+				if (locked < 0 || index < locked) {
+					locked = index;
+				}
 				continue;
 			}
 			if (Chests.contains(level, route.source(), stack -> true) && Chests.hasRoom(level, route.target())) {
@@ -153,8 +164,19 @@ public class CarryItems extends Behavior<Villager> {
 				return;
 			}
 		}
-		// Nothing to carry: stay around the first source and look again later
-		this.waitReason = "carrier.nothing";
+		// Nothing to carry: stay around the first source and look again later. A route it
+		// does not work yet is the reason to tell: it never learns without work
+		if (locked >= 0) {
+			Route route = routes.get(locked);
+			int needed = neededLevel(locked, route);
+			this.waitReason = needed < 0 ? "carrier.too_long" : needed > slotLevel(locked) ? "carrier.locked" : "carrier.locked_route";
+			this.waitArgs = needed > 0
+				? new Object[] {route.title(locked), WorkerLevels.name(needed)}
+				: new Object[] {route.title(locked), Config.ROUTE_LENGTH.get()};
+		} else {
+			this.waitReason = "carrier.nothing";
+			this.waitArgs = new Object[0];
+		}
 		this.stroll(villager, routes.getFirst().source());
 		this.setState(State.WAIT);
 	}
@@ -169,6 +191,24 @@ public class CarryItems extends Behavior<Villager> {
 			return false;
 		}
 		return route.source().closerThan(route.target(), WorkerLevels.area(villager, Config.ROUTE_LENGTH.get()) + 0.5);
+	}
+
+	/**
+	 * The lowest level from which a carrier works the route at the index (see
+	 * {@link #canCarry}); -1 if no level does, because it is longer than the routes of a master.
+	 */
+	public static int neededLevel(int index, Route route) {
+		for (int level = slotLevel(index); level <= WorkerLevels.MASTER; level++) {
+			if (route.source().closerThan(route.target(), WorkerLevels.area(level, Config.ROUTE_LENGTH.get()) + 0.5)) {
+				return level;
+			}
+		}
+		return -1;
+	}
+
+	/** The level from which a carrier works its second or third route at all. */
+	private static int slotLevel(int index) {
+		return index == 0 ? WorkerLevels.NOVICE : index == 1 ? Unlocks.Ability.SECOND_ROUTE.level() : Unlocks.Ability.THIRD_ROUTE.level();
 	}
 
 	/** Walks back to the source if it is too far away, otherwise to a random spot near it. */

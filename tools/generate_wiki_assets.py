@@ -47,14 +47,14 @@ VANILLA_ITEMS = [
     "experience_bottle", "cod", "brewing_stand", "fishing_rod", "shears", "string", "rail:block",
     "brick", "clay_ball", "green_dye", "flint", "wooden_pickaxe", "stone_pickaxe", "diamond_pickaxe",
     "porkchop", "cooked_porkchop", "beef", "feather",
-    "salmon", "tropical_fish", "pufferfish", "oak_boat",
+    "salmon", "tropical_fish", "pufferfish", "oak_boat", "oak_chest_boat", "compass_00",
     "gravel:block", "copper_nugget", "iron_nugget", "spectral_arrow",
     "glass_bottle", "nether_wart", "blaze_powder", "glistering_melon_slice",
     "enchanted_book", "iron_hoe", "stone_sword",
     "lapis_lazuli",
     "rabbit_hide", "rotten_flesh", "bundle", "saddle", "leather_chestplate", "leather_horse_armor", "red_dye", "water_bucket",
 ]
-MOD_ITEMS = ["work_contract", "wicker_basket"]
+MOD_ITEMS = ["work_contract", "wicker_basket", "freight_book"]
 # Items with the durability bar of the inventory: output name -> item, durability left.
 DAMAGED_ITEMS = {"iron_axe_worn": ("iron_axe", 0.1), "iron_axe_repaired": ("iron_axe", 1.0)}
 
@@ -108,6 +108,7 @@ BLOCKS = {
     "kiln": "workingvillagers:block/kiln",
     "trading_counter": "workingvillagers:block/trading_counter",
     "mining_bench": "workingvillagers:block/mining_bench",
+    "jetty": "workingvillagers:block/jetty",
     "furnace": "minecraft:block/furnace",
     "sand": "minecraft:block/sand",
     "glass": "minecraft:block/glass",
@@ -120,7 +121,7 @@ BLOCKS = {
 
 LEATHER_TINT = (0xA0, 0x65, 0x40)
 
-PROFESSIONS = ["lumberjack", "woodcutter", "stonecutter", "carpenter", "carrier", "farmer", "smith", "pit_digger", "kiln_operator", "shop_assistant", "miner", "shepherd", "butcher", "fisher", "fletcher", "guard", "apothecary", "tanner", "weaponsmith", "librarian"]
+PROFESSIONS = ["lumberjack", "woodcutter", "stonecutter", "carpenter", "carrier", "farmer", "smith", "pit_digger", "kiln_operator", "shop_assistant", "miner", "shepherd", "butcher", "fisher", "fletcher", "guard", "apothecary", "tanner", "weaponsmith", "librarian", "hauler"]
 
 # Navigation icons (pixel SVGs) made from item textures.
 NAV_ICONS = ["spyglass", "emerald", "work_contract", "book", "writable_book", "map", "filled_map", "clock", "barrier", "oak_sapling"]

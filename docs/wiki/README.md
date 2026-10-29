@@ -4,7 +4,7 @@ Working Villagers macht Dorfbewohner zu bezahlten Angestellten, die Rohstoffe wi
 
 Dieses Wiki ist das Konzept des Mods, aufgeteilt in verlinkte Seiten. Alle Zahlen sind Startwerte für Playtests. Was davon schon im Spiel ist, steht auf den Seiten jeweils unter **„Stand der Umsetzung“**; einen Überblick gibt die [Roadmap](planung/roadmap.md).
 
-Umgesetzt sind bisher: [Holzfäller](berufe/holzfaeller.md), [Holzsäger](berufe/holzsaeger.md), [Steinsäger](berufe/steinsaeger.md), [Tischler](berufe/tischler.md), [Bauer](berufe/farmer.md), [Hirte](berufe/hirte.md), [Metzger](berufe/metzger.md), [Fischer](berufe/fischer.md), [Schmied](berufe/schmied.md) (Schmelzen und Reparieren), [Grubenarbeiter](berufe/grubenarbeiter.md), [Brenner](berufe/brenner.md), [Handelsangestellter](berufe/handelsangestellter.md), [Minenarbeiter](berufe/minenarbeiter.md) und [Träger](berufe/traeger.md), dazu Arbeitsvertrag, Tageslohn und [Dorftruhen](dorf/dorftruhen.md).
+Umgesetzt sind bisher: [Holzfäller](berufe/holzfaeller.md), [Holzsäger](berufe/holzsaeger.md), [Steinsäger](berufe/steinsaeger.md), [Tischler](berufe/tischler.md), [Bauer](berufe/farmer.md), [Hirte](berufe/hirte.md), [Metzger](berufe/metzger.md), [Fischer](berufe/fischer.md), [Schmied](berufe/schmied.md) (Schmelzen und Reparieren), [Grubenarbeiter](berufe/grubenarbeiter.md), [Brenner](berufe/brenner.md), [Handelsangestellter](berufe/handelsangestellter.md), [Minenarbeiter](berufe/minenarbeiter.md) und [Träger](berufe/traeger.md), dazu Arbeitsvertrag, Tageslohn, [Dorftruhen](dorf/dorftruhen.md) und [Betrieb ohne Spieler](dorf/chunk-loading.md) (Chunk-Loading pro Arbeiter).
 
 ## Grundlagen
 
@@ -36,7 +36,7 @@ Umgesetzt sind bisher: [Holzfäller](berufe/holzfaeller.md), [Holzsäger](berufe
 
 - [Übersicht aller Berufe](berufe/README.md)
 - Kern: [Holzfäller](berufe/holzfaeller.md) · [Holzsäger](berufe/holzsaeger.md) · [Steinsäger](berufe/steinsaeger.md) · [Tischler](berufe/tischler.md) · [Minenarbeiter](berufe/minenarbeiter.md) · [Grubenlogistiker](berufe/grubenlogistiker.md)
-- Logistik & Handel: [Träger](berufe/traeger.md) · [Crafter-Bediener](berufe/crafter-bediener.md) · [Handelsangestellter](berufe/handelsangestellter.md) · [Händler](berufe/haendler.md)
+- Logistik & Handel: [Träger](berufe/traeger.md) · [Crafter-Bediener](berufe/crafter-bediener.md) · [Handelsangestellter](berufe/handelsangestellter.md) · [Händler](berufe/haendler.md) · [Fuhrmann](berufe/fuhrmann.md)
 - Ausbau: [Farmer (Bauer)](berufe/farmer.md) · [Fischer](berufe/fischer.md) · [Hirte](berufe/hirte.md) · [Metzger](berufe/metzger.md) · [Gerber](berufe/gerber.md) · [Schmied](berufe/schmied.md) · [Waffenschmied](berufe/waffenschmied.md) · [Brenner](berufe/brenner.md) · [Grubenarbeiter](berufe/grubenarbeiter.md) · [Maurer](berufe/maurer.md) · [Pfeilmacher](berufe/pfeilmacher.md) · [Kartograf](berufe/kartograf.md) · [Apotheker](berufe/apotheker.md) · [Bibliothekar](berufe/bibliothekar.md) · [Wache](berufe/wache.md) · [Imker](berufe/imker.md) · [Höhlenforscher](berufe/hoehlenforscher.md)
 
 ## Technik

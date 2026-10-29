@@ -165,6 +165,19 @@ fisher:
     Makes: ":mc-cod: Fish, junk, and treasure out on open water"
     Range: 16 blocks, by boat 32
 
+hauler:
+  name: Hauler
+  page: workers/hauler.md
+  head: hauler
+  workstation: jetty
+  summary: Rows a chest boat with cargo to a second jetty and brings back what waits there.
+  facts:
+    Hired with: ":mc-work_contract: Work contract"
+    Workstation: ":mc-jetty: Jetty, one at each end"
+    Needs: ":mc-oak_chest_boat: A chest boat, a route recorded with the :mc-freight_book: freight book"
+    Carries: "27 stacks per trip, both ways"
+    Range: Up to 512 blocks along the water
+
 butcher:
   name: Butcher
   page: workers/butcher.md

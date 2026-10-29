@@ -108,7 +108,7 @@ Der Grubenarbeiter nutzt danach den Helfer; seine Gametests müssen unverändert
 ### Risiken
 
 - **Wege im Stollen:** Im 3×3-Hauptgang kein Problem. Dorfbewohner sind 1,95 hoch und passen auch in die 2 hohen Abzweige, in deren Ecken bleiben sie aber eher hängen. Die bestehende Rückholung (`workers.stuckSeconds`) fängt das auf, sollte aber selten nötig sein. Früh im Spiel testen.
-- **Ungeladene Chunks:** Ein Stollen von 32 Blöcken reicht über 2 bis 3 Chunks. Ist der Spieler weit weg, steht die Arbeit. Das ist wie bei allen Stationen, bis Chunk-Loading kommt.
+- **Ungeladene Chunks:** Ein Stollen von 32 Blöcken reicht über 2 bis 3 Chunks. Ist der Spieler weit weg, steht die Arbeit, außer der Minenarbeiter [arbeitet ohne Spieler](../dorf/chunk-loading.md); dann bleibt der Stollen bis zum Ende geladen.
 - **Mobs im Stollen:** Fackeln alle 8 Blöcke halten den Gang hell. Höhlen, die er anschneidet, bleiben dunkel. Ein Zombie im Stollen ist ein echtes Risiko für den Arbeiter. Das ist gewollt und passt zu „Wache als Begleitschutz“.
 - **Erzwert:** Mit Erzadern und Branch Mining könnte ein Minenarbeiter zu viel Diamant bringen. Tagespensum, Grabzeit (×8) und Spitzhackenverschleiß bremsen. Im Playtest prüfen.
 

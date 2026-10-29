@@ -33,7 +33,7 @@ import org.jspecify.annotations.Nullable;
  * sawyer, stonecutter: stone sawyer, carpenter's bench: carpenter, composter: farmer, blast
  * furnace: smith, pit stake: pit digger, kiln: kiln operator, trading counter: shop assistant,
  * mining bench: miner, loom: shepherd, smoker: butcher, barrel: fisher, fletching table:
- * fletcher, target: guard, brewing stand: apothecary, cauldron: tanner, grindstone: weaponsmith, lectern: librarian). A hired villager without a job looks for a free one itself (see
+ * fletcher, target: guard, brewing stand: apothecary, cauldron: tanner, grindstone: weaponsmith, lectern: librarian, jetty: hauler). A hired villager without a job looks for a free one itself (see
  * {@link FindWorkplace}); the player can also give it one in the station menu, and take it
  * away again there. Hired villagers do not take any vanilla job.
  *
@@ -65,7 +65,8 @@ public final class WorkerJobs {
 		Map.entry(WorkingVillagers.PIT_DIGGER_POI, WorkingVillagers.PIT_DIGGER_PROFESSION),
 		Map.entry(WorkingVillagers.KILN_OPERATOR_POI, WorkingVillagers.KILN_OPERATOR_PROFESSION),
 		Map.entry(WorkingVillagers.SHOP_ASSISTANT_POI, WorkingVillagers.SHOP_ASSISTANT_PROFESSION),
-		Map.entry(WorkingVillagers.MINER_POI, WorkingVillagers.MINER_PROFESSION)
+		Map.entry(WorkingVillagers.MINER_POI, WorkingVillagers.MINER_PROFESSION),
+		Map.entry(WorkingVillagers.HAULER_POI, WorkingVillagers.HAULER_PROFESSION)
 	);
 	private static final int CHECK_INTERVAL = 20;
 	/** How close to its workstation a worker fills up its trades. */
@@ -92,6 +93,7 @@ public final class WorkerJobs {
 		if (!hired.workingvillagers$isHired()) {
 			if (villager.tickCount % CHECK_INTERVAL == 0) {
 				keepOffSetUpStation(level, villager);
+				WorkerChunks.forget(level, villager);
 			}
 			return;
 		}
@@ -115,6 +117,7 @@ public final class WorkerJobs {
 			return;
 		}
 		String name = WorkerNames.ensureName(villager);
+		WorkerChunks.keep(level, villager);
 		if (worker) {
 			StuckWorkers.check(level, villager, CHECK_INTERVAL);
 			WorkerStatus.complain(level, villager, CHECK_INTERVAL);

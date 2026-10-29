@@ -316,6 +316,40 @@ can always see what the worker is doing right now:
 If a worker does not work, the status tells you why. See
 [Worker does not work?](../guides/troubleshooting.md).
 
+## Working without a player nearby
+
+Like everything in Minecraft, workers only work in chunks that are loaded, normally only
+near a player. A lumber camp far from your base stands still while you are at home.
+
+The button with the **ender pearl** in the worker tab of the station overview (left of
+**Remove**) changes that: the worker keeps its chunks loaded itself, like a thrown ender
+pearl. A [carrier](carrier.md) has the same button next to its name in its menu. Only the
+employer (and operators) can switch it; a mark on the button shows the state:
+
+- **none**: off, the worker only works near a player.
+- **green**: on, its chunks are loaded. The tooltip says how many.
+- **yellow**: on, but paused: the employer is not online, or the server switched it off.
+
+What stays loaded:
+
+- the 3 × 3 chunks around the worker, wherever it goes: to its bed, to a village chest,
+  along a tunnel or a carrier's routes;
+- its workplace, also while it is away (asleep): the station, the linked chests and the area
+  it works in (the lumberjack's trees, the farmer's fields, the pasture, the pit with its
+  ring, the miner's tunnel), or for a carrier the containers of its routes. At most 25
+  chunks.
+
+Saplings grow and crops ripen in these chunks as near a player. No mobs spawn there without
+a player, and ordinary villagers (customers of the shop assistant) still stand still.
+
+It costs **1 emerald per work day** on top of the wage (the wage box shows the total). A
+worker that lacks its wage for more than a day stops working without a player, and you get
+a message. One employer can let at most 16 workers work without a player. All of this can be
+changed on the server, see [Configuration](../configuration.md#working-without-a-player-chunkloading).
+
+Operators list every such worker with `/workingvillagers chunks` and switch one off with
+the **[off]** behind it.
+
 ## How workers move items
 
 Workers walk to the front of a chest, open it (you see and hear the lid), move the

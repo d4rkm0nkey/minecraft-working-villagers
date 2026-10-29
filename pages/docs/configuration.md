@@ -228,6 +228,29 @@ The herd size is no config option: set it at each loom (tab **Settings**).
     Lowering a distance does not unlink chests or routes that are already set up; it only
     applies to new ones.
 
+## Hauler (`hauler`)
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `maxRouteLength` | 512 | 32–768 | How long (in blocks, along the water) the route from one jetty to the other may be. The hauler rows there and back within one day. |
+
+## Working without a player (`chunkLoading`)
+
+See [Working without a player nearby](workers/basics.md#working-without-a-player-nearby).
+
+| Option | Default | Range | What it does |
+| --- | --- | --- | --- |
+| `enabled` | true | | The employer can let a worker work without a player nearby. `false`: the switch is gone and no worker keeps chunks loaded; workers that had it on load again once it is back on. |
+| `dailyFee` | 1 | 0–16 | Emeralds per work day on top of the wage. |
+| `maxWorkersPerPlayer` | 16 | 0–256 | How many workers of one employer may work without a player at the same time. |
+| `onlyWhileEmployerOnline` | true | | Keep the chunks loaded only while the employer is online (anywhere in the world). |
+| `loadWorkplace` | true | | Also keep the workplace loaded while the worker is away from it (asleep, at a village chest): the station, its chests and its area, or the containers of a carrier's routes. `false`: only the chunks around the worker. |
+
+!!! note
+    A dedicated server pauses by itself when nobody is online (`pause-when-empty-seconds` in
+    `server.properties`, 60 by default). For workers that go on while nobody is online at
+    all, set it to 0 and `onlyWhileEmployerOnline` to `false`.
+
 ## Village chests (`villageChests`)
 
 | Option | Default | Range | What it does |

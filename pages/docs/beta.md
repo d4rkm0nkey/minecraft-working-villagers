@@ -16,7 +16,9 @@ Working Villagers is in an early beta. Thanks for testing!
 - Workers that trade like a vanilla villager level up by trading; all others stay
   **novices**. Levels through work are planned.
 - Carriers have **no filters** yet: they carry everything.
-- Workers only work while their chunks are loaded, i.e. while a player is nearby.
+- Workers only work while their chunks are loaded, i.e. while a player is nearby, unless their
+  employer lets them [work without a player](workers/basics.md#working-without-a-player-nearby).
+  Ordinary villagers (the shop assistant's customers) still stand still then.
 - A worker that gets stuck (in a hole, boxed in) is brought back to its workstation after
   a minute. If there is no room at the workstation either, it stays stuck until you free it.
 - No integration with JEI/EMI/REI or Jade yet.

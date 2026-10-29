@@ -64,7 +64,7 @@ Ergänzend gibt es [Dorftruhen](../dorf/dorftruhen.md): Jeder Arbeiter in der N�
 
 - Werkzeug nutzt sich ab und muss nachgegeben werden (derzeit direkt an den Arbeiter, siehe [Stand der Umsetzung](#stand-der-umsetzung)).
 - Verbrauchsmaterial: Setzlinge, Fackeln, Stützblöcke.
-- Unterhalt für geladene Chunks (siehe [Chunk-Loading](../dorf/chunk-loading.md)).
+- Aufschlag für Arbeiter, die ohne Spieler arbeiten: `chunkLoading.dailyFee` (Standard 1 Smaragd) pro Arbeitstag, mit dem Lohn genommen (siehe [Chunk-Loading](../dorf/chunk-loading.md#kosten)).
 - Nahrung und Unterkunft sind keine Pflichtkosten, sondern senken den Lohn (siehe [Bedürfnisse](beduerfnisse.md)).
 
 Wie das Geld hereinkommt: [Einnahmen](einnahmen.md).

@@ -27,6 +27,7 @@ import me.teajay.workingvillagers.job.HiredVillager;
 import me.teajay.workingvillagers.job.TendAnimals;
 import me.teajay.workingvillagers.job.TendSheep;
 import me.teajay.workingvillagers.job.Unlocks;
+import me.teajay.workingvillagers.job.WorkerChunks;
 import me.teajay.workingvillagers.job.WorkerJobs;
 import me.teajay.workingvillagers.job.WorkerLevels;
 import me.teajay.workingvillagers.job.WorkerStatus;
@@ -36,6 +37,7 @@ import me.teajay.workingvillagers.station.PitLimits;
 import me.teajay.workingvillagers.station.StationPicks;
 import me.teajay.workingvillagers.station.StationType;
 import me.teajay.workingvillagers.station.Tunnel;
+import me.teajay.workingvillagers.station.Voyage;
 import me.teajay.workingvillagers.station.Workstations.ChestRole;
 import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.core.BlockPos;
@@ -138,6 +140,8 @@ public class StationMenu extends AbstractContainerMenu {
 	/** Lectern: the level the librarian enchants at, lower and higher (0 is the highest the table offers). */
 	public static final int ENCHANT_LESS_BUTTON = 329;
 	public static final int ENCHANT_MORE_BUTTON = 330;
+	/** Switches working without a player nearby on or off for the worker (see {@link WorkerChunks}). */
+	public static final int CHUNKS_BUTTON = 331;
 	/** The steps of the side tunnel length the buttons go through. */
 	private static final int BRANCH_STEP = 4;
 	/**
@@ -218,6 +222,8 @@ public class StationMenu extends AbstractContainerMenu {
 	private static final String TAG_HERD = "Herd";
 	private static final String TAG_TAB_FLAGS = "TabFlags";
 	private static final String TAG_BOAT = "Boat";
+	/** Jetty: the length of the route, its waypoints and the other jetty (x, y, z). */
+	private static final String TAG_VOYAGE = "Voyage";
 	private static final String TAG_HUNT = "Hunt";
 	private static final String TAG_EXPERIENCE = "Experience";
 	private static final String TAG_DYE = "Dye";
@@ -242,6 +248,7 @@ public class StationMenu extends AbstractContainerMenu {
 
 	private final StationType type;
 	private final ContainerLevelAccess access;
+	private final Player player;
 	private final InfoSlot info = new InfoSlot();
 	/** Client: whether the wage tab is open, the only one that shows the wage box and the inventory. */
 	private boolean slotsShown;
@@ -271,6 +278,7 @@ public class StationMenu extends AbstractContainerMenu {
 		super(menuType(type).get(), containerId);
 		this.type = type;
 		this.access = access;
+		this.player = inventory.player;
 		this.addSlot(this.info);
 		boolean client = access == ContainerLevelAccess.NULL;
 		Container box = access.evaluate((level, pos) -> level instanceof ServerLevel serverLevel
@@ -366,6 +374,7 @@ public class StationMenu extends AbstractContainerMenu {
 			case KILN -> WorkingVillagers.KILN_STATION_MENU;
 			case TRADING_COUNTER -> WorkingVillagers.TRADING_COUNTER_MENU;
 			case MINING_BENCH -> WorkingVillagers.MINING_BENCH_MENU;
+			case JETTY -> WorkingVillagers.JETTY_MENU;
 		};
 	}
 
@@ -415,12 +424,13 @@ public class StationMenu extends AbstractContainerMenu {
 					Unlocks.next(villager).ifPresent(next -> tag.store(TAG_NEXT_UNLOCKS, ComponentSerialization.CODEC, next));
 					tag.store(TAG_STATUS, ComponentSerialization.CODEC, WorkerStatus.describe(villager));
 					SuppliesInfo.write(serverLevel, villager, tag);
+					ChunksInfo.write(serverLevel, villager, this.player, tag);
 					if (this.type == StationType.CHOPPING_BLOCK || this.type == StationType.COMPOSTER || this.type == StationType.PIT_STAKE
 						|| this.type == StationType.TRADING_COUNTER || this.type == StationType.MINING_BENCH || this.type == StationType.LOOM
 						|| this.type == StationType.SMOKER || this.type == StationType.BARREL || this.type == StationType.FLETCHING_TABLE
 						|| this.type == StationType.BREWING_STAND || this.type == StationType.CAULDRON
 						|| this.type == StationType.GRINDSTONE || this.type == StationType.LECTERN
-						|| this.type == StationType.TARGET) {
+						|| this.type == StationType.TARGET || this.type == StationType.JETTY) {
 						tag.putInt(TAG_LOGS, ((HiredVillager) villager).workingvillagers$getWorkDone(
 							this.type == StationType.TARGET ? GuardPost.night(serverLevel) : ChopTrees.today(serverLevel)));
 					}
@@ -451,6 +461,12 @@ public class StationMenu extends AbstractContainerMenu {
 			}
 			if (this.type == StationType.BARREL) {
 				tag.putBoolean(TAG_BOAT, station.boat());
+			}
+			if (this.type == StationType.JETTY && station.voyage() != null) {
+				Voyage voyage = station.voyage();
+				tag.putIntArray(TAG_VOYAGE, new int[] {
+					voyage.length(), voyage.waypoints().size(), voyage.destination().getX(), voyage.destination().getY(), voyage.destination().getZ()
+				});
 			}
 			if (this.type == StationType.TARGET) {
 				tag.putInt(TAG_HERD, station.guardRadius());
@@ -729,6 +745,11 @@ public class StationMenu extends AbstractContainerMenu {
 		return SuppliesInfo.read(this.info.info());
 	}
 
+	/** Empty if the station has no hired worker or the server does not allow working without a player nearby. */
+	public Optional<ChunksInfo> getChunks() {
+		return ChunksInfo.read(this.info.info());
+	}
+
 	/**
 	 * Logs felled today at a chopping block, crops harvested today at a composter, blocks dug
 	 * today at a pit stake, emeralds earned today at a trading counter, -1 if unknown (no
@@ -948,6 +969,11 @@ public class StationMenu extends AbstractContainerMenu {
 		return this.info.info().getIntOr(TAG_EXPERIENCE, -1);
 	}
 
+	/** Jetty: the length of the route, its waypoints and where the other jetty is (x, y, z); empty without a route. */
+	public Optional<int[]> getVoyage() {
+		return this.info.info().getIntArray(TAG_VOYAGE).filter(voyage -> voyage.length == 5);
+	}
+
 	/** Barrel: whether the fisher rows out in a boat. */
 	public boolean getBoat() {
 		return this.info.info().getBooleanOr(TAG_BOAT, true);
@@ -1047,6 +1073,16 @@ public class StationMenu extends AbstractContainerMenu {
 	}
 
 	private boolean click(ServerLevel level, Player player, Workstations.Station station, int buttonId) {
+		if (buttonId == CHUNKS_BUTTON) {
+			if (station.worker() == null || !(level.getEntity(station.worker()) instanceof Villager worker)) {
+				return false;
+			}
+			Component message = WorkerChunks.toggle(level, worker, player);
+			if (message != null && player instanceof ServerPlayer serverPlayer) {
+				serverPlayer.sendOverlayMessage(message);
+			}
+			return message != null;
+		}
 		if (buttonId >= UNLINK_BUTTON && buttonId < UNLINK_BUTTON + this.shownChests.size()) {
 			station.setRole(level, this.shownChests.get(buttonId - UNLINK_BUTTON), null);
 			return true;

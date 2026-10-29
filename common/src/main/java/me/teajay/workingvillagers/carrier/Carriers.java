@@ -106,7 +106,8 @@ public final class Carriers {
 		return !hired.workingvillagers$isHired() || player.getUUID().equals(hired.workingvillagers$getEmployer()) || isAdmin(player);
 	}
 
-	private static boolean isAdmin(Player player) {
+	/** Operators and the owner of a singleplayer world. */
+	public static boolean isAdmin(Player player) {
 		return player instanceof ServerPlayer serverPlayer
 			&& (serverPlayer.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER)
 				|| serverPlayer.level().getServer().isSingleplayerOwner(serverPlayer.nameAndId()));

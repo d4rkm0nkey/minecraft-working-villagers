@@ -8,6 +8,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import me.teajay.workingvillagers.block.CarpenterBenchBlock;
 import me.teajay.workingvillagers.block.ChoppingBlock;
+import me.teajay.workingvillagers.block.JettyBlock;
 import me.teajay.workingvillagers.block.KilnBlock;
 import me.teajay.workingvillagers.block.KilnBlockEntity;
 import me.teajay.workingvillagers.block.MiningBenchBlock;
@@ -19,8 +20,10 @@ import me.teajay.workingvillagers.block.WoodcutterBlock;
 import me.teajay.workingvillagers.crafting.MillingRecipe;
 import me.teajay.workingvillagers.crafting.WoodcuttingRecipe;
 import me.teajay.workingvillagers.entity.FisherBobber;
+import me.teajay.workingvillagers.item.FreightBookItem;
 import me.teajay.workingvillagers.item.WickerBasketItem;
 import me.teajay.workingvillagers.item.WorkContractItem;
+import me.teajay.workingvillagers.job.WorkerChunks;
 import me.teajay.workingvillagers.menu.CarpenterMenu;
 import me.teajay.workingvillagers.menu.CarrierMenu;
 import me.teajay.workingvillagers.menu.CutterMenu;
@@ -41,6 +44,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.TicketType;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -109,6 +113,8 @@ public final class WorkingVillagers {
 	public static final ResourceKey<VillagerProfession> MINER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("miner"));
 	public static final ResourceKey<PoiType> SHOP_ASSISTANT_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("shop_assistant"));
 	public static final ResourceKey<VillagerProfession> SHOP_ASSISTANT_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("shop_assistant"));
+	public static final ResourceKey<PoiType> HAULER_POI = ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, id("hauler"));
+	public static final ResourceKey<VillagerProfession> HAULER_PROFESSION = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("hauler"));
 
 	public static Supplier<Block> CHOPPING_BLOCK;
 	public static Supplier<Item> CHOPPING_BLOCK_ITEM;
@@ -132,6 +138,8 @@ public final class WorkingVillagers {
 	public static Supplier<MenuType<StationMenu>> WOODCUTTER_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> STONECUTTER_STATION_MENU;
 	public static Supplier<MenuType<CarrierMenu>> CARRIER_MENU;
+	/** The chunk ticket of a worker that works without a player nearby, see {@link WorkerChunks}. */
+	public static Supplier<TicketType> WORKER_TICKET;
 	public static Supplier<MenuType<StationMenu>> COMPOSTER_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> BLAST_FURNACE_STATION_MENU;
 	public static Supplier<MenuType<StationMenu>> SMITHING_TABLE_STATION_MENU;
@@ -184,6 +192,11 @@ public final class WorkingVillagers {
 		() -> MILL_MENU.get(), () -> MILLING.get(), () -> MINING_BENCH.get(),
 		(level, stack) -> stack.is(MILLABLE)
 	);
+
+	public static Supplier<Block> JETTY;
+	public static Supplier<Item> JETTY_ITEM;
+	public static Supplier<MenuType<StationMenu>> JETTY_MENU;
+	public static Supplier<Item> FREIGHT_BOOK;
 
 	public static Supplier<Block> TRADING_COUNTER;
 	public static Supplier<Item> TRADING_COUNTER_ITEM;
@@ -239,6 +252,8 @@ public final class WorkingVillagers {
 		registerShopAssistant(platform);
 		registerVillageChest(platform);
 		registerMiner(platform);
+		registerHauler(platform);
+		WORKER_TICKET = platform.register(Registries.TICKET_TYPE, "worker", WorkerChunks::newTicketType);
 		platform.registerServerbound(RenameRoutePayload.TYPE, RenameRoutePayload.CODEC, RenameRoutePayload::handle);
 		platform.registerServerbound(RenameContainerPayload.TYPE, RenameContainerPayload.CODEC, RenameContainerPayload::handle);
 		platform.registerClientbound(PitPreviewPayload.TYPE, PitPreviewPayload.CODEC);
@@ -602,6 +617,33 @@ public final class WorkingVillagers {
 		));
 		platform.registerPoi("miner", () -> MINING_BENCH.get(), 1, 1);
 		registerProfession(platform, "miner", MINER_POI, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_TOOLSMITH);
+	}
+
+	/**
+	 * The hauler works at a jetty: it rows a chest boat along the route a player rowed with the
+	 * freight book to another jetty, with what lies in the input chests, unloads it into the
+	 * output chests there and brings back what lies in the input chests of that jetty.
+	 */
+	private static void registerHauler(Platform platform) {
+		JETTY = platform.register(Registries.BLOCK, "jetty", () -> new JettyBlock(
+			BlockBehaviour.Properties.of()
+				.setId(ResourceKey.create(Registries.BLOCK, id("jetty")))
+				.mapColor(MapColor.WOOD)
+				.strength(2.0F)
+				.sound(SoundType.WOOD)
+				.ignitedByLava()
+				.noOcclusion()
+		));
+		JETTY_ITEM = platform.register(Registries.ITEM, "jetty", () -> new BlockItem(
+			JETTY.get(),
+			itemProperties("jetty").useBlockDescriptionPrefix()
+		));
+		FREIGHT_BOOK = platform.register(Registries.ITEM, "freight_book", () -> new FreightBookItem(
+			itemProperties("freight_book").stacksTo(1)
+		));
+		JETTY_MENU = platform.registerMenu("jetty", (containerId, inventory) -> new StationMenu(StationType.JETTY, containerId, inventory));
+		platform.registerPoi("hauler", () -> JETTY.get(), 1, 1);
+		registerProfession(platform, "hauler", HAULER_POI, ImmutableSet.of(), SoundEvents.VILLAGER_WORK_FISHERMAN);
 	}
 
 	/**

@@ -14,7 +14,7 @@ Das größte Risiko ist nicht die Idee, sondern die Villager-KI: Pathfinding, St
 | Zu stark (Ressourcen ohne Aufwand) | Balancing kaputt | Lohn, Verschleiß, Tempo unter Spielertempo |
 | Zu schwach (lohnt nicht) | Niemand nutzt es | Playtests mit Ertrag/Woche vs. Lohn |
 | Konflikt mit anderen Villager-Mods | Crashes, doppelte Berufe | Eigene Berufe; Daten als zusätzliche Felder per Mixin am Villager, Vanilla-Logik bleibt sonst unangetastet (siehe [Architektur](../technik/architektur.md)) |
-| Entladene Chunks | Arbeit steht, wenn Spieler weg ist | [Dorf-Chunk-Loading](../dorf/chunk-loading.md) mit Unterhalt und Limits; Aufholberechnung als Fallback |
+| Entladene Chunks | Arbeit steht, wenn Spieler weg ist | Umgesetzt: [Chunk-Loading pro Arbeiter](../dorf/chunk-loading.md) mit Aufschlag und Limits; offen: Aufholberechnung als Fallback |
 | Loren bleiben hängen (Mobs, fehlende Schiene, entladener Chunk) | Erz staut sich im Depot | Status „Strecke unterbrochen“, Fackeln entlang der Strecke, Chunk-Loading der Strecke, Abstraktion als Fallback |
 | Mikromanagement durch Bedürfnisse | Spieler fühlen sich gegängelt | [Bedürfnisse](../wirtschaft/beduerfnisse.md) nur als Rabatt, abschaltbar |
 

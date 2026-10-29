@@ -57,6 +57,7 @@ Er öffnet Kisten wie alle Arbeiter von vorne, mit sichtbarem Deckel.
 
 - Novize: **6 Stacks** im Korb.
 - Mit dem Level wachsen die Weglänge (Neuling die Hälfte von `carrier.maxRouteLength`) und die Zahl der Wege, die er bedient; die Kapazität des Korbs bleibt.
+- Einen Weg, den er noch nicht bedient, überspringt er. Bleibt ihm dadurch nichts zu tun, sagt der Status warum („Wartet: „Stämme“ trägt er erst als Lehrling“) und er schüttelt den Kopf. Das ist wichtig, weil er nur durch Tragen lernt: Ein Träger, der nur zu lange Wege hat, stiege sonst nie auf. Abhilfe: den Weg kürzen oder eine Kiste dazwischen stellen.
 
 ## Kein Filter
 
@@ -72,7 +73,7 @@ Der [Grubenlogistiker](grubenlogistiker.md) trägt neue Depots automatisch in di
 
 ## Master-Fähigkeit (Konzept)
 
-Nutzt ein Lasttier (Esel/Lama) für größere Distanzen oder Chest-Minecart-Strecken.
+Nutzt ein Lasttier (Esel/Lama) für größere Distanzen oder Chest-Minecart-Strecken. Für wirklich lange Strecken gibt es den eigenen Beruf [Fuhrmann](fuhrmann.md).
 
 ## Sonderfälle
 

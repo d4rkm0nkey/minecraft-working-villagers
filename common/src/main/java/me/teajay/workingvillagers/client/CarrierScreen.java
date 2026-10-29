@@ -53,6 +53,9 @@ public class CarrierScreen extends AbstractContainerScreen<CarrierMenu> {
 	private static final int SHARE_HEIGHT = 18;
 	private static final int STATUS_Y = 17;
 	private static final int SUPPLIES_Y = 54;
+	/** The switch for working without a player nearby, at the right of the title. */
+	private static final int CHUNKS_SIZE = 16;
+	private static final int CHUNKS_Y = 2;
 
 	private enum Tab { ROUTES, BASKET }
 
@@ -118,6 +121,8 @@ public class CarrierScreen extends AbstractContainerScreen<CarrierMenu> {
 		}
 		GuiPanels.panel(graphics, this.leftPos, this.topPos, this.imageWidth, this.imageHeight);
 		this.extractTab(graphics, this.tab, true, mouseX, mouseY);
+		this.menu.getChunks().ifPresent(info -> ChunksButton.extract(graphics, this.font, info, this.chunksX(), this.topPos + CHUNKS_Y, CHUNKS_SIZE,
+			info.canSwitch() && this.isOverChunks(mouseX, mouseY)));
 		if (this.tab == Tab.ROUTES) {
 			this.extractRoutes(graphics, mouseX, mouseY);
 		} else {
@@ -247,6 +252,14 @@ public class CarrierScreen extends AbstractContainerScreen<CarrierMenu> {
 			: "gui.workingvillagers.carrier.share.only_employer"));
 	}
 
+	private int chunksX() {
+		return this.leftPos + this.imageWidth - 7 - CHUNKS_SIZE;
+	}
+
+	private boolean isOverChunks(double mouseX, double mouseY) {
+		return this.menu.getChunks().isPresent() && GuiPanels.isOver(mouseX, mouseY, this.chunksX(), this.topPos + CHUNKS_Y, CHUNKS_SIZE, CHUNKS_SIZE);
+	}
+
 	private boolean isOverShare(double mouseX, double mouseY) {
 		return this.tab == Tab.ROUTES && this.menu.canChangeSharing()
 			&& GuiPanels.isOver(mouseX, mouseY, this.rowX(), this.topPos + SHARE_Y, ROW_WIDTH, SHARE_HEIGHT);
@@ -288,7 +301,8 @@ public class CarrierScreen extends AbstractContainerScreen<CarrierMenu> {
 
 	@Override
 	protected void extractLabels(GuiGraphicsExtractor graphics, int xm, int ym) {
-		GuiPanels.scrollingText(graphics, this.font, this.title.getString(), this.titleLabelX, this.titleLabelY, this.imageWidth - 16, GuiPanels.TEXT_COLOR);
+		int titleWidth = this.imageWidth - 16 - (this.menu.getChunks().isPresent() ? CHUNKS_SIZE + 2 : 0);
+		GuiPanels.scrollingText(graphics, this.font, this.title.getString(), this.titleLabelX, this.titleLabelY, titleWidth, GuiPanels.TEXT_COLOR);
 		if (this.tab == Tab.ROUTES) {
 			this.extractRoutesLabels(graphics);
 		} else {
@@ -304,6 +318,10 @@ public class CarrierScreen extends AbstractContainerScreen<CarrierMenu> {
 				graphics.setComponentTooltipForNextFrame(this.font, this.tabTooltip(shown), mouseX, mouseY);
 				return;
 			}
+		}
+		if (this.isOverChunks(mouseX, mouseY)) {
+			graphics.setComponentTooltipForNextFrame(this.font, ChunksButton.tooltip(this.font, this.menu.getChunks().get()), mouseX, mouseY);
+			return;
 		}
 		if (this.isOverShare(mouseX, mouseY)) {
 			graphics.setComponentTooltipForNextFrame(this.font, List.of(
@@ -379,6 +397,12 @@ public class CarrierScreen extends AbstractContainerScreen<CarrierMenu> {
 		}
 		if (this.isOverShare(event.x(), event.y())) {
 			this.click(CarrierMenu.SHARE_BUTTON);
+			return true;
+		}
+		if (this.isOverChunks(event.x(), event.y())) {
+			if (this.menu.getChunks().get().canSwitch()) {
+				this.click(CarrierMenu.CHUNKS_BUTTON);
+			}
 			return true;
 		}
 		List<Route> routes = this.menu.getRoutes();

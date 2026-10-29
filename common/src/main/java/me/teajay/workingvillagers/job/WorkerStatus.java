@@ -31,7 +31,10 @@ public final class WorkerStatus {
 		"kiln.no_ore", "kiln.no_fuel", "kiln.furnace_unreachable", "shop.no_goods", "shop.no_buyer",
 		"pit_digger.no_shovel", "pit_digger.no_pickaxe", "pit_digger.no_ladders", "pit_digger.no_planks", "pit_digger.no_logs", "pit_digger.no_pit", "pit_digger.bad_ring", "pit_digger.ring_broken",
 		"pit_digger.blocked_liquid", "pit_digger.blocked_tool", "pit_digger.unreachable", "pit_digger.ladder_blocked", "pit_digger.not_loaded",
-		"miner.no_tunnel", "miner.not_loaded", "miner.blocked", "miner.blocked_tool", "miner.no_seal_blocks", "miner.unreachable"
+		"miner.no_tunnel", "miner.not_loaded", "miner.blocked", "miner.blocked_tool", "miner.no_seal_blocks", "miner.unreachable",
+		"carrier.locked", "carrier.locked_route", "carrier.too_long",
+		"hauler.no_route", "hauler.no_boat", "hauler.no_jetty", "hauler.no_outputs", "hauler.no_shore", "hauler.shore_unreachable", "hauler.boat_unreachable",
+		"hauler.blocked", "hauler.not_loaded"
 	);
 	/**
 	 * The statuses that are no problem but no work either: waiting for crops, wool or tanning,
@@ -42,7 +45,8 @@ public final class WorkerStatus {
 		"lumberjack.no_tree", "lumberjack.break", "lumberjack.done_for_today", "farmer.growing", "carpenter.stock_full", "kiln.stock_full",
 		"pit_digger.done", "pit_digger.done_pillars", "pit_digger.done_for_today", "shop.sold_out", "miner.done", "miner.done_for_today",
 		"smith.no_repairs", "smith.no_experience", "saw.stock_full", "order_done", "shepherd.growing", "butcher.waiting", "carrier.nothing", "guard.morning", "fletcher.stock_full",
-		"apothecary.stock_full", "apothecary.stand_busy", "tanner.tanning", "tanner.stock_full", "weaponsmith.stock_full", "locked"
+		"apothecary.stock_full", "apothecary.stand_busy", "tanner.tanning", "tanner.stock_full", "weaponsmith.stock_full", "locked",
+		"hauler.nothing", "hauler.done_for_today"
 	);
 
 	private WorkerStatus() {

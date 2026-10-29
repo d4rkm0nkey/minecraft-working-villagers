@@ -17,6 +17,7 @@ Working Villagers turns villagers into paid employees. Hand one a work contract,
 | **Stone sawyer** | Stonecutter | Cuts stone into stairs, slabs, walls, bricks, ... |
 | **Carpenter** | Carpenter's bench | Crafts chests, barrels, ladders, tools, boats and other wooden goods |
 | **Carrier** | Wicker basket | Carries items between chests along up to three routes |
+| **Hauler** | Jetty | Rows a chest boat with cargo to a second jetty far away and brings back what waits there |
 | **Farmer** | Composter | Harvests and replants the fields around its composter |
 | **Smith** | Blast furnace, smithing table | Smelts ore in the blast furnace, repairs the workers' worn tools at the smithing table |
 | **Pit digger** | Pit stake | Digs out a pit you mark with string, layer by layer, with a ladder as the way out |
@@ -97,6 +98,12 @@ Hired villagers never take vanilla jobs and never quit by themselves. A worker t
 - Set up to **three routes** from a source chest to a target chest. The carrier fills its basket, carries the items over and brings back what didn't fit.
 - You can plan the routes on the basket before you hand it over.
 
+## ⛵ Hauler
+
+- For a camp far from your base: place a **jetty** at the water at each end and row the way once with the **freight book**.
+- The hauler loads a **chest boat** (27 stacks) at its jetty, rows your route to the other jetty, unloads there and brings back what waits in the chests there: logs from the lumberjack camp home, emeralds, axes and saplings back.
+- It only sets out if it is back before dusk, and with chunk loading on it carries its loaded chunks along the river.
+
 ## 🔍 Always know what's going on
 
 - Every workstation's menu shows who works there. Give your workers names with a name tag.
@@ -123,7 +130,7 @@ This is an early beta. **Back up your worlds** before trying it, and expect that
 
 - All workers are novices for now. Levels are planned.
 - Carriers have no filters yet and carry everything.
-- Workers only work while their chunks are loaded.
+- Workers only work while their chunks are loaded: near a player, or where the employer lets them work without a player (1 emerald per day extra).
 - No JEI/EMI/REI or Jade integration yet.
 
 Please report bugs and ideas on [GitHub](https://github.com/d4rkm0nkey/minecraft-working-villagers/issues).

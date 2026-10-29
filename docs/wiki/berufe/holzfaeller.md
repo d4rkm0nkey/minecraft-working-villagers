@@ -51,7 +51,7 @@ Ganzer Baum in einem Schlag (Treecapitator-Stil) oder doppelter Setzlingsertrag.
 ## Sonderfälle
 
 - Riesenbäume, Pilze, Mangroven, Nether-Stämme: Ob die Baumerkennung sie zuverlässig fällt, ist noch nicht durchgetestet. Nether-Stämme stehen nicht auf Erde und werden deshalb nicht gefällt.
-- Setzlinge wachsen ohne Spieler in der Nähe nicht (siehe [Chunk-Loading](../dorf/chunk-loading.md#wichtiger-haken-random-ticks)).
+- Setzlinge wachsen ohne Spieler in der Nähe nur, wenn der Holzfäller [ohne Spieler arbeitet](../dorf/chunk-loading.md); dann bleibt der Umkreis `lumberjack.searchRadius` geladen.
 
 ## Definition of Done (M1)
 

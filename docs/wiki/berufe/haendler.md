@@ -18,7 +18,7 @@ Der Händler bringt Waren per Karawane in Nachbardörfer und verkauft sie dort n
 ## Reise
 
 - Die Karawane (Händler + Lamas oder Esel) startet sichtbar.
-- Sobald sie geladene Chunks verlässt, wird die Reise abstrahiert: Reisezeit nach Entfernung, Ankunft mit Erlös. Keine Chunk-Ladung der Strecke nötig.
+- Sobald sie geladene Chunks verlässt, wird die Reise abstrahiert: Reisezeit nach Entfernung, Ankunft mit Erlös. Keine Chunk-Ladung der Strecke nötig. Derselbe Mechanismus wie die [gerechnete Fahrt des Fuhrmanns](fuhrmann.md#echte-und-gerechnete-fahrt).
 - Risiko: Pillager-Überfall mit Wahrscheinlichkeit je nach Entfernung und Begleitschutz ([Wache](wache.md), Golem). Ereignis landet im [Register](../dorf/dorfbuch.md#register).
 
 ## Aufträge

@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "workingvillagers:work_hours",
+  "function": "workingvillagers:chunks_only_by_the_employer",
+  "max_ticks": 200,
+  "setup_ticks": 1,
+  "structure": "workingvillagers:platform"
+}

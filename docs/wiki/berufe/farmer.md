@@ -28,7 +28,7 @@ Der Bauer erntet die Felder rund um seinen Komposter, sät neu und liefert die E
 
 ## Hinweise
 
-- Ohne Spieler in der Nähe wachsen Felder nicht (siehe [Chunk-Loading](../dorf/chunk-loading.md#wichtiger-haken-random-ticks)).
+- Ohne Spieler in der Nähe wachsen Felder nur, wenn der Bauer [ohne Spieler arbeitet](../dorf/chunk-loading.md); dann bleibt der Umkreis `farmer.fieldRadius` geladen.
 
 ## Master-Fähigkeit (Konzept)
 

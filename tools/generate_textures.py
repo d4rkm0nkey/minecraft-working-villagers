@@ -615,6 +615,67 @@ def carrier():
     return image
 
 
+def hauler():
+    """Villager profession overlay: a navy watch cap with a turned-up cuff; a blue and white
+    striped shirt, a red neckerchief, a tarred canvas waist apron, navy trousers and boots."""
+    image = blank(64)
+    p = image.load()
+    navy, navy_dark, navy_light = (40, 52, 92, 255), (28, 36, 66, 255), (62, 76, 122, 255)
+    white, blue = (226, 226, 218, 255), (52, 82, 150, 255)
+    scarf, scarf_dark = (175, 40, 35, 255), (130, 28, 25, 255)
+    canvas, canvas_dark = (120, 104, 78, 255), (92, 78, 58, 255)
+    trousers, boots = (44, 50, 70, 255), (45, 34, 26, 255)
+
+    def fill(x0, y0, x1, y1, color):
+        for y in range(y0, y1):
+            for x in range(x0, x1):
+                p[x, y] = color(x, y)
+
+    stripes = lambda x, y: blue if y % 2 else white
+    fill(16, 20, 44, 38, stripes)  # body
+    fill(6, 38, 14, 44, stripes)  # jacket top
+    fill(0, 44, 28, 56, stripes)  # jacket, upper part
+    fill(0, 56, 28, 64, lambda x, y: trousers)  # jacket, lower part
+    fill(4, 51, 16, 62, lambda x, y: canvas_dark if (x * 3 + y * 5) % 9 == 0 else canvas)  # waist apron on the front
+    fill(0, 51, 28, 52, lambda x, y: canvas_dark)  # apron string around the waist
+    fill(44, 22, 60, 34, stripes)  # arms
+    fill(40, 38, 64, 46, stripes)  # crossed arms, middle part
+    fill(7, 38, 13, 41, lambda x, y: scarf)  # neckerchief around the neck
+    fill(8, 44, 12, 47, lambda x, y: scarf_dark if y == 46 else scarf)  # its knot at the front
+    fill(0, 22, 16, 32, lambda x, y: trousers)  # legs
+    fill(0, 32, 16, 38, lambda x, y: boots)
+    knit = lambda x, y: navy_dark if x % 2 == 0 and y % 3 == 0 else navy
+    fill(40, 0, 48, 8, knit)  # cap top
+    fill(32, 8, 64, 11, knit)  # cap sides
+    fill(32, 11, 64, 13, lambda x, y: navy_light if x % 2 else navy)  # turned-up cuff
+    return image
+
+
+def freight_book():
+    """A brown book with a boat on blue water on the cover, the pages showing at the side."""
+    image = blank(16)
+    p = image.load()
+    cover, edge, spine = (125, 82, 45, 255), (85, 52, 28, 255), (100, 64, 34, 255)
+    paper, water, water_light = (236, 224, 186, 255), (52, 92, 170, 255), (90, 140, 210, 255)
+    hull, sail, mast = (70, 45, 25, 255), (240, 236, 220, 255), (60, 40, 22, 255)
+    for y in range(1, 15):
+        for x in range(3, 13):
+            p[x, y] = edge if x in (3, 12) or y in (1, 14) else cover
+    for y in range(2, 14):
+        p[4, y] = spine
+        p[12, y] = paper  # the pages
+    for x in range(5, 12):
+        p[x, 11] = water_light if x % 2 else water
+        p[x, 12] = water
+    for x in range(6, 11):
+        p[x, 10] = hull
+    p[7, 9] = p[9, 9] = hull
+    for y in range(5, 10):
+        p[8, y] = mast
+    p[9, 5] = p[9, 6] = p[10, 6] = p[9, 7] = p[10, 7] = p[11, 7] = p[9, 8] = sail
+    return image
+
+
 def woodcutter(jar):
     """The stonecutter textures with oak planks instead of stone. Grey (stone) pixels take
     the planks pixel at the same position, keeping the brightness of the stone pixel so
@@ -727,6 +788,9 @@ def main():
         "entity/villager/profession/guard.png": guard(),
         "entity/zombie_villager/profession/guard.png": guard(),
         "entity/zombie_villager/profession/shop_assistant.png": shop_assistant(),
+        "entity/villager/profession/hauler.png": hauler(),
+        "entity/zombie_villager/profession/hauler.png": hauler(),
+        "item/freight_book.png": freight_book(),
     }
     for part, image in woodcutter(jar).items():
         outputs[f"block/woodcutter_{part}.png"] = image

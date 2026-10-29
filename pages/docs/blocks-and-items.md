@@ -80,6 +80,22 @@ where you pick the miner's tunnel.
 
 [[craft: smooth_stone any_pickaxe smooth_stone / cobblestone iron_ingot cobblestone / cobblestone cobblestone cobblestone -> mining_bench]]
 
+## Jetty
+
+:mc-jetty: Workstation of the [hauler](workers/hauler.md), a mooring post at the water; a
+route needs one at each end. Right-click it to open its overview, with the freight book to
+record a route. Villagers walk around it instead of climbing on it.
+
+[[craft: _ string _ / _ any_log _ / _ any_log _ -> jetty]]
+
+## Freight book
+
+:mc-freight_book: Records the route of a [hauler](workers/hauler.md#recording-the-route):
+right-click a jetty with it, row a boat to the other jetty and right-click that one. It
+glints while it records.
+
+[[craft shapeless: book compass -> freight_book]]
+
 ## Village chest
 
 :mc-village_chest: A chest every worker nearby takes its wage, tools, saplings, seeds,
@@ -177,3 +193,4 @@ composts as usual.
 | :mc-head_kiln_operator: Kiln operator | :mc-kiln: Kiln | :mc-work_contract: Work contract |
 | :mc-head_shop_assistant: Shop assistant | :mc-trading_counter: Trading counter | :mc-work_contract: Work contract |
 | :mc-head_miner: Miner | :mc-mining_bench: Mining bench | :mc-work_contract: Work contract |
+| :mc-head_hauler: Hauler | :mc-jetty: Jetty | :mc-work_contract: Work contract |

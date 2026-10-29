@@ -12,6 +12,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import me.teajay.workingvillagers.Config;
+import me.teajay.workingvillagers.job.WorkerChunks;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
@@ -35,6 +37,11 @@ import net.minecraft.world.level.storage.LevelResource;
  * <p>Started with {@code -Dwvsim.auto=true} (the {@code runSimulation} task), a dedicated
  * server builds the village on its own, keeps a stand-in player above it (mobs only spawn and
  * crops only grow near players), sprints {@code wvsim.days} days and stops.
+ *
+ * <p>With {@code -Dwvsim.far=true} the workers work without a player nearby instead (see
+ * {@link WorkerChunks}): shortly after the start every worker is switched to it, the
+ * forceload is taken away and the stand-in moves {@link #FAR_OFFSET} blocks away. Only the
+ * chunks of the workers then tick; the customers stand still.
  */
 public final class Simulation {
 	private static final boolean AUTO = Boolean.getBoolean("wvsim.auto");
@@ -44,6 +51,13 @@ public final class Simulation {
 	private static final int VIEW = Integer.getInteger("wvsim.view", 6);
 	private static final boolean AUTO_WALLED = Boolean.getBoolean("wvsim.walled");
 	private static final boolean AUTO_SPRINT = Boolean.parseBoolean(System.getProperty("wvsim.sprint", "true"));
+	private static final boolean AUTO_FAR = Boolean.getBoolean("wvsim.far");
+	/** How far (east) the stand-in moves away from the village with {@code wvsim.far}. */
+	private static final int FAR_OFFSET = 3000;
+	/** Ticks after the start when the workers are switched to working without a player, -1: not (any more). */
+	private static int farAt = -1;
+	/** Whether the stand-in stays away from the village. */
+	private static boolean far;
 
 	private static SimRegistry registry;
 	private static SimMonitor monitor;
@@ -158,6 +172,10 @@ public final class Simulation {
 		for (int z = minZ; z <= maxZ; z += 160) {
 			command(server, "forceload add " + (center.getX() - half) + " " + z + " " + (center.getX() + half) + " " + Math.min(maxZ, z + 159));
 		}
+		if (AUTO_FAR) {
+			// Once every worker is loaded and has ticked
+			farAt = ticks + 100;
+		}
 		if (AUTO_SPRINT) {
 			run(server, AUTO_DAYS, true);
 		} else {
@@ -189,7 +207,7 @@ public final class Simulation {
 		player.onUpdateAbilities();
 		BlockPos center = registry != null ? registry.center : BlockPos.ZERO;
 		int ground = registry != null ? registry.ground : level.getSeaLevel();
-		player.teleportTo(level, center.getX() + 0.5, ground + 30, center.getZ() + 0.5, java.util.Set.of(), 0, 0, true);
+		player.teleportTo(level, center.getX() + (far ? FAR_OFFSET : 0) + 0.5, ground + 30, center.getZ() + 0.5, java.util.Set.of(), 0, 0, true);
 		standIn = player;
 		return player;
 	}
@@ -207,6 +225,10 @@ public final class Simulation {
 			if (++ticks % 1200 == 0 && (standIn.isRemoved() || server.getPlayerList().getPlayer(standIn.getUUID()) == null)) {
 				SimMonitor.LOG.warn("The stand-in player left, bringing it back");
 				standIn(server);
+			}
+			if (farAt >= 0 && ticks >= farAt) {
+				farAt = -1;
+				goFar(server);
 			}
 		}
 		if (monitor == null) {
@@ -234,6 +256,31 @@ public final class Simulation {
 		if (monitor != null && from instanceof net.minecraft.world.entity.npc.villager.Villager villager && from.level() instanceof ServerLevel level) {
 			monitor.converted(level, villager, into);
 		}
+	}
+
+	/**
+	 * Switches every worker to working without a player nearby (at no fee, all of them), takes
+	 * the forceload away and moves the stand-in away from the village.
+	 */
+	private static void goFar(MinecraftServer server) {
+		Config.CHUNK_LOADING_FEE.set(0);
+		Config.CHUNK_LOADING_MAX_WORKERS.set(256);
+		ServerLevel level = server.overworld();
+		int on = 0;
+		int missing = 0;
+		for (SimRegistry.Worker worker : registry.workers) {
+			if (level.getEntity(worker.uuid()) instanceof net.minecraft.world.entity.npc.villager.Villager villager) {
+				if (WorkerChunks.isOn(level, villager) || WorkerChunks.toggle(level, villager, standIn) != null && WorkerChunks.isOn(level, villager)) {
+					on++;
+				}
+			} else {
+				missing++;
+			}
+		}
+		command(server, "forceload remove all");
+		far = true;
+		standIn.teleportTo(level, registry.center.getX() + FAR_OFFSET + 0.5, registry.ground + 30, registry.center.getZ() + 0.5, java.util.Set.of(), 0, 0, true);
+		SimMonitor.LOG.info("Far: {} workers work without a player, {} not found; the stand-in is {} blocks away", on, missing, FAR_OFFSET);
 	}
 
 	private static void summary(MinecraftServer server) {

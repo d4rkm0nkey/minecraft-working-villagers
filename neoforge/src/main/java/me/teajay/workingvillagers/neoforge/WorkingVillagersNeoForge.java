@@ -10,6 +10,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import me.teajay.workingvillagers.WorkingVillagers;
+import me.teajay.workingvillagers.WorkingVillagersCommands;
 import me.teajay.workingvillagers.platform.Platform;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -34,7 +35,9 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.common.DataMapHooks;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
@@ -45,6 +48,7 @@ public class WorkingVillagersNeoForge {
 	public WorkingVillagersNeoForge(IEventBus modBus) {
 		NeoForgePlatform platform = new NeoForgePlatform();
 		WorkingVillagers.init(platform);
+		NeoForge.EVENT_BUS.addListener(RegisterCommandsEvent.class, event -> WorkingVillagersCommands.register(event.getDispatcher()));
 		platform.registers.values().forEach(register -> register.register(modBus));
 		modBus.addListener(RegisterPayloadHandlersEvent.class, event -> {
 			PayloadRegistrar registrar = event.registrar("1");
@@ -59,10 +63,11 @@ public class WorkingVillagersNeoForge {
 				insertAfter(event, Items.GRINDSTONE, WorkingVillagers.MINING_BENCH_ITEM.get(), WorkingVillagers.PIT_STAKE_ITEM.get());
 				insertAfter(event, Items.BLAST_FURNACE, WorkingVillagers.KILN_ITEM.get());
 				insertAfter(event, Items.BELL, WorkingVillagers.TRADING_COUNTER_ITEM.get());
+				insertAfter(event, Items.LECTERN, WorkingVillagers.JETTY_ITEM.get());
 				event.insertBefore(new ItemStack(Items.BARREL), new ItemStack(WorkingVillagers.VILLAGE_CHEST_ITEM.get()), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
 			} else if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
 				event.insertBefore(new ItemStack(Items.COMPASS), new ItemStack(WorkingVillagers.WICKER_BASKET.get()), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
-				insertAfter(event, Items.WRITABLE_BOOK, WorkingVillagers.WORK_CONTRACT.get());
+				insertAfter(event, Items.WRITABLE_BOOK, WorkingVillagers.WORK_CONTRACT.get(), WorkingVillagers.FREIGHT_BOOK.get());
 			}
 		});
 	}

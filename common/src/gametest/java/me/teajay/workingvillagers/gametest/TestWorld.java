@@ -38,8 +38,12 @@ final class TestWorld {
 
 	/** An adult villager without a profession, hired with a work contract by a mock player. */
 	static Villager hireVillager(GameTestHelper helper, BlockPos pos) {
+		return hireVillager(helper, pos, helper.makeMockPlayer(GameType.SURVIVAL));
+	}
+
+	/** Spawns a villager the player hires with a work contract. */
+	static Villager hireVillager(GameTestHelper helper, BlockPos pos, Player player) {
 		Villager villager = helper.spawn(EntityTypes.VILLAGER, pos);
-		Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 		ItemStack contract = new ItemStack(WorkingVillagers.WORK_CONTRACT.get());
 		player.setItemInHand(InteractionHand.MAIN_HAND, contract);
 		WorkContractItem.hire(villager, player, contract, InteractionHand.MAIN_HAND);

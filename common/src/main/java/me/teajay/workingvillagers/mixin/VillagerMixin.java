@@ -12,6 +12,7 @@ import me.teajay.workingvillagers.job.ChopTrees;
 import me.teajay.workingvillagers.job.HiredVillager;
 import me.teajay.workingvillagers.job.StuckWorkers;
 import me.teajay.workingvillagers.job.TradeFamilies;
+import me.teajay.workingvillagers.job.WorkerChunks;
 import me.teajay.workingvillagers.job.WorkerJobs;
 import me.teajay.workingvillagers.job.WorkerNotice;
 import me.teajay.workingvillagers.job.WorkerSupplies;
@@ -460,6 +461,7 @@ public abstract class VillagerMixin implements HiredVillager, ContainerUser {
 		WorkerJobs.giveUpPotentialJobSite(villager);
 		Carriers.dropBasket(villager, null);
 		if (this.workingvillagers$employer != null && villager.level() instanceof ServerLevel level) {
+			WorkerChunks.forget(level, villager);
 			for (ItemStack stack : villager.getInventory().removeAllItems()) {
 				villager.spawnAtLocation(level, stack);
 			}

@@ -78,9 +78,9 @@ the status does not help, go through this list.
 | *Pit finished, some pillars stay* | Blocks it does not dig (builds, logs) and everything under them stay. |
 | *Waiting: cannot reach the pit at x y z* | It found no way to the block at these coordinates, e.g. because of pillars or steps it cannot climb. It tries again after a while. |
 | *Waiting: the ladder is blocked* | Something is in the ladder column or on the string above it, so the pit digger cannot climb. Clear the ladder column from the exit down to the bottom. |
-| *Waiting: the pit is not loaded* | Part of the ring lies in chunks that are not loaded, because no player is near enough. Stay closer to the pit. |
+| *Waiting: the pit is not loaded* | Part of the ring lies in chunks that are not loaded, because no player is near enough. Stay closer to the pit, or let the pit digger [work without a player](../workers/basics.md#working-without-a-player-nearby). |
 | *Waiting: no tunnel picked* | Click **Pick tunnel** at the mining bench, then right-click the side of the block where the tunnel starts. |
-| *Waiting: the tunnel is too far from players (not loaded)* | The end of the tunnel lies in chunks that are not loaded. Go closer, the miner goes on by itself. |
+| *Waiting: the tunnel is too far from players (not loaded)* | The end of the tunnel lies in chunks that are not loaded. Go closer, the miner goes on by itself; or let it [work without a player](../workers/basics.md#working-without-a-player-nearby). |
 | *Waiting: the tunnel is blocked at x y z* | A block the miner does not dig (planks, rails, a chest of a mineshaft, bricks) is in the way. Take it away. |
 | *Waiting: needs cobblestone to seal off water or lava* | Give the miner some cobblestone. Afterwards it keeps 16 of what it digs. |
 | *Tunnel finished* | Make the tunnel longer with **+**, or pick a new one. |
@@ -88,6 +88,9 @@ the status does not help, go through this list.
 | *Waiting: nobody nearby buys these goods* | No villager with a job within 24 blocks of the trading counter buys anything from the input chests for emeralds. Check their trades, or put other goods in. |
 | *Waiting: the buyers are sold out until they restock* | The buyers' trades are used up. Villagers restock at their workstation during the day. |
 | *Nothing to carry, strolling around* | All sources of the carrier are empty, or the targets are full. |
+| *Waiting: carries on "…" only as …* | The route is too long for the carrier's level (a novice: half of `carrier.maxRouteLength`). Shorten it or put a chest in between; it learns only by carrying. |
+| *Waiting: carries on "…" only as …, before that it does not work that many routes* | A novice works only its first route, an apprentice two. Give the route to another carrier, or wait until this one rises. |
+| *Waiting: "…" is longer than … blocks* | The route is longer than any carrier goes (the server lowered `carrier.maxRouteLength`). Shorten it. |
 | *Stuck: cannot get anywhere* | The worker is in a hole, boxed in or behind a fence. After a minute it is brought back to its workstation (a carrier: to the source of its first route). If it stays stuck, clear a free spot next to the workstation or dig it out. |
 | *Sleeping*, *Free time*, *Chatting ...* | Not work time. Workers work from the morning to the afternoon. |
 
@@ -185,6 +188,7 @@ the status does not help, go through this list.
 
 - [ ] At least one route.
 - [ ] Something is in a source, and the target has room for it.
+- [ ] The route is short enough for its level (a novice: 16 blocks), and a novice has it as its first route.
 - [ ] The carrier still has its basket (it shows on the villager).
 
 ## Still stuck?

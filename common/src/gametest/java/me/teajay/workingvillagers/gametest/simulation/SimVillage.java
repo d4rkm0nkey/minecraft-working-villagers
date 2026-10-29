@@ -11,9 +11,11 @@ import me.teajay.workingvillagers.carrier.CarrierData;
 import me.teajay.workingvillagers.carrier.Carriers;
 import me.teajay.workingvillagers.carrier.Route;
 import me.teajay.workingvillagers.item.WorkContractItem;
+import me.teajay.workingvillagers.job.CarryItems;
 import me.teajay.workingvillagers.job.HiredVillager;
 import me.teajay.workingvillagers.job.VillageChests;
 import me.teajay.workingvillagers.job.WorkerJobs;
+import me.teajay.workingvillagers.job.WorkerLevels;
 import me.teajay.workingvillagers.job.WorkerSupplies;
 import me.teajay.workingvillagers.station.ContainerNames;
 import me.teajay.workingvillagers.station.Pit;
@@ -34,6 +36,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.sheep.Sheep;
 import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.entity.npc.villager.VillagerData;
 import net.minecraft.world.entity.npc.villager.VillagerProfession;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
@@ -384,7 +387,12 @@ public final class SimVillage {
 		return villager;
 	}
 
-	/** A carrier with the routes, carrying emeralds for {@code wageDays} days. */
+	/**
+	 * A carrier with the routes, carrying emeralds for {@code wageDays} days. It has the level
+	 * its routes need (a novice only works one short route, see {@link CarryItems#canCarry}):
+	 * the village is one a player has played for a long time, and a carrier that cannot work
+	 * its routes never learns.
+	 */
 	Villager carrier(String name, int wing, List<Route> routes, int wageDays) {
 		ItemStack basket = new ItemStack(WorkingVillagers.WICKER_BASKET.get());
 		CarrierData.writeRoutes(basket, routes);
@@ -394,6 +402,18 @@ public final class SimVillage {
 		this.employer.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
 		if (!Carriers.isCarrier(villager)) {
 			this.warn("Could not make " + name + " a carrier");
+		}
+		int level = WorkerLevels.NOVICE;
+		for (int i = 0; i < routes.size(); i++) {
+			int needed = CarryItems.neededLevel(i, routes.get(i));
+			if (needed < 0) {
+				this.warn(name + ": route " + routes.get(i).name() + " is longer than any carrier goes");
+			}
+			level = Math.max(level, needed);
+		}
+		if (level > WorkerLevels.NOVICE) {
+			villager.setVillagerData(villager.getVillagerData().withLevel(level));
+			villager.setVillagerXp(VillagerData.getMinXpPerLevel(level));
 		}
 		this.give(villager, name, new ItemStack(Items.EMERALD, wageDays * Config.DAILY_WAGE.get()));
 		villager.setCustomName(Component.literal(name));

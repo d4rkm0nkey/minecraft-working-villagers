@@ -62,6 +62,7 @@ final class SuppliesRow {
 			case "fuel" -> Items.CHARCOAL;
 			case "rod" -> Items.FISHING_ROD;
 			case "boat" -> Items.OAK_BOAT;
+			case "chest_boat" -> Items.OAK_CHEST_BOAT;
 			case "bow" -> Items.BOW;
 			case "arrows" -> Items.ARROW;
 			case "bottles" -> Items.GLASS_BOTTLE;

@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.menu.StationTabFlags;
 import me.teajay.workingvillagers.station.StationType;
 import net.minecraft.ChatFormatting;
@@ -40,7 +41,7 @@ public final class StationTabs {
 	public static boolean hasOrderTab(StationType type) {
 		return type.hasOrder() || type == StationType.CHOPPING_BLOCK || type == StationType.PIT_STAKE || type == StationType.MINING_BENCH
 			|| type == StationType.LOOM || type == StationType.SMOKER || type == StationType.BARREL || type == StationType.TARGET
-			|| type == StationType.LECTERN;
+			|| type == StationType.LECTERN || type == StationType.JETTY;
 	}
 
 	/** The tabs of the station; {@code overview}: all of them, for the overview itself. */
@@ -118,6 +119,7 @@ public final class StationTabs {
 				case GRINDSTONE -> Items.IRON_SWORD;
 				case LECTERN -> Items.ENCHANTED_BOOK;
 				case TARGET -> Items.BOW;
+				case JETTY -> WorkingVillagers.FREIGHT_BOOK.get();
 				default -> Items.PAPER;
 			};
 			case WORK -> Items.AIR;

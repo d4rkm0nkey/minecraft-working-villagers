@@ -137,6 +137,8 @@ stays in the wage box.
   (`miner.keepSealBlocks`) for sealing water and lava and closing holes.
 - **Fisher:** needs a fishing rod (carries up to 2), one use per catch; plain rods are used
   until they break, enchanted or renamed ones are given back before. Optionally a boat (keeps 1) to row out.
+- **Hauler:** needs a chest boat (keeps 1); while the boat is on the water it does not need
+  another.
 - **Butcher:** needs a sword or an axe (carries up to 2), one use per animal. Feed (up to
   16 of each kind, `butcher.keepFeed`) only for breeding, coal or charcoal (up to 16,
   `butcher.keepFuel`) only for smoking.
@@ -634,6 +636,35 @@ A carrier moves items between chests. It has no workstation: its **wicker basket
 
 All carriers are novices for now; later the capacity is meant to grow with the level.
 
+## Hauler
+
+A hired villager at a **jetty** (a mooring post: string over two logs) becomes a
+**hauler**. It rows a chest boat between its jetty and a second jetty along a route a player
+rowed once; input chests of a jetty hold the cargo, output chests take what arrives. Both
+jetties are stations with chests of their own.
+
+1. **Recording the route:** right-click the first jetty with the **freight book** (book +
+   compass, shapeless), row a boat to the other jetty and right-click that one. While the
+   book is in the player's inventory and the player sits in a boat, a waypoint is noted
+   every 16 blocks and before every bend (where the straight line from the last waypoint
+   would leave the water). The boat has to be within 16 blocks of the jetty at both ends;
+   the route may be up to 512 blocks long (`hauler.maxRouteLength`). Both jetties get the
+   route (`Voyage`, saved with the station), the second one reversed. The book glints while
+   it records; using it on the first jetty again cancels. Recordings do not survive a restart.
+2. **A trip:** the hauler puts its chest boat on the water at the first waypoint, loads it
+   from the input chests, gets in and rows straight from waypoint to waypoint (like the
+   fisher, 0.18 blocks per tick). At the other jetty it gets out, unloads into the output
+   chests there, loads from the input chests there and rows back. It also sets out with an
+   empty boat when cargo waits at the other jetty. With nothing left to carry it takes the
+   boat out of the water.
+3. It only sets out if the round trip ends before dusk (time of day 12000); once out it
+   comes home also after work hours. A loaded boat it has no time left for stays moored. With
+   full output chests it waits at that jetty. The boat and the leg of the trip are kept with
+   the station, so a hauler loaded again in its boat rows on the right way.
+4. The other jetty and its chests belong to its workplace for chunk loading. Where the water
+   ahead is not loaded it waits on the water; stuck on a bank it heads for the next
+   waypoint, and if that does not help its status says so.
+
 ## Configuration
 
 `config/workingvillagers.json` (created on the first start, with comments) sets the wage, the
@@ -688,7 +719,8 @@ the weaponsmith forges two iron axes, grinds two worn iron pickaxes from a villa
 one and disenchants a sword into bottles o' enchanting, the
 fisher fishes at a pond and rows out on a lake with its boat and takes it back, also past
 a pond closer to the barrel, uses up a
-plain rod but gives back an enchanted one, the
+plain rod but gives back an enchanted one, the hauler rows cobblestone along a canal to a
+second jetty and brings logs back, the
 butcher slaughters cows down to the herd size, breeds a piglet and smokes chicken, a
 vanilla farmer is hired and stays at its composter and gets farmer trades, one that has
 traded keeps its trades and experience, a cartographer is not hired, hired villagers do not trample farmland, the smith smelts raw iron, the kiln operator

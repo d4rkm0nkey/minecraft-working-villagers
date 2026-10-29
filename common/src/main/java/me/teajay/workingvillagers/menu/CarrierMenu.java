@@ -7,6 +7,7 @@ import me.teajay.workingvillagers.WorkingVillagers;
 import me.teajay.workingvillagers.carrier.CarrierData;
 import me.teajay.workingvillagers.carrier.Route;
 import me.teajay.workingvillagers.carrier.RouteHolder;
+import me.teajay.workingvillagers.job.WorkerChunks;
 import me.teajay.workingvillagers.station.ContainerNames;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -37,6 +38,8 @@ public class CarrierMenu extends AbstractContainerMenu {
 	public static final int SHARE_BUTTON = 50;
 	/** Button of a free route slot: closes the menu and lets the player pick the containers. */
 	public static final int NEW_ROUTE_BUTTON = 60;
+	/** Switches working without a player nearby on or off for the carrier (see {@link WorkerChunks}). */
+	public static final int CHUNKS_BUTTON = 61;
 	private static final String TAG_ROUTES = "Routes";
 	/** The names of the containers of the routes: source and target of the first route, then of the second, ... */
 	private static final String TAG_NAMES = "Names";
@@ -127,6 +130,7 @@ public class CarrierMenu extends AbstractContainerMenu {
 		Villager worker = this.holder.worker();
 		if (worker != null && worker.level() instanceof ServerLevel level) {
 			SuppliesInfo.write(level, worker, tag);
+			ChunksInfo.write(level, worker, this.player, tag);
 		}
 		this.info.setInfo(tag);
 	}
@@ -171,6 +175,11 @@ public class CarrierMenu extends AbstractContainerMenu {
 		return SuppliesInfo.read(this.info.info());
 	}
 
+	/** Empty for a basket or if the server does not allow working without a player nearby. */
+	public Optional<ChunksInfo> getChunks() {
+		return ChunksInfo.read(this.info.info());
+	}
+
 	/** Whether everybody may change the routes. */
 	public boolean isShared() {
 		return this.info.info().getBooleanOr(TAG_SHARED, false);
@@ -188,6 +197,18 @@ public class CarrierMenu extends AbstractContainerMenu {
 			this.holder.setShared(!this.holder.shared());
 			this.updateInfo();
 			return true;
+		}
+		if (buttonId == CHUNKS_BUTTON) {
+			Villager worker = this.holder == null ? null : this.holder.worker();
+			if (worker == null || !(worker.level() instanceof ServerLevel level)) {
+				return false;
+			}
+			Component message = WorkerChunks.toggle(level, worker, player);
+			if (message != null && player instanceof ServerPlayer serverPlayer) {
+				serverPlayer.sendOverlayMessage(message);
+			}
+			this.updateInfo();
+			return message != null;
 		}
 		if (buttonId == NEW_ROUTE_BUTTON) {
 			if (this.holder == null || !this.holder.canEdit(player) || this.holder.routes().size() >= Route.MAX_ROUTES

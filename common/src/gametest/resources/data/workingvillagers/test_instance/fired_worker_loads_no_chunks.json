@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "workingvillagers:work_hours",
+  "function": "workingvillagers:fired_worker_loads_no_chunks",
+  "max_ticks": 200,
+  "setup_ticks": 1,
+  "structure": "workingvillagers:platform"
+}

@@ -67,6 +67,7 @@ public final class StationTabFlags {
 			case PIT_STAKE -> station.pit() == null;
 			case MINING_BENCH -> station.tunnel() == null;
 			case KILN -> false;
+			case JETTY -> station.voyage() == null;
 			// The weaponsmith also grinds and disenchants without an order
 			case GRINDSTONE -> !station.hasOrder() && station.grindMode() == Workstations.GRIND_NONE;
 			case LECTERN -> EnchantItems.table(level, pos) == null;

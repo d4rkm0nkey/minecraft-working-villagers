@@ -229,6 +229,11 @@ public class Workstations extends SavedData {
 	/** Lectern: the highest level of an enchanting table (15 bookshelves). */
 	public static final int MAX_ENCHANT_LEVEL = 30;
 	public static final int MAX_HERD = 32;
+	/** Jetty: the legs of the hauler's trip, see {@link Station#leg}. */
+	public static final int LEG_HOME = 0;
+	public static final int LEG_OUTBOUND = 1;
+	public static final int LEG_THERE = 2;
+	public static final int LEG_INBOUND = 3;
 	public static final int MIN_GUARD_RADIUS = 8;
 	public static final int MAX_GUARD_RADIUS = 32;
 
@@ -263,9 +268,10 @@ public class Workstations extends SavedData {
 		 */
 		private record Settings(
 			int herd, boolean boat, Optional<DyeColor> dye, int tanning, long tannedAt, int grind, int enchantLevel, Map<Item, Integer> made,
-			Map<Item, Integer> stocks, Map<Item, Batch> batches
+			Map<Item, Integer> stocks, Map<Item, Batch> batches, Optional<Voyage> voyage, Optional<UUID> haulBoat, int leg, boolean unloading
 		) {
-			static final Settings DEFAULT = new Settings(DEFAULT_HERD, true, Optional.empty(), 0, 0L, GRIND_BOTH, 0, Map.of(), Map.of(), Map.of());
+			static final Settings DEFAULT = new Settings(DEFAULT_HERD, true, Optional.empty(), 0, 0L, GRIND_BOTH, 0, Map.of(), Map.of(), Map.of(),
+				Optional.empty(), Optional.empty(), LEG_HOME, false);
 			static final MapCodec<Settings> MAP_CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
 				Codec.intRange(0, MAX_HERD).optionalFieldOf("herd", DEFAULT_HERD).forGetter(Settings::herd),
 				Codec.BOOL.optionalFieldOf("boat", true).forGetter(Settings::boat),
@@ -276,7 +282,11 @@ public class Workstations extends SavedData {
 				Codec.intRange(0, MAX_ENCHANT_LEVEL).optionalFieldOf("enchant_level", 0).forGetter(Settings::enchantLevel),
 				Codec.unboundedMap(BuiltInRegistries.ITEM.byNameCodec(), Codec.INT).optionalFieldOf("made", Map.of()).forGetter(Settings::made),
 				Codec.unboundedMap(BuiltInRegistries.ITEM.byNameCodec(), Codec.INT).optionalFieldOf("stocks", Map.of()).forGetter(Settings::stocks),
-				Codec.unboundedMap(BuiltInRegistries.ITEM.byNameCodec(), Batch.CODEC).optionalFieldOf("batches", Map.of()).forGetter(Settings::batches)
+				Codec.unboundedMap(BuiltInRegistries.ITEM.byNameCodec(), Batch.CODEC).optionalFieldOf("batches", Map.of()).forGetter(Settings::batches),
+				Voyage.CODEC.optionalFieldOf("voyage").forGetter(Settings::voyage),
+				UUIDUtil.CODEC.optionalFieldOf("haul_boat").forGetter(Settings::haulBoat),
+				Codec.intRange(LEG_HOME, LEG_INBOUND).optionalFieldOf("leg", LEG_HOME).forGetter(Settings::leg),
+				Codec.BOOL.optionalFieldOf("unloading", false).forGetter(Settings::unloading)
 			).apply(i, Settings::new));
 		}
 
@@ -356,6 +366,13 @@ public class Workstations extends SavedData {
 		private int grind;
 		/** Lectern: the level the librarian enchants at, 0 for the highest the bookshelves allow. */
 		private int enchantLevel;
+		/** Jetty: the route to the other jetty, null until a player rowed it with the freight book. */
+		private @Nullable Voyage voyage;
+		/** Jetty: the hauler's chest boat while it is on the water, and where the hauler is on its trip (see {@link #leg}). */
+		private @Nullable UUID haulBoat;
+		private int leg;
+		/** Jetty: whether the hauler still has to unload what it brought to the jetty it is at. */
+		private boolean unloading;
 		private @Nullable Workstations owner;
 		/** The kind of station the settings belong to, unknown for entries saved before it was stored. */
 		private @Nullable StationType type;
@@ -372,6 +389,10 @@ public class Workstations extends SavedData {
 			this.tannedAt = settings.tannedAt();
 			this.grind = settings.grind();
 			this.enchantLevel = settings.enchantLevel();
+			this.voyage = settings.voyage().orElse(null);
+			this.haulBoat = settings.haulBoat().orElse(null);
+			this.leg = settings.leg();
+			this.unloading = settings.unloading();
 			this.made = new HashMap<>(settings.made());
 			this.stocks = new HashMap<>(settings.stocks());
 			this.batches = new HashMap<>(settings.batches());
@@ -738,7 +759,7 @@ public class Workstations extends SavedData {
 
 		private Settings settings() {
 			return new Settings(this.herd, this.boat, Optional.ofNullable(this.dye), this.tanning, this.tannedAt, this.grind, this.enchantLevel, Map.copyOf(this.made),
-				Map.copyOf(this.stocks), Map.copyOf(this.batches));
+				Map.copyOf(this.stocks), Map.copyOf(this.batches), Optional.ofNullable(this.voyage), Optional.ofNullable(this.haulBoat), this.leg, this.unloading);
 		}
 
 		/** Lectern: the level the librarian enchants at, 0 for the highest the bookshelves allow. */
@@ -825,6 +846,59 @@ public class Workstations extends SavedData {
 		public void setBoat(boolean boat) {
 			if (this.boat != boat) {
 				this.boat = boat;
+				this.setDirty();
+			}
+		}
+
+		/** Jetty: the route to the other jetty, null until a player rowed it with the freight book. */
+		public @Nullable Voyage voyage() {
+			return this.voyage;
+		}
+
+		public void setVoyage(@Nullable Voyage voyage) {
+			this.voyage = voyage;
+			this.setDirty();
+		}
+
+		/** Jetty: the hauler's chest boat while it lies on the water or is rowed, null while the hauler carries it. */
+		public @Nullable UUID haulBoat() {
+			return this.haulBoat;
+		}
+
+		public void setHaulBoat(@Nullable UUID boat) {
+			if (!Objects.equals(this.haulBoat, boat)) {
+				this.haulBoat = boat;
+				this.setDirty();
+			}
+		}
+
+		/**
+		 * Jetty: where the hauler is on its trip: at home ({@link #LEG_HOME}), on the way out
+		 * ({@link #LEG_OUTBOUND}), at the other jetty ({@link #LEG_THERE}) or on the way back
+		 * ({@link #LEG_INBOUND}). Kept here so a hauler loaded again in its boat knows which way it rows.
+		 */
+		public int leg() {
+			return this.leg;
+		}
+
+		public void setLeg(int leg) {
+			if (this.leg != leg) {
+				this.leg = leg;
+				this.setDirty();
+			}
+		}
+
+		/**
+		 * Jetty: whether the hauler still has to unload what it brought to the jetty it is at;
+		 * what is in the boat after that, it loaded for the trip.
+		 */
+		public boolean unloading() {
+			return this.unloading;
+		}
+
+		public void setUnloading(boolean unloading) {
+			if (this.unloading != unloading) {
+				this.unloading = unloading;
 				this.setDirty();
 			}
 		}
@@ -1096,7 +1170,7 @@ public class Workstations extends SavedData {
 				&& this.stocks.isEmpty() && this.batches.isEmpty()
 				&& !this.strip && this.pit == null && this.depth == Pit.DEFAULT_DEPTH && this.tunnel == null && this.wage == 0
 				&& this.herd == DEFAULT_HERD && this.boat && this.dye == null && this.tanning == 0
-				&& this.grind == GRIND_BOTH && this.enchantLevel == 0;
+				&& this.grind == GRIND_BOTH && this.enchantLevel == 0 && this.voyage == null && this.haulBoat == null && this.leg == LEG_HOME && !this.unloading;
 		}
 
 		/**

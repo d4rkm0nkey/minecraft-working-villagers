@@ -46,6 +46,7 @@ publishMods {
 // mod that builds a big village on a flat world, sprints through some in-game days and writes
 // its measurements into run/simulation/world/simulation.
 //   ./gradlew :fabric:runSimulation -Pwings=2 -Pdays=5
+// -Pfar=true: the workers work without a player nearby (chunk loading), nothing is forceloaded.
 // -Pview=N: view distance of the stand-in player and the server (default 6; 12 for numbers
 // comparable to a player who looks around). -Pinstance=N: its own folder and port
 // (run/simulation-N, port 25565+N), to run several at once.
@@ -68,6 +69,8 @@ loom {
 			property("wvsim.days", project.findProperty("days") ?: "5")
 			property("wvsim.sprint", project.findProperty("sprint") ?: "true")
 			property("wvsim.walled", project.findProperty("walled") ?: "false")
+			// -Pfar=true: the workers work without a player nearby, the stand-in is far away
+			property("wvsim.far", project.findProperty("far") ?: "false")
 			property("wvsim.view", simView.toString())
 			vmArg("-Xmx6G")
 			// -Pjfr: a Java Flight Recorder profile of the run, run/simulation/simulation.jfr

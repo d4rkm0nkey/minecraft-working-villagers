@@ -12,8 +12,8 @@ Das Konzept ist gut multiplayerfähig, wenn es von Anfang an eingeplant wird: Di
 | Kisten | Vanilla schützt keine Kisten; Fremde können Ertrag stehlen | Kein eigener Kistenschutz; stattdessen Claim-Mods unterstützen. Optional: Dorfkasse nur für Rollen öffenbar. |
 | Griefing | Spieler töten fremde Arbeiter | [Sterberegister](../dorf/dorfbuch.md#register) nennt den Spieler als Ursache. Config: Angestellte gegen fremde Spieler unverwundbar. |
 | Inaktive Spieler | Dörfer bleiben ewig gesperrt und geladen | Nach X Tagen Inaktivität (Config, z. B. 30 Echtzeit-Tage) Chunks entladen, später Dorf wieder freigeben. |
-| Offline-Besitzer | Soll das Dorf arbeiten, wenn der Besitzer offline ist? | Config: immer, nur wenn ein Teammitglied online ist, oder nur wenn der Besitzer online ist (siehe [Chunk-Loading](../dorf/chunk-loading.md)). |
-| Serverlast | Viele Spieler × viele Arbeiter × geladene Chunks | Globales Chunk-Limit, Tick-Budget pro Arbeiter, Admin-Befehl zur Auflistung aller Dörfer und ihrer Last. |
+| Offline-Besitzer | Soll das Dorf arbeiten, wenn der Besitzer offline ist? | Umgesetzt: `chunkLoading.onlyWhileEmployerOnline` (Standard: nur wenn der Arbeitgeber online ist). Offen: „wenn ein Teammitglied online ist“ (siehe [Chunk-Loading](../dorf/chunk-loading.md#neustart-und-arbeitgeber-offline)). |
+| Serverlast | Viele Spieler × viele Arbeiter × geladene Chunks | Umgesetzt: Limit pro Spieler (`chunkLoading.maxWorkersPerPlayer`) und `/workingvillagers chunks` für Operatoren. Offen: globales Chunk-Limit, Tick-Budget pro Arbeiter. |
 | Netzwerk | Dorfbuch mit vielen Arbeitern | Daten nur beim Öffnen senden, Live-Updates nur für offene GUIs. |
 | Spielerhandel | Spieler wollen untereinander handeln | Handelsrouten zwischen Spielerdörfern über den [Händler](../berufe/haendler.md) (Idee). |
 

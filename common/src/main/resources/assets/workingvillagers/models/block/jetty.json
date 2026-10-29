@@ -1,0 +1,140 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "minecraft:block/dark_oak_log",
+    "post": "minecraft:block/dark_oak_log",
+    "post_top": "minecraft:block/dark_oak_log_top",
+    "rope": "minecraft:block/stripped_oak_log"
+  },
+  "elements": [
+    {
+      "from": [
+        4,
+        0,
+        4
+      ],
+      "to": [
+        12,
+        12,
+        12
+      ],
+      "faces": {
+        "north": {
+          "texture": "#post"
+        },
+        "east": {
+          "texture": "#post"
+        },
+        "south": {
+          "texture": "#post"
+        },
+        "west": {
+          "texture": "#post"
+        },
+        "up": {
+          "texture": "#post_top"
+        },
+        "down": {
+          "texture": "#post_top",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "from": [
+        3,
+        12,
+        3
+      ],
+      "to": [
+        13,
+        14,
+        13
+      ],
+      "faces": {
+        "north": {
+          "texture": "#post"
+        },
+        "east": {
+          "texture": "#post"
+        },
+        "south": {
+          "texture": "#post"
+        },
+        "west": {
+          "texture": "#post"
+        },
+        "up": {
+          "texture": "#post_top"
+        },
+        "down": {
+          "texture": "#post_top"
+        }
+      }
+    },
+    {
+      "from": [
+        3.5,
+        6,
+        3.5
+      ],
+      "to": [
+        12.5,
+        8,
+        12.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#rope"
+        },
+        "east": {
+          "texture": "#rope"
+        },
+        "south": {
+          "texture": "#rope"
+        },
+        "west": {
+          "texture": "#rope"
+        },
+        "up": {
+          "texture": "#rope"
+        },
+        "down": {
+          "texture": "#rope"
+        }
+      }
+    },
+    {
+      "from": [
+        7,
+        4,
+        12.5
+      ],
+      "to": [
+        9,
+        7,
+        13.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#rope"
+        },
+        "east": {
+          "texture": "#rope"
+        },
+        "south": {
+          "texture": "#rope"
+        },
+        "west": {
+          "texture": "#rope"
+        },
+        "up": {
+          "texture": "#rope"
+        },
+        "down": {
+          "texture": "#rope"
+        }
+      }
+    }
+  ]
+}

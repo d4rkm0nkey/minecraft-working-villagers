@@ -4,8 +4,10 @@ import java.nio.file.Path;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import me.teajay.workingvillagers.WorkingVillagers;
+import me.teajay.workingvillagers.WorkingVillagersCommands;
 import me.teajay.workingvillagers.platform.Platform;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -30,6 +32,7 @@ public class WorkingVillagersFabric implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		WorkingVillagers.init(new FabricPlatform());
+		CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> WorkingVillagersCommands.register(dispatcher));
 
 		// Next to the vanilla blocks they belong to
 		CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register(output -> {
@@ -38,11 +41,12 @@ public class WorkingVillagersFabric implements ModInitializer {
 			output.insertAfter(Items.GRINDSTONE, WorkingVillagers.MINING_BENCH_ITEM.get(), WorkingVillagers.PIT_STAKE_ITEM.get());
 			output.insertAfter(Items.BLAST_FURNACE, WorkingVillagers.KILN_ITEM.get());
 			output.insertAfter(Items.BELL, WorkingVillagers.TRADING_COUNTER_ITEM.get());
+			output.insertAfter(Items.LECTERN, WorkingVillagers.JETTY_ITEM.get());
 			output.insertBefore(Items.BARREL, WorkingVillagers.VILLAGE_CHEST_ITEM.get());
 		});
 		CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.TOOLS_AND_UTILITIES).register(output -> {
 			output.insertBefore(Items.COMPASS, WorkingVillagers.WICKER_BASKET.get());
-			output.insertAfter(Items.WRITABLE_BOOK, WorkingVillagers.WORK_CONTRACT.get());
+			output.insertAfter(Items.WRITABLE_BOOK, WorkingVillagers.WORK_CONTRACT.get(), WorkingVillagers.FREIGHT_BOOK.get());
 		});
 	}
 

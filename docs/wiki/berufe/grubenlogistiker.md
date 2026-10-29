@@ -104,4 +104,4 @@ Fallback, wenn Chunk-Loading per Config aus ist: Die Lore-Fahrt wird abstrahiert
 
 ## Siehe auch
 
-[Die Mine](../grundlagen/mine.md) · [Minenarbeiter](minenarbeiter.md) · [Träger](traeger.md) · [Logistik](../grundlagen/logistik.md) · [Chunk-Loading](../dorf/chunk-loading.md)
+[Die Mine](../grundlagen/mine.md) · [Minenarbeiter](minenarbeiter.md) · [Träger](traeger.md) · [Fuhrmann](fuhrmann.md) (Lorenfahrer) · [Logistik](../grundlagen/logistik.md) · [Chunk-Loading](../dorf/chunk-loading.md)

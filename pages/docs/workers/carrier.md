@@ -34,6 +34,10 @@ Right-click the carrier with an **empty hand**. The menu has two tabs at the top
   can take out), its emeralds and your inventory. A carrier has no workstation and so no
   wage box: give it emeralds directly. A red dot on the tab: it has no wage.
 
+The button with the ender pearl next to its name lets it
+[work without a player nearby](basics.md#working-without-a-player-nearby): then the
+containers of its routes stay loaded, too.
+
 ### Adding a route
 
 Click **+ New route** in the first free slot. The menu closes. Right-click the
@@ -67,6 +71,13 @@ During work hours the carrier goes through its routes in turn:
 
 When all sources are empty, it strolls around near its first source and looks again
 every few seconds.
+
+A new carrier works only its **first route**, and only if source and target are at most
+half of `carrier.maxRouteLength` apart (16 blocks by default). The second route follows as
+apprentice, the third as journeyman, and the routes may get longer with every level. A route
+it does not work yet is skipped. If that leaves it nothing to do, its status says so, e.g.
+*Waiting: carries on "Logs" only as Apprentice*. Since a carrier learns only by carrying,
+shorten such a route or put a chest in between, and give the carrier a route it can work.
 
 !!! info "No filters yet"
     A carrier moves **everything** in the source. Use a separate output chest for the

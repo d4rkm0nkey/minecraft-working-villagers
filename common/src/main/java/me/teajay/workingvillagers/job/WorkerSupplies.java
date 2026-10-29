@@ -135,6 +135,11 @@ public final class WorkerSupplies {
 	public static final Stock FUEL = new Stock("fuel", stack -> stack.is(ItemTags.COALS), Config.KEEP_FUEL::get, "", false);
 	/** The fisher's boat, to row out to open water; without it it fishes from the shore. */
 	public static final Stock BOAT = new Stock("boat", stack -> stack.is(ItemTags.BOATS), () -> 1, "", false);
+	/**
+	 * The hauler's chest boat. It cannot work without, but it is not missing while it lies on
+	 * the water (see {@link HaulCargo}), so it does not count as required here.
+	 */
+	public static final Stock CHEST_BOAT = new Stock("chest_boat", stack -> stack.is(ItemTags.CHEST_BOATS), () -> 1, "hauler.no_boat", false);
 	/** The guard's arrows: without them it cannot do its work. */
 	public static final Stock ARROWS = new Stock("arrows", stack -> stack.is(Items.ARROW), Config.KEEP_ARROWS::get, "guard.no_arrows", true);
 	/** The glass bottles of the guard and the weaponsmith, to bottle experience. */
@@ -554,6 +559,9 @@ public final class WorkerSupplies {
 		if (profession.is(WorkingVillagers.FISHER_PROFESSION)) {
 			return List.of(BOAT);
 		}
+		if (profession.is(WorkingVillagers.HAULER_PROFESSION)) {
+			return List.of(CHEST_BOAT);
+		}
 		if (profession.is(WorkingVillagers.GUARD_PROFESSION)) {
 			return Config.GUARD_EXPERIENCE.get() ? List.of(ARROWS, BOTTLES) : List.of(ARROWS);
 		}
@@ -725,7 +733,11 @@ public final class WorkerSupplies {
 	static BlockPos anchor(ServerLevel level, Villager worker) {
 		Optional<GlobalPos> jobSite = worker.getBrain().getMemory(MemoryModuleType.JOB_SITE);
 		if (jobSite.isPresent() && jobSite.get().dimension() == level.dimension()) {
-			return jobSite.get().pos();
+			// A hauler at the other jetty of its route belongs there until it rows home
+			return Workstations.find(level, jobSite.get().pos())
+				.filter(station -> station.leg() == Workstations.LEG_THERE && station.voyage() != null)
+				.map(station -> station.voyage().destination())
+				.orElse(jobSite.get().pos());
 		}
 		CarrierData carrier = ((HiredVillager) worker).workingvillagers$getCarrier();
 		if (carrier != null && !carrier.routes().isEmpty()) {

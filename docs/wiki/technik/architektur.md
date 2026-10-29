@@ -19,7 +19,7 @@ Der Rest der Seite ist das ursprüngliche Konzept.
 
 ## Loader & Version
 
-- Das Repository nutzt ein Multiloader-Setup (`common`, `fabric`, `neoforge`). Spiellogik gehört nach `common`, loaderspezifischer Code (Registrierung, Chunk-Tickets, Inventar-APIs) in die Loader-Module.
+- Das Repository nutzt ein Multiloader-Setup (`common`, `fabric`, `neoforge`). Spiellogik gehört nach `common`, loaderspezifischer Code (Registrierung, Befehle, Inventar-APIs) in die Loader-Module.
 - Fabric: schlank, schnelle Updates. NeoForge: mächtigere Capabilities/Attachments für Inventare.
 - Voraussetzung: eine Version mit Vanilla-Crafter (1.21+).
 
@@ -46,7 +46,7 @@ Der Rest der Seite ist das ursprüngliche Konzept.
 
 - Pathfinding ist der teuerste Teil: Ziele bündeln, Pfade cachen, nur alle n Ticks neu planen.
 - Bereichs-Scan inkrementell (z. B. 64 Blöcke pro Tick), nicht der ganze Bereich auf einmal.
-- Chunk-Loading über gekaufte Dörfer und besetzte Workstations, inklusive eigener Wachstums-Ticks für Arbeitsbereiche (siehe [Chunk-Loading](../dorf/chunk-loading.md)).
+- Chunk-Loading pro Arbeiter über ein mitlaufendes Vanilla-Ticket plus Tickets für den Arbeitsplatz; eigene Wachstums-Ticks sind nicht nötig, Vanilla gibt jedem tickenden Chunk Random Ticks (siehe [Chunk-Loading](../dorf/chunk-loading.md#technik)).
 
 ## Datenhaltung & Netzwerk
 

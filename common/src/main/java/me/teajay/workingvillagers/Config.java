@@ -240,6 +240,24 @@ public final class Config {
 	public static final IntOption STACKS_PER_TRIP = intOption("carrier", "stacksPerTrip", 6, 1, 6,
 		"How many stacks a carrier carries at once (its basket holds 6).");
 
+	public static final IntOption HAUL_MAX_LENGTH = intOption("hauler", "maxRouteLength", 512, 32, 768,
+		"How long (in blocks, along the water) the route of a hauler from one jetty to the other may be.",
+		"The hauler rows there and back within one day.");
+
+	public static final BoolOption CHUNK_LOADING = boolOption("chunkLoading", "enabled", true,
+		"The employer can let a worker work without a player nearby: the chunks around the worker and its workplace",
+		"stay loaded. Off: workers only work in chunks a player keeps loaded.");
+	public static final IntOption CHUNK_LOADING_FEE = intOption("chunkLoading", "dailyFee", 1, 0, 16,
+		"Emeralds a worker that works without a player nearby takes per work day on top of its wage.");
+	public static final IntOption CHUNK_LOADING_MAX_WORKERS = intOption("chunkLoading", "maxWorkersPerPlayer", 16, 0, 256,
+		"How many workers of one employer may work without a player nearby.");
+	public static final BoolOption CHUNK_LOADING_EMPLOYER_ONLINE = boolOption("chunkLoading", "onlyWhileEmployerOnline", true,
+		"Load the chunks only while the employer is online (somewhere in the world).");
+	public static final BoolOption CHUNK_LOADING_WORKPLACE = boolOption("chunkLoading", "loadWorkplace", true,
+		"Also keep the workplace loaded while the worker is away from it (sleeping, at a village chest): the station,",
+		"its chests and its area (trees, fields, pasture, pit), or the chests of a carrier's routes.",
+		"Off: only the chunks around the worker itself.");
+
 	public static final BoolOption VILLAGE_CHESTS = boolOption("villageChests", "enabled", true,
 		"Workers take their wage, tools, saplings, seeds, ladders and torches from village chests nearby.",
 		"Off: village chests are ordinary chests.");
@@ -457,6 +475,11 @@ public final class Config {
 
 		public boolean get() {
 			return this.value;
+		}
+
+		/** Changes the value for this run (the game tests). The file stays as it is. */
+		public void set(boolean value) {
+			this.value = value;
 		}
 
 		@Override

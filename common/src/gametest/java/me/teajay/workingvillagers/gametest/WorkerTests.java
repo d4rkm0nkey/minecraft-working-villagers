@@ -24,6 +24,7 @@ import me.teajay.workingvillagers.station.Pit;
 import me.teajay.workingvillagers.station.PitLimits;
 import me.teajay.workingvillagers.station.PitPreviews;
 import me.teajay.workingvillagers.station.StationType;
+import me.teajay.workingvillagers.station.Voyage;
 import me.teajay.workingvillagers.station.Workstations.ChestRole;
 import me.teajay.workingvillagers.station.Workstations;
 import net.minecraft.core.BlockPos;
@@ -102,6 +103,7 @@ public final class WorkerTests {
 		});
 		MinerTests.register(registry);
 		LevelTests.register(registry);
+		ChunkTests.register(registry);
 		registry.accept("contract_hires_unemployed", WorkerTests::contractHiresUnemployed);
 		registry.accept("contract_rejects_employed", WorkerTests::contractRejectsEmployed);
 		registry.accept("lumberjack_fells_tree", WorkerTests::lumberjackFellsTree);
@@ -134,6 +136,7 @@ public final class WorkerTests {
 		registry.accept("kiln_operator_keeps_finished_order", WorkerTests::kilnOperatorKeepsFinishedOrder);
 		registry.accept("fletcher_makes_arrows_for_spectral_arrows", WorkerTests::fletcherMakesArrowsForSpectralArrows);
 		registry.accept("carrier_moves_items", WorkerTests::carrierMovesItems);
+		registry.accept("carrier_says_why_a_route_waits", WorkerTests::carrierSaysWhyARouteWaits);
 		registry.accept("farmer_harvests_and_replants", WorkerTests::farmerHarvestsAndReplants);
 		registry.accept("workers_do_not_trample_farmland", WorkerTests::workersDoNotTrampleFarmland);
 		registry.accept("worker_finds_workplace", WorkerTests::workerFindsWorkplace);
@@ -175,6 +178,7 @@ public final class WorkerTests {
 		registry.accept("fisher_fishes_from_shore", WorkerTests::fisherFishesFromShore);
 		registry.accept("fisher_rows_out", WorkerTests::fisherRowsOut);
 		registry.accept("fisher_rows_out_past_pond", WorkerTests::fisherRowsOutPastPond);
+		registry.accept("hauler_rows_cargo_both_ways", WorkerTests::haulerRowsCargoBothWays);
 		registry.accept("fletcher_makes_arrows_from_gravel", WorkerTests::fletcherMakesArrowsFromGravel);
 		registry.accept("fletcher_makes_arrows_from_nuggets", WorkerTests::fletcherMakesArrowsFromNuggets);
 		registry.accept("fletcher_keeps_stock", WorkerTests::fletcherKeepsStock);
@@ -250,6 +254,8 @@ public final class WorkerTests {
 		Config.NOVICE_AREA.set(100);
 		// The tests run side by side: the village chests of one test must not reach the workers of the next
 		Config.VILLAGE_CHEST_RADIUS.set(8);
+		// The mock players that hire the workers are never online
+		Config.CHUNK_LOADING_EMPLOYER_ONLINE.set(false);
 		// Quick bites, short trips
 		Config.MIN_BITE_SECONDS.set(1);
 		Config.MAX_BITE_SECONDS.set(1);
@@ -923,6 +929,43 @@ public final class WorkerTests {
 		helper.succeedWhen(() -> {
 			helper.assertTrue(rowed[0], "The fisher did not row out on the lake: " + TestWorld.describe(worker));
 			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> !stack.is(Items.FISHING_ROD) && !stack.is(Items.OAK_BOAT), 3, "the catch in the output chest");
+		});
+	}
+
+	/**
+	 * Two jetties at the ends of a canal: the hauler puts its chest boat on the water, loads
+	 * the cobblestone, rows to the other jetty, unloads it there, brings the logs back and takes
+	 * its boat out of the water again.
+	 */
+	private static void haulerRowsCargoBothWays(GameTestHelper helper) {
+		pond(helper, 2, 10, 21, 12);
+		BlockPos home = new BlockPos(3, 0, 7);
+		BlockPos far = new BlockPos(20, 0, 7);
+		helper.setBlock(home, WorkingVillagers.JETTY.get());
+		helper.setBlock(far, WorkingVillagers.JETTY.get());
+		BlockPos homeInput = TestWorld.chest(helper, new BlockPos(5, 0, 7), new ItemStack(Items.COBBLESTONE, 64));
+		BlockPos homeOutput = TestWorld.chest(helper, new BlockPos(7, 0, 7));
+		BlockPos farInput = TestWorld.chest(helper, new BlockPos(16, 0, 7), new ItemStack(Items.OAK_LOG, 16));
+		BlockPos farOutput = TestWorld.chest(helper, new BlockPos(18, 0, 7));
+		TestWorld.link(helper, home, homeInput, ChestRole.INPUT);
+		TestWorld.link(helper, home, homeOutput, ChestRole.OUTPUT);
+		TestWorld.link(helper, far, farInput, ChestRole.INPUT);
+		TestWorld.link(helper, far, farOutput, ChestRole.OUTPUT);
+		// The route as a player rowed it: along the middle of the canal
+		Voyage voyage = new Voyage(helper.absolutePos(far), List.of(
+			helper.absolutePos(new BlockPos(3, 0, 11)), helper.absolutePos(new BlockPos(11, 0, 11)), helper.absolutePos(new BlockPos(20, 0, 11))));
+		TestWorld.station(helper, home).setVoyage(voyage);
+		TestWorld.station(helper, far).setVoyage(voyage.reversed(helper.absolutePos(home)));
+		Villager worker = TestWorld.hireVillager(helper, new BlockPos(6, 0, 5));
+		TestWorld.assign(helper, worker, home);
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2), new ItemStack(Items.OAK_CHEST_BOAT));
+		helper.succeedWhen(() -> {
+			helper.assertTrue(TestWorld.count(helper, farOutput, stack -> stack.is(Items.COBBLESTONE)) == 64,
+				"The cobblestone did not arrive: " + TestWorld.describe(worker));
+			helper.assertTrue(TestWorld.count(helper, homeOutput, stack -> stack.is(Items.OAK_LOG)) == 16,
+				"The logs did not come back: " + TestWorld.describe(worker));
+			helper.assertTrue(worker.getVehicle() == null, "The hauler is still in the boat");
+			helper.assertTrue(worker.getInventory().countItem(Items.OAK_CHEST_BOAT) == 1, "The hauler did not take its boat out of the water: " + TestWorld.describe(worker));
 		});
 	}
 
@@ -2331,6 +2374,34 @@ public final class WorkerTests {
 		helper.succeedWhen(() -> {
 			TestWorld.assertHolds(helper, worker, OUTPUT, stack -> stack.is(Items.COBBLESTONE), 74, "cobblestone in the target");
 			helper.assertTrue(TestWorld.count(helper, INPUT, stack -> !stack.isEmpty()) == 0, "The source is not empty");
+		});
+	}
+
+	/**
+	 * A novice works only its first route: with nothing there and items on the second route it
+	 * does not say it has nothing to carry, but that it works the second route from apprentice.
+	 */
+	private static void carrierSaysWhyARouteWaits(GameTestHelper helper) {
+		BlockPos secondSource = INPUT.north(3);
+		BlockPos secondTarget = OUTPUT.north(3);
+		TestWorld.chest(helper, INPUT);
+		TestWorld.chest(helper, OUTPUT);
+		TestWorld.chest(helper, secondSource, new ItemStack(Items.COBBLESTONE, 16));
+		TestWorld.chest(helper, secondTarget);
+		ItemStack basket = new ItemStack(WorkingVillagers.WICKER_BASKET.get());
+		CarrierData.writeRoutes(basket, List.of(new Route(helper.absolutePos(INPUT), helper.absolutePos(OUTPUT)),
+			new Route(helper.absolutePos(secondSource), helper.absolutePos(secondTarget))));
+		Villager worker = helper.spawn(EntityTypes.VILLAGER, WORKER);
+		Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+		player.setItemInHand(InteractionHand.MAIN_HAND, basket);
+		Carriers.appoint(worker, player, basket, InteractionHand.MAIN_HAND);
+		TestWorld.give(helper, worker, new ItemStack(Items.EMERALD, 2));
+		helper.succeedWhen(() -> {
+			Component task = ((HiredVillager) worker).workingvillagers$getTask();
+			boolean says = task != null && task.getContents() instanceof TranslatableContents contents
+				&& contents.getKey().equals("status.workingvillagers.carrier.locked_route");
+			helper.assertTrue(says, "Does not say why the second route waits: " + TestWorld.describe(worker));
+			helper.assertTrue(((HiredVillager) worker).workingvillagers$hasProblem(), "Not shown as a problem");
 		});
 	}
 }

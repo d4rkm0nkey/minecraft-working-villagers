@@ -36,7 +36,7 @@ Empfehlung: Start als **Rein Utility** (V1), Wachstum in Richtung **Unternehmer*
 
 - [Träger](../berufe/traeger.md) mit Routen und Item-Frame-Filtern.
 - Lagerhaus mit [Bibliothekar](../berufe/bibliothekar.md), Bestellsystem per Buch.
-- Lasttiere (Esel/Lama) und Chest-Minecart-Strecken.
+- Lasttiere (Esel/Lama) und Chest-Minecart-Strecken: ausgearbeitet als [Fuhrmann](../berufe/fuhrmann.md) (Boot, Lama-Karawane, Lore).
 
 ### Produktion & Crafting
 

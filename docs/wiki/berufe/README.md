@@ -2,7 +2,7 @@
 
 [← Wiki-Start](../README.md)
 
-Fast jeder Vanilla-Beruf hat schon eine Workstation, die sich als Arbeitsauftrag deuten lässt. Damit wächst der Mod ohne neue Blöcke. Neu sind nur Hackklotz, Holzsäge (Woodcutter), Hobelbank, Grubenwerkbank, Förderhaspel, Grubenpflock, Brennofen und für den Handel Handelstresen bzw. Handelskontor. Umgesetzt sind davon Hackklotz, Holzsäge, Hobelbank, Grubenpflock, Brennofen und Handelstresen; der [Träger](traeger.md) braucht statt eines Blocks den Weidenkorb.
+Fast jeder Vanilla-Beruf hat schon eine Workstation, die sich als Arbeitsauftrag deuten lässt. Damit wächst der Mod ohne neue Blöcke. Neu sind nur Hackklotz, Holzsäge (Woodcutter), Hobelbank, Grubenwerkbank, Förderhaspel, Grubenpflock, Brennofen und für den Handel Handelstresen bzw. Handelskontor. Umgesetzt sind davon Hackklotz, Holzsäge, Hobelbank, Grubenpflock, Brennofen, Handelstresen und der Anleger des Fuhrmanns; der [Träger](traeger.md) braucht statt eines Blocks den Weidenkorb.
 
 Alle Berufe folgen dem [Kernloop](../grundlagen/kernloop.md) und den [Lohnstufen](../wirtschaft/anheuern-und-lohn.md#lohnstufen) (Lohnstufen sind noch Konzept, siehe [Stand der Umsetzung](../wirtschaft/anheuern-und-lohn.md#stand-der-umsetzung)). Wie Arbeiter aufsteigen und was jedes Level je Beruf freischaltet, steht unter [Level und Aufstieg](../grundlagen/level.md). Jede Berufsseite beschreibt nur, was den Beruf besonders macht, inklusive seiner Master-Fähigkeit. Im Spiel erklärt jeden Beruf sein [Berufsbuch](../grundlagen/berufsbuecher.md).
 
@@ -18,6 +18,7 @@ Alle Berufe folgen dem [Kernloop](../grundlagen/kernloop.md) und den [Lohnstufen
 | [Crafter-Bediener](crafter-bediener.md) | Crafter | Crafter befüllen und auslösen | nein | M4 |
 | [Grubenlogistiker](grubenlogistiker.md) | Förderhaspel | Depots, Trägerkette, Schienen mit Lore, Aufzug zwischen Etagen | Förderhaspel | M4 |
 | [Händler](haendler.md) | Handelskontor | Karawanen zu Nachbardörfern | Handelskontor | M4 |
+| [Fuhrmann](fuhrmann.md) | Anleger (Verladestelle) | Items über lange Strecken: Boot, Lama-Karawane oder Lore, mit Rückfracht | Anleger, Item Frachtbuch | Schiffer umgesetzt, Säumer und Lorenfahrer Konzept (M4) |
 | [Farmer](farmer.md) (im Spiel: Bauer) | Komposter | Vorhandene Felder ernten und neu säen | nein | umgesetzt (ohne Pflügen) |
 | [Waffenschmied](waffenschmied.md) | Schleifstein | Werkzeug und Waffen schmieden, abgenutztes Werkzeug zusammenschleifen, Beute entzaubern (Erfahrung) | nein | umgesetzt |
 | [Schmied](schmied.md) | Schmelzofen / Schmiedetisch | Erze schmelzen, Werkzeug reparieren | nein | umgesetzt |

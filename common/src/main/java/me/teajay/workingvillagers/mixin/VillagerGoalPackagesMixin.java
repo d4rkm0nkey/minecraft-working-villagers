@@ -20,6 +20,7 @@ import me.teajay.workingvillagers.job.FletchArrows;
 import me.teajay.workingvillagers.job.ForgeAtGrindstone;
 import me.teajay.workingvillagers.job.GoFishing;
 import me.teajay.workingvillagers.job.GuardPost;
+import me.teajay.workingvillagers.job.HaulCargo;
 import me.teajay.workingvillagers.job.TendAnimals;
 import me.teajay.workingvillagers.job.TendSheep;
 import me.teajay.workingvillagers.job.FindWorkplace;
@@ -108,6 +109,8 @@ public abstract class VillagerGoalPackagesMixin {
 			work = new DigTunnel();
 		} else if (profession.is(WorkingVillagers.SHOP_ASSISTANT_PROFESSION)) {
 			work = new SellGoods();
+		} else if (profession.is(WorkingVillagers.HAULER_PROFESSION)) {
+			work = new HaulCargo();
 		}
 		if (work != null) {
 			cir.setReturnValue(ImmutableList.of(

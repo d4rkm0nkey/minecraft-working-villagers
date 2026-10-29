@@ -256,10 +256,17 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 				free ? StationMenu.ASSIGN_BUTTON : StationMenu.UNASSIGN_BUTTON,
 				List.of(Component.translatable(free ? "gui.workingvillagers.station.assign.tooltip" : "gui.workingvillagers.station.unassign.tooltip")));
 		}
+		this.menu.getChunks().ifPresent(info -> {
+			// Working without a player nearby, left of the button
+			int x = this.leftPos + COLUMN_X + COLUMN_WIDTH - this.workerButtonWidth() - this.chunksButtonWidth();
+			int y = this.topPos + CONTENT_Y;
+			ChunksButton.extract(graphics, this.font, info, x, y, BIG, info.canSwitch() && GuiPanels.isOver(mouseX, mouseY, x, y, BIG, BIG));
+			this.hotspots.add(new Hotspot(x, y, BIG, BIG, info.canSwitch() ? StationMenu.CHUNKS_BUTTON : -1, ChunksButton.tooltip(this.font, info)));
+		});
 		int level = this.menu.getLevel();
 		if (level > 0) {
 			// The worker's experience towards the next level, under its name
-			int barWidth = COLUMN_WIDTH - this.workerButtonWidth() - 4;
+			int barWidth = COLUMN_WIDTH - this.workerButtonWidth() - this.chunksButtonWidth() - 4;
 			int barX = this.leftPos + COLUMN_X;
 			int barY = this.topPos + CONTENT_Y + 16;
 			graphics.fill(barX, barY, barX + barWidth, barY + 2, 0xFF3F3F3F);
@@ -306,6 +313,11 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		return lines;
 	}
 
+	/** The switch for working without a player nearby and the gap to the button right of it. */
+	private int chunksButtonWidth() {
+		return this.menu.getChunks().isPresent() ? BIG + 2 : 0;
+	}
+
 	private int workerButtonWidth() {
 		boolean free = this.menu.getWorker().isEmpty();
 		if (!free && !this.menu.hasHiredWorker()) {
@@ -340,7 +352,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 		if (this.menu.getLevel() > 0) {
 			worker = worker.copy().append(" · ").append(Component.translatable("merchant.level." + this.menu.getLevel()));
 		}
-		GuiPanels.scrollingText(graphics, this.font, worker.getString(), 8, CONTENT_Y + 6, COLUMN_WIDTH - this.workerButtonWidth() - 4,
+		GuiPanels.scrollingText(graphics, this.font, worker.getString(), 8, CONTENT_Y + 6, COLUMN_WIDTH - this.workerButtonWidth() - this.chunksButtonWidth() - 4,
 			this.menu.getWorker().isPresent() ? GuiPanels.TEXT_COLOR : GuiPanels.MUTED_COLOR);
 		int y = CONTENT_Y + BIG + 6;
 		for (FormattedCharSequence line : this.statusLines()) {
@@ -507,6 +519,7 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			case LOOM -> "gui.workingvillagers.loom.no_chests";
 			case SMOKER -> "gui.workingvillagers.smoker.no_chests";
 			case BARREL -> "gui.workingvillagers.barrel.no_chests";
+			case JETTY -> "gui.workingvillagers.jetty.no_chests";
 			case TARGET -> "gui.workingvillagers.target.no_chests";
 			default -> "gui.workingvillagers.station.no_chests";
 		});
@@ -1079,6 +1092,18 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 				this.hint(graphics, Component.translatable(this.menu.getHunting() ? "gui.workingvillagers.target.hint.hunt" : "gui.workingvillagers.target.hint"),
 					this.settingRowY(2));
 			}
+			case JETTY -> {
+				Optional<int[]> voyage = this.menu.getVoyage();
+				Component route = voyage
+					.map(found -> (Component) Component.translatable("gui.workingvillagers.jetty.route", found[2], found[3], found[4], found[0], found[1]))
+					.orElse(Component.translatable("gui.workingvillagers.jetty.no_route"));
+				int y = CONTENT_Y + 1;
+				for (FormattedCharSequence line : this.limit(this.font.split(route, COLUMN_WIDTH), 4)) {
+					graphics.text(this.font, line, 8, y, voyage.isPresent() ? GuiPanels.TEXT_COLOR : GuiPanels.WARNING_COLOR, false);
+					y += LINE;
+				}
+				this.hint(graphics, Component.translatable("gui.workingvillagers.jetty.hint"), y + 4);
+			}
 			case BARREL -> {
 				int width = this.toggleWidth("gui.workingvillagers.barrel.boat.on", "gui.workingvillagers.barrel.boat.off");
 				GuiPanels.scrollingText(graphics, this.font, Component.translatable("gui.workingvillagers.barrel.boat").getString(), 8,
@@ -1336,6 +1361,13 @@ public class StationScreen extends AbstractContainerScreen<StationMenu> {
 			return Optional.of(experience > 0
 				? Component.translatable("gui.workingvillagers.target.kills_experience", kills, experience)
 				: Component.translatable("gui.workingvillagers.target.kills", kills));
+		}
+		if (this.type() == StationType.JETTY) {
+			int stacks = this.menu.getLogsToday();
+			if (this.menu.getWorker().isEmpty()) {
+				return Optional.of(Component.translatable("gui.workingvillagers.chopping_block.hire"));
+			}
+			return stacks < 0 ? Optional.empty() : Optional.of(Component.translatable("gui.workingvillagers.jetty.today", stacks));
 		}
 		if (this.type() == StationType.BARREL) {
 			int catches = this.menu.getLogsToday();
